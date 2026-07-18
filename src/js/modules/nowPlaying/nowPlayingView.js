@@ -43,6 +43,7 @@ export function createNowPlayingView({
   const sidebarZone = root.querySelector(".now-playing__sidebar-reveal-zone");
   const topbarZone = root.querySelector(".now-playing__topbar-reveal-zone");
   const trackStage = root.querySelector(".now-playing__track-stage");
+  const artworkStack = root.querySelector(".now-playing__artwork-stack");
   const playlistSection = root.querySelector(".now-playing__playlist-section");
   const artworkLayers = Array.from(
     root.querySelectorAll(".now-playing__artwork-layer"),
@@ -52,6 +53,7 @@ export function createNowPlayingView({
   );
   const progress = root.querySelector('[data-action="seek"]');
   const volume = root.querySelector('[data-action="volume"]');
+  const volumePercent = root.querySelector('[data-ui="volume-percent"]');
   const status = root.querySelector(".now-playing__status");
   const brandLabel = root.querySelector('[data-ui="brand-label"]');
   const fullscreenButton = root.querySelector('[data-action="fullscreen"]');
@@ -85,6 +87,7 @@ export function createNowPlayingView({
     visualLayers,
     ambientLayers,
     artworkLayers,
+    artworkStack,
     metadataSlots,
     trackStage,
     playlistSection,
@@ -118,6 +121,7 @@ export function createNowPlayingView({
     repeatButton,
     progress,
     volume,
+    volumePercent,
     currentTime,
     duration,
   });
@@ -457,6 +461,31 @@ export function createNowPlayingView({
     }
   }
 
+  function onWheel(event) {
+    const volumeTarget = event.target.closest(
+      '[data-action="volume"], [data-action="mute"], [data-ui="volume-percent"]',
+    );
+    if (
+      !volumeTarget ||
+      !root.contains(volumeTarget) ||
+      event.ctrlKey ||
+      event.deltaY === 0 ||
+      Math.abs(event.deltaX) > Math.abs(event.deltaY)
+    ) {
+      return;
+    }
+    event.preventDefault();
+    controlsVisibility.show();
+    const currentPercent = Math.round(
+      (latestSnapshot?.muted ? 0 : latestSnapshot?.volume || 0) * 100,
+    );
+    const nextPercent = Math.min(
+      100,
+      Math.max(0, currentPercent + (event.deltaY < 0 ? 5 : -5)),
+    );
+    controller.setVolume(nextPercent / 100);
+  }
+
   function onChange(event) {
     if (event.target.matches('[data-ui="sidebar-playlist-switcher"]')) {
       void selectPlaylist(event.target.value);
@@ -465,7 +494,6 @@ export function createNowPlayingView({
 
   async function selectPlaylist(playlistId) {
     const previousTrack = controller.currentTrack;
-    const wasPlaying = controller.isPlaying;
     if (!libraryModel.setActivePlaylist(playlistId)) return false;
     const nextTracks = libraryModel.getActiveTracks();
     const selectedTrackId = nextTracks.some(
@@ -478,7 +506,7 @@ export function createNowPlayingView({
     }
     syncLibraryQueue({ selectedTrackId });
     if (selectedTrackId && previousTrack?.id !== selectedTrackId) {
-      await controller.selectTrack(selectedTrackId, { autoplay: wasPlaying });
+      await controller.selectTrack(selectedTrackId, { autoplay: false });
     }
     return true;
   }
@@ -504,6 +532,7 @@ export function createNowPlayingView({
   root.addEventListener("click", onClick);
   root.addEventListener("keydown", onKeydown);
   root.addEventListener("input", onInput);
+  root.addEventListener("wheel", onWheel, { passive: false });
   root.addEventListener("change", onChange);
   window.addEventListener("blur", onWindowBlur);
   window.addEventListener("focus", onWindowFocus);
@@ -590,6 +619,7 @@ export function createNowPlayingView({
       root.removeEventListener("click", onClick);
       root.removeEventListener("keydown", onKeydown);
       root.removeEventListener("input", onInput);
+      root.removeEventListener("wheel", onWheel);
       root.removeEventListener("change", onChange);
       window.removeEventListener("blur", onWindowBlur);
       window.removeEventListener("focus", onWindowFocus);

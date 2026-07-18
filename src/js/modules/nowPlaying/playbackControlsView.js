@@ -11,6 +11,7 @@ export function createPlaybackControlsView({
   repeatButton,
   progress,
   volume,
+  volumePercent,
   currentTime,
   duration,
 }) {
@@ -65,12 +66,11 @@ export function createPlaybackControlsView({
     }
     if (volume) {
       const effectiveVolume = snapshot.muted ? 0 : snapshot.volume;
+      const effectivePercent = Math.round(effectiveVolume * 100);
       volume.value = String(effectiveVolume);
       volume.style.setProperty("--range-progress", `${effectiveVolume * 100}%`);
-      volume.setAttribute(
-        "aria-valuetext",
-        `${Math.round(effectiveVolume * 100)}%`,
-      );
+      volume.setAttribute("aria-valuetext", `${effectivePercent}%`);
+      if (volumePercent) volumePercent.textContent = `${effectivePercent}%`;
     }
     if (currentTime) {
       currentTime.textContent = formatPlaybackTime(snapshot.currentTime);
@@ -78,6 +78,10 @@ export function createPlaybackControlsView({
     if (duration) duration.textContent = formatPlaybackTime(snapshot.duration);
     const muted = snapshot.muted || snapshot.volume === 0;
     setPressedState(muteButton, muted);
+    muteButton?.setAttribute(
+      "aria-label",
+      t(muted ? "nowPlaying.unmute" : "nowPlaying.mute"),
+    );
     muteButton?.querySelector("i")?.classList.toggle("fa-volume-high", !muted);
     muteButton?.querySelector("i")?.classList.toggle("fa-volume-xmark", muted);
     root.classList.toggle("is-playing", snapshot.isPlaying);

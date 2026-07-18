@@ -1,5 +1,3 @@
-import { t } from "../i18n.js";
-
 function escapeCssUrl(value) {
   return String(value).replaceAll('"', "%22");
 }
@@ -10,6 +8,7 @@ export function createVisualTransitionController({
   visualLayers,
   ambientLayers,
   artworkLayers,
+  artworkStack,
   metadataSlots,
   trackStage,
   playlistSection,
@@ -39,7 +38,7 @@ export function createVisualTransitionController({
     root.dataset.motion = reduced ? "reduced" : "full";
   }
 
-  function commitTransition(index, trackId, { fallback = false } = {}) {
+  function commitTransition(index, trackId, { artworkReady = false } = {}) {
     if (visualTrackId !== trackId) return;
     const metadataIndex = Number(artworkLayers[index].dataset.metadataIndex);
     artworkLayers.forEach((layer, layerIndex) => {
@@ -48,10 +47,17 @@ export function createVisualTransitionController({
     metadataSlots.forEach((slot, slotIndex) => {
       slot.classList.toggle("is-active", slotIndex === metadataIndex);
     });
-    const layer = artworkLayers[index];
     const image = artworkImages[index];
-    layer.classList.toggle("is-fallback", fallback);
-    image.classList.toggle("is-loaded", !fallback);
+    image.classList.toggle("is-loaded", artworkReady);
+    const activeSlot = metadataSlots[metadataIndex];
+    root.classList.toggle(
+      "has-sidebar-artist",
+      !activeSlot.querySelector(".now-playing__track-artist").hidden,
+    );
+    root.classList.toggle(
+      "has-sidebar-album",
+      !activeSlot.querySelector(".now-playing__album").hidden,
+    );
     activeMetadataIndex = metadataIndex;
     pendingMetadataIndex = -1;
   }
@@ -59,15 +65,17 @@ export function createVisualTransitionController({
   function onArtworkLoad(event) {
     const image = event.currentTarget;
     if (image.dataset.visualTrackId !== visualTrackId) return;
-    commitTransition(Number(image.dataset.layerIndex), visualTrackId);
+    setArtworkVisibility(true);
+    commitTransition(Number(image.dataset.layerIndex), visualTrackId, {
+      artworkReady: true,
+    });
   }
 
   function onArtworkError(event) {
     const image = event.currentTarget;
     if (image.dataset.visualTrackId !== visualTrackId) return;
-    commitTransition(Number(image.dataset.layerIndex), visualTrackId, {
-      fallback: true,
-    });
+    setArtworkVisibility(false);
+    commitTransition(Number(image.dataset.layerIndex), visualTrackId);
   }
 
   artworkImages.forEach((image, index) => {
@@ -78,14 +86,24 @@ export function createVisualTransitionController({
   reducedMotionQuery?.addEventListener?.("change", syncMotionPreference);
   syncMotionPreference();
 
+  function setArtworkVisibility(visible) {
+    artworkStack.hidden = !visible;
+    root.classList.toggle("has-artwork", visible);
+  }
+
   function prepareMetadata(track) {
     pendingMetadataIndex =
       activeMetadataIndex < 0 ? 0 : 1 - activeMetadataIndex;
     const slot = metadataSlots[pendingMetadataIndex];
     slot.querySelector(".now-playing__track-title").textContent = track.title;
-    slot.querySelector(".now-playing__track-artist").textContent =
-      track.artist || track.album || t("nowPlaying.unknownArtist");
-    slot.querySelector(".now-playing__album").textContent = track.album || "";
+    const artist = slot.querySelector(".now-playing__track-artist");
+    const artistText = String(track.artist || "").trim();
+    artist.textContent = artistText;
+    artist.hidden = !artistText;
+    const album = slot.querySelector(".now-playing__album");
+    const albumText = String(track.album || "").trim();
+    album.textContent = albumText;
+    album.hidden = !albumText;
   }
 
   function prepareArtwork(track) {
@@ -100,24 +118,32 @@ export function createVisualTransitionController({
     image.classList.remove("is-loaded");
     if (!track.artworkUrl) {
       image.removeAttribute("src");
-      commitTransition(nextIndex, track.id, { fallback: true });
+      setArtworkVisibility(false);
+      commitTransition(nextIndex, track.id);
       return;
     }
-    layer.classList.add("is-fallback");
     image.src = track.artworkUrl;
     if (isReducedMotion()) {
-      commitTransition(nextIndex, track.id, { fallback: true });
+      setArtworkVisibility(false);
+      commitTransition(nextIndex, track.id);
       return;
     }
     if (image.complete && image.naturalWidth > 0) {
-      commitTransition(nextIndex, track.id);
+      setArtworkVisibility(true);
+      commitTransition(nextIndex, track.id, { artworkReady: true });
     }
   }
 
   function updateTrack(track) {
     if (!track) {
       visualTrackId = null;
-      root.classList.remove("has-track");
+      root.classList.remove(
+        "has-track",
+        "has-artwork",
+        "has-sidebar-artist",
+        "has-sidebar-album",
+      );
+      artworkStack.hidden = true;
       trackStage.hidden = true;
       playlistSection.hidden = true;
       return;

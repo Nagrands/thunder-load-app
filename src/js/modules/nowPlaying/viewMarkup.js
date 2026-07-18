@@ -18,9 +18,6 @@ function artworkLayer(index) {
   return `
     <div class="now-playing__artwork-layer" data-artwork-layer="${index}">
       <img class="now-playing__artwork" alt="" />
-      <span class="now-playing__artwork-fallback">
-        <i class="fa-solid fa-music"></i>
-      </span>
     </div>
   `;
 }
@@ -99,6 +96,7 @@ export function buildNowPlayingMarkup() {
                 data-ui="sidebar-playlist-switcher"
                 data-i18n-aria="nowPlaying.playlists.select"
                 aria-label="${t("nowPlaying.playlists.select")}"
+                aria-controls="now-playing-sidebar-queue"
               ></select>
               <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
             </span>
@@ -107,7 +105,7 @@ export function buildNowPlayingMarkup() {
         </div>
 
         <div class="now-playing__track-stage">
-          <div class="now-playing__artwork-stack" aria-hidden="true">
+          <div class="now-playing__artwork-stack" aria-hidden="true" hidden>
             ${artworkLayer(0)}
             ${artworkLayer(1)}
           </div>
@@ -128,7 +126,7 @@ export function buildNowPlayingMarkup() {
               ${iconButton("clear", "fa-solid fa-trash", "nowPlaying.clear")}
             </div>
           </div>
-          <div class="now-playing__playlist" role="listbox" aria-label="${t("nowPlaying.playlist")}"></div>
+          <div class="now-playing__playlist" id="now-playing-sidebar-queue" role="listbox" aria-label="${t("nowPlaying.playlist")}"></div>
         </div>
       </aside>
 
@@ -158,6 +156,7 @@ export function buildNowPlayingMarkup() {
         <div class="now-playing__volume">
           ${iconButton("mute", "fa-solid fa-volume-high", "nowPlaying.mute")}
           <input
+            id="now-playing-volume"
             class="now-playing__volume-range"
             data-action="volume"
             type="range"
@@ -168,6 +167,11 @@ export function buildNowPlayingMarkup() {
             data-i18n-aria="nowPlaying.volume"
             aria-label="${t("nowPlaying.volume")}"
           />
+          <output
+            class="now-playing__volume-percent"
+            data-ui="volume-percent"
+            for="now-playing-volume"
+          >100%</output>
           ${iconButton("fullscreen", "fa-solid fa-expand", "nowPlaying.enterFullscreen", "now-playing__control--fullscreen")}
         </div>
       </section>

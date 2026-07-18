@@ -185,6 +185,85 @@ describe("Now Playing view", () => {
     view.dispose();
   });
 
+  test("adjusts volume with the mouse wheel and shows the percentage", async () => {
+    const api = {
+      getState: jest.fn().mockResolvedValue({
+        data: {
+          playlist: { tracks: [sampleTrack] },
+          selectedTrackId: "demo",
+          volume: 0.5,
+        },
+      }),
+      setState: jest.fn().mockResolvedValue({ success: true }),
+      importFiles: jest.fn(),
+      importFolder: jest.fn(),
+    };
+    const view = createNowPlayingView({ api });
+    document.body.appendChild(view.element);
+    await view.ready;
+    const range = view.element.querySelector('[data-action="volume"]');
+    const percent = view.element.querySelector('[data-ui="volume-percent"]');
+    const mute = view.element.querySelector('[data-action="mute"]');
+
+    expect(percent.textContent).toBe("50%");
+    expect(range.getAttribute("aria-valuetext")).toBe("50%");
+    expect(mute.getAttribute("aria-label")).toBe("nowPlaying.mute");
+
+    const wheelUp = new WheelEvent("wheel", {
+      bubbles: true,
+      cancelable: true,
+      deltaY: -100,
+    });
+    percent.dispatchEvent(wheelUp);
+    expect(wheelUp.defaultPrevented).toBe(true);
+    expect(percent.textContent).toBe("55%");
+    expect(range.value).toBe("0.55");
+
+    range.dispatchEvent(
+      new WheelEvent("wheel", {
+        bubbles: true,
+        cancelable: true,
+        deltaY: 100,
+      }),
+    );
+    expect(percent.textContent).toBe("50%");
+
+    mute.click();
+    expect(percent.textContent).toBe("0%");
+    expect(mute.getAttribute("aria-label")).toBe("nowPlaying.unmute");
+    mute.dispatchEvent(
+      new WheelEvent("wheel", {
+        bubbles: true,
+        cancelable: true,
+        deltaY: -1,
+      }),
+    );
+    expect(percent.textContent).toBe("5%");
+    expect(mute.getAttribute("aria-label")).toBe("nowPlaying.mute");
+
+    const ignoredWheel = new WheelEvent("wheel", {
+      bubbles: true,
+      cancelable: true,
+      ctrlKey: true,
+      deltaY: -100,
+    });
+    percent.dispatchEvent(ignoredWheel);
+    expect(ignoredWheel.defaultPrevented).toBe(false);
+    expect(percent.textContent).toBe("5%");
+
+    const outsideWheel = new WheelEvent("wheel", {
+      bubbles: true,
+      cancelable: true,
+      deltaY: -100,
+    });
+    view.element
+      .querySelector('[data-action="seek"]')
+      .dispatchEvent(outsideWheel);
+    expect(outsideWheel.defaultPrevented).toBe(false);
+    expect(percent.textContent).toBe("5%");
+    view.dispose();
+  });
+
   test("syncs fullscreen controls, Escape and tab hide with preload state", async () => {
     const api = {
       getState: jest.fn().mockResolvedValue({
@@ -509,6 +588,98 @@ describe("Now Playing view", () => {
     view.dispose();
   });
 
+  test("hides missing sidebar artwork and unknown artist metadata", async () => {
+    const trackWithoutMetadata = {
+      ...sampleTrack,
+      artworkUrl: null,
+      artist: "",
+      album: "",
+    };
+    const api = {
+      getState: jest.fn().mockResolvedValue({
+        data: {
+          playlist: { tracks: [trackWithoutMetadata] },
+          selectedTrackId: "demo",
+        },
+      }),
+      setState: jest.fn().mockResolvedValue({ success: true }),
+      importFiles: jest.fn(),
+      importFolder: jest.fn(),
+    };
+    const view = createNowPlayingView({ api });
+    document.body.appendChild(view.element);
+    await view.ready;
+
+    const activeMetadata = view.element.querySelector(
+      ".now-playing__metadata-slot.is-active",
+    );
+    expect(
+      view.element.querySelector(".now-playing__artwork-stack").hidden,
+    ).toBe(true);
+    expect(view.element.classList.contains("has-artwork")).toBe(false);
+    expect(
+      view.element.querySelector(".now-playing__artwork-fallback"),
+    ).toBeNull();
+    expect(
+      activeMetadata.querySelector(".now-playing__track-title").textContent,
+    ).toBe("Demo track");
+    expect(
+      activeMetadata.querySelector(".now-playing__track-artist").hidden,
+    ).toBe(true);
+    expect(
+      activeMetadata.querySelector(".now-playing__track-artist").textContent,
+    ).toBe("");
+    expect(activeMetadata.querySelector(".now-playing__album").hidden).toBe(
+      true,
+    );
+    view.dispose();
+  });
+
+  test("hides broken artwork while preserving real album metadata", async () => {
+    const trackWithBrokenArtwork = {
+      ...sampleTrack,
+      artist: "",
+      album: "Thunder Album",
+      artworkUrl: "file:///missing-cover.jpg",
+    };
+    const api = {
+      getState: jest.fn().mockResolvedValue({
+        data: {
+          playlist: { tracks: [trackWithBrokenArtwork] },
+          selectedTrackId: "demo",
+        },
+      }),
+      setState: jest.fn().mockResolvedValue({ success: true }),
+      importFiles: jest.fn(),
+      importFolder: jest.fn(),
+    };
+    const view = createNowPlayingView({ api });
+    document.body.appendChild(view.element);
+    await view.ready;
+    const artwork = view.element.querySelector(
+      '[data-artwork-layer="0"] .now-playing__artwork',
+    );
+
+    artwork.dispatchEvent(new Event("error"));
+
+    const activeMetadata = view.element.querySelector(
+      ".now-playing__metadata-slot.is-active",
+    );
+    expect(
+      view.element.querySelector(".now-playing__artwork-stack").hidden,
+    ).toBe(true);
+    expect(
+      activeMetadata.querySelector(".now-playing__track-artist").hidden,
+    ).toBe(true);
+    expect(activeMetadata.querySelector(".now-playing__album").hidden).toBe(
+      false,
+    );
+    expect(
+      activeMetadata.querySelector(".now-playing__album").textContent,
+    ).toBe("Thunder Album");
+    view.dispose();
+  });
+
   test("exposes reduced-motion state and commits track visuals immediately", async () => {
     document.body.classList.add("low-effects");
     const api = {
@@ -756,6 +927,103 @@ describe("Now Playing view", () => {
     library.querySelector('[data-action="show-player"]').click();
     expect(library.hidden).toBe(true);
     expect(view.element.classList.contains("is-library-view")).toBe(false);
+    view.dispose();
+  });
+
+  test("switches playlists from the library and sidebar without autoplay", async () => {
+    const secondTrack = {
+      ...sampleTrack,
+      id: "second",
+      sourceRef: "/music/second.mp3",
+      title: "Second track",
+    };
+    const api = {
+      getState: jest.fn().mockResolvedValue({
+        data: {
+          version: 2,
+          catalog: { tracks: [sampleTrack, secondTrack] },
+          playlists: [
+            {
+              id: "favorites",
+              title: "Favorites",
+              trackIds: ["second"],
+            },
+            {
+              id: "calm",
+              title: "Calm",
+              trackIds: ["demo"],
+            },
+          ],
+          activePlaylistId: "media-library",
+          selectedTrackId: "demo",
+        },
+      }),
+      setState: jest.fn().mockResolvedValue({ success: true }),
+      importFiles: jest.fn(),
+      importFolder: jest.fn(),
+    };
+    const view = createNowPlayingView({ api });
+    document.body.appendChild(view.element);
+    await view.ready;
+    const play = view.element.querySelector(
+      '.now-playing__dock [data-action="play-pause"]',
+    );
+    play.click();
+    await Promise.resolve();
+    HTMLMediaElement.prototype.play.mockClear();
+    HTMLMediaElement.prototype.pause.mockClear();
+
+    view.element.querySelector('[data-action="show-library"]').click();
+    view.element
+      .querySelector(
+        '.player-library__playlist-card[data-playlist-id="favorites"]',
+      )
+      .click();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(HTMLMediaElement.prototype.pause).toHaveBeenCalled();
+    expect(HTMLMediaElement.prototype.play).not.toHaveBeenCalled();
+    expect(
+      view.element.querySelector(".now-playing__track.is-current").dataset
+        .trackId,
+    ).toBe("second");
+    expect(
+      view.element.querySelector('[data-ui="brand-label"]').textContent,
+    ).toBe("nowPlaying.paused");
+
+    play.click();
+    await Promise.resolve();
+    expect(HTMLMediaElement.prototype.play).toHaveBeenCalledTimes(1);
+    HTMLMediaElement.prototype.play.mockClear();
+    HTMLMediaElement.prototype.pause.mockClear();
+    view.element.querySelector('[data-action="show-player"]').click();
+    const sidebarSwitcher = view.element.querySelector(
+      '[data-ui="sidebar-playlist-switcher"]',
+    );
+    expect(sidebarSwitcher.getAttribute("aria-controls")).toBe(
+      "now-playing-sidebar-queue",
+    );
+    expect(
+      sidebarSwitcher.closest(".now-playing__library-heading").hidden,
+    ).toBe(false);
+
+    sidebarSwitcher.value = "calm";
+    sidebarSwitcher.dispatchEvent(new Event("change", { bubbles: true }));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(HTMLMediaElement.prototype.pause).toHaveBeenCalled();
+    expect(HTMLMediaElement.prototype.play).not.toHaveBeenCalled();
+    expect(sidebarSwitcher.value).toBe("calm");
+    expect(
+      view.element.querySelector(".now-playing__track.is-current").dataset
+        .trackId,
+    ).toBe("demo");
+    expect(api.setState).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        activePlaylistId: "calm",
+        selectedTrackId: "demo",
+      }),
+    );
     view.dispose();
   });
 
