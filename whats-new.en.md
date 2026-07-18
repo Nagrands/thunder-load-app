@@ -15,3 +15,4 @@
 | The Tools tab now opens more smoothly    | Its header and tool cards appear in a quick sequence on every visit, while the system reduced-motion preference is fully respected                                                                  |
 | The Tools set was simplified             | WinGet Installer and all of its related application components were removed                                                                                                                         |
 | Release workflow was stabilized          | macOS and Windows builds now publish sequentially so GitHub Releases are not duplicated for the same tag                                                                                            |
+| Release artifacts were simplified        | macOS publishes only Intel and Apple Silicon DMG installers without auto-update files, while the Windows build still runs after a macOS job failure                                                 |

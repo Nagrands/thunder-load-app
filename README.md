@@ -20,7 +20,7 @@
 
 ## Downloads
 
-- Automated releases publish Windows (NSIS) and macOS (DMG/ZIP for Intel and Apple Silicon) artifacts on the [Releases](https://github.com/Nagrands/thunder-load-app/releases) page.
+- Automated releases publish Windows NSIS and macOS DMG installers for Intel and Apple Silicon on the [Releases](https://github.com/Nagrands/thunder-load-app/releases) page.
 - Linux AppImage packaging is available through `npm run build-linux`, but it is not part of the current release workflow.
 - Current macOS and Windows artifacts are unsigned.
 
@@ -36,7 +36,7 @@
 - Products formatter for cleaning, grouping, validating, and copying structured product lists.
 - Tools workspace with WG Unlock, Hash Check, Media Inspector, File Sorter, Backup, and Windows shortcuts.
 - File Sorter uses persistent editable categories, mandatory operation preview, per-file selection, conflict handling, export, and one-step undo.
-- Automatic application updates and managed `yt-dlp`, `ffmpeg`, `ffprobe`, and Deno dependencies.
+- Automatic application updates on Windows and managed `yt-dlp`, `ffmpeg`, `ffprobe`, and Deno dependencies.
 - Russian and English interface, themes, keyboard shortcuts, and configurable modules.
 
 See the [application guide](docs/APP.en.md) for section details and platform limitations.

@@ -48,6 +48,7 @@ jobs:
 
   build-windows:
     needs: build-macos
+    if: ${{ !cancelled() }}
     runs-on: windows-latest
 
     steps:

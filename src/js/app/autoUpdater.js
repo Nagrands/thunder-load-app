@@ -30,6 +30,11 @@ function sendToUpdaterWindow(channel, ...args) {
 function setupAutoUpdater(mainWindow) {
   updaterWindow = mainWindow;
 
+  if (isMac) {
+    log.info("Application auto-updates are disabled on macOS.");
+    return;
+  }
+
   // Настройка логирования
   autoUpdater.logger = log;
   autoUpdater.logger.transports.file.level = "info";
@@ -97,6 +102,7 @@ function setupAutoUpdater(mainWindow) {
 }
 
 function checkForUpdatesNow() {
+  if (isMac) return null;
   return autoUpdater.checkForUpdates();
 }
 
@@ -107,6 +113,7 @@ function scheduleAutoUpdateCheck(
     readyFallbackMs = DEFAULT_AUTO_UPDATE_READY_FALLBACK_MS,
   } = {},
 ) {
+  if (isMac) return;
   if (!mainWindow) return;
 
   if (scheduledCheckTimer) {

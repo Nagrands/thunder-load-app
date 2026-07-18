@@ -5,7 +5,7 @@
 
 ## Завантаження
 
-- Автоматичні релізи публікують Windows (NSIS) і macOS (DMG/ZIP для Intel та Apple Silicon) на сторінці [Releases](https://github.com/Nagrands/thunder-load-app/releases).
+- Автоматичні релізи публікують Windows NSIS і macOS DMG для Intel та Apple Silicon на сторінці [Releases](https://github.com/Nagrands/thunder-load-app/releases).
 - Linux AppImage збирається командою `npm run build-linux`, але поки не входить до release workflow.
 - Поточні збірки macOS і Windows не підписані.
 

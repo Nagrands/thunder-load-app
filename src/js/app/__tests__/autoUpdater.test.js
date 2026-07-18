@@ -42,7 +42,13 @@ function createMainWindow({ isLoading = true, destroyed = false } = {}) {
 }
 
 describe("autoUpdater startup scheduling", () => {
+  const originalPlatform = process.platform;
+
   beforeEach(() => {
+    Object.defineProperty(process, "platform", {
+      configurable: true,
+      value: "win32",
+    });
     jest.resetModules();
     jest.useFakeTimers();
     mockAutoUpdater.removeAllListeners();
@@ -51,6 +57,10 @@ describe("autoUpdater startup scheduling", () => {
   });
 
   afterEach(() => {
+    Object.defineProperty(process, "platform", {
+      configurable: true,
+      value: originalPlatform,
+    });
     jest.useRealTimers();
   });
 
@@ -123,5 +133,31 @@ describe("autoUpdater startup scheduling", () => {
     jest.advanceTimersByTime(600);
 
     expect(mockAutoUpdater.checkForUpdates).not.toHaveBeenCalled();
+  });
+
+  test("disables setup and scheduled checks on macOS", () => {
+    Object.defineProperty(process, "platform", {
+      configurable: true,
+      value: "darwin",
+    });
+    jest.resetModules();
+    const {
+      checkForUpdatesNow,
+      scheduleAutoUpdateCheck,
+      setupAutoUpdater,
+    } = require("../autoUpdater");
+    const mainWindow = createMainWindow({ isLoading: false });
+
+    setupAutoUpdater(mainWindow);
+    scheduleAutoUpdateCheck(mainWindow, {
+      delayMs: 100,
+      readyFallbackMs: 500,
+    });
+    const result = checkForUpdatesNow();
+    jest.advanceTimersByTime(600);
+
+    expect(result).toBeNull();
+    expect(mockAutoUpdater.checkForUpdates).not.toHaveBeenCalled();
+    expect(mockAutoUpdater.listenerCount("checking-for-update")).toBe(0);
   });
 });

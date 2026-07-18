@@ -11,7 +11,7 @@ describe("appUpdateIpcHandlers", () => {
     jest.clearAllMocks();
   });
 
-  function register(autoUpdaterOverrides = {}) {
+  function register(autoUpdaterOverrides = {}, platform = "win32") {
     const { CHANNELS } = require("../../ipc/channels");
     const { registerAppUpdateIpcHandlers } = require("../appUpdateIpcHandlers");
     const ipcMain = {
@@ -26,7 +26,7 @@ describe("appUpdateIpcHandlers", () => {
       ...autoUpdaterOverrides,
     };
 
-    registerAppUpdateIpcHandlers({ ipcMain, autoUpdater });
+    registerAppUpdateIpcHandlers({ ipcMain, autoUpdater, platform });
 
     return { CHANNELS, autoUpdater, ipcMain };
   }
@@ -92,6 +92,23 @@ describe("appUpdateIpcHandlers", () => {
 
     expect(result).toEqual({ success: true });
     expect(autoUpdater.checkForUpdates).toHaveBeenCalledTimes(1);
+  });
+
+  test.each([
+    ["CHECK_APP_UPDATES", "checkForUpdates"],
+    ["DOWNLOAD_UPDATE", "downloadUpdate"],
+    ["RESTART_APP", "quitAndInstall"],
+  ])("disables %s on macOS", async (key, method) => {
+    const { CHANNELS, autoUpdater } = register({}, "darwin");
+
+    const result = await handlers[CHANNELS[key]]();
+
+    expect(result).toEqual({
+      success: false,
+      unsupported: true,
+      error: "Application updates are disabled on macOS",
+    });
+    expect(autoUpdater[method]).not.toHaveBeenCalled();
   });
 
   test.each([

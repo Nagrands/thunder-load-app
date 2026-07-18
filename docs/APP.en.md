@@ -123,7 +123,7 @@ History, settings, cached previews, queue state, and tool metadata are stored un
 
 ## Platform Support
 
-Automated releases provide Windows NSIS and macOS DMG/ZIP targets for `x64` and `arm64`. These artifacts are currently unsigned. Linux AppImage packaging is available through `npm run build-linux` but is not part of the automated release workflow.
+Automated releases provide Windows NSIS and macOS DMG installers for `x64` and `arm64`. Application auto-updates are Windows-only; macOS users install new versions manually from the DMG release assets. These artifacts are currently unsigned. Linux AppImage packaging is available through `npm run build-linux` but is not part of the automated release workflow.
 
 On Linux, `ffmpeg` and `ffprobe` may need to be installed through the system package manager. Compatible runtime tools can also be resolved from `PATH`. Individual Tools features may have narrower platform support as listed above.
 

@@ -614,6 +614,10 @@ describe("ipcHandlers tools quick actions", () => {
   test("check-app-updates triggers a manual updater check", async () => {
     const { CHANNELS } = require("../../ipc/channels");
     const { autoUpdater } = require("electron-updater");
+    Object.defineProperty(process, "platform", {
+      value: "win32",
+      configurable: true,
+    });
 
     initHandlers();
     const result = await handlers[CHANNELS.CHECK_APP_UPDATES]();

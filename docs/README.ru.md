@@ -5,7 +5,7 @@
 
 ## Загрузка
 
-- Автоматические релизы публикуют Windows (NSIS) и macOS (DMG/ZIP для Intel и Apple Silicon) на странице [Releases](https://github.com/Nagrands/thunder-load-app/releases).
+- Автоматические релизы публикуют Windows NSIS и macOS DMG для Intel и Apple Silicon на странице [Releases](https://github.com/Nagrands/thunder-load-app/releases).
 - Linux AppImage собирается командой `npm run build-linux`, но пока не входит в release workflow.
 - Текущие сборки macOS и Windows не подписаны.
 
@@ -17,7 +17,7 @@
 - История с поиском, фильтрами, сортировкой, пагинацией, отменой удаления и экспортом CSV/JSON.
 - Раздел `Products` для очистки, группировки и проверки товарных списков.
 - Раздел `Инструменты`: WG Unlock, проверка хеша, Media Inspector, сортировщик файлов, Backup и быстрые ярлыки.
-- Автообновления приложения и управление `yt-dlp`, `ffmpeg`, `ffprobe`, Deno.
+- Автообновления приложения на Windows и управление `yt-dlp`, `ffmpeg`, `ffprobe`, Deno.
 - Русский и английский интерфейс, темы, горячие клавиши и настройка модулей.
 
 ## Документация
