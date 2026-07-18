@@ -195,6 +195,158 @@ describe("Now Playing playback controller", () => {
     expect(controller.isPlaying).toBe(false);
   });
 
+  test("does not auto-resume after an explicit pause while suspended", async () => {
+    const { controller, mediaLayers } = createController();
+    controller.setQueue(tracks);
+    await controller.selectTrack("one");
+
+    controller.suspend();
+    controller.pause();
+    mediaLayers[1].play.mockClear();
+    await controller.resume();
+
+    expect(controller.isPlaying).toBe(false);
+    expect(mediaLayers[1].play).not.toHaveBeenCalled();
+  });
+
+  test("keeps the media session active on pause and reactivates it on play", async () => {
+    const { controller } = createController();
+    controller.setQueue(tracks);
+
+    expect(controller.getSnapshot().isStopped).toBe(true);
+    await controller.selectTrack("one");
+    expect(controller.getSnapshot().isStopped).toBe(false);
+
+    controller.pause();
+    expect(controller.getSnapshot()).toMatchObject({
+      isPlaying: false,
+      isStopped: false,
+    });
+
+    await controller.play();
+    expect(controller.getSnapshot()).toMatchObject({
+      isPlaying: true,
+      isStopped: false,
+    });
+  });
+
+  test("stops playback, resets progress and cancels a pending track load", async () => {
+    const { controller, mediaLayers, providers } = createController();
+    controller.setQueue(tracks);
+    await controller.selectTrack("one");
+    let resolvePlayback;
+    providers.resolveTrack.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolvePlayback = resolve;
+        }),
+    );
+
+    const selection = controller.selectTrack("two");
+    controller.activeMedia.currentTime = 48;
+    controller.stop();
+
+    expect(controller.currentTrack.id).toBe("two");
+    expect(controller.getSnapshot()).toMatchObject({
+      isPlaying: false,
+      isStopped: true,
+      isLoading: false,
+      loadingTrackId: null,
+      currentTime: 0,
+    });
+    expect(mediaLayers[1].pause).toHaveBeenCalled();
+    expect(window.cancelAnimationFrame).toHaveBeenCalled();
+
+    resolvePlayback({
+      src: "file:///two.mp3",
+      mimeType: "audio/mpeg",
+      posterUrl: "",
+    });
+    await expect(selection).resolves.toBe(false);
+    expect(controller.activeLayerIndex).toBe(1);
+    expect(controller.getSnapshot().isStopped).toBe(true);
+
+    await controller.play();
+    expect(controller.currentTrack.id).toBe("two");
+    expect(controller.activeMedia.dataset.trackId).toBe("two");
+    expect(controller.activeMedia.src).toContain("/two.mp3");
+    expect(controller.getSnapshot()).toMatchObject({
+      isPlaying: true,
+      isStopped: false,
+    });
+  });
+
+  test("marks explicit seeks for immediate external position updates", () => {
+    const { controller } = createController();
+    controller.setQueue(tracks);
+    const initialRevision = controller.getSnapshot().positionRevision;
+
+    controller.seek(12);
+
+    expect(controller.getSnapshot()).toMatchObject({
+      currentTime: 12,
+      positionRevision: initialRevision + 1,
+    });
+  });
+
+  test("ends the session at the natural end of the final track", async () => {
+    const { controller } = createController();
+    controller.setQueue(tracks, { selectedTrackId: "three" });
+    await controller.selectTrack("three");
+    controller.activeMedia.currentTime = 120;
+
+    controller.activeMedia.dispatchEvent(new Event("ended"));
+    await Promise.resolve();
+
+    expect(controller.currentTrack.id).toBe("three");
+    expect(controller.getSnapshot()).toMatchObject({
+      isPlaying: false,
+      isStopped: true,
+      currentTime: 0,
+    });
+  });
+
+  test("ends the session for an empty queue and active media errors", async () => {
+    const { controller } = createController();
+    controller.setQueue(tracks);
+    await controller.selectTrack("one");
+
+    controller.setQueue([]);
+    expect(controller.getSnapshot()).toMatchObject({
+      currentTrack: null,
+      isPlaying: false,
+      isStopped: true,
+      currentTime: 0,
+    });
+
+    controller.setQueue(tracks);
+    await controller.selectTrack("one");
+    controller.activeMedia.dispatchEvent(new Event("error"));
+
+    expect(controller.getSnapshot()).toMatchObject({
+      isPlaying: false,
+      isStopped: true,
+      error: { code: "MEDIA_LOAD_FAILED" },
+    });
+  });
+
+  test("ends playback state when disposed", async () => {
+    const { controller, mediaLayers } = createController();
+    controller.setQueue(tracks);
+    await controller.selectTrack("one");
+
+    controller.dispose();
+
+    expect(controller.getSnapshot()).toMatchObject({
+      isPlaying: false,
+      isStopped: true,
+      isLoading: false,
+      loadingTrackId: null,
+    });
+    expect(mediaLayers[0].hasAttribute("src")).toBe(false);
+    expect(mediaLayers[1].hasAttribute("src")).toBe(false);
+  });
+
   test("keeps unavailable tracks selected and exposes a recoverable error", async () => {
     const { controller, providers } = createController();
     controller.setQueue([
@@ -207,6 +359,7 @@ describe("Now Playing playback controller", () => {
     await expect(controller.selectTrack("one")).resolves.toBe(false);
     expect(controller.currentTrack.id).toBe("one");
     expect(controller.getSnapshot().error.code).toBe("TRACK_UNAVAILABLE");
+    expect(controller.getSnapshot().isStopped).toBe(true);
     expect(providers.resolveTrack).not.toHaveBeenCalled();
   });
 

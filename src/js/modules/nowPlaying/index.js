@@ -10,6 +10,10 @@ export {
   MEDIA_LIBRARY_ID,
   normalizeMediaLibraryState,
 } from "./mediaLibraryModel.js";
+export {
+  createMediaSessionManager,
+  MediaSessionManager,
+} from "./mediaSessionManager.js";
 export { PlaybackController } from "./playbackController.js";
 export { MusicProviderRegistry } from "./providerRegistry.js";
 export {

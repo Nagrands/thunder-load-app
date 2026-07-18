@@ -9,6 +9,7 @@ import {
   MEDIA_LIBRARY_ID,
 } from "./mediaLibraryModel.js";
 import createMediaLibraryView from "./mediaLibraryView.js";
+import createMediaSessionManager from "./mediaSessionManager.js";
 import createPlaybackControlsView from "./playbackControlsView.js";
 import createPlaylistRenderer from "./playlistRenderer.js";
 import PlaybackController from "./playbackController.js";
@@ -35,6 +36,7 @@ export function createNowPlayingView({
   providers.register(provider);
   providers.register(youtubeProvider);
   const controller = new PlaybackController({ providers, mediaLayers });
+  const mediaSession = createMediaSessionManager({ controller });
   const playlist = root.querySelector(".now-playing__playlist");
   const empty = root.querySelector(".now-playing__empty");
   const errorPanel = root.querySelector(".now-playing__error");
@@ -176,6 +178,7 @@ export function createNowPlayingView({
 
   function render(snapshot) {
     latestSnapshot = snapshot;
+    mediaSession.sync(snapshot);
     renderPlaylist(snapshot);
     visualTransitions.update(snapshot);
     updateControls(snapshot);
@@ -603,12 +606,13 @@ export function createNowPlayingView({
       overlayVisibility.onHide();
       fullscreen.onHide();
       libraryView.closeDialog();
-      controller.suspend();
+      if (preferences.shouldSuspendInBackground()) controller.suspend();
     },
     dispose() {
       if (disposed) return;
       disposed = true;
       unsubscribe();
+      mediaSession.dispose();
       controller.dispose();
       providers.dispose();
       controlsVisibility.dispose();

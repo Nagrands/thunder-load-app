@@ -476,8 +476,80 @@ describe("Now Playing view", () => {
     expect(HTMLMediaElement.prototype.pause).not.toHaveBeenCalled();
     hiddenSpy.mockRestore();
     view.onHide();
-    expect(HTMLMediaElement.prototype.pause).toHaveBeenCalled();
+    expect(HTMLMediaElement.prototype.pause).not.toHaveBeenCalled();
     view.dispose();
+  });
+
+  test("syncs system media commands with playback while the view is active", async () => {
+    const handlers = new Map();
+    const mediaSession = {
+      metadata: null,
+      playbackState: "none",
+      setActionHandler: jest.fn((action, handler) => {
+        handlers.set(action, handler);
+      }),
+      setPositionState: jest.fn(),
+    };
+    const originalMediaSession = Object.getOwnPropertyDescriptor(
+      navigator,
+      "mediaSession",
+    );
+    const originalMetadata = globalThis.MediaMetadata;
+    Object.defineProperty(navigator, "mediaSession", {
+      configurable: true,
+      value: mediaSession,
+    });
+    globalThis.MediaMetadata = class MediaMetadata {
+      constructor(metadata) {
+        Object.assign(this, metadata);
+      }
+    };
+    const secondTrack = {
+      ...sampleTrack,
+      id: "second",
+      sourceRef: "/music/second.mp3",
+      title: "Second track",
+    };
+    const api = {
+      getState: jest.fn().mockResolvedValue({
+        data: {
+          playlist: { tracks: [sampleTrack, secondTrack] },
+          selectedTrackId: "demo",
+        },
+      }),
+      setState: jest.fn().mockResolvedValue({ success: true }),
+      importFiles: jest.fn(),
+      importFolder: jest.fn(),
+    };
+    const view = createNowPlayingView({ api });
+    document.body.appendChild(view.element);
+
+    try {
+      view.onShow();
+      await view.ready;
+      expect(mediaSession.metadata.title).toBe("Demo track");
+      expect(mediaSession.playbackState).toBe("playing");
+
+      handlers.get("pause")();
+      expect(mediaSession.playbackState).toBe("paused");
+
+      handlers.get("nexttrack")();
+      await Promise.resolve();
+      expect(mediaSession.metadata.title).toBe("Second track");
+
+      view.dispose();
+      expect(mediaSession.metadata).toBeNull();
+      expect(mediaSession.playbackState).toBe("none");
+      expect(handlers.get("play")).toBeNull();
+    } finally {
+      view.dispose();
+      if (originalMediaSession) {
+        Object.defineProperty(navigator, "mediaSession", originalMediaSession);
+      } else {
+        delete navigator.mediaSession;
+      }
+      globalThis.MediaMetadata = originalMetadata;
+    }
   });
 
   test("restores and persists background playback and sidebar pin preferences", async () => {
@@ -511,6 +583,11 @@ describe("Now Playing view", () => {
 
     HTMLMediaElement.prototype.pause.mockClear();
     window.dispatchEvent(new Event("blur"));
+    expect(HTMLMediaElement.prototype.pause).toHaveBeenCalled();
+    window.dispatchEvent(new Event("focus"));
+    await Promise.resolve();
+    HTMLMediaElement.prototype.pause.mockClear();
+    view.onHide();
     expect(HTMLMediaElement.prototype.pause).toHaveBeenCalled();
     backgroundButton.click();
     pinButton.click();

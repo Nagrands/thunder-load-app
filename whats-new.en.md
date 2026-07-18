@@ -4,6 +4,7 @@
 
 | What changed                             | What you get                                                                                                                                                                                        |
 | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| System player controls were added        | Thunder shares track metadata, artwork, duration, and progress with Windows and macOS, and accepts Play/Pause, Next, Previous, Stop, and seek commands from the system, keyboards, and headsets     |
 | Player and media library were added      | The Music tab is now a universal **Player** whose media library keeps a stable height between playlists, scrolls long lists inside their panels, and keeps the mini-player compact                  |
 | Now Playing music mode was added         | A full-window media scene plays local audio and video files, preserves the queue, keeps playing in the background, and provides a pinnable hover panel, native fullscreen, and auto-hiding controls |
 | Subtitle downloads were added            | Quality selection now has a Subtitles tab that saves RU/EN subtitle tracks as SRT files                                                                                                             |

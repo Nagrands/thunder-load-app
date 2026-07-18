@@ -1,8 +1,8 @@
 ## Автотесты (Jest)
 
 - Автосборка списка: `npm run test-check:sync-tests`
-- Найдено файлов: 113
-- Найдено тест-кейсов (test/it): 1012
+- Найдено файлов: 115
+- Найдено тест-кейсов (test/it): 1064
 
 <!-- AUTO-JEST-TESTS:START -->
 
@@ -30,12 +30,13 @@
 - [ ] triggers restart and install
 - [ ] does not await updater promises
 
-### `src/js/app/__tests__/autoUpdater.test.js` (5)
+### `src/js/app/__tests__/autoUpdater.test.js` (6)
 - [ ] setupAutoUpdater registers events without checking immediately
 - [ ] scheduleAutoUpdateCheck checks after ready-to-show and delay
 - [ ] scheduleAutoUpdateCheck falls back when ready-to-show does not fire
 - [ ] scheduleAutoUpdateCheck skips destroyed windows
 - [ ] scheduleAutoUpdateCheck skips missing windows
+- [ ] disables setup and scheduled checks on macOS
 
 ### `src/js/app/__tests__/backupIpcHandlers.test.js` (3)
 - [ ] registers backup channels without loading backupManager
@@ -191,12 +192,21 @@
 - [ ] expands window on download complete when toggle is enabled
 - [ ] does not expand window on download complete when toggle is disabled
 
-### `src/js/app/__tests__/nowPlayingIpcHandlers.test.js` (6)
-- [ ] registers the four Now Playing channels
+### `src/js/app/__tests__/nowPlayingIpcHandlers.test.js` (15)
+- [ ] registers all Player channels
 - [ ] imports files, removes duplicates, and persists the queue
+- [ ] adds imported media to the active custom playlist
+- [ ] links an existing catalog item into the active custom playlist
 - [ ] imports a folder recursively and returns cancellation safely
 - [ ] sanitizes persisted state and marks unavailable tracks as missing
 - [ ] defaults legacy and invalid Now Playing preferences safely
+- [ ] recovers from a malformed V2 catalog without throwing
+- [ ] migrates the V1 queue into the V2 media library
+- [ ] sanitizes playlists and removes dangling and duplicate track references
+- [ ] imports one YouTube video, deduplicates it and persists no playback URL
+- [ ] rejects YouTube playlists before invoking yt-dlp
+- [ ] resolves a fresh muxed YouTube stream without persisting it
+- [ ] forces a fresh YouTube stream only for an explicit retry
 - [ ] rejects an oversized state with a structured error
 
 ### `src/js/app/__tests__/nowPlayingLibrary.test.js` (6)
@@ -670,11 +680,26 @@
 ### `src/js/modules/__tests__/mainViewHeader.template.test.js` (1)
 - [ ] keeps downloader mode switch in the URL helper row
 
+### `src/js/modules/__tests__/mediaSessionManager.test.js` (11)
+- [ ] publishes metadata, provider artwork and position state
+- [ ] uses the packaged 512px app icon when artwork is missing
+- [ ] routes transport and seek actions to the playback controller
+- [ ] updates position immediately after a system seek
+- [ ] updates position immediately after a controller seek
+- [ ] throttles ordinary playing progress to one update per second
+- [ ] updates immediately on track and playback state changes
+- [ ] does not publish invalid duration and clamps snapshot position
+- [ ] continues registering actions when one action is unsupported
+- [ ] isolates Media Session errors and unavailable APIs
+- [ ] clears stopped sessions and unregisters every action on dispose
+
 ### `src/js/modules/__tests__/modalHandlers.test.js` (1)
 - [ ] opens the shortcuts settings section from the top bar
 
-### `src/js/modules/__tests__/modalManager.test.js` (1)
+### `src/js/modules/__tests__/modalManager.test.js` (3)
 - [ ] closes settings through its lifecycle handler
+- [ ] registers and controls feature-owned dialogs
+- [ ] opens feature dialogs without making the document inert when requested
 
 ### `src/js/modules/__tests__/modals.confirmationHtml.test.js` (4)
 - [ ] sanitizes HTML when allowHtml=true
@@ -692,33 +717,64 @@
 - [ ] keeps a pinned sidebar visible across pointer leave and restores it
 - [ ] syncs fullscreen state and removes external listeners on dispose
 
-### `src/js/modules/__tests__/nowPlayingPlaybackController.test.js` (5)
+### `src/js/modules/__tests__/nowPlayingMediaLibraryModel.test.js` (5)
+- [ ] migrates the V1 queue into the virtual media library
+- [ ] sanitizes broken playlist references and falls back to the library
+- [ ] deduplicates local paths and YouTube videos by canonical video id
+- [ ] supports playlist CRUD, ordering and catalog deletion
+- [ ] returns defensive state copies
+
+### `src/js/modules/__tests__/nowPlayingPlaybackController.test.js` (16)
 - [ ] selects a track, swaps the reusable media layer and starts playback
 - [ ] supports previous, next, shuffle and repeat modes
 - [ ] persists selectedTrackId and settings but not playback position
+- [ ] restores a V2 active playlist without taking ownership of library CRUD
+- [ ] updates its queue from a library model state
 - [ ] pauses while hidden and resumes only when it was playing
+- [ ] does not auto-resume after an explicit pause while suspended
+- [ ] keeps the media session active on pause and reactivates it on play
+- [ ] stops playback, resets progress and cancels a pending track load
+- [ ] marks explicit seeks for immediate external position updates
+- [ ] ends the session at the natural end of the final track
+- [ ] ends the session for an empty queue and active media errors
+- [ ] ends playback state when disposed
 - [ ] keeps unavailable tracks selected and exposes a recoverable error
+- [ ] shows a distinct loading state and pauses the old track while resolving
+- [ ] requests a forced refresh only when retrying playback
 
-### `src/js/modules/__tests__/nowPlayingProviders.test.js` (4)
+### `src/js/modules/__tests__/nowPlayingProviders.test.js` (8)
 - [ ] normalizes metadata and deduplicates local paths
 - [ ] merges structured import results without replacing the queue
 - [ ] resolves local files into playback DTOs and rejects missing tracks
 - [ ] registry validates and routes provider calls
+- [ ] canonicalizes and imports a single YouTube video
+- [ ] rejects YouTube playlist URLs and invalid hosts
+- [ ] restores canonical YouTube tracks and resolves fresh playback URLs
+- [ ] surfaces structured YouTube resolve errors
 
-### `src/js/modules/__tests__/nowPlayingView.test.js` (13)
+### `src/js/modules/__tests__/nowPlayingView.test.js` (22)
 - [ ] renders an accessible player and restores selectedTrackId
 - [ ] keeps empty onboarding outside the minimal library sidebar
 - [ ] updates the brand label from playback state
+- [ ] adjusts volume with the mouse wheel and shows the percentage
 - [ ] syncs fullscreen controls, Escape and tab hide with preload state
 - [ ] refreshes dynamic playback and fullscreen labels after language changes
 - [ ] shows only the matching audio ambient or video layer
+- [ ] shows YouTube preparation without a false playing indicator
 - [ ] loads restored media silently and attempts playback on first show
+- [ ] syncs system media commands with playback while the view is active
 - [ ] restores and persists background playback and sidebar pin preferences
 - [ ] hands artwork and metadata off together after the new cover loads
+- [ ] hides missing sidebar artwork and unknown artist metadata
+- [ ] hides broken artwork while preserving real album metadata
 - [ ] exposes reduced-motion state and commits track visuals immediately
 - [ ] imports files, selects the first new track and persists the queue
 - [ ] autohides controls only while playing and locks them on interaction
 - [ ] supports row keyboard selection, removal and queue clearing
+- [ ] renders the V2 media library, playlists and persistent mini-player
+- [ ] switches playlists from the library and sidebar without autoplay
+- [ ] creates a playlist with the accessible library dialog
+- [ ] imports a single YouTube video from the library dialog
 
 ### `src/js/modules/__tests__/pageBackgroundMode.test.js` (3)
 - [ ] defaults to downloader mode and reacts to tab changes

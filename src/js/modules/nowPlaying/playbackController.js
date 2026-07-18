@@ -32,6 +32,8 @@ export class PlaybackController {
     this.currentIndex = -1;
     this.activeLayerIndex = 0;
     this.isPlaying = false;
+    this.isStopped = true;
+    this.positionRevision = 0;
     this.isLoading = false;
     this.loadingTrackId = null;
     this.isSuspended = false;
@@ -70,6 +72,8 @@ export class PlaybackController {
       currentIndex: this.currentIndex,
       activeLayerIndex: this.activeLayerIndex,
       isPlaying: this.isPlaying,
+      isStopped: this.isStopped,
+      positionRevision: this.positionRevision,
       isLoading: this.isLoading,
       loadingTrackId: this.loadingTrackId,
       isSuspended: this.isSuspended,
@@ -101,7 +105,10 @@ export class PlaybackController {
     if (this.currentIndex < 0 && this.queue.length) this.currentIndex = 0;
     if (!this.queue.length) {
       safeMediaCall(this.activeMedia, "pause");
+      if (this.activeMedia) this.activeMedia.currentTime = 0;
       this.isPlaying = false;
+      this.isStopped = true;
+      this.resumeOnShow = false;
       this.stopProgressFrames();
     }
     this.error = null;
@@ -172,6 +179,7 @@ export class PlaybackController {
       this.currentIndex = index;
       this.error = { code: "TRACK_UNAVAILABLE", message: "Track unavailable" };
       this.isPlaying = false;
+      this.isStopped = true;
       this.isLoading = false;
       this.loadingTrackId = null;
       this.emit();
@@ -208,6 +216,7 @@ export class PlaybackController {
         message: error?.message || "Unable to load track",
       };
       this.isPlaying = false;
+      this.isStopped = true;
       this.isLoading = false;
       this.loadingTrackId = null;
       this.emit();
@@ -234,7 +243,10 @@ export class PlaybackController {
 
   async play({ selectionVersion = null } = {}) {
     if (!this.currentTrack) return false;
-    if (!this.activeMedia?.src) {
+    if (
+      !this.activeMedia?.src ||
+      this.activeMedia.dataset.trackId !== this.currentTrack.id
+    ) {
       return this.selectTrack(this.currentTrack.id, { autoplay: true });
     }
     try {
@@ -250,6 +262,7 @@ export class PlaybackController {
         return false;
       }
       this.isPlaying = true;
+      this.isStopped = false;
       this.isLoading = false;
       this.loadingTrackId = null;
       this.error = null;
@@ -258,6 +271,7 @@ export class PlaybackController {
       return true;
     } catch (error) {
       this.isPlaying = false;
+      this.isStopped = true;
       this.isLoading = false;
       this.loadingTrackId = null;
       this.error = {
@@ -269,12 +283,26 @@ export class PlaybackController {
     }
   }
 
-  pause() {
+  pause({ preserveResumeOnShow = false } = {}) {
     if (this.isLoading) this.selectionVersion += 1;
     safeMediaCall(this.activeMedia, "pause");
     this.isPlaying = false;
     this.isLoading = false;
     this.loadingTrackId = null;
+    if (!preserveResumeOnShow) this.resumeOnShow = false;
+    this.stopProgressFrames();
+    this.emit();
+  }
+
+  stop() {
+    this.selectionVersion += 1;
+    safeMediaCall(this.activeMedia, "pause");
+    if (this.activeMedia) this.activeMedia.currentTime = 0;
+    this.isPlaying = false;
+    this.isStopped = true;
+    this.isLoading = false;
+    this.loadingTrackId = null;
+    this.resumeOnShow = false;
     this.stopProgressFrames();
     this.emit();
   }
@@ -288,6 +316,7 @@ export class PlaybackController {
     const duration =
       Number(this.activeMedia.duration) || Number(this.currentTrack?.duration);
     this.activeMedia.currentTime = clamp(value, 0, duration || 0);
+    this.positionRevision += 1;
     this.emit();
   }
 
@@ -331,8 +360,7 @@ export class PlaybackController {
       return this.selectTrack(this.queue[nextIndex].id);
     }
     if (this.repeat === "all") return this.selectTrack(this.queue[0].id);
-    this.pause();
-    this.seek(0);
+    this.stop();
     return false;
   }
 
@@ -350,7 +378,7 @@ export class PlaybackController {
     if (this.isSuspended) return;
     this.resumeOnShow = this.isPlaying;
     this.isSuspended = true;
-    this.pause();
+    this.pause({ preserveResumeOnShow: true });
   }
 
   async resume() {
@@ -385,6 +413,7 @@ export class PlaybackController {
       media.addEventListener("error", () => {
         if (media !== this.activeMedia) return;
         this.isPlaying = false;
+        this.isStopped = true;
         this.isLoading = false;
         this.loadingTrackId = null;
         this.stopProgressFrames();
@@ -425,6 +454,11 @@ export class PlaybackController {
 
   dispose() {
     this.selectionVersion += 1;
+    this.isPlaying = false;
+    this.isStopped = true;
+    this.isLoading = false;
+    this.loadingTrackId = null;
+    this.resumeOnShow = false;
     this.stopProgressFrames();
     this.mediaLayers.forEach((media) => {
       safeMediaCall(media, "pause");
