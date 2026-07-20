@@ -48,7 +48,7 @@
   position: relative;
   width: 100%;
   display: grid;
-  gap: 15px;
+  gap: 8px;
   padding: 18px;
   border-radius: var(--thunder-radius-lg);
   z-index: 1;
@@ -78,7 +78,7 @@
   &.is-empty {
     .url-input-leading__label,
     .url-helper-text {
-      color: rgba(216, 228, 249, 0.72);
+      color: var(--thunder-electric);
     }
   }
 
@@ -179,8 +179,6 @@
   gap: 2px;
   min-width: 0;
   padding: 3px 10px 3px 3px;
-  border-radius: 999px;
-  border: 1px solid rgba(126, 201, 255, 0.18);
 
   &::before {
     content: "";
@@ -189,8 +187,8 @@
     left: 3px;
     width: 36px;
     height: calc(100% - 6px);
-    border-radius: 999px;
-    background: rgba(var(--color-accent-rgb), 0.22);
+    border-radius: 8px;
+    background: var(--color-hover);
     box-shadow:
       0 6px 16px rgba(0, 0, 0, 0.16),
       inset 0 1px 0 rgba(255, 255, 255, 0.08);
@@ -231,7 +229,6 @@
 
   &:hover {
     color: rgba(240, 247, 255, 0.94);
-    transform: translateY(-1px);
   }
 
   &:focus-visible {
@@ -273,8 +270,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  border: 1px solid rgba(var(--color-accent-rgb), 0.16);
+  border-radius: 8px;
+  // border: 1px solid rgba(var(--color-accent-rgb), 0.16);
   color: rgba(var(--color-accent-rgb), 0.9);
   padding: 0;
   appearance: none;
@@ -372,7 +369,7 @@
   gap: 10px;
   // min-height: 62px;
   padding: 0 14px 0 10px;
-  border-radius: 18px;
+  border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.06);
   background: rgba(255, 255, 255, 0.02);
   transition:
@@ -409,7 +406,7 @@
   justify-content: center;
   gap: 0;
   padding: 0;
-  border-radius: 9px;
+  border-radius: 16px;
   color: rgba(214, 225, 241, 0.74);
   cursor: pointer;
   background: rgba(255, 255, 255, 0.01);
@@ -458,15 +455,11 @@
 .folder-button {
   min-width: 34px;
   min-height: 34px;
-  border-radius: 9px;
-  background: transparent;
-  border-color: rgba(255, 255, 255, 0.05);
-  color: rgba(205, 219, 238, 0.64);
+  border-radius: 12px;
+  color: rgba(var(--color-accent-rgb), 0.9);
 
   &:hover {
-    border-color: rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.025);
-    color: rgba(233, 241, 250, 0.82);
+    color: var(--color-highlight);
   }
 }
 
@@ -532,8 +525,6 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 4px 12px;
-  padding: 4px 6px;
 }
 
 .url-input-action-row {
@@ -579,7 +570,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.22);
+  background: var(--color-hover);
   flex: 0 0 auto;
   transition:
     background-color 0.18s ease,
@@ -592,7 +583,7 @@
   font-weight: 600;
   letter-spacing: 0.008em;
   text-wrap: pretty;
-  color: var(--color-highlight);
+  color: var(--color-toast-success);
 }
 
 .url-inline-error {
@@ -689,7 +680,9 @@
   min-width: 0;
   @include mixins.dropdown-control(42px, 12px, 0 40px 0 14px, 0.86rem, 750);
   font: inherit;
-  // text-align: left;
+  text-align: left;
+  font-weight: 600;
+  color: var(--color-accent);
   cursor: pointer;
 
   &::after {
@@ -1303,6 +1296,7 @@
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
+    justify-content: center;
 
     &.hidden {
       display: none;

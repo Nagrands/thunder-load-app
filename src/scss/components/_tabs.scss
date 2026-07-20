@@ -14,43 +14,6 @@
   box-sizing: border-box;
   max-width: 100%;
 
-  &::after {
-    content: "";
-    position: fixed;
-    inset: 0;
-    background:
-      radial-gradient(
-        120% 90% at 18% 18%,
-        rgba(var(--thunder-electric-rgb), 0.18),
-        transparent 55%
-      ),
-      radial-gradient(
-        110% 80% at 80% 12%,
-        rgba(var(--thunder-blue-rgb), 0.14),
-        transparent 58%
-      ),
-      radial-gradient(
-        120% 100% at 72% 82%,
-        rgba(var(--thunder-spark-rgb), 0.09),
-        transparent 60%
-      ),
-      repeating-linear-gradient(
-        160deg,
-        rgba(255, 255, 255, 0.045) 0,
-        rgba(255, 255, 255, 0.045) 1px,
-        transparent 1px,
-        transparent 22px
-      ),
-      linear-gradient(
-        185deg,
-        rgba(6, 8, 18, 0.92) 0%,
-        rgba(8, 10, 20, 0.9) 40%,
-        rgba(10, 12, 22, 0.94) 100%
-      );
-    z-index: -2;
-    pointer-events: none;
-  }
-
   &.tab-show {
     display: flex;
     flex-direction: column;

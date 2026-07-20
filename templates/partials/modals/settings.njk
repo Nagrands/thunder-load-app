@@ -1235,6 +1235,48 @@
                       />
                     </div>
 
+                    <section class="settings-card settings-shortcuts__reset">
+                      <button
+                        id="shortcuts-reset"
+                        class="settings-shortcuts__reset-button"
+                        type="button"
+                      >
+                        <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>
+                        <span data-i18n="settings.shortcuts.reset.button">
+                          Сбросить горячие клавиши
+                        </span>
+                      </button>
+                      <div
+                        id="shortcuts-reset-confirm"
+                        class="settings-shortcuts__reset-confirm"
+                        hidden
+                      >
+                        <p data-i18n="settings.shortcuts.reset.confirm">
+                          Восстановить все сочетания по умолчанию?
+                        </p>
+                        <div class="settings-shortcuts__reset-actions">
+                          <button
+                            id="shortcuts-reset-apply"
+                            data-action="confirm"
+                            type="button"
+                            class="settings-shortcuts__reset-apply"
+                            data-i18n="settings.shortcuts.reset.confirmButton"
+                          >
+                            Восстановить
+                          </button>
+                          <button
+                            id="shortcuts-reset-cancel"
+                            data-action="cancel"
+                            type="button"
+                            class="settings-shortcuts__reset-cancel"
+                            data-i18n="settings.shortcuts.cancel"
+                          >
+                            Отмена
+                          </button>
+                        </div>
+                      </div>
+                    </section>
+
                     <div class="settings-shortcuts__global">
                       <input
                         type="checkbox"
@@ -1274,56 +1316,6 @@
                       Попробуйте изменить поисковый запрос.
                     </span>
                   </div>
-
-                  <section class="settings-card settings-shortcuts__reset">
-                    <div class="settings-shortcuts__reset-copy">
-                      <strong data-i18n="settings.shortcuts.reset.title">
-                        Сброс горячих клавиш
-                      </strong>
-                      <span data-i18n="settings.shortcuts.reset.hint">
-                        Восстановить платформенные сочетания по умолчанию.
-                      </span>
-                    </div>
-                    <button
-                      id="shortcuts-reset"
-                      class="settings-shortcuts__reset-button"
-                      type="button"
-                    >
-                      <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>
-                      <span data-i18n="settings.shortcuts.reset.button">
-                        Сбросить горячие клавиши
-                      </span>
-                    </button>
-                    <div
-                      id="shortcuts-reset-confirm"
-                      class="settings-shortcuts__reset-confirm"
-                      hidden
-                    >
-                      <p data-i18n="settings.shortcuts.reset.confirm">
-                        Восстановить все сочетания по умолчанию?
-                      </p>
-                      <div class="settings-shortcuts__reset-actions">
-                        <button
-                          id="shortcuts-reset-apply"
-                          data-action="confirm"
-                          type="button"
-                          class="settings-shortcuts__reset-apply"
-                          data-i18n="settings.shortcuts.reset.confirmButton"
-                        >
-                          Восстановить
-                        </button>
-                        <button
-                          id="shortcuts-reset-cancel"
-                          data-action="cancel"
-                          type="button"
-                          class="settings-shortcuts__reset-cancel"
-                          data-i18n="settings.shortcuts.cancel"
-                        >
-                          Отмена
-                        </button>
-                      </div>
-                    </div>
-                  </section>
 
                   <div
                     id="shortcuts-live"

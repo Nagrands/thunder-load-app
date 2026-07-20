@@ -21,6 +21,7 @@ const dom = {
   topBar: null,
   topBarCenter: null,
   topNavHost: null,
+  groupMenu: null,
   sentinel: null,
 };
 
@@ -39,6 +40,11 @@ const state = {
 const NAV_ENTER_SCROLL_Y = 12;
 const NAV_EXIT_SCROLL_Y = 4;
 const NAV_SWITCH_DELAY_MS = 90;
+const FOOTER_HIDDEN_TAB_IDS = new Set(["products"]);
+
+function isFooterHiddenForActiveTab() {
+  return FOOTER_HIDDEN_TAB_IDS.has(state.activeTabId);
+}
 
 function setSoftVisibility(element, visible) {
   if (!element) return;
@@ -60,6 +66,7 @@ function bindDom() {
   dom.topBar = document.querySelector(".top-bar");
   dom.topBarCenter = document.querySelector(".top-bar__center");
   dom.topNavHost = document.querySelector(".center-menu");
+  dom.groupMenu = document.querySelector(".group-menu");
   dom.sentinel = document.getElementById("nav-visibility-sentinel");
   try {
     state.toolsHiddenByPreference =
@@ -81,6 +88,7 @@ function bindDom() {
     dom.topBar &&
     dom.topBarCenter &&
     dom.topNavHost &&
+    dom.groupMenu &&
     dom.sentinel
   );
 }
@@ -101,7 +109,7 @@ function syncToolsVisibility() {
 }
 
 function getGroupMenu() {
-  return document.querySelector(".group-menu");
+  return dom.groupMenu;
 }
 
 function resolveTopBarHeight() {
@@ -169,7 +177,7 @@ function moveGroupMenu(target) {
 }
 
 function applyNavigationMode(useFooterNav) {
-  state.isFooterNavMode = !!useFooterNav;
+  state.isFooterNavMode = !!useFooterNav && !isFooterHiddenForActiveTab();
   state.pendingMode = null;
 
   dom.root?.classList.toggle("app-footer--nav-mode", state.isFooterNavMode);
@@ -220,6 +228,7 @@ function scheduleNavigationMode(nextMode) {
 }
 
 function resolveDesiredNavigationMode(sentinelTop) {
+  if (isFooterHiddenForActiveTab()) return false;
   if (state.isFooterNavMode) {
     return sentinelTop > NAV_EXIT_SCROLL_Y;
   }
@@ -283,6 +292,16 @@ function setupNavigationObserver() {
 function handleTabsActivated(event) {
   state.activeTabId = String(event?.detail?.id || "").trim() || "download";
   updateActiveSection(state.activeTabId);
+  dom.root?.classList.toggle(
+    "app-footer--tab-hidden",
+    isFooterHiddenForActiveTab(),
+  );
+  if (isFooterHiddenForActiveTab()) {
+    clearPendingNavigationMode();
+    applyNavigationMode(false);
+  } else {
+    evaluateNavigationMode();
+  }
   syncToolsVisibility();
 }
 
@@ -333,6 +352,10 @@ function initFooterStatusBar() {
   }
 
   updateActiveSection();
+  dom.root.classList.toggle(
+    "app-footer--tab-hidden",
+    isFooterHiddenForActiveTab(),
+  );
   applyNavigationMode(state.isFooterNavMode);
   setupNavigationObserver();
   syncToolsVisibility();

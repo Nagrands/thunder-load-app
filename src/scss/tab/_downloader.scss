@@ -133,20 +133,14 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      color: var(--color-accent);
+      color: var(--thunder-electric);
       transition: all 0.25s ease;
-      opacity: 0.92;
-    }
-
-    &:hover i {
-      transform: scale(1.02);
+      opacity: 0.52;
     }
   }
 
   .title-content h1 {
-    margin: 0 0 5px;
-    font-size: 1.42rem;
-    font-weight: 600;
+    font-size: 1.35rem;
   }
 
   .title-content .subtitle {
@@ -219,8 +213,9 @@
 
 .downloader-view {
   .input-container {
-    gap: 10px;
     padding: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    padding-top: 20px;
   }
 
   .downloader-action-row {
@@ -666,13 +661,12 @@
 
       &.active {
         background: var(--color-hover);
-        border: 1px var(--color-hover) solid;
+        border: 1px rgba(var(--thunder-electric-rgb), 0.15) solid;
         font-weight: 600;
         color: var(--color-accent);
         min-width: 0;
         padding-inline: 12px 10px;
         animation: qualityTabActivate 180ms ease-out both;
-        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.16);
       }
     }
 
@@ -1544,15 +1538,11 @@
         width: 100%;
         min-height: 42px;
         justify-content: center;
-        border-radius: 8px;
-        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 18px;
+        // border: 1px solid rgba(255, 255, 255, 0.06);
         background: var(--color-hover);
         color: var(--color-accent);
         text-decoration: none;
-
-        i {
-          font-size: 1rem;
-        }
 
         &:hover {
           background: rgba(176, 149, 245, 0.12);
@@ -1594,10 +1584,6 @@
       color: rgba(255, 255, 255, 0.62);
       font-size: 0.82rem;
 
-      i {
-        color: rgba(255, 255, 255, 0.78);
-      }
-
       &:focus {
         outline: none;
       }
@@ -1606,9 +1592,8 @@
     .quality-tab-count {
       min-width: 21px;
       padding: 2px 6px;
-      background: rgba(255, 255, 255, 0.11);
-      color: rgba(255, 255, 255, 0.78);
-      font-size: 0.68rem;
+      background: var(--color-hover);
+      color: var(--thunder-electric);
     }
   }
 

@@ -1,8 +1,5 @@
 export const toolsTranslations = {
   ru: {
-    "productsFormatter.title": "Форматтер списков",
-    "productsFormatter.subtitle":
-      "Приводит список к разделам, нормализует единицы и при необходимости собирает общий список закупки.",
     "productsFormatter.inputLabel": "Исходный список",
     "productsFormatter.inputPlaceholder":
       "Вставьте неструктурированный список продуктов с разделами и позициями.",
@@ -992,9 +989,6 @@ export const toolsTranslations = {
     "tools.migrate.mode.keep": "без замены",
   },
   en: {
-    "productsFormatter.title": "Product List Formatter",
-    "productsFormatter.subtitle":
-      "Turns raw product notes into normalized sections and can append a consolidated shopping summary.",
     "productsFormatter.inputLabel": "Source list",
     "productsFormatter.inputPlaceholder":
       "Paste an unstructured product list with section headers and items.",

@@ -699,11 +699,7 @@
   &.ok {
     border-color: rgba(124, 194, 160, 0.26);
     color: #d6f1e3;
-    background: linear-gradient(
-      140deg,
-      rgba(19, 45, 36, 0.72),
-      rgba(18, 49, 39, 0.44)
-    );
+    background: var(--thunder-electric-rgb);
   }
   &.missing {
     border-color: rgba(255, 124, 124, 0.42);

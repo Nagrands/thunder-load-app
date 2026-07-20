@@ -744,7 +744,6 @@
   margin-top: 12px;
   padding: 8px 12px;
   border-radius: 14px;
-  border: 1px solid rgba(var(--color-accent-rgb), 0.2);
   background: rgba(var(--color-accent-rgb), 0.085);
   display: flex;
   align-items: center;
@@ -1304,7 +1303,8 @@
 
 .history-cards-title {
   font-size: 1.4rem;
-  color: var(--color-highlight);
+  line-height: 1.15;
+  color: var(--thunder-electric);
 }
 
 .history-highlight {
@@ -1906,12 +1906,6 @@
   text-transform: none;
   letter-spacing: 0.09em;
   color: var(--color-quality);
-}
-
-.history-cards-title {
-  margin: 0;
-  font-size: 1.42rem;
-  line-height: 1.15;
 }
 
 // --- Controls & Actions ---

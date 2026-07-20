@@ -70,6 +70,7 @@
 }
 
 #main-view.container.main-view--products-active {
+  --footer-safe-space: 0px;
   max-width: none;
   align-items: stretch;
   justify-content: flex-start;

@@ -4,16 +4,6 @@ export function buildMarkup() {
   return `
     <div class="products-center">
       <div class="products-formatter-shell" data-ui="products-shell">
-        <section class="products-workbench-header wg-glass">
-          <div class="products-workbench-header__icon" aria-hidden="true">
-            <i class="fa-solid fa-list-check"></i>
-          </div>
-          <div class="products-workbench-header__copy">
-            <h1 data-i18n="productsFormatter.title">${t("productsFormatter.title")}</h1>
-            <p data-i18n="productsFormatter.subtitle">${t("productsFormatter.subtitle")}</p>
-          </div>
-        </section>
-
         <div class="products-workbench" data-ui="products-workbench">
           <section class="products-pane products-pane--input wg-glass" data-ui="products-input-pane">
             <header class="products-pane__header">

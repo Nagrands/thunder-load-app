@@ -191,9 +191,6 @@ export const settingsTranslations = {
     "settings.shortcuts.scopeLocal": "В приложении",
     "settings.shortcuts.scopeGlobal": "Глобально",
     "settings.shortcuts.empty": "Действия не найдены",
-    "settings.shortcuts.reset.title": "Сброс горячих клавиш",
-    "settings.shortcuts.reset.hint":
-      "Восстановить платформенные сочетания по умолчанию.",
     "settings.shortcuts.reset.button": "Сбросить горячие клавиши",
     "settings.shortcuts.reset.confirm":
       "Восстановить все сочетания по умолчанию?",
@@ -486,9 +483,6 @@ export const settingsTranslations = {
     "settings.shortcuts.scopeLocal": "In app",
     "settings.shortcuts.scopeGlobal": "Global",
     "settings.shortcuts.empty": "No actions found",
-    "settings.shortcuts.reset.title": "Reset shortcuts",
-    "settings.shortcuts.reset.hint":
-      "Restore the default shortcuts for this platform.",
     "settings.shortcuts.reset.button": "Reset shortcuts",
     "settings.shortcuts.reset.confirm":
       "Restore all shortcuts to their defaults?",

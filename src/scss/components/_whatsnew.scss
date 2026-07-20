@@ -28,19 +28,13 @@
     top: 20px;
     right: 20px;
     z-index: 4;
-    width: 38px;
-    height: 38px;
     color: rgba(29, 36, 52, 0.78);
     background: rgba(243, 247, 255, 0.82);
-    border-color: rgba(255, 255, 255, 0.42);
-    box-shadow: 0 10px 24px rgba(20, 26, 38, 0.2);
-    backdrop-filter: blur(12px);
 
     &:hover,
     &:focus {
       color: #0e1724;
       background: rgba(255, 255, 255, 0.94);
-      border-color: rgba(255, 255, 255, 0.7);
     }
   }
 }
@@ -61,12 +55,6 @@
   position: relative;
   min-height: 168px;
   overflow: hidden;
-  background:
-    radial-gradient(circle at 31% 78%, rgb(190 205 239 / 43%), transparent 24%),
-    radial-gradient(circle at 73% 74%, rgb(28 32 44 / 70%), transparent 26%),
-    radial-gradient(circle at 90% 10%, rgb(70 122 187 / 88%), #00000075 36%),
-    radial-gradient(circle at 14% 18%, rgb(76 84 129), transparent 35%),
-    linear-gradient(135deg, rgb(72 101 140) 0%, #bbc6ff 48%, #becdef 100%);
 
   &::before {
     content: "";
@@ -201,7 +189,7 @@
 
   h2 {
     margin: 0;
-    color: #dfe8ff;
+    color: var(--thunder-electric);
     font-size: 26px;
     letter-spacing: 0;
   }
@@ -320,16 +308,13 @@
   gap: 8px;
   padding: 0 13px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
   color: rgba(232, 241, 255, 0.76);
-  background: rgba(255, 255, 255, 0.055);
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
   transition:
     transform 0.18s ease,
     border-color 0.18s ease,
-    background 0.18s ease,
     color 0.18s ease;
 
   &:hover:not(:disabled),
@@ -377,13 +362,10 @@
   width: 100%;
   border: 0;
   border-radius: 999px;
-  color: #202638;
-  background: linear-gradient(180deg, #d9e4ff, #acbbe4);
-  box-shadow:
-    0 16px 32px rgba(5, 10, 20, 0.24),
-    inset 0 1px 0 rgba(255, 255, 255, 0.46);
+  color: var(--thunder-electric);
+  background: var(--color-hover);
   font-size: 14px;
-  font-weight: 760;
+  font-weight: 600;
   cursor: pointer;
   transition:
     transform 0.18s ease,
