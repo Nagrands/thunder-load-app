@@ -1,3 +1,10 @@
+const createCompactQualityController =
+  window.WebCompactQuality.createCompactQuality;
+const createRouterController = window.WebControlRouter.createWebRouter;
+const bindBeforeUnload = window.WebSettings.bindSettingsBeforeUnload;
+const createSettingsController =
+  window.WebSettings.createWebSettingsController;
+
 const ICONS = {
   archiveX:
     '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h18M5 7l1 13h12l1-13M8 7V4h8v3M9 11l6 6M15 11l-6 6"/></svg>',
@@ -20,14 +27,13 @@ const ICONS = {
 };
 
 const el = {
-  status: document.getElementById("connection-status"),
-  footerNetworkUrl: document.getElementById("footer-network-url"),
-  topbarQueueCount: document.getElementById("topbar-queue-count"),
   jobSummaryTitle: document.getElementById("job-summary-title"),
   jobSummaryMeta: document.getElementById("job-summary-meta"),
   urlInput: document.getElementById("url-input"),
   clearUrl: document.getElementById("clear-url"),
-  quality: document.getElementById("quality-select"),
+  videoQuality: document.getElementById("compact-video-quality"),
+  audioQuality: document.getElementById("compact-audio-quality"),
+  qualityStatus: document.getElementById("quality-status"),
   queue: document.getElementById("queue-list"),
   pause: document.getElementById("pause-queue"),
   settingsModal: document.getElementById("settings-modal"),
@@ -82,11 +88,6 @@ async function request(path, options = {}) {
   return data;
 }
 
-function setStatus(text, ok = true) {
-  el.status.textContent = text;
-  el.status.classList.toggle("is-error", !ok);
-}
-
 function escapeHtml(value) {
   return String(value || "")
     .replaceAll("&", "&amp;")
@@ -139,13 +140,6 @@ function filterJobs(jobs = []) {
   return jobs.filter((job) => job.status === queueFilter);
 }
 
-function renderNetworkStatus(status = {}) {
-  const lanUrls = Array.isArray(status.lanUrls) ? status.lanUrls : [];
-  const lanUrl = lanUrls[0] || "";
-  el.footerNetworkUrl.textContent =
-    lanUrl || status.localUrl || "LAN недоступен";
-}
-
 function renderSummary(state = {}) {
   const counts = state.counts || {};
   const filterCounts = getFilterCounts(state);
@@ -153,8 +147,6 @@ function renderSummary(state = {}) {
   el.counts.running.textContent = `${counts.running || 0} активно`;
   el.counts.failed.textContent = `${counts.failed || 0} ошибок`;
   el.counts.done.textContent = `${counts.done || 0} готово`;
-  el.topbarQueueCount.textContent = String(filterCounts.all);
-  el.topbarQueueCount.classList.toggle("is-visible", filterCounts.all > 0);
   Object.entries(filterCounts).forEach(([key, value]) => {
     if (el.filterCounts[key]) el.filterCounts[key].textContent = String(value);
   });
@@ -229,7 +221,12 @@ function renderState(state = {}) {
         0,
         Math.min(100, Math.round(Number(job.progress) || 0)),
       );
-      const quality = escapeHtml(job.quality || job.qualityMode || "source");
+      const qualityValue = job.quality || job.qualityMode || "source";
+      const quality = escapeHtml(
+        typeof qualityValue === "object"
+          ? qualityValue.label || qualityValue.resolution || qualityValue.type
+          : qualityValue,
+      );
       return `<article class="queue-item ${getStatusClass(job)}" role="listitem">
         <span class="queue-progress-line" style="width:${progress}%"></span>
         <div class="queue-item-index-wrap">
@@ -250,27 +247,9 @@ function renderState(state = {}) {
     .join("");
 }
 
-function renderSettings(settings = {}) {
-  for (const [key, node] of Object.entries(el.settings)) {
-    if (!node || typeof settings[key] === "undefined") continue;
-    if (node.type === "checkbox") {
-      node.checked = Boolean(settings[key]);
-    } else {
-      node.value = String(settings[key] ?? "");
-    }
-  }
-}
-
-async function refresh() {
-  const [{ status }, { state }, { settings }] = await Promise.all([
-    request("/api/status"),
-    request("/api/state"),
-    request("/api/settings"),
-  ]);
-  renderNetworkStatus(status);
+async function refreshState() {
+  const { state } = await request("/api/state");
   renderState(state);
-  renderSettings(settings);
-  setStatus("Подключено", true);
 }
 
 async function sendAction(action, payload = {}) {
@@ -281,25 +260,44 @@ async function sendAction(action, payload = {}) {
   renderState(result);
 }
 
-function openSettingsModal() {
-  el.settingsModal.classList.add("is-open");
-  el.settingsModal.setAttribute("aria-hidden", "false");
-  document.body.classList.add("settings-modal-open");
-}
+const settingsController = createSettingsController({
+  fields: el.settings,
+  saveButton: document.getElementById("save-settings"),
+  status: el.settingsSaveStatus,
+  request,
+});
 
-function closeSettingsModal() {
-  el.settingsModal.classList.remove("is-open");
-  el.settingsModal.setAttribute("aria-hidden", "true");
-  document.body.classList.remove("settings-modal-open");
-  el.settingsSaveStatus.textContent = "";
-}
+const router = createRouterController({
+  modal: el.settingsModal,
+  hasUnsavedChanges: settingsController.isDirty,
+  onDiscard: settingsController.cancel,
+});
+
+const compactQuality = createCompactQualityController({
+  input: el.urlInput,
+  videoSelect: el.videoQuality,
+  audioSelect: el.audioQuality,
+  status: el.qualityStatus,
+  actions: [
+    document.getElementById("download-now"),
+    document.getElementById("add-queue"),
+  ],
+  request,
+});
 
 document.querySelectorAll("[data-settings-open]").forEach((button) => {
-  button.addEventListener("click", openSettingsModal);
+  button.addEventListener("click", router.openSettings);
 });
 
 document.querySelectorAll("[data-settings-close]").forEach((button) => {
-  button.addEventListener("click", closeSettingsModal);
+  button.addEventListener("click", router.closeSettings);
+});
+
+document.querySelectorAll("[data-settings-cancel]").forEach((button) => {
+  button.addEventListener("click", () => {
+    settingsController.cancel();
+    router.closeSettings({ force: true });
+  });
 });
 
 document.querySelectorAll("[data-settings-tab]").forEach((button) => {
@@ -327,19 +325,19 @@ document.querySelectorAll("[data-filter]").forEach((button) => {
 });
 
 document.getElementById("download-now").addEventListener("click", async () => {
-  await sendAction("downloader:start", {
-    url: el.urlInput.value,
-    quality: el.quality.value,
-  });
+  const payload = compactQuality.getPayload();
+  if (!payload) return;
+  await sendAction("downloader:start", payload);
   el.urlInput.value = "";
+  compactQuality.clear();
 });
 
 document.getElementById("add-queue").addEventListener("click", async () => {
-  await sendAction("downloader:add", {
-    url: el.urlInput.value,
-    quality: el.quality.value,
-  });
+  const payload = compactQuality.getPayload();
+  if (!payload) return;
+  await sendAction("downloader:add", payload);
   el.urlInput.value = "";
+  compactQuality.clear();
 });
 
 document.getElementById("start-queue").addEventListener("click", () => {
@@ -355,17 +353,22 @@ el.pause.addEventListener("click", () => {
 
 el.clearUrl.addEventListener("click", () => {
   el.urlInput.value = "";
+  compactQuality.clear();
   el.urlInput.focus();
 });
 
 el.urlInput.addEventListener("keydown", (event) => {
   if (event.key !== "Enter" || event.shiftKey) return;
   event.preventDefault();
-  void sendAction("downloader:start", {
-    url: el.urlInput.value,
-    quality: el.quality.value,
+  const payload = compactQuality.getPayload();
+  if (!payload) {
+    void compactQuality.analyze();
+    return;
+  }
+  void sendAction("downloader:start", payload).then(() => {
+    el.urlInput.value = "";
+    compactQuality.clear();
   });
-  el.urlInput.value = "";
 });
 
 document.querySelectorAll("[data-clear]").forEach((button) => {
@@ -380,46 +383,40 @@ el.queue.addEventListener("click", (event) => {
   void sendAction(button.dataset.action, { jobId: button.dataset.id });
 });
 
-document.getElementById("save-settings").addEventListener("click", async () => {
-  const payload = {};
-  for (const [key, node] of Object.entries(el.settings)) {
-    payload[key] = node.type === "checkbox" ? node.checked : node.value;
-  }
-  el.settingsSaveStatus.textContent = "Сохранение...";
-  try {
-    const { result } = await request("/api/settings", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
-    renderSettings(result);
-    await refresh();
-    el.settingsSaveStatus.textContent = "Сохранено";
-  } catch (error) {
-    console.error(error);
-    el.settingsSaveStatus.textContent = "Не удалось сохранить";
-  }
-});
+document
+  .getElementById("save-settings")
+  .addEventListener("click", () => void settingsController.save());
 
 document.addEventListener("keydown", (event) => {
   if (
     event.key === "Escape" &&
     el.settingsModal.classList.contains("is-open")
   ) {
-    closeSettingsModal();
+    router.closeSettings();
   }
 });
 
 try {
   const events = new EventSource(apiUrl("/events"));
-  events.addEventListener("ready", () => setStatus("Подключено", true));
-  events.addEventListener("state", () => refresh().catch(() => {}));
-  events.addEventListener("settings", () => refresh().catch(() => {}));
-  events.onerror = () => setStatus("Нет соединения", false);
-} catch {
-  setStatus("SSE недоступен", false);
-}
+  events.addEventListener("ready", () => {});
+  events.addEventListener("state", () => {
+    void refreshState().catch(() => {});
+    void settingsController.refreshRemote().catch(() => {});
+  });
+  events.addEventListener("settings", (event) => {
+    try {
+      settingsController.applyRemote(JSON.parse(event.data));
+    } catch {
+      void settingsController.refreshRemote().catch(() => {});
+    }
+  });
+  events.onerror = () => {};
+} catch {}
 
-refresh().catch((error) => {
-  console.error(error);
-  setStatus("Ошибка подключения", false);
-});
+bindBeforeUnload(settingsController.isDirty);
+
+Promise.all([refreshState(), settingsController.refreshRemote()]).catch(
+  (error) => {
+    console.error(error);
+  },
+);

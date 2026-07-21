@@ -63,6 +63,7 @@ import {
   initDownloadQueueFilter,
   syncQueueFilterControls,
 } from "./downloadQueueFilter.js";
+import { normalizeWebQualitySelection } from "./webQualitySelection.js";
 
 const queueInfo = document.getElementById("download-queue-info");
 const queueIndicator = document.getElementById("queue-start-indicator");
@@ -2752,6 +2753,9 @@ function initDownloadButton() {
 }
 
 function normalizeWebControlQuality(value) {
+  if (value && typeof value === "object") {
+    return normalizeWebQualitySelection(value);
+  }
   const normalized = String(value || "")
     .trim()
     .toLowerCase();

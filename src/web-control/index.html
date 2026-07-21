@@ -8,70 +8,9 @@
   </head>
   <body>
     <div class="web-app">
-      <header class="top-bar">
-        <div class="top-bar__left">
-          <span class="top-bar__brand">Thunder</span>
-        </div>
-        <div class="top-bar__center">
-          <nav class="group-menu" aria-label="Навигация по разделам">
-            <button class="menu-item active" type="button" aria-current="page">
-              <span class="menu-main">
-                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M12 3v11m0 0 4-4m-4 4-4-4M5 19h14" />
-                </svg>
-                <span class="menu-text">Загрузчик</span>
-              </span>
-              <span class="menu-badge" id="topbar-queue-count">0</span>
-            </button>
-            <button class="menu-item is-disabled" type="button" disabled>
-              <span class="menu-main">
-                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-                  <path
-                    d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l2-2a6 6 0 0 1-7.8 7.8l-4.6 4.6a2 2 0 0 1-2.8-2.8l4.6-4.6A6 6 0 0 1 16.9 4.5l-2.2 1.8Z"
-                  />
-                </svg>
-                <span class="menu-text">Инструменты</span>
-              </span>
-            </button>
-          </nav>
-        </div>
-        <div class="top-bar__right">
-          <span class="top-bar__chip" id="connection-status">Подключение</span>
-          <button
-            class="top-bar__action"
-            type="button"
-            data-settings-open
-            aria-label="Настройки"
-          >
-            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" />
-              <path
-                d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 0 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 0 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1A2 2 0 0 1 4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 0 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1A2 2 0 0 1 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.6V3a2 2 0 0 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1A2 2 0 0 1 19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.1a2 2 0 0 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1Z"
-              />
-            </svg>
-          </button>
-        </div>
-      </header>
-
       <main class="main-view">
         <section class="downloader-shell" aria-labelledby="downloader-title">
           <div class="downloader-toolbar">
-            <div class="downloader-view-mode" aria-label="Режим просмотра">
-              <button type="button" class="downloader-view-mode__btn active">
-                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M4 5h16M4 12h16M4 19h16" />
-                </svg>
-                <span>Подробно</span>
-              </button>
-              <button type="button" class="downloader-view-mode__btn" disabled>
-                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-                  <path
-                    d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"
-                  />
-                </svg>
-                <span>Компактно</span>
-              </button>
-            </div>
             <div class="downloader-job-summary" id="web-job-summary">
               <span class="downloader-job-summary__badge">WEB</span>
               <div class="downloader-job-summary__content">
@@ -79,6 +18,19 @@
                 <span id="job-summary-meta">Ожидаем новые ссылки</span>
               </div>
             </div>
+            <button
+              class="toolbar-settings-button"
+              type="button"
+              data-settings-open
+              aria-label="Открыть настройки"
+            >
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" />
+                <path
+                  d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 0 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 0 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1A2 2 0 0 1 4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 0 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1A2 2 0 0 1 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.6V3a2 2 0 0 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1A2 2 0 0 1 19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.1a2 2 0 0 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1Z"
+                />
+              </svg>
+            </button>
           </div>
 
           <h1 id="downloader-title" class="visually-hidden">Загрузчик</h1>
@@ -125,8 +77,11 @@
                       class="url-input-statusline__dot"
                       aria-hidden="true"
                     ></span>
-                    <span class="url-helper-text"
-                      >Вставьте ссылку или несколько ссылок</span
+                    <span
+                      id="quality-status"
+                      class="url-helper-text"
+                      aria-live="polite"
+                      >Вставьте одну ссылку для анализа форматов</span
                     >
                   </div>
                   <div class="url-input-shortcuts" aria-hidden="true">
@@ -138,19 +93,20 @@
                   class="button-group downloader-action-row url-input-action-row"
                 >
                   <div
-                    class="download-quality-group downloader-action-row__primary"
+                    class="compact-quality-panel downloader-action-row__primary"
                   >
-                    <select
-                      id="quality-select"
-                      class="quality-select"
-                      aria-label="Качество"
-                    >
-                      <option value="source">Source</option>
-                      <option value="audio">Audio Only</option>
-                    </select>
+                    <label class="compact-quality-field">
+                      <span>Видео</span>
+                      <select id="compact-video-quality" disabled></select>
+                    </label>
+                    <label class="compact-quality-field">
+                      <span>Аудио</span>
+                      <select id="compact-audio-quality" disabled></select>
+                    </label>
                     <button
                       id="download-now"
                       class="large-button downloader-action-row__download"
+                      disabled
                     >
                       <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
                         <path d="M12 3v11m0 0 4-4m-4 4-4-4M5 19h14" />
@@ -160,6 +116,7 @@
                     <button
                       id="add-queue"
                       class="small-button downloader-action-row__aside"
+                      disabled
                     >
                       <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
                         <path d="M12 5v14M5 12h14" />
@@ -329,35 +286,6 @@
         </section>
       </main>
 
-      <footer class="app-footer">
-        <div class="app-footer__bar">
-          <div class="app-footer__zone app-footer__zone--lead">
-            <span class="app-footer__kicker">Thunder</span>
-            <span class="app-footer__context">Web</span>
-          </div>
-          <div class="app-footer__zone app-footer__zone--center">
-            <span class="app-footer__status-meta">Вкладка</span>
-            <strong class="app-footer__status-value">Загрузчик</strong>
-          </div>
-          <div class="app-footer__zone app-footer__zone--actions">
-            <span id="footer-network-url" class="app-footer__context">LAN</span>
-            <button
-              class="app-footer__action"
-              type="button"
-              data-settings-open
-              aria-label="Открыть настройки"
-            >
-              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" />
-                <path
-                  d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 0 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 0 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1A2 2 0 0 1 4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 0 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1A2 2 0 0 1 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.6V3a2 2 0 0 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1A2 2 0 0 1 19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.1a2 2 0 0 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1Z"
-                />
-              </svg>
-            </button>
-          </div>
-        </div>
-      </footer>
-
       <div id="settings-modal" class="settings-modal" aria-hidden="true">
         <div class="settings-modal__backdrop" data-settings-close></div>
         <section
@@ -435,6 +363,7 @@
                         <span>Профиль качества</span>
                         <select id="setting-quality-profile">
                           <option value="remember">Последний</option>
+                          <option value="best">Лучшее</option>
                           <option value="audio">Аудио</option>
                         </select>
                       </label>
@@ -565,13 +494,14 @@
               class="settings-save-status"
               aria-live="polite"
             ></span>
-            <button type="button" class="small-button" data-settings-close>
-              Закрыть
+            <button type="button" class="small-button" data-settings-cancel>
+              Отмена
             </button>
             <button
               id="save-settings"
               type="button"
               class="large-button settings-save-button"
+              disabled
             >
               <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
                 <path
@@ -585,6 +515,9 @@
         </section>
       </div>
     </div>
+    <script src="/web-control-router.js"></script>
+    <script src="/web-compact-quality.js"></script>
+    <script src="/web-settings.js"></script>
     <script src="/web-control.js"></script>
   </body>
 </html>

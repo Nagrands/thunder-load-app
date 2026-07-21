@@ -92,6 +92,29 @@ async function requestJson(fakeServer, url, options = {}) {
   return responseDone;
 }
 
+async function requestRaw(fakeServer, url) {
+  const req = new EventEmitter();
+  req.method = "GET";
+  req.url = `${url.pathname}${url.search}`;
+
+  return new Promise((resolve) => {
+    const res = {
+      statusCode: 0,
+      headers: {},
+      body: "",
+      writeHead: jest.fn((statusCode, headers = {}) => {
+        res.statusCode = statusCode;
+        res.headers = headers;
+      }),
+      end: jest.fn((chunk = "") => {
+        res.body += String(chunk);
+        resolve(res);
+      }),
+    };
+    void fakeServer.handleRequest(req, res);
+  });
+}
+
 describe("webControlServer", () => {
   let server;
   let fakeHttpServer;
@@ -201,5 +224,155 @@ describe("webControlServer", () => {
       ok: true,
       command: "downloader:pause",
     });
+  });
+
+  it.each(["/", "/downloader", "/settings"])(
+    "serves the web application for %s",
+    async (pathname) => {
+      const store = createStore();
+      server = createWebControlServer({
+        appPath: path.resolve(__dirname, "../../../.."),
+        store,
+      });
+      const status = await server.setEnabled(true);
+
+      const response = await requestRaw(
+        fakeHttpServer,
+        new URL(pathname, status.localUrl),
+      );
+
+      expect(response.statusCode).toBe(200);
+      expect(response.headers["Content-Type"]).toBe("text/html; charset=utf-8");
+      expect(response.body).toContain("<!doctype html>");
+    },
+  );
+
+  it.each(["/tools", "/missing.js", "/unknown/path"])(
+    "returns 404 for unknown route or asset %s",
+    async (pathname) => {
+      const store = createStore();
+      server = createWebControlServer({
+        appPath: path.resolve(__dirname, "../../../.."),
+        store,
+      });
+      const status = await server.setEnabled(true);
+
+      const response = await requestJson(
+        fakeHttpServer,
+        new URL(pathname, status.localUrl),
+      );
+
+      expect(response).toEqual({
+        statusCode: 404,
+        body: { success: false, error: "Not found" },
+      });
+    },
+  );
+
+  it("normalizes one URL and requests its preview from the renderer", async () => {
+    const store = createStore();
+    server = createWebControlServer({
+      appPath: path.resolve(__dirname, "../../../.."),
+      store,
+    });
+    const webContents = {
+      send: jest.fn((_channel, payload) => {
+        server.resolveRendererResponse({
+          requestId: payload.requestId,
+          success: true,
+          result: { title: "Video" },
+        });
+      }),
+    };
+    server.setMainWindow({
+      isDestroyed: () => false,
+      webContents,
+    });
+    const status = await server.setEnabled(true);
+
+    const response = await requestJson(
+      fakeHttpServer,
+      new URL("/api/preview", status.localUrl),
+      {
+        method: "POST",
+        body: { url: "  https://example.com/video  " },
+      },
+    );
+
+    expect(response).toEqual({
+      statusCode: 200,
+      body: { success: true, preview: { title: "Video" } },
+    });
+    expect(webContents.send).toHaveBeenCalledWith(
+      CHANNELS.WEB_RENDERER_REQUEST,
+      expect.objectContaining({
+        command: "preview:get",
+        payload: { url: "https://example.com/video" },
+      }),
+    );
+  });
+
+  it.each([
+    undefined,
+    "",
+    "not-a-url",
+    "ftp://example.com/video",
+    "https://example.com/one https://example.com/two",
+  ])("rejects invalid preview URL %p", async (url) => {
+    const store = createStore();
+    server = createWebControlServer({
+      appPath: path.resolve(__dirname, "../../../.."),
+      store,
+    });
+    const status = await server.setEnabled(true);
+
+    const response = await requestJson(
+      fakeHttpServer,
+      new URL("/api/preview", status.localUrl),
+      { method: "POST", body: { url } },
+    );
+
+    expect(response.statusCode).toBe(400);
+    expect(response.body.success).toBe(false);
+  });
+
+  it("forwards a partial settings patch and returns the canonical snapshot", async () => {
+    const store = createStore();
+    server = createWebControlServer({
+      appPath: path.resolve(__dirname, "../../../.."),
+      store,
+    });
+    const webContents = {
+      send: jest.fn((_channel, payload) => {
+        server.resolveRendererResponse({
+          requestId: payload.requestId,
+          success: true,
+          result: { theme: "violet", language: "ru" },
+        });
+      }),
+    };
+    server.setMainWindow({
+      isDestroyed: () => false,
+      webContents,
+    });
+    const status = await server.setEnabled(true);
+
+    const response = await requestJson(
+      fakeHttpServer,
+      new URL("/api/settings", status.localUrl),
+      { method: "POST", body: { theme: "violet" } },
+    );
+
+    expect(response.body).toEqual({
+      success: true,
+      result: { theme: "violet", language: "ru" },
+    });
+    expect(webContents.send).toHaveBeenCalledWith(
+      CHANNELS.WEB_RENDERER_REQUEST,
+      expect.objectContaining({
+        command: "settings:set",
+        payload: { theme: "violet" },
+      }),
+    );
   });
 });

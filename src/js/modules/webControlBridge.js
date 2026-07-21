@@ -13,6 +13,8 @@ import {
   QUALITY_PROFILE_DEFAULT,
   QUALITY_PROFILE_KEY,
 } from "./features/settings/defaults.js";
+import { getVideoInfo } from "./videoInfoBroker.js";
+import { buildWebCompactQualityOptions } from "./downloadQualityOptions.js";
 
 const RESPONSE_CHANNEL = "web:rendererResponse";
 const REQUEST_CHANNEL = "web:rendererRequest";
@@ -23,6 +25,25 @@ const BOOLEAN_SETTINGS = new Set([
   "disableCompleteModal",
   "autoOpenQualityModal",
   "showToolsStatus",
+]);
+const THEME_SETTINGS = new Set([
+  "dark",
+  "midnight",
+  "emerald",
+  "sunset",
+  "violet",
+]);
+const LANGUAGE_SETTINGS = new Set(["ru", "en"]);
+const FONT_SIZE_SETTINGS = new Set(["14", "16", "18", "20"]);
+const QUALITY_PROFILE_SETTINGS = new Set(["remember", "best", "audio"]);
+const SETTINGS_KEYS = new Set([
+  ...BOOLEAN_SETTINGS,
+  "downloadPath",
+  "parallelLimit",
+  "qualityProfile",
+  "theme",
+  "fontSize",
+  "language",
 ]);
 
 function readLocalFlag(key, defaultValue) {
@@ -36,9 +57,49 @@ function readLocalFlag(key, defaultValue) {
 }
 
 function normalizeQualityProfile(value) {
-  return value === "audio" || value === "remember"
-    ? value
-    : QUALITY_PROFILE_DEFAULT;
+  return QUALITY_PROFILE_SETTINGS.has(value) ? value : QUALITY_PROFILE_DEFAULT;
+}
+
+function validateWebControlSettingsPatch(payload) {
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    throw new Error("Settings patch must be an object");
+  }
+
+  for (const [key, value] of Object.entries(payload)) {
+    if (!SETTINGS_KEYS.has(key)) throw new Error(`Unknown setting: ${key}`);
+    if (BOOLEAN_SETTINGS.has(key) && typeof value !== "boolean") {
+      throw new Error(`Invalid boolean setting: ${key}`);
+    }
+    if (
+      key === "downloadPath" &&
+      (typeof value !== "string" || !value.trim())
+    ) {
+      throw new Error("Invalid download path");
+    }
+    if (key === "parallelLimit" && ![1, 2].includes(value)) {
+      throw new Error("Invalid parallel limit");
+    }
+    if (key === "qualityProfile" && !QUALITY_PROFILE_SETTINGS.has(value)) {
+      throw new Error("Invalid quality profile");
+    }
+    if (key === "theme" && !THEME_SETTINGS.has(value)) {
+      throw new Error("Invalid theme");
+    }
+    if (key === "fontSize" && !FONT_SIZE_SETTINGS.has(value)) {
+      throw new Error("Invalid font size");
+    }
+    if (key === "language" && !LANGUAGE_SETTINGS.has(value)) {
+      throw new Error("Invalid language");
+    }
+  }
+
+  return payload;
+}
+
+function assertSuccessfulResult(result, setting) {
+  if (result && typeof result === "object" && result.success === false) {
+    throw new Error(result.error || `Failed to apply ${setting}`);
+  }
 }
 
 async function getWebControlSettings() {
@@ -104,18 +165,24 @@ async function setBooleanSetting(key, value) {
 }
 
 async function setWebControlSettings(payload = {}) {
-  const entries = Object.entries(payload || {});
+  const patch = validateWebControlSettingsPatch(payload);
+  const entries = Object.entries(patch);
   for (const [key, value] of entries) {
     if (BOOLEAN_SETTINGS.has(key)) {
       await setBooleanSetting(key, value);
       continue;
     }
     if (key === "downloadPath") {
-      const path = String(value || "").trim();
-      if (path) await window.electron.invoke("set-download-path", path);
+      const path = value.trim();
+      const result = await window.electron.invoke("set-download-path", path);
+      assertSuccessfulResult(result, "download path");
     } else if (key === "parallelLimit") {
-      const limit = Math.max(1, Math.min(2, Number(value) || 1));
-      await window.electron.invoke("set-download-parallel-limit", limit);
+      const limit = value;
+      const result = await window.electron.invoke(
+        "set-download-parallel-limit",
+        limit,
+      );
+      assertSuccessfulResult(result, "parallel limit");
       localStorage.setItem("downloadParallelLimit", String(limit));
       window.dispatchEvent(
         new CustomEvent("download:parallel-limit-changed", {
@@ -123,16 +190,53 @@ async function setWebControlSettings(payload = {}) {
         }),
       );
     } else if (key === "qualityProfile") {
-      localStorage.setItem(QUALITY_PROFILE_KEY, normalizeQualityProfile(value));
+      localStorage.setItem(QUALITY_PROFILE_KEY, value);
     } else if (key === "theme") {
-      await setTheme(String(value || "dark"));
+      await setTheme(value);
     } else if (key === "fontSize") {
-      await setFontSize(String(value || "16"));
+      await setFontSize(value);
     } else if (key === "language") {
       setLanguagePreview(value);
     }
   }
   return getWebControlSettings();
+}
+
+function translateWebQuality(key, params = {}) {
+  const labels = {
+    "quality.custom": "Другой формат",
+    "quality.label.audio": "Аудио",
+    "quality.label.audioMp3": "Аудио MP3",
+    "quality.label.video": "Видео",
+    "quality.compact.noAudio": "Без аудио",
+    "quality.compact.noAudioHint": "Скачать только видеодорожку",
+    "quality.compact.noVideo": "Без видео",
+    "quality.compact.noVideoHint": "Скачать только аудиодорожку",
+  };
+  if (key === "quality.label.videoNoAudio") {
+    return `${params.label || "Видео"} без аудио`;
+  }
+  if (key === "quality.label.videoWithAudio") {
+    return `${params.label || "Видео"} с аудио`;
+  }
+  if (key === "quality.desc.audioMp3") {
+    return `MP3 • ${params.bitrate || "?"} kbps`;
+  }
+  return labels[key] || key;
+}
+
+async function getWebCompactPreview(payload = {}) {
+  const url = String(payload.url || "").trim();
+  if (!url) throw new Error("URL is required");
+  const info = await getVideoInfo(url);
+  if (!info?.success || !Array.isArray(info.formats) || !info.formats.length) {
+    throw new Error(info?.error || "Formats are unavailable");
+  }
+  return {
+    title: info.title || "",
+    url: info.webpage_url || info.original_url || url,
+    ...buildWebCompactQualityOptions(info, translateWebQuality),
+  };
 }
 
 async function handleWebControlRequest(message = {}) {
@@ -141,6 +245,7 @@ async function handleWebControlRequest(message = {}) {
   if (command === "snapshot") return getWebControlSnapshot();
   if (command === "settings:get") return getWebControlSettings();
   if (command === "settings:set") return setWebControlSettings(payload);
+  if (command === "preview:get") return getWebCompactPreview(payload);
   return handleWebControlDownloaderAction(command, payload);
 }
 
@@ -167,5 +272,7 @@ export function initWebControlBridge() {
 export {
   getWebControlSettings,
   setWebControlSettings,
+  getWebCompactPreview,
   handleWebControlRequest,
+  validateWebControlSettingsPatch,
 };

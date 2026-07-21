@@ -13,6 +13,7 @@ const HOST = "0.0.0.0";
 const LOCAL_HOST = "127.0.0.1";
 const DEFAULT_PORT = 0;
 const REQUEST_TIMEOUT_MS = 8000;
+const SPA_ROUTES = new Set(["/downloader", "/settings"]);
 const STORE_KEYS = Object.freeze({
   enabled: "webControl.enabled",
   token: "webControl.token",
@@ -99,6 +100,20 @@ function readRequestBody(req) {
   });
 }
 
+function normalizePreviewUrl(value) {
+  if (typeof value !== "string") return "";
+  const candidate = value.trim();
+  if (!candidate || /\s/.test(candidate)) return "";
+
+  try {
+    const url = new URL(candidate);
+    if (url.protocol !== "http:" && url.protocol !== "https:") return "";
+    return url.href;
+  } catch {
+    return "";
+  }
+}
+
 function createWebControlServer({ appPath, store }) {
   let server = null;
   let mainWindow = null;
@@ -174,7 +189,10 @@ function createWebControlServer({ appPath, store }) {
   }
 
   async function serveStatic(reqUrl, res) {
-    const pathname = reqUrl.pathname === "/" ? "/index.html" : reqUrl.pathname;
+    const pathname =
+      reqUrl.pathname === "/" || SPA_ROUTES.has(reqUrl.pathname)
+        ? "/index.html"
+        : reqUrl.pathname;
     const normalized = path.normalize(pathname).replace(/^(\.\.[/\\])+/, "");
     const filePath = path.join(staticDir, normalized);
     const relative = path.relative(staticDir, filePath);
@@ -226,6 +244,21 @@ function createWebControlServer({ appPath, store }) {
       const result = await requestRenderer(body.action, body.payload || {});
       broadcastEvent("state", result);
       createJsonResponse(res, 200, { success: true, result });
+      return;
+    }
+
+    if (req.method === "POST" && reqUrl.pathname === "/api/preview") {
+      const body = await readRequestBody(req);
+      const url = normalizePreviewUrl(body.url);
+      if (!url) {
+        createJsonResponse(res, 400, {
+          success: false,
+          error: "A single valid HTTP(S) URL is required",
+        });
+        return;
+      }
+      const preview = await requestRenderer("preview:get", { url });
+      createJsonResponse(res, 200, { success: true, preview });
       return;
     }
 

@@ -25,11 +25,15 @@ function emit(type, detail) {
 // THEME
 export async function setTheme(theme) {
   try {
+    const invoke = window.electron?.invoke;
+    if (typeof invoke === "function") {
+      const result = await invoke.call(window.electron, "set-theme", theme);
+      if (result && typeof result === "object" && result.success === false) {
+        throw new Error(result.error || "Failed to persist theme");
+      }
+    }
     localStorage.setItem("theme", theme);
     document.documentElement.setAttribute("data-theme", theme);
-    try {
-      await window.electron?.invoke?.("set-theme", theme);
-    } catch {}
     emit("theme", { value: theme });
     return theme;
   } catch (e) {

@@ -248,4 +248,28 @@ function buildCompactPayload({ videoOption, audioOption, t }) {
   });
 }
 
-export { buildCompactPayload, buildCompactQualityOptions };
+function serializeCompactOption(option = {}) {
+  return {
+    id: option.id || "",
+    kind: option.kind || "",
+    source: option.source || "",
+    title: option.title || "",
+    meta: option.meta || "",
+    disabled: Boolean(option.disabled),
+    payload: option.payload || null,
+  };
+}
+
+function buildWebCompactQualityOptions(info, t) {
+  const groups = buildCompactQualityOptions(info, t);
+  return {
+    videoOptions: groups.videoOptions.map(serializeCompactOption),
+    audioOptions: groups.audioOptions.map(serializeCompactOption),
+  };
+}
+
+export {
+  buildCompactPayload,
+  buildCompactQualityOptions,
+  buildWebCompactQualityOptions,
+};

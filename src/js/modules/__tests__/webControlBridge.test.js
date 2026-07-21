@@ -85,4 +85,183 @@ describe("webControlBridge", () => {
       result: { counts: { pending: 0 } },
     });
   });
+
+  it("returns serializable compact quality options for preview requests", async () => {
+    jest.doMock("../downloadManager.js", () => ({
+      getWebControlSnapshot: jest.fn(),
+      handleWebControlDownloaderAction: jest.fn(),
+    }));
+    jest.doMock("../videoInfoBroker.js", () => ({
+      getVideoInfo: jest.fn().mockResolvedValue({
+        success: true,
+        title: "Example",
+        formats: [
+          {
+            format_id: "137",
+            ext: "mp4",
+            height: 1080,
+            vcodec: "avc1",
+            acodec: "none",
+          },
+          {
+            format_id: "140",
+            ext: "m4a",
+            abr: 128,
+            vcodec: "none",
+            acodec: "mp4a",
+          },
+        ],
+      }),
+    }));
+    jest.doMock("../settingsStore.js", () => ({
+      getTheme: jest.fn(),
+      setTheme: jest.fn(),
+      getFontSize: jest.fn(),
+      setFontSize: jest.fn(),
+    }));
+    jest.doMock("../i18n.js", () => ({
+      getLanguage: jest.fn(() => "ru"),
+      setLanguagePreview: jest.fn(),
+    }));
+
+    const { handleWebControlRequest } = require("../webControlBridge.js");
+    const preview = await handleWebControlRequest({
+      command: "preview:get",
+      payload: { url: "https://example.com/watch?v=1" },
+    });
+
+    expect(preview.videoOptions[0]).toMatchObject({
+      id: "video-137",
+      payload: { videoFormatId: "137" },
+    });
+    expect(preview.audioOptions[0]).toMatchObject({
+      id: "audio-140",
+      payload: { audioFormatId: "140" },
+    });
+    expect(preview.videoOptions[0]).not.toHaveProperty("fmt");
+  });
+
+  it("validates the complete settings patch before applying any setting", async () => {
+    const setTheme = jest.fn();
+    jest.doMock("../downloadManager.js", () => ({
+      getWebControlSnapshot: jest.fn(),
+      handleWebControlDownloaderAction: jest.fn(),
+    }));
+    jest.doMock("../settingsStore.js", () => ({
+      getTheme: jest.fn().mockResolvedValue("dark"),
+      setTheme,
+      getFontSize: jest.fn().mockResolvedValue("16"),
+      setFontSize: jest.fn(),
+    }));
+    jest.doMock("../i18n.js", () => ({
+      getLanguage: jest.fn(() => "ru"),
+      setLanguagePreview: jest.fn(),
+    }));
+
+    const { setWebControlSettings } = require("../webControlBridge.js");
+
+    await expect(
+      setWebControlSettings({ theme: "emerald", unexpected: true }),
+    ).rejects.toThrow("Unknown setting: unexpected");
+    expect(setTheme).not.toHaveBeenCalled();
+    expect(window.electron.invoke).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    [{ openOnCopyUrl: "true" }, "Invalid boolean setting"],
+    [{ downloadPath: "  " }, "Invalid download path"],
+    [{ parallelLimit: 3 }, "Invalid parallel limit"],
+    [{ qualityProfile: "lossless" }, "Invalid quality profile"],
+    [{ theme: "system" }, "Invalid theme"],
+    [{ fontSize: "17" }, "Invalid font size"],
+    [{ language: "de" }, "Invalid language"],
+  ])("rejects an invalid settings value %#", async (patch, error) => {
+    jest.doMock("../downloadManager.js", () => ({
+      getWebControlSnapshot: jest.fn(),
+      handleWebControlDownloaderAction: jest.fn(),
+    }));
+    jest.doMock("../settingsStore.js", () => ({
+      getTheme: jest.fn(),
+      setTheme: jest.fn(),
+      getFontSize: jest.fn(),
+      setFontSize: jest.fn(),
+    }));
+    jest.doMock("../i18n.js", () => ({
+      getLanguage: jest.fn(),
+      setLanguagePreview: jest.fn(),
+    }));
+
+    const { setWebControlSettings } = require("../webControlBridge.js");
+    await expect(setWebControlSettings(patch)).rejects.toThrow(error);
+  });
+
+  it("propagates a structured download path failure", async () => {
+    window.electron.invoke.mockImplementation((channel) => {
+      if (channel === "set-download-path") {
+        return Promise.resolve({
+          success: false,
+          error: "Path is unavailable",
+        });
+      }
+      return Promise.resolve(undefined);
+    });
+    jest.doMock("../downloadManager.js", () => ({
+      getWebControlSnapshot: jest.fn(),
+      handleWebControlDownloaderAction: jest.fn(),
+    }));
+    jest.doMock("../settingsStore.js", () => ({
+      getTheme: jest.fn(),
+      setTheme: jest.fn(),
+      getFontSize: jest.fn(),
+      setFontSize: jest.fn(),
+    }));
+    jest.doMock("../i18n.js", () => ({
+      getLanguage: jest.fn(),
+      setLanguagePreview: jest.fn(),
+    }));
+
+    const { setWebControlSettings } = require("../webControlBridge.js");
+    await expect(
+      setWebControlSettings({ downloadPath: "/missing" }),
+    ).rejects.toThrow("Path is unavailable");
+  });
+
+  it("applies a valid partial patch and returns canonical settings", async () => {
+    const setTheme = jest.fn();
+    const setFontSize = jest.fn();
+    const setLanguagePreview = jest.fn();
+    jest.doMock("../downloadManager.js", () => ({
+      getWebControlSnapshot: jest.fn(),
+      handleWebControlDownloaderAction: jest.fn(),
+    }));
+    jest.doMock("../settingsStore.js", () => ({
+      getTheme: jest.fn().mockResolvedValue("violet"),
+      setTheme,
+      getFontSize: jest.fn().mockResolvedValue("20"),
+      setFontSize,
+    }));
+    jest.doMock("../i18n.js", () => ({
+      getLanguage: jest.fn(() => "en"),
+      setLanguagePreview,
+    }));
+
+    const { setWebControlSettings } = require("../webControlBridge.js");
+    const settings = await setWebControlSettings({
+      theme: "violet",
+      language: "en",
+      fontSize: "20",
+      qualityProfile: "audio",
+      openOnCopyUrl: true,
+    });
+
+    expect(setTheme).toHaveBeenCalledWith("violet");
+    expect(setFontSize).toHaveBeenCalledWith("20");
+    expect(setLanguagePreview).toHaveBeenCalledWith("en");
+    expect(settings).toMatchObject({
+      theme: "violet",
+      language: "en",
+      fontSize: "20",
+      qualityProfile: "audio",
+    });
+  });
 });
