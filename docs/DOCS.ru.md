@@ -35,7 +35,9 @@
 
 Минимальный план проверок:
 
-- Для логики: `npm run lint` и `npm test`.
+- Для логики: `npm run check`.
+- Для Player/main media-кода: отдельно убедиться, что
+  `npm run typecheck:player` входит в выполненный набор.
 - Для `templates/*.njk`: `npm run templates:build` и связанные тесты.
 - Для `src/scss/*.scss`: `npm run css:build`.
 - Для пользовательских изменений: обновление `whats-new.md` и `whats-new.en.md`, затем `npm run whats-new:build`.
@@ -55,6 +57,8 @@
 - Запускаем проверки из плана.
 - Делаем ручной sanity-check для ключевого пользовательского сценария.
 - Проверяем diff на риски безопасности (IPC, sandbox, contextIsolation) и регрессии.
+- Для ассоциаций файлов и системного media UI проверяем electron-builder config
+  и выполняем packaged smoke на затронутой ОС.
 
 Артефакт этапа:
 

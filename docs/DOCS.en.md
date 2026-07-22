@@ -35,7 +35,9 @@ Actions:
 
 Minimum validation plan:
 
-- Logic changes: `npm run lint` and `npm test`.
+- Logic changes: `npm run check`.
+- For Player/main media code, confirm that `npm run typecheck:player` is part of
+  the executed validation set.
 - `templates/*.njk` changes: `npm run templates:build` and related tests.
 - `src/scss/*.scss` changes: `npm run css:build`.
 - User-facing behavior changes: update `whats-new.md` and `whats-new.en.md`, then run `npm run whats-new:build`.
@@ -55,6 +57,8 @@ Actions:
 - Run all commands from the plan.
 - Perform a manual sanity check of the primary user flow.
 - Review diff for security and regression risks (IPC, sandbox, contextIsolation).
+- For file associations and system media UI, validate electron-builder config
+  and run packaged smoke on every affected target OS.
 
 Required artifact:
 

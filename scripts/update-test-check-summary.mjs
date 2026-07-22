@@ -24,7 +24,10 @@ const summaryBlockRegex =
 const summaryBlockMatch = content.match(summaryBlockRegex);
 
 if (!summaryBlockMatch) {
-  throw new Error("Summary block not found in tmp/docs/test-check.md");
+  console.log(
+    "[test-check:summary] Summary block is optional and was not present; skipped",
+  );
+  process.exit(0);
 }
 
 let updatedSummary = summaryBlockMatch[0];

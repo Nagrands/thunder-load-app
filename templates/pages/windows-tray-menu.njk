@@ -1,0 +1,39 @@
+{% extends "layouts/base.njk" %}
+
+{% block title %}Thunder{% endblock %}
+
+{% block body %}
+  <main class="windows-tray-menu" data-ui="windows-tray-menu" role="menu" aria-label="Thunder">
+    <button class="windows-tray-menu__item" type="button" role="menuitem" data-action="open" data-testid="tray-open">
+      <svg class="windows-tray-menu__icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M3.75 4.75A1.75 1.75 0 0 1 5.5 3h9A1.75 1.75 0 0 1 16.25 4.75v10.5A1.75 1.75 0 0 1 14.5 17h-9a1.75 1.75 0 0 1-1.75-1.75V4.75Z"/><path d="M7 10h6m-2.25-2.25L13 10l-2.25 2.25"/></svg>
+      <span data-i18n="trayMenu.open">Открыть Thunder</span>
+    </button>
+
+    <button class="windows-tray-menu__item windows-tray-menu__item--details" type="button" role="menuitem" data-action="last-video" data-testid="tray-last-video">
+      <svg class="windows-tray-menu__icon" viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="4.25" width="14" height="11.5" rx="2"/><path d="m8.25 7.5 4.5 2.5-4.5 2.5v-5Z"/></svg>
+      <span class="windows-tray-menu__copy">
+        <span data-i18n="trayMenu.lastVideo">Последнее видео</span>
+        <span class="windows-tray-menu__secondary" data-last-video-name data-i18n="trayMenu.noLastVideo">Файл недоступен</span>
+      </span>
+    </button>
+
+    <button class="windows-tray-menu__item" type="button" role="menuitem" data-action="downloads" data-testid="tray-downloads">
+      <svg class="windows-tray-menu__icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M2.75 6.75A1.75 1.75 0 0 1 4.5 5h3l1.35 1.5h6.65a1.75 1.75 0 0 1 1.75 1.75v6A1.75 1.75 0 0 1 15.5 16h-11a1.75 1.75 0 0 1-1.75-1.75v-7.5Z"/></svg>
+      <span data-i18n="trayMenu.downloads">Папка загрузок</span>
+    </button>
+
+    <div class="windows-tray-menu__separator" role="separator"></div>
+
+    <button class="windows-tray-menu__item" type="button" role="menuitem" data-action="settings" data-testid="tray-settings">
+      <svg class="windows-tray-menu__icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M8.9 2.9h2.2l.45 1.55 1.35.78 1.57-.38 1.1 1.9-1.12 1.17v1.56l1.12 1.17-1.1 1.9-1.57-.38-1.35.78-.45 1.55H8.9l-.45-1.55-1.35-.78-1.57.38-1.1-1.9 1.12-1.17V7.92L4.43 6.75l1.1-1.9 1.57.38 1.35-.78L8.9 2.9Z"/><circle cx="10" cy="8.7" r="2.15"/></svg>
+      <span data-i18n="trayMenu.settings">Настройки</span>
+    </button>
+
+    <button class="windows-tray-menu__item windows-tray-menu__item--danger" type="button" role="menuitem" data-action="quit" data-testid="tray-quit">
+      <svg class="windows-tray-menu__icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M8 3.25H5.5A1.75 1.75 0 0 0 3.75 5v10A1.75 1.75 0 0 0 5.5 16.75H8M11.5 6.5 15 10l-3.5 3.5M7.25 10H15"/></svg>
+      <span data-i18n="trayMenu.quit">Выйти</span>
+    </button>
+  </main>
+
+  <script type="module" src="js/modules/windowsTrayMenu.js"></script>
+{% endblock %}

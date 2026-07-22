@@ -32,7 +32,13 @@ Baseline execution standard for every task: `docs/DOCS.en.md` (`Discover → Org
 
 - `npm run lint` — strict lint (no warnings).
 - `npm test` — unit tests.
+- `npm run typecheck:player` — required when Player code changes.
+- `npm run check` — final combined validation.
 - For UI changes, run quick manual checks of key scenarios.
+- For new IPC, verify the channel registry, handler, preload whitelist, and
+  renderer API together.
+- For file associations/system integration, run packaged smoke on the affected
+  operating system.
 - Avoid noisy `console.log` in tests (use a global mock).
 
 ## 6. Documentation
@@ -48,7 +54,7 @@ Baseline execution standard for every task: `docs/DOCS.en.md` (`Discover → Org
 
 ## 8. Review Order
 
-1. Automated checks: `npm run lint`, `npm test`.
+1. Automated checks: `npm run check`.
 2. Diff review: security, regressions, UX impact.
 3. Manual UI check (key flows + accessibility).
 4. Docs and both `whats-new*.md` files if user-facing changes were made.

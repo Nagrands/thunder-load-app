@@ -18,10 +18,14 @@ What changed and why.
 ### C — Check
 
 - [ ] `npm run lint`
+- [ ] `npm run typecheck:player` (if Player/main media code changed)
 - [ ] `npm test`
+- [ ] `npm run check`
 - [ ] `npm run templates:build` (if `templates/*.njk` changed)
 - [ ] `npm run css:build` (if `src/scss/*.scss` changed)
 - [ ] Manual sanity check completed for key user flow
+- [ ] IPC registry/handler/preload/API checked together (if IPC changed)
+- [ ] Packaged target-OS smoke completed (if associations/system integration changed)
 
 ### S — Share
 

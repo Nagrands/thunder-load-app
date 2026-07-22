@@ -49,6 +49,10 @@ const { registerUpdateDevIpcHandlers } = require("./updateDevIpcHandlers");
 const { registerWhatsNewIpcHandlers } = require("./whatsNewIpcHandlers");
 const { registerWgUnlockIpcHandlers } = require("./wgUnlockIpcHandlers");
 const {
+  registerWindowsTrayMenuIpcHandlers,
+} = require("./windowsTrayMenuIpcHandlers");
+const { windowsTrayMenuController } = require("./windowsTrayMenu");
+const {
   configureShortcutService,
   setGlobalShortcutsDisabled,
   setReloadShortcutSuppressed,
@@ -805,6 +809,11 @@ function setupIpcHandlers(dependencies) {
   }
 
   registerUiSettingsIpcHandlers({ ipcMain, mainWindow, store });
+
+  registerWindowsTrayMenuIpcHandlers({
+    ipcMain,
+    controller: windowsTrayMenuController,
+  });
 
   registerWhatsNewIpcHandlers({
     ipcMain,

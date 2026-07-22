@@ -65,6 +65,9 @@
 ## Этап 6. Tray, menu и legacy startup cleanup
 
 - Вынести tray/menu из `window.js` в отдельные app-модули.
+- Выполнено: Windows tray UI вынесен в отдельную lazy-created панель с нативным
+  fallback; `window.js` сохраняет только orchestration tray и маршрутизацию
+  кликов.
 - Отложить refresh tray/dock menu до готовности окна.
 - Убрать обычный startup-path для legacy localStorage migration.
 - Свести clipboard-логику к одному источнику в main process.

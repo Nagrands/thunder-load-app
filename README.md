@@ -4,7 +4,7 @@
 
 <h1 align="center">Thunder</h1>
 
-<p align="center"><em>Desktop media downloader and utility toolbox</em></p>
+<p align="center"><em>Desktop media downloader, player, and utility toolbox</em></p>
 
 <p align="center">
   <a href="docs/README.ru.md">Русский</a> · <a href="docs/README.uk.md">Українська</a> · <a href="docs/APP.en.md">Application guide</a>
@@ -23,6 +23,8 @@
 - Automated releases publish Windows NSIS and macOS DMG installers for Intel and Apple Silicon on the [Releases](https://github.com/Nagrands/thunder-load-app/releases) page.
 - Linux AppImage packaging is available through `npm run build-linux`, but it is not part of the current release workflow.
 - Current macOS and Windows artifacts are unsigned.
+- Windows uses a per-machine NSIS installer with elevation. macOS registers
+  supported media as alternate Open With types without taking them by default.
 
 ---
 
@@ -32,6 +34,13 @@
 - Video, video-only, audio, and MP3 quality choices before download.
 - Persistent queue, playlist enqueueing, duplicate protection, and up to two parallel downloads.
 - Clipboard detection, URL preview, YouTube background/live preview, and quick actions.
+- Non-blocking Player media library with local audio/video, playlists,
+  transient Up Next queue, M3U/M3U8, YouTube quality selection, and HLS/FFmpeg
+  codec fallback.
+- System playback integration through Media Session, macOS Dock controls,
+  media-file associations, and Finder/Explorer open-file handling.
+- Windows 11-style tray panel with system-theme support, compact quick actions,
+  complete keyboard navigation, and a native-menu fallback.
 - Download history with search, source filters, sorting, pagination, undo, and CSV/JSON export.
 - Products formatter for cleaning, grouping, validating, and copying structured product lists.
 - Tools workspace with WG Unlock, Hash Check, Media Inspector, File Sorter, Backup, and Windows shortcuts.
@@ -56,11 +65,12 @@ See the [application guide](docs/APP.en.md) for section details and platform lim
 
 ## Tech Stack & Tooling
 
-- **Electron 39** - desktop runtime
+- **Electron 41** - desktop runtime
 - **Vanilla JavaScript** - main and renderer modules
 - **Nunjucks** - generated application markup
 - **SCSS** - component and platform styles
-- **Jest and ESLint** - tests and static checks
+- **Jest, ESLint, and TypeScript checkJs** - tests and static checks
+- **hls.js** - HLS playback in Chromium
 - **yt-dlp, ffmpeg/ffprobe, and Deno** - managed runtime tools
 
 ### Scripts
@@ -73,7 +83,8 @@ See the [application guide](docs/APP.en.md) for section details and platform lim
 | `npm run build`                             | Package the app for your platform        |
 | `npm run build-mac` / `npm run build-linux` | Platform-specific builds                 |
 | `npm test`                                  | Run Jest tests                           |
-| `npm run check`                             | Lint + tests                             |
+| `npm run typecheck:player`                  | Player/main JavaScript type check        |
+| `npm run check`                             | Lint + Player typecheck + tests          |
 | `npm run css:build`                         | Build CSS from SCSS                      |
 | `npm run css:watch`                         | Watch & rebuild SCSS                     |
 | `npm run templates:build`                   | Rebuild HTML from Nunjucks templates     |
@@ -115,6 +126,8 @@ or use the `*:watch` commands.
 
 - [Application guide](docs/APP.en.md)
 - [Russian application guide](docs/APP.ru.md)
+- [Player guide and architecture](docs/tab/Player_Tab.en.md)
+- [Документация Плеера](docs/tab/Player_Tab.ru.md)
 - [Thunder brand guide](docs/brand/brand-guide.md)
 - [Developer workflow](docs/WORKFLOW.en.md)
 - [D.O.C.S. delivery method](docs/DOCS.en.md)

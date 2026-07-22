@@ -59,6 +59,10 @@ deep near-black surfaces for contrast.
 
 ## Identity Surfaces
 
+Windows tray surfaces follow the operating-system light/dark palette. Thunder
+accent colors may identify focus, while background, text, border, hover, and
+shadow values track the active Windows theme.
+
 - Full-color marks use `#050914` for the tile and `#03101F` for bolt depth.
 - The bolt travels from white through cyan to `#087BFF`; the open ring travels
   from white through `#00A8FF` to `#0B4DFF`.

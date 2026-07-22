@@ -18569,6 +18569,140 @@ hr {
   transition: color 0.2s ease;
 }
 
+html:has(.windows-tray-menu),
+body:has(.windows-tray-menu) {
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  overflow: hidden;
+  color-scheme: light dark;
+  background: transparent;
+}
+
+.windows-tray-menu {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  height: 100vh;
+  padding: 8px;
+  color: #1b1b1b;
+  font-family: "Segoe UI Variable Text", "Segoe UI", sans-serif;
+  font-size: 13px;
+  background: rgba(249, 249, 249, 0.92);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18), 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+.windows-tray-menu__item {
+  box-sizing: border-box;
+  display: flex;
+  flex: 0 0 42px;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+  padding: 0 12px;
+  color: inherit;
+  text-align: left;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  outline: none;
+  cursor: default;
+  transition: background-color 90ms ease, border-color 90ms ease;
+}
+.windows-tray-menu__item:hover, .windows-tray-menu__item:focus-visible {
+  background: rgba(0, 0, 0, 0.055);
+  border-color: rgba(0, 0, 0, 0.055);
+}
+.windows-tray-menu__item:focus-visible {
+  box-shadow: inset 3px 0 #0067c0;
+}
+.windows-tray-menu__item:disabled {
+  color: rgba(0, 0, 0, 0.38);
+  cursor: default;
+}
+.windows-tray-menu__item--details {
+  flex-basis: 52px;
+}
+.windows-tray-menu__item--danger:not(:disabled) {
+  color: #c42b1c;
+}
+.windows-tray-menu__item--danger:hover, .windows-tray-menu__item--danger:focus-visible {
+  background: rgba(196, 43, 28, 0.08);
+}
+.windows-tray-menu__icon {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.45;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.windows-tray-menu__copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 1px;
+}
+.windows-tray-menu__secondary {
+  overflow: hidden;
+  color: rgba(0, 0, 0, 0.58);
+  font-size: 11.5px;
+  line-height: 15px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.windows-tray-menu__item:disabled .windows-tray-menu__secondary {
+  color: inherit;
+}
+.windows-tray-menu__separator {
+  height: 1px;
+  margin: 4px 8px;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+@media (prefers-color-scheme: dark) {
+  .windows-tray-menu {
+    color: #fff;
+    background: rgba(32, 32, 32, 0.92);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.46), 0 2px 8px rgba(0, 0, 0, 0.32);
+  }
+  .windows-tray-menu__item:hover, .windows-tray-menu__item:focus-visible {
+    background: rgba(255, 255, 255, 0.075);
+    border-color: rgba(255, 255, 255, 0.045);
+  }
+  .windows-tray-menu__item:focus-visible {
+    box-shadow: inset 3px 0 #60cdff;
+  }
+  .windows-tray-menu__item:disabled {
+    color: rgba(255, 255, 255, 0.36);
+  }
+  .windows-tray-menu__item--danger:not(:disabled) {
+    color: #ff99a4;
+  }
+  .windows-tray-menu__item--danger:hover, .windows-tray-menu__item--danger:focus-visible {
+    background: rgba(255, 99, 112, 0.1);
+  }
+  .windows-tray-menu__secondary {
+    color: rgba(255, 255, 255, 0.58);
+  }
+  .windows-tray-menu__separator {
+    background: rgba(255, 255, 255, 0.1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .windows-tray-menu__item {
+    transition: none;
+  }
+}
 .modal-overlay,
 .whats-modal,
 .settings-modal,

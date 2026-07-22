@@ -1,8 +1,8 @@
 ## Автотесты (Jest)
 
 - Автосборка списка: `npm run test-check:sync-tests`
-- Найдено файлов: 115
-- Найдено тест-кейсов (test/it): 1064
+- Найдено файлов: 131
+- Найдено тест-кейсов (test/it): 1125
 
 <!-- AUTO-JEST-TESTS:START -->
 
@@ -46,6 +46,12 @@
 ### `src/js/app/__tests__/backupManager.test.js` (2)
 - [ ] returns true for Compress-Archive module autoload failure
 - [ ] returns false for unrelated powershell error
+
+### `src/js/app/__tests__/brandAssets.test.js` (4)
+- [ ] runtime icon paths resolve from Electron app.getAppPath
+- [ ] app and platform outputs contain the required sizes
+- [ ] menu and notification assets keep their runtime dimensions
+- [ ] the complete SVG kit is valid and uses the shared palette
 
 ### `src/js/app/__tests__/clipboardMonitor.test.js` (3)
 - [ ] expands window for valid supported URLs
@@ -180,6 +186,12 @@
 - [ ] CANCEL_DOWNLOAD_JOB returns a structured cancellation error
 - [ ] STOP_DOWNLOAD still cancels all active tokens
 
+### `src/js/app/__tests__/mediaOpenService.test.js` (4)
+- [ ] normalizes only supported media and playlist paths
+- [ ] queues startup files until the renderer is ready
+- [ ] deduplicates Windows paths case-insensitively
+- [ ] captures macOS open-file events before window creation
+
 ### `src/js/app/__tests__/notifications.test.js` (10)
 - [ ] classifies rate-limited downloader errors with retry delay
 - [ ] marks auth-required downloader errors as non-retryable
@@ -192,30 +204,49 @@
 - [ ] expands window on download complete when toggle is enabled
 - [ ] does not expand window on download complete when toggle is disabled
 
-### `src/js/app/__tests__/nowPlayingIpcHandlers.test.js` (15)
+### `src/js/app/__tests__/nowPlayingHlsService.test.js` (3)
+- [ ] accepts only one or two resolved HTTP inputs
+- [ ] maps adaptive video and audio and uses copy for compatible codecs
+- [ ] serves tokenized manifests on loopback and cleans the session
+
+### `src/js/app/__tests__/nowPlayingIpcHandlers.test.js` (17)
 - [ ] registers all Player channels
 - [ ] imports files, removes duplicates, and persists the queue
 - [ ] adds imported media to the active custom playlist
 - [ ] links an existing catalog item into the active custom playlist
 - [ ] imports a folder recursively and returns cancellation safely
-- [ ] sanitizes persisted state and marks unavailable tracks as missing
+- [ ] sanitizes persisted state without rescanning every local file
 - [ ] defaults legacy and invalid Now Playing preferences safely
 - [ ] recovers from a malformed V2 catalog without throwing
 - [ ] migrates the V1 queue into the V2 media library
 - [ ] sanitizes playlists and removes dangling and duplicate track references
 - [ ] imports one YouTube video, deduplicates it and persists no playback URL
 - [ ] rejects YouTube playlists before invoking yt-dlp
-- [ ] resolves a fresh muxed YouTube stream without persisting it
+- [ ] resolves a fresh muxed YouTube stream through a loopback HLS session
+- [ ] deduplicates parallel YouTube resolves for the same quality
+- [ ] analyzes YouTube formats and preserves an exact quality selector
 - [ ] forces a fresh YouTube stream only for an explicit retry
 - [ ] rejects an oversized state with a structured error
 
-### `src/js/app/__tests__/nowPlayingLibrary.test.js` (6)
+### `src/js/app/__tests__/nowPlayingLibrary.test.js` (9)
 - [ ] recursively scans media while skipping hidden and symlink folders
 - [ ] imports supported absolute files with fallback metadata
+- [ ] supports AVI and MPEG files for the playback fallback
+- [ ] parses local M3U entries with safe relative and network media
+- [ ] enforces playlist byte and entry limits
 - [ ] uses ffprobe metadata and extracts embedded artwork best-effort
 - [ ] refreshes missing file availability without rejecting the track
 - [ ] normalizes equivalent source paths for deduplication
 - [ ] does not traverse a selected symlink directory
+
+### `src/js/app/__tests__/nowPlayingState.test.js` (3)
+- [ ] migrates V2 state to V3 while preserving playlist selection
+- [ ] migrates legacy V1 tracks into the media library
+- [ ] sanitizes YouTube quality selections and network tracks
+
+### `src/js/app/__tests__/playerPackaging.test.js` (2)
+- [ ] registers the requested media associations
+- [ ] uses the per-machine NSIS mode required for associations
 
 ### `src/js/app/__tests__/runtimeTools.test.js` (2)
 - [ ] falls back from preferred yt-dlp path to default path when preferred is not executable
@@ -265,6 +296,12 @@
 - [ ] returns versions fallback on error
 - [ ] returns availability fallback on error
 
+### `src/js/app/__tests__/trayIconController.test.js` (4)
+- [ ] loads platform state resource and deduplicates updates
+- [ ] marks every macOS state image as a template
+- [ ] keeps the current image when a resource is missing
+- [ ] rejects invalid states without throwing
+
 ### `src/js/app/__tests__/uiSettingsIpcHandlers.test.js` (6)
 - [ ] registers ui settings channels
 - [ ] reads and writes default tab
@@ -292,10 +329,12 @@
 - [ ] accepts http/https URLs
 - [ ] rejects unsupported schemes and invalid strings
 
-### `src/js/app/__tests__/webControlServer.test.js` (3)
+### `src/js/app/__tests__/webControlServer.test.js` (5)
 - [ ] is disabled by default and binds to LAN when enabled
 - [ ] allows API requests without a token in LAN mode
 - [ ] forwards API actions to the renderer bridge
+- [ ] normalizes one URL and requests its preview from the renderer
+- [ ] forwards a partial settings patch and returns the canonical snapshot
 
 ### `src/js/app/__tests__/wgUnlockIpcHandlers.test.js` (6)
 - [ ] registers WG channels
@@ -316,18 +355,19 @@
 - [ ] matches package.json
 - [ ] english whatsNew stays in sync when present
 
-### `src/js/app/__tests__/window.trayMenu.test.js` (7)
+### `src/js/app/__tests__/window.trayMenu.test.js` (8)
 - [ ] disables 'Последнее видео' when file is missing
 - [ ] enables 'Последнее видео' and adds file name in label when file exists
 - [ ] disables 'Папка загрузок' when download path is invalid
 - [ ] settings menu item shows window and opens settings
 - [ ] tray 'Открыть' restores minimized window and focuses it
 - [ ] quit menu item sets isQuitting and calls app.quit
+- [ ] dock exposes the current track and transport commands
 - [ ] tray and dock keep identical action order
 
 ### `src/js/app/__tests__/window.trayRuntime.test.js` (4)
 - [ ] handles click/double-click/right-click and refresh events on windows tray
-- [ ] creates a template tray image on macOS and keeps it on download events
+- [ ] creates a template tray image on macOS
 - [ ] window-close IPC respects minimize-to-tray behavior on Windows
 - [ ] warns and keeps window open when closing during active download
 
@@ -338,6 +378,20 @@
 - [ ] restores and focuses minimized window on Windows without maximizing
 - [ ] shows and focuses hidden window on Windows
 - [ ] keeps non-Windows behavior unchanged
+
+### `src/js/app/__tests__/windowsTrayMenu.test.js` (6)
+- [ ] positions the panel above a bottom taskbar and clamps it to work area
+- [ ] positions the panel below a top taskbar
+- [ ] keeps the panel inside a negative-coordinate secondary display
+- [ ] reuses one popup and toggles it on repeated right clicks
+- [ ] returns safe state and rejects unavailable or unknown actions
+- [ ] returns false so the native menu can be used when HTML fails
+
+### `src/js/app/__tests__/windowsTrayMenuIpcHandlers.test.js` (1)
+- [ ] validates the sender and delegates safe requests
+
+### `src/js/app/__tests__/windowsTrayMenuPreload.test.js` (1)
+- [ ] exposes only the dedicated tray API
 
 ### `src/js/modules/__tests__/accessibleDropdown.test.js` (2)
 - [ ] adds listbox semantics and opens from the keyboard
@@ -712,17 +766,28 @@
 - [ ] shows success toast on online event
 - [ ] does not require network indicator DOM nodes
 
+### `src/js/modules/__tests__/nowPlayingContextMenu.test.js` (3)
+- [ ] hides local-only actions for remote tracks and restores focus
+- [ ] dispatches the selected action with track context
+- [ ] disables playback and file actions for a missing local track
+
 ### `src/js/modules/__tests__/nowPlayingImmersiveControllers.test.js` (3)
 - [ ] reveals sidebar and topbar on hover/focus with delayed hide
 - [ ] keeps a pinned sidebar visible across pointer leave and restores it
 - [ ] syncs fullscreen state and removes external listeners on dispose
 
-### `src/js/modules/__tests__/nowPlayingMediaLibraryModel.test.js` (5)
+### `src/js/modules/__tests__/nowPlayingMediaLibraryModel.test.js` (7)
 - [ ] migrates the V1 queue into the virtual media library
 - [ ] sanitizes broken playlist references and falls back to the library
 - [ ] deduplicates local paths and YouTube videos by canonical video id
 - [ ] supports playlist CRUD, ordering and catalog deletion
 - [ ] returns defensive state copies
+- [ ] migrates V2 metadata and keeps the active network playlist
+- [ ] returns defensive copies of quality selections
+
+### `src/js/modules/__tests__/nowPlayingNetworkProvider.test.js` (2)
+- [ ] accepts credential-free HTTP(S) URLs
+- [ ] marks HLS manifests for the HLS playback adapter
 
 ### `src/js/modules/__tests__/nowPlayingPlaybackController.test.js` (16)
 - [ ] selects a track, swaps the reusable media layer and starts playback
@@ -742,19 +807,25 @@
 - [ ] shows a distinct loading state and pauses the old track while resolving
 - [ ] requests a forced refresh only when retrying playback
 
-### `src/js/modules/__tests__/nowPlayingProviders.test.js` (8)
+### `src/js/modules/__tests__/nowPlayingProviders.test.js` (10)
 - [ ] normalizes metadata and deduplicates local paths
+- [ ] normalizes extended video formats and V3 metadata
 - [ ] merges structured import results without replacing the queue
 - [ ] resolves local files into playback DTOs and rejects missing tracks
+- [ ] routes AVI/MPEG through the protected local HLS session
 - [ ] registry validates and routes provider calls
 - [ ] canonicalizes and imports a single YouTube video
 - [ ] rejects YouTube playlist URLs and invalid hosts
 - [ ] restores canonical YouTube tracks and resolves fresh playback URLs
 - [ ] surfaces structured YouTube resolve errors
 
+### `src/js/modules/__tests__/nowPlayingTransientQueue.test.js` (2)
+- [ ] keeps insertion order and supports reorder, removal and filtering
+- [ ] never exposes mutable internal items
+
 ### `src/js/modules/__tests__/nowPlayingView.test.js` (22)
 - [ ] renders an accessible player and restores selectedTrackId
-- [ ] keeps empty onboarding outside the minimal library sidebar
+- [ ] opens a non-blocking media library empty state
 - [ ] updates the brand label from playback state
 - [ ] adjusts volume with the mouse wheel and shows the percentage
 - [ ] syncs fullscreen controls, Escape and tab hide with preload state
@@ -976,6 +1047,11 @@
 - [ ] starts update check from about section and closes settings
 - [ ] opens whats new from about section via existing version trigger
 
+### `src/js/modules/__tests__/settingsStore.theme.test.js` (3)
+- [ ] propagates set-theme IPC errors when Electron is available
+- [ ] propagates structured set-theme failures without changing local state
+- [ ] still applies the theme when Electron is unavailable
+
 ### `src/js/modules/__tests__/shortcutEditor.test.js` (4)
 - [ ] renders catalog metadata and filters actions
 - [ ] records a shortcut immediately and Escape cancels recording
@@ -1162,6 +1238,11 @@
 - [ ] does nothing when top bar is absent
 - [ ] does not require the removed More overflow controls
 
+### `src/js/modules/__tests__/trayStateSync.test.js` (3)
+- [ ] uses the documented state priority
+- [ ] sends startup state and only sends actual changes
+- [ ] restores the derived state after reconnecting
+
 ### `src/js/modules/__tests__/updateHandler.test.js` (15)
 - [ ] renders localized update available flyover and focuses primary action
 - [ ] opens flyover below anchor when there is not enough room above
@@ -1243,14 +1324,22 @@
 ### `src/js/modules/__tests__/videoInfoCache.test.js` (1)
 - [ ] stores full video info for quality modal reuse
 
-### `src/js/modules/__tests__/webControlBridge.test.js` (2)
+### `src/js/modules/__tests__/webControlBridge.test.js` (6)
 - [ ] returns settings snapshot for the web UI
 - [ ] subscribes to main-process web requests and sends responses
+- [ ] returns serializable compact quality options for preview requests
+- [ ] validates the complete settings patch before applying any setting
+- [ ] propagates a structured download path failure
+- [ ] applies a valid partial patch and returns canonical settings
 
 ### `src/js/modules/__tests__/webControlSettings.test.js` (3)
 - [ ] renders status and wires web-control actions
 - [ ] reinitializes without duplicating DOM listeners
 - [ ] keeps the latest async status when requests resolve out of order
+
+### `src/js/modules/__tests__/webQualitySelection.test.js` (2)
+- [ ] keeps a valid paired format payload
+- [ ] rejects incompatible or unsafe selections
 
 ### `src/js/modules/__tests__/whatsNewModal.test.js` (7)
 - [ ] keeps allowed tags
@@ -1260,6 +1349,10 @@
 - [ ] builds overview and feature slides from release notes table
 - [ ] adds and removes modal overlay class when modal opens and closes
 - [ ] template keeps accessible label and carousel hooks
+
+### `src/js/modules/__tests__/windowsTrayMenu.test.js` (2)
+- [ ] applies availability without exposing a path
+- [ ] supports keyboard navigation, Escape and action dispatch
 
 ### `src/js/modules/__tests__/ytDlpCookiesSettings.test.js` (6)
 - [ ] uses defaults for missing or unsupported values

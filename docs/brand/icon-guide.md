@@ -18,6 +18,9 @@
 - Keep icon weight visually aligned with adjacent text.
 - Active icons may use `thunder-blue-500`.
 - Disabled icons should use muted neutral text color with reduced opacity.
+- Windows system surfaces may use Fluent-style outline SVG icons instead of
+  Thunder brand pictograms. They inherit the system-theme color and keep one
+  consistent visual weight across hover, disabled, and focus states.
 
 ## Interaction
 

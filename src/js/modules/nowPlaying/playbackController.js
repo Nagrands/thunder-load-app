@@ -1,11 +1,18 @@
-import Hls from "../../../../node_modules/hls.js/dist/hls.mjs";
-
 import {
   getActiveTracksFromState,
   normalizeMediaLibraryState,
 } from "./mediaLibraryModel.js";
 
 const REPEAT_MODES = new Set(["off", "all", "one"]);
+let hlsModulePromise = null;
+
+async function loadHlsConstructor() {
+  hlsModulePromise ||= import(
+    "../../../../node_modules/hls.js/dist/hls.mjs"
+  );
+  const hlsModule = await hlsModulePromise;
+  return hlsModule.default;
+}
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, Number(value) || 0));
@@ -220,7 +227,7 @@ export class PlaybackController {
         forceRefresh,
       });
       if (version !== this.selectionVersion) return false;
-      this.loadPlayback(track, playback);
+      await this.loadPlayback(track, playback);
       if (autoplay && !this.isSuspended) {
         await this.play({ selectionVersion: version });
       } else {
@@ -244,7 +251,7 @@ export class PlaybackController {
     }
   }
 
-  loadPlayback(track, playback) {
+  async loadPlayback(track, playback) {
     const previousMedia = this.activeMedia;
     const nextLayerIndex = this.activeLayerIndex === 0 ? 1 : 0;
     const nextMedia = this.mediaLayers[nextLayerIndex];
@@ -258,7 +265,9 @@ export class PlaybackController {
     nextMedia.poster = playback.posterUrl || track.artworkUrl || "";
     nextMedia.currentTime = 0;
     this.layerPlaybacks[nextLayerIndex] = { playback, track };
-    if (playback.kind === "hls" && Hls.isSupported()) {
+    const Hls =
+      playback.kind === "hls" ? await loadHlsConstructor() : null;
+    if (Hls?.isSupported()) {
       const hls = new Hls({
         backBufferLength: 30,
         maxBufferLength: 45,

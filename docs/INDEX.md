@@ -23,10 +23,14 @@
 - `docs/README.ru.md` — краткое описание проекта (RU).
 - `docs/README.uk.md` — краткое описание проекта (UK).
 - `docs/icons.md` — структура и правила именования иконок.
+- `docs/APP*.md` — пользовательские сценарии всех разделов приложения.
 
 ## Документация вкладок
 
 - `docs/tab/Downloader_Tab.md`
+- `docs/tab/Player_Tab.ru.md` — Плеер: поведение, архитектура, IPC и данные.
+- `docs/tab/Player_Tab.en.md` — Player behavior and architecture in English.
+- `docs/tab/Player_Platform_QA.md` — packaged smoke matrix для macOS/Windows.
 - `docs/tab/Tools_Platform_QA.md`
 
 `Backup` больше не является отдельной вкладкой: инструмент открывается из раздела

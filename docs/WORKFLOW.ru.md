@@ -4,8 +4,8 @@
 
 ## Что это за проект
 
-Thunder — Electron‑приложение для загрузки видео/аудио и управления
-сопутствующими инструментами (yt‑dlp, ffmpeg, Deno).
+Thunder — Electron‑приложение для загрузки и воспроизведения видео/аудио и
+управления сопутствующими инструментами (yt‑dlp, ffmpeg, Deno).
 
 ## Методология изменений D.O.C.S.
 
@@ -39,6 +39,27 @@ Thunder — Electron‑приложение для загрузки видео/�
   - общие модули: `src/js/modules/shared/` и legacy‑модули в `src/js/modules/`.
 - IPC и preload: `src/js/app/ipcHandlers.js`, `src/js/ipc/channels.js`, `src/js/preload.js`.
 
+### Где находится Плеер
+
+- Renderer: `src/js/modules/nowPlaying/` — модель медиатеки, providers,
+  playback controller, очередь, Media Session, контекстное меню и UI.
+- Main: `src/js/app/nowPlaying*.js` — состояние v3, импорт, YouTube и HLS;
+  `src/js/app/mediaOpenService.js` — файлы из ОС.
+- Player IPC проходит по цепочке `channels.js` → `ipcHandlers.js` и
+  `nowPlayingIpcHandlers.js` → whitelist/API в `preload.js`.
+- Полная карта: `docs/tab/Player_Tab.ru.md`; platform smoke:
+  `docs/tab/Player_Platform_QA.md`.
+
+### Windows tray-панель
+
+- `src/js/app/windowsTrayMenu.js` управляет отдельным frameless `BrowserWindow`,
+  позиционированием, singleton lifecycle и нативным fallback.
+- `templates/pages/windows-tray-menu.njk`,
+  `src/scss/components/_windows-tray-menu.scss` и
+  `src/js/modules/windowsTrayMenu.js` владеют разметкой, стилями и UI-логикой.
+- IPC проходит через `windowsTrayMenuIpcHandlers.js`, централизованные каналы и
+  минимальный sandboxed preload. Реальные пути renderer не получает.
+
 ## Быстрый старт разработки
 
 1. `npm install`
@@ -58,13 +79,18 @@ Thunder — Electron‑приложение для загрузки видео/�
 
 - `npm test` — unit‑тесты (Jest).
 - `npm run lint` — базовый линт (ESLint).
-- `npm run check` — единая команда проверки (lint + тесты).
+- `npm run typecheck:player` — JavaScript typecheck Player/main media-модулей.
+- `npm run check` — единая команда (lint + Player typecheck + Jest).
 - Логи `console.log` подавляются в тестах через `src/js/tests/setupTests.js`.
 
 ## Сборка
 
 - `npm run build` — сборка под текущую платформу.
 - `npm run build-mac` / `npm run build-linux` — платформенные сборки.
+- При изменении ассоциаций файлов или системной интеграции требуется packaged
+  smoke на целевой ОС по `docs/tab/Player_Platform_QA.md`.
+- Изменения tray-панели требуют packaged Windows smoke для светлой/тёмной темы,
+  DPI, разных положений taskbar, нескольких мониторов, blur/Escape и клавиатуры.
 
 ## Что нового (WhatsNew)
 

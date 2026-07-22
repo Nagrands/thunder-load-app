@@ -20,6 +20,13 @@ $border-radius: 24px;
 // Transitions
 $transition-duration: 0.2s;
 
+// Windows tray panel
+$windows-tray-panel-padding: 8px;
+$windows-tray-panel-radius: 12px;
+$windows-tray-row-height: 42px;
+$windows-tray-details-height: 52px;
+$windows-tray-row-radius: 6px;
+
 // Now Playing cinematic scene
 $now-playing-panel-width: clamp(280px, 27vw, 400px);
 $now-playing-panel-padding: clamp(28px, 2.25vw, 36px);

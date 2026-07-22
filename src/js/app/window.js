@@ -16,6 +16,7 @@ const windowStateKeeper = require("electron-window-state");
 const { resolveIconPathFrom } = require("./iconPaths");
 const { showTrayNotification } = require("./notifications.js");
 const { trayIconController } = require("./trayIconController.js");
+const { windowsTrayMenuController } = require("./windowsTrayMenu.js");
 
 let windowTray = null;
 let appMenu = null;
@@ -525,15 +526,46 @@ function createTray(mainWindow, app, store, downloadPath) {
         paths: trayMenuPaths,
       }),
     );
-    windowTray.setContextMenu(contextMenu);
+    if (isMac) windowTray.setContextMenu(contextMenu);
+    return contextMenu;
   };
+  let fallbackContextMenu = refreshTrayMenu();
   const handleTrayRefreshRequest = () => {
-    refreshTrayMenu();
+    fallbackContextMenu = refreshTrayMenu();
   };
 
+  windowsTrayMenuController.configure({
+    app,
+    tray: windowTray,
+    getState: () => {
+      const lastVideo = buildLastVideoState(store);
+      const downloads = buildDownloadFolderState(store, downloadPath);
+      return {
+        lastVideo: {
+          enabled: lastVideo.exists,
+          fileName: lastVideo.fileName,
+        },
+        downloads: { enabled: downloads.exists },
+      };
+    },
+    handlers: {
+      open: menuHandlers.open,
+      "last-video": () => {
+        const state = buildLastVideoState(store);
+        return menuHandlers.openLastVideo(state.path);
+      },
+      downloads: () => {
+        const state = buildDownloadFolderState(store, downloadPath);
+        return menuHandlers.openDownloadsFolder(state.path);
+      },
+      settings: menuHandlers.openSettings,
+      quit: menuHandlers.quit,
+    },
+  });
+
   windowTray.setToolTip("Thunder");
-  refreshTrayMenu();
   app?.on?.("thunder-load:tray-refresh", handleTrayRefreshRequest);
+  app?.once?.("before-quit", () => windowsTrayMenuController.dispose());
 
   windowTray.on("click", () => {
     if (isMac) {
@@ -544,9 +576,15 @@ function createTray(mainWindow, app, store, downloadPath) {
     toggleFromTray(mainWindow, menuHandlers.open);
   });
 
-  windowTray.on("right-click", () => {
-    refreshTrayMenu();
-    windowTray.popUpContextMenu();
+  windowTray.on("right-click", async () => {
+    fallbackContextMenu = refreshTrayMenu();
+    try {
+      const handled = await windowsTrayMenuController.toggle();
+      if (handled) return;
+    } catch (error) {
+      console.error("Failed to open Windows tray panel:", error);
+    }
+    windowTray.popUpContextMenu(fallbackContextMenu);
   });
 
   windowTray.on("double-click", () => {
@@ -652,6 +690,7 @@ function resetWindowStateForTests() {
   windowTray = null;
   dockMediaState = null;
   trayIconController.reset();
+  windowsTrayMenuController.dispose();
 }
 
 module.exports = {

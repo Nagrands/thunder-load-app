@@ -129,7 +129,7 @@ describe("tray runtime behavior", () => {
     });
   }
 
-  test("handles click/double-click/right-click and refresh events on windows tray", () => {
+  test("handles click/double-click/right-click and refresh events on windows tray", async () => {
     setPlatform("win32");
     const app = new EventEmitter();
     app.getName = () => "Thunder";
@@ -169,13 +169,10 @@ describe("tray runtime behavior", () => {
     expect(mainWindow.show).toHaveBeenCalledTimes(2);
     expect(mainWindow.focus).toHaveBeenCalledTimes(2);
 
-    const contextMenuCallsBeforeRightClick =
-      tray.setContextMenu.mock.calls.length;
-    tray.handlers["right-click"]();
-    expect(tray.setContextMenu.mock.calls.length).toBe(
-      contextMenuCallsBeforeRightClick + 1,
-    );
-    expect(tray.popUpContextMenu).toHaveBeenCalledTimes(1);
+    await tray.handlers["right-click"]();
+    expect(require("electron").BrowserWindow).toHaveBeenCalledTimes(2);
+    expect(tray.setContextMenu).not.toHaveBeenCalled();
+    expect(tray.popUpContextMenu).not.toHaveBeenCalled();
 
     expect(nativeImage.createFromPath).toHaveBeenCalledWith(
       expect.stringContaining("assets/icons/tray/tray.ico"),
@@ -184,12 +181,8 @@ describe("tray runtime behavior", () => {
       expect.objectContaining({ isEmpty: expect.any(Function) }),
     );
 
-    const contextMenuCallsBeforeAppRefresh =
-      tray.setContextMenu.mock.calls.length;
     app.emit("thunder-load:tray-refresh");
-    expect(tray.setContextMenu.mock.calls.length).toBe(
-      contextMenuCallsBeforeAppRefresh + 1,
-    );
+    expect(tray.setContextMenu).not.toHaveBeenCalled();
   });
 
   test("creates a template tray image on macOS", () => {
