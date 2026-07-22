@@ -594,6 +594,7 @@ function formatEtaEstimate(createdAt, progress) {
 
 function syncDownloadState() {
   const activeCount = getActiveDownloadJobs(state).length;
+  const failedCount = getFailedDownloadJobs(state).length;
   const maxActive =
     Number(state.maxParallelDownloads) || PARALLEL_DOWNLOAD_LIMIT;
   state.queuePaused = Boolean(state.suppressAutoPump);
@@ -619,7 +620,12 @@ function syncDownloadState() {
   try {
     window.dispatchEvent(
       new CustomEvent("download:state", {
-        detail: { isDownloading: state.isDownloading, activeCount },
+        detail: {
+          isDownloading: state.isDownloading,
+          activeCount,
+          failedCount,
+          paused: Boolean(state.suppressAutoPump),
+        },
       }),
     );
   } catch {}

@@ -127,6 +127,7 @@ try {
     "stop-download",
     "toast",
     "toggle-auto-launch",
+    "tray-state-update",
     "tools:checkUpdates",
     "tools:getAvailability",
     "tools:getVersions",

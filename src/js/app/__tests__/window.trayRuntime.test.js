@@ -155,13 +155,6 @@ describe("tray runtime behavior", () => {
     );
 
     const tray = Tray.mock.results[0].value;
-    const startedHandler = ipcMain.on.mock.calls.find(
-      ([event]) => event === "download-started",
-    )[1];
-    const finishedHandler = ipcMain.on.mock.calls.find(
-      ([event]) => event === "download-finished",
-    )[1];
-
     mainWindow.isVisible.mockReturnValue(false);
     tray.handlers.click();
     expect(mainWindow.restore).toHaveBeenCalledTimes(1);
@@ -184,18 +177,11 @@ describe("tray runtime behavior", () => {
     );
     expect(tray.popUpContextMenu).toHaveBeenCalledTimes(1);
 
-    startedHandler();
-    expect(tray.setImage).toHaveBeenCalledWith(
-      expect.stringContaining("assets/icons/tray/tray-loading.png"),
+    expect(nativeImage.createFromPath).toHaveBeenCalledWith(
+      expect.stringContaining("assets/icons/tray/tray.ico"),
     );
-
-    const contextMenuCallsBeforeFinish = tray.setContextMenu.mock.calls.length;
-    finishedHandler();
-    expect(tray.setImage).toHaveBeenCalledWith(
-      expect.stringContaining("assets/icons/tray"),
-    );
-    expect(tray.setContextMenu.mock.calls.length).toBe(
-      contextMenuCallsBeforeFinish + 1,
+    expect(Tray).toHaveBeenCalledWith(
+      expect.objectContaining({ isEmpty: expect.any(Function) }),
     );
 
     const contextMenuCallsBeforeAppRefresh =
@@ -206,7 +192,7 @@ describe("tray runtime behavior", () => {
     );
   });
 
-  test("creates a template tray image on macOS and keeps it on download events", () => {
+  test("creates a template tray image on macOS", () => {
     setPlatform("darwin");
     const app = new EventEmitter();
     app.getName = () => "Thunder";
@@ -234,21 +220,12 @@ describe("tray runtime behavior", () => {
     const tray = Tray.mock.results[0].value;
     const trayImageCallIndex = nativeImage.createFromPath.mock.calls.findIndex(
       ([iconPath]) =>
-        String(iconPath).includes(
-          "assets/icons/tray/tray-icon-macos-template.png",
-        ),
+        String(iconPath).includes("assets/icons/tray/trayTemplate.png"),
     );
     const trayImage =
       nativeImage.createFromPath.mock.results[trayImageCallIndex].value;
-    const startedHandler = ipcMain.on.mock.calls.find(
-      ([event]) => event === "download-started",
-    )[1];
-    const finishedHandler = ipcMain.on.mock.calls.find(
-      ([event]) => event === "download-finished",
-    )[1];
-
     expect(nativeImage.createFromPath).toHaveBeenCalledWith(
-      expect.stringContaining("assets/icons/tray/tray-icon-macos-template.png"),
+      expect.stringContaining("assets/icons/tray/trayTemplate.png"),
     );
     expect(trayImage.setTemplateImage).toHaveBeenCalledWith(true);
     expect(Tray).toHaveBeenCalledWith(trayImage);
@@ -260,12 +237,10 @@ describe("tray runtime behavior", () => {
     );
     expect(tray.popUpContextMenu).toHaveBeenCalledTimes(1);
 
-    const setImageCallsBeforeStart = tray.setImage.mock.calls.length;
-    startedHandler();
-    expect(tray.setImage.mock.calls.length).toBe(setImageCallsBeforeStart);
-
-    finishedHandler();
-    expect(tray.setImage).toHaveBeenCalledWith(trayImage);
+    expect(ipcMain.on).not.toHaveBeenCalledWith(
+      "download-started",
+      expect.any(Function),
+    );
   });
 
   test("window-close IPC respects minimize-to-tray behavior on Windows", () => {

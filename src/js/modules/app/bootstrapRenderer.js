@@ -2,6 +2,7 @@ import { initHistory, initHistoryState } from "../history.js";
 import { initIconUpdater } from "../iconUpdater.js";
 import { initHotkeys } from "../hotkeys.js";
 import { initNetworkListeners } from "../network.js";
+import { initTrayStateSync } from "../trayStateSync.js";
 import { initContextMenu } from "../contextMenu.js";
 import { initWhatsNewModal } from "../whatsNewModal.js";
 import { initSettings } from "../settings.js";
@@ -175,6 +176,7 @@ export async function startRenderer() {
     cleanupLegacyRandomizerStorage();
     syncDeveloperModeState();
     initI18n();
+    initTrayStateSync();
     document.title = t("app.title");
     await initializeTheme();
     await initializeFontSize();

@@ -20,7 +20,11 @@
 - Производные размеры:
   `app-icon-256.png`, `app-icon-512.png`
 - Иконки tray:
-  `tray-icon-windows.png`, `tray-icon-macos-template.png`
+  - macOS Template Images: `trayTemplate.png`, `trayActiveTemplate.png`,
+    `trayPausedTemplate.png`, `trayErrorTemplate.png`, `trayOfflineTemplate.png`
+    и соответствующие `@2x`/размерные варианты;
+  - Windows multi-size ICO: `tray.ico`, `tray-active.ico`, `tray-paused.ico`,
+    `tray-error.ico`, `tray-offline.ico`.
 - Иконки уведомлений:
   `info-done.png`, `info-error.png`
 
@@ -32,6 +36,9 @@
   `tray-*`, `menu-*`, `notification-*` либо устоявшимся коротким именем внутри своей папки.
 - Для новых системных иконок сначала обновляйте [src/js/app/iconPaths.js](../src/js/app/iconPaths.js), а уже потом подключайте их в `window.js`, `notifications.js`, `autoUpdater.js` или другие модули.
 - При изменении брендовых иконок пересобирайте производные файлы через [scripts/generate_brand_icons.py](../scripts/generate_brand_icons.py).
+- macOS tray-иконки должны оставаться монохромными Template Images с прозрачным
+  фоном. Windows tray-иконки содержат отдельно отрисованные кадры 16, 20, 24,
+  32 и 48 px.
 - Не смешивайте брендовые app icons, menu assets и social SVG в одной плоской папке.
 
 ## Текущие точки использования

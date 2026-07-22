@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import io
+import struct
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFilter, ImageOps
@@ -35,6 +37,24 @@ ICO_SIZES = [
     (128, 128),
     (256, 256),
 ]
+
+TRAY_STATES = ("idle", "downloading", "paused", "error", "offline")
+MACOS_TRAY_NAMES = {
+    "idle": "trayTemplate",
+    "downloading": "trayActiveTemplate",
+    "paused": "trayPausedTemplate",
+    "error": "trayErrorTemplate",
+    "offline": "trayOfflineTemplate",
+}
+WINDOWS_TRAY_NAMES = {
+    "idle": "tray.ico",
+    "downloading": "tray-active.ico",
+    "paused": "tray-paused.ico",
+    "error": "tray-error.ico",
+    "offline": "tray-offline.ico",
+}
+MACOS_TRAY_SIZES = (16, 18, 22)
+WINDOWS_TRAY_SIZES = (16, 20, 24, 32, 48)
 
 
 def scale_value(size: int, value: int) -> int:
@@ -273,40 +293,128 @@ def create_app_icon(size: int = APP_ICON_SIZE) -> Image.Image:
     return canvas
 
 
-def create_windows_tray_icon(size: int = 32) -> Image.Image:
+def tray_lightning_points(size: int) -> list[tuple[int, int]]:
+    """Return a bold lightning silhouette snapped to the target pixel grid."""
+    return [
+        (round(size * 0.60), round(size * 0.06)),
+        (round(size * 0.18), round(size * 0.55)),
+        (round(size * 0.44), round(size * 0.55)),
+        (round(size * 0.33), round(size * 0.94)),
+        (round(size * 0.82), round(size * 0.40)),
+        (round(size * 0.55), round(size * 0.40)),
+    ]
+
+
+def draw_tray_indicator(
+    draw: ImageDraw.ImageDraw,
+    size: int,
+    state: str,
+    color: tuple[int, int, int, int],
+) -> None:
+    indicator_size = max(3, round(size * 0.22))
+    left = size - indicator_size
+    top = size - indicator_size
+    right = size - 1
+    bottom = size - 1
+
+    if state == "downloading":
+        draw.ellipse((left, top, right, bottom), fill=color)
+    elif state == "paused":
+        bar_width = max(1, round(size * 0.07))
+        gap = max(1, round(size * 0.05))
+        center = round((left + right) / 2)
+        draw.rectangle((center - gap - bar_width, top, center - gap, bottom), fill=color)
+        draw.rectangle((center + gap, top, center + gap + bar_width, bottom), fill=color)
+    elif state == "error":
+        width = max(1, round(size * 0.08))
+        draw.line((left, top, right, bottom), fill=color, width=width)
+        draw.line((right, top, left, bottom), fill=color, width=width)
+    elif state == "offline":
+        width = max(1, round(size * 0.07))
+        draw.line((left, bottom, right, top), fill=color, width=width)
+
+
+def create_windows_tray_icon(size: int, state: str = "idle") -> Image.Image:
     canvas = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     draw = ImageDraw.Draw(canvas)
-    draw.ellipse(
-        (2, 2, size - 2, size - 2),
-        outline=(22, 216, 255, 255),
-        width=max(2, size // 10),
-    )
+    points = tray_lightning_points(size)
+    fill = (36, 137, 255, 255) if state != "offline" else (137, 147, 161, 255)
+    outline_width = 1 if size <= 24 else 2
     draw.polygon(
-        [
-            (int(size * 0.56), int(size * 0.1)),
-            (int(size * 0.22), int(size * 0.56)),
-            (int(size * 0.45), int(size * 0.56)),
-            (int(size * 0.36), int(size * 0.9)),
-            (int(size * 0.78), int(size * 0.42)),
-            (int(size * 0.54), int(size * 0.42)),
-        ],
-        fill=(248, 251, 255, 255),
+        points,
+        fill=fill,
+        outline=(3, 28, 58, 255),
+        width=outline_width,
     )
+    indicator_colors = {
+        "downloading": (0, 181, 255, 255),
+        "paused": (255, 255, 255, 255),
+        "error": (241, 63, 63, 255),
+        "offline": (226, 230, 235, 255),
+    }
+    if state in indicator_colors:
+        draw_tray_indicator(draw, size, state, indicator_colors[state])
     return canvas
 
 
-def create_macos_template(size: int = 24) -> Image.Image:
+def create_macos_template(size: int, state: str = "idle") -> Image.Image:
     scale = 4
     large_size = size * scale
     canvas = Image.new("RGBA", (large_size, large_size), (0, 0, 0, 0))
     draw = ImageDraw.Draw(canvas)
-    draw.ellipse((14, 14, 82, 82), outline=(0, 0, 0, 255), width=12)
-    draw.polygon(
-        [(54, 10), (24, 58), (44, 58), (36, 86), (74, 42), (52, 42)],
-        fill=(0, 0, 0, 255),
-    )
+    points = [(x * scale, y * scale) for x, y in tray_lightning_points(size)]
+    draw.polygon(points, fill=(0, 0, 0, 255))
+    if state != "idle":
+        draw_tray_indicator(draw, large_size, state, (0, 0, 0, 255))
 
     return canvas.resize((size, size), Image.Resampling.LANCZOS)
+
+
+def save_ico(images: list[Image.Image], path: Path) -> None:
+    """Package independently rendered PNG frames into a Windows ICO container."""
+    png_frames: list[bytes] = []
+    for image in images:
+        output = io.BytesIO()
+        image.save(output, format="PNG", optimize=True)
+        png_frames.append(output.getvalue())
+
+    header_size = 6 + 16 * len(images)
+    offset = header_size
+    directory = bytearray(struct.pack("<HHH", 0, 1, len(images)))
+    for image, png_data in zip(images, png_frames):
+        width, height = image.size
+        directory.extend(
+            struct.pack(
+                "<BBBBHHII",
+                0 if width == 256 else width,
+                0 if height == 256 else height,
+                0,
+                0,
+                1,
+                32,
+                len(png_data),
+                offset,
+            ),
+        )
+        offset += len(png_data)
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(bytes(directory) + b"".join(png_frames))
+
+
+def build_tray_icons() -> None:
+    for state in TRAY_STATES:
+        basename = MACOS_TRAY_NAMES[state]
+        for size in MACOS_TRAY_SIZES:
+            suffix = "" if size == 18 else f"-{size}"
+            save_png(create_macos_template(size, state), TRAY_DIR / f"{basename}{suffix}.png")
+            save_png(
+                create_macos_template(size * 2, state),
+                TRAY_DIR / f"{basename}{suffix}@2x.png",
+            )
+
+        frames = [create_windows_tray_icon(size, state) for size in WINDOWS_TRAY_SIZES]
+        save_ico(frames, TRAY_DIR / WINDOWS_TRAY_NAMES[state])
 
 
 def save_png(image: Image.Image, path: Path, size: int | None = None) -> None:
@@ -335,8 +443,7 @@ def main() -> None:
     build_iconset(app_icon)
     build_icns(app_icon)
 
-    save_png(create_windows_tray_icon(), TRAY_DIR / "tray-icon-windows.png")
-    save_png(create_macos_template(), TRAY_DIR / "tray-icon-macos-template.png")
+    build_tray_icons()
 
 
 if __name__ == "__main__":

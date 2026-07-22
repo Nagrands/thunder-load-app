@@ -35,6 +35,7 @@ const { registerHistoryIpcHandlers } = require("./historyIpcHandlers");
 const { registerNowPlayingIpcHandlers } = require("./nowPlayingIpcHandlers");
 const { registerShortcutIpcHandlers } = require("./shortcutIpcHandlers");
 const { createHistoryPreviewCache } = require("./historyPreviewIpcHandlers");
+const { TRAY_STATES, trayIconController } = require("./trayIconController");
 const {
   registerToolsLocationIpcHandlers,
 } = require("./toolsLocationIpcHandlers");
@@ -681,6 +682,13 @@ function setupIpcHandlers(dependencies) {
     dispatchPendingWhatsNew,
     clearPendingWhatsNewVersion,
   } = dependencies;
+  ipcMain.on(CHANNELS.TRAY_STATE_UPDATE, (_event, state) => {
+    if (!TRAY_STATES.includes(state)) {
+      log.warn(`Rejected invalid tray state: ${String(state)}`);
+      return;
+    }
+    trayIconController.updateTrayIcon(state);
+  });
   const activeVideoInfoTokens = new Map();
   const activeConverterRuns = new Map();
   const makeVideoInfoTokenKey = (url, previewOnly = false) =>

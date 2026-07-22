@@ -18,6 +18,7 @@ const {
   resolveIconPathFromAppDir,
 } = require("./iconPaths");
 const { showTrayNotification } = require("./notifications.js");
+const { trayIconController } = require("./trayIconController.js");
 
 let windowTray = null;
 let appMenu = null;
@@ -37,25 +38,6 @@ function loadNativeImageFrom(paths) {
   }
   console.warn("No suitable icon found among:", paths);
   return null;
-}
-
-function loadTrayImage(iconPath, { template = false } = {}) {
-  if (!fs.existsSync(iconPath)) {
-    console.warn("Tray icon not found:", iconPath);
-    return null;
-  }
-
-  const trayImage = nativeImage.createFromPath(iconPath);
-  if (!trayImage || trayImage.isEmpty()) {
-    console.warn("Tray icon exists but failed to load:", iconPath);
-    return null;
-  }
-
-  if (template && typeof trayImage.setTemplateImage === "function") {
-    trayImage.setTemplateImage(true);
-  }
-
-  return trayImage;
 }
 
 function trimMenuText(text, maxLength = 44) {
@@ -461,13 +443,12 @@ function createTray(mainWindow, app, store, downloadPath) {
   if (windowTray) return;
 
   const isMac = process.platform === "darwin";
-  const trayIconPath = resolveIconPathFromAppDir(
+  const trayIconPath = resolveIconPathFrom(
+    app.getAppPath(),
     isMac ? "TRAY_ICON_MACOS_TEMPLATE" : "TRAY_ICON_WINDOWS",
   );
-  const iconLoadingPath = resolveIconPathFromAppDir("TRAY_ICON_LOADING");
-  const trayImage = isMac
-    ? loadTrayImage(trayIconPath, { template: true })
-    : null;
+  trayIconController.configure(app, process.platform);
+  const trayImage = trayIconController.loadImage("idle");
   const trayMenuPaths = {
     trayIconPath,
     videoIconPath: resolveIconPathFromAppDir("MENU_VIDEO"),
@@ -476,10 +457,9 @@ function createTray(mainWindow, app, store, downloadPath) {
     logoutIconPath: resolveIconPathFromAppDir("MENU_LOGOUT"),
   };
 
-  if (isMac ? !trayImage : !fs.existsSync(trayIconPath)) {
-    return;
-  }
-  windowTray = new Tray(trayImage || trayIconPath);
+  if (!trayImage) return;
+  windowTray = new Tray(trayImage);
+  trayIconController.init(windowTray);
 
   const menuHandlers = createMenuHandlers({
     app,
@@ -523,21 +503,6 @@ function createTray(mainWindow, app, store, downloadPath) {
 
   windowTray.on("double-click", () => {
     menuHandlers.open();
-  });
-
-  ipcMain.on("download-started", () => {
-    if (!isMac && fs.existsSync(iconLoadingPath)) {
-      windowTray.setImage(iconLoadingPath);
-    }
-  });
-
-  ipcMain.on("download-finished", () => {
-    if (isMac && trayImage) {
-      windowTray.setImage(trayImage);
-    } else if (fs.existsSync(trayIconPath)) {
-      windowTray.setImage(trayIconPath);
-    }
-    refreshTrayMenu();
   });
 }
 
@@ -595,7 +560,8 @@ function createAppMenu(isDev, app) {
         {
           id: "view-force-reload",
           label: "Принудительно перезагрузить",
-          click: (_item, window) => window?.webContents?.reloadIgnoringCache?.(),
+          click: (_item, window) =>
+            window?.webContents?.reloadIgnoringCache?.(),
         },
         { role: "toggledevtools", visible: isDev },
         { type: "separator" },
@@ -636,6 +602,7 @@ function setReloadMenuEnabled(enabled) {
 
 function resetWindowStateForTests() {
   windowTray = null;
+  trayIconController.reset();
 }
 
 module.exports = {

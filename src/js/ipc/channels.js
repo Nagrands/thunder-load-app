@@ -95,6 +95,7 @@ const CHANNELS = Object.freeze({
   STOP_DOWNLOAD: "stop-download",
   TOAST: "toast",
   TOGGLE_AUTO_LAUNCH: "toggle-auto-launch",
+  TRAY_STATE_UPDATE: "tray-state-update",
   TOOLS_CHECKUPDATES: "tools:checkUpdates",
   TOOLS_GET_AVAILABILITY: "tools:getAvailability",
   TOOLS_GETVERSIONS: "tools:getVersions",
