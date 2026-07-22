@@ -1,5 +1,6 @@
 import { applyI18n, t } from "../i18n.js";
 import { showConfirmationDialog } from "../modals.js";
+import { initTooltips } from "../tooltipInitializer.js";
 import createControlsVisibility from "./controlsVisibility.js";
 import createFullscreenController from "./fullscreenController.js";
 import createImmersiveOverlayVisibility from "./immersiveOverlayVisibility.js";
@@ -11,13 +12,16 @@ import {
 import createMediaLibraryView from "./mediaLibraryView.js";
 import createMediaSessionManager from "./mediaSessionManager.js";
 import createPlaybackControlsView from "./playbackControlsView.js";
+import createPlayerContextMenu from "./playerContextMenu.js";
 import createPlaylistRenderer from "./playlistRenderer.js";
 import PlaybackController from "./playbackController.js";
 import createNowPlayingPreferences from "./preferencesController.js";
 import MusicProviderRegistry from "./providerRegistry.js";
+import NetworkMediaProvider from "./networkMediaProvider.js";
 import createVisualTransitionController from "./visualTransitionController.js";
 import buildNowPlayingMarkup from "./viewMarkup.js";
 import { unwrapNowPlayingState } from "./viewUtils.js";
+import createTransientQueue from "./transientQueue.js";
 import YouTubeProvider from "./youtubeProvider.js";
 export function createNowPlayingView({
   api = window.electron?.nowPlaying,
@@ -32,13 +36,14 @@ export function createNowPlayingView({
   const mediaLayers = Array.from(root.querySelectorAll(".now-playing__video"));
   const provider = new LocalMusicProvider(api);
   const youtubeProvider = new YouTubeProvider(api);
+  const networkProvider = new NetworkMediaProvider();
   const providers = new MusicProviderRegistry();
   providers.register(provider);
   providers.register(youtubeProvider);
+  providers.register(networkProvider);
   const controller = new PlaybackController({ providers, mediaLayers });
   const mediaSession = createMediaSessionManager({ controller });
   const playlist = root.querySelector(".now-playing__playlist");
-  const empty = root.querySelector(".now-playing__empty");
   const errorPanel = root.querySelector(".now-playing__error");
   const dock = root.querySelector(".now-playing__dock");
   const sidebar = root.querySelector(".now-playing__sidebar");
@@ -79,7 +84,12 @@ export function createNowPlayingView({
   let latestSnapshot = null;
   let persistentSignature = "";
   let playbackPersistenceKey = "";
-  let saveQueued = false;
+  let controlTooltipKey = "";
+  let systemMediaStateKey = "";
+  let persistenceTimer = null;
+  let persistenceInFlight = null;
+  let persistenceRequested = false;
+  let volumeFeedbackTimer = null;
   let libraryModel = null;
   const renderPlaylist = createPlaylistRenderer(playlist);
   const controlsVisibility = createControlsVisibility({ root, dock });
@@ -131,18 +141,92 @@ export function createNowPlayingView({
     root,
     onDialogSubmit: handleLibraryDialogSubmit,
   });
+  const transientQueue = createTransientQueue({
+    onChange: renderTransientQueue,
+  });
+  const contextMenu = createPlayerContextMenu({
+    root,
+    onAction: handleContextAction,
+  });
 
-  function queuePersistence() {
+  function renderTransientQueue(items = transientQueue.getItems()) {
+    const queue = root.querySelector('[data-ui="transient-queue"]');
+    const clearButton = root.querySelector('[data-action="clear-transient-queue"]');
+    if (!queue) return;
+    clearButton.disabled = items.length === 0;
+    if (!items.length) {
+      const emptyMessage = document.createElement("p");
+      emptyMessage.className = "player-library__up-next-empty";
+      emptyMessage.textContent = t("nowPlaying.queue.empty");
+      queue.replaceChildren(emptyMessage);
+      return;
+    }
+    queue.replaceChildren(
+      ...items.map((track, index) => {
+        const row = document.createElement("div");
+        row.className = "player-library__queued-track";
+        row.dataset.trackId = track.id;
+        const title = document.createElement("span");
+        title.textContent = track.displayTitle || track.title;
+        const actions = document.createElement("span");
+        actions.className = "player-library__queued-actions";
+        [
+          ["move-transient-up", "fa-solid fa-arrow-up", "nowPlaying.playlists.moveUp"],
+          ["move-transient-down", "fa-solid fa-arrow-down", "nowPlaying.playlists.moveDown"],
+          ["remove-transient", "fa-solid fa-xmark", "nowPlaying.queue.remove"],
+        ].forEach(([action, icon, labelKey]) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.dataset.action = action;
+          button.dataset.trackId = track.id;
+          button.dataset.trackIndex = String(index);
+          button.setAttribute("aria-label", t(labelKey));
+          button.setAttribute("title", t(labelKey));
+          button.setAttribute("data-bs-toggle", "tooltip");
+          button.innerHTML = `<i class="${icon}" aria-hidden="true"></i>`;
+          actions.appendChild(button);
+        });
+        row.append(title, actions);
+        return row;
+      }),
+    );
+    initTooltips(queue);
+  }
+
+  function showVolumeFeedback() {
+    root.classList.add("is-volume-feedback-visible");
+    if (volumeFeedbackTimer !== null) clearTimeout(volumeFeedbackTimer);
+    volumeFeedbackTimer = setTimeout(() => {
+      volumeFeedbackTimer = null;
+      root.classList.remove("is-volume-feedback-visible");
+    }, 1500);
+  }
+
+  function queuePersistence({ immediate = false } = {}) {
     if (!initialized || disposed) return;
     const nextState = getPersistentState();
     const signature = JSON.stringify(nextState);
-    if (signature === persistentSignature || saveQueued) return;
-    saveQueued = true;
-    queueMicrotask(async () => {
-      saveQueued = false;
-      const state = getPersistentState();
-      const currentSignature = JSON.stringify(state);
-      if (currentSignature === persistentSignature || disposed) return;
+    if (signature === persistentSignature) return;
+    if (persistenceTimer !== null) clearTimeout(persistenceTimer);
+    persistenceTimer = setTimeout(
+      () => {
+        persistenceTimer = null;
+        void persistLatestState();
+      },
+      immediate ? 0 : 250,
+    );
+  }
+
+  async function persistLatestState() {
+    if (disposed) return;
+    if (persistenceInFlight) {
+      persistenceRequested = true;
+      return persistenceInFlight;
+    }
+    const state = getPersistentState();
+    const signature = JSON.stringify(state);
+    if (signature === persistentSignature) return;
+    persistenceInFlight = (async () => {
       try {
         const result = await api.setState(state);
         if (result?.success === false) {
@@ -150,11 +234,28 @@ export function createNowPlayingView({
             result.error?.message || "Unable to save player state",
           );
         }
-        persistentSignature = currentSignature;
+        persistentSignature = signature;
       } catch (error) {
         status.textContent = error?.message || t("nowPlaying.error");
       }
-    });
+    })();
+    try {
+      await persistenceInFlight;
+    } finally {
+      persistenceInFlight = null;
+      if (persistenceRequested && !disposed) {
+        persistenceRequested = false;
+        await persistLatestState();
+      }
+    }
+  }
+
+  function flushPersistence() {
+    if (persistenceTimer !== null) {
+      clearTimeout(persistenceTimer);
+      persistenceTimer = null;
+    }
+    return persistLatestState();
   }
 
   function getPersistentState() {
@@ -182,16 +283,37 @@ export function createNowPlayingView({
     renderPlaylist(snapshot);
     visualTransitions.update(snapshot);
     updateControls(snapshot);
+    const nextControlTooltipKey = `${snapshot.isPlaying}:${snapshot.isLoading}:${snapshot.muted}:${snapshot.repeat}`;
+    if (nextControlTooltipKey !== controlTooltipKey) {
+      controlTooltipKey = nextControlTooltipKey;
+      initTooltips(dock);
+    }
     count.textContent = String(snapshot.queue.length);
     root.classList.toggle("is-empty", snapshot.queue.length === 0);
-    empty.hidden = snapshot.queue.length > 0;
-    empty.classList.toggle("is-visible", snapshot.queue.length === 0);
     playlist.hidden = snapshot.queue.length === 0;
     errorPanel.hidden = !snapshot.error;
     errorPanel.classList.toggle("is-visible", !!snapshot.error);
     root.querySelector('[data-ui="error-message"]').textContent =
       snapshot.error?.message || "";
     if (libraryModel) libraryView.renderPlayback(snapshot);
+    const systemState = snapshot.currentTrack && !snapshot.isStopped
+      ? {
+          track: {
+            title:
+              snapshot.currentTrack.displayTitle || snapshot.currentTrack.title,
+          },
+          isPlaying: snapshot.isPlaying === true,
+          canNext:
+            transientQueue.getItems().length > 0 ||
+            snapshot.currentIndex < snapshot.queue.length - 1,
+          canPrevious: snapshot.currentIndex > 0 || snapshot.currentTime > 3,
+        }
+      : { track: null, isPlaying: false, canNext: false, canPrevious: false };
+    const nextSystemMediaStateKey = JSON.stringify(systemState);
+    if (nextSystemMediaStateKey !== systemMediaStateKey) {
+      systemMediaStateKey = nextSystemMediaStateKey;
+      api?.publishMediaState?.(systemState);
+    }
     const nextPlaybackPersistenceKey = JSON.stringify({
       selectedTrackId: snapshot.currentTrack?.id || null,
       volume: snapshot.volume,
@@ -212,6 +334,8 @@ export function createNowPlayingView({
       libraryView.render(libraryModel.getState(), latestSnapshot);
     }
     fullscreen.refresh();
+    renderTransientQueue();
+    initTooltips(root);
   }
 
   async function importSource(source) {
@@ -224,23 +348,63 @@ export function createNowPlayingView({
         (track) => importedIds.has(track.id) || !previousIds.has(track.id),
       );
       const addedIds = libraryModel.addTracks(incomingTracks);
+      (imported.playlistImports || []).forEach((playlistImport) => {
+        libraryModel.createPlaylist(playlistImport.title, {
+          trackIds: playlistImport.trackIds,
+        });
+      });
       syncLibraryQueue();
       const firstNewTrack = libraryModel
         .getState()
         .catalog.tracks.find((track) => addedIds.includes(track.id));
       if (firstNewTrack) await controller.selectTrack(firstNewTrack.id);
-      status.textContent = "";
+      status.textContent = imported.warnings?.length
+        ? t("nowPlaying.playlists.youtubeSkipped")
+        : "";
     } catch (error) {
       status.textContent = error?.message || t("nowPlaying.error");
     }
   }
 
-  async function importYouTube(url) {
+  async function importPaths(paths, { autoplay = true } = {}) {
+    if (!Array.isArray(paths) || !paths.length || !api?.importPaths) return false;
+    const payload = unwrapNowPlayingState(await api.importPaths(paths));
+    const tracks = Array.isArray(payload?.tracks) ? payload.tracks : [];
+    provider.mergeTracks(
+      tracks.filter((track) => track.providerId === "local"),
+    );
+    libraryModel.addTracks(tracks);
+    (payload?.playlistImports || []).forEach((playlistImport) => {
+      libraryModel.createPlaylist(playlistImport.title, {
+        trackIds: playlistImport.trackIds,
+      });
+    });
+    syncLibraryQueue();
+    const importedIds = Array.isArray(payload?.importedTrackIds)
+      ? payload.importedTrackIds
+      : tracks.map((track) => track.id);
+    const catalog = libraryModel.getState().catalog.tracks;
+    const importedTracks = importedIds
+      .map((id) => catalog.find((track) => track.id === id))
+      .filter(Boolean);
+    if (payload?.warnings?.length) {
+      status.textContent = t("nowPlaying.playlists.youtubeSkipped");
+    }
+    if (!importedTracks.length) return false;
+    importedTracks.slice(1).forEach((track) => transientQueue.add(track));
+    await controller.selectTrack(importedTracks[0].id, { autoplay });
+    libraryView.hide();
+    return true;
+  }
+
+  async function importYouTube(url, qualitySelection) {
     const loadingMessage = t("nowPlaying.youtube.fetching");
     status.textContent = loadingMessage;
     libraryView.setOperationStatus(loadingMessage, { loading: true });
     try {
-      const track = await youtubeProvider.importSource(url);
+      const track = await youtubeProvider.importSource(url, {
+        qualitySelection,
+      });
       libraryModel.addTracks([track]);
       syncLibraryQueue();
       const addedMessage = t("nowPlaying.youtube.added");
@@ -263,14 +427,25 @@ export function createNowPlayingView({
         selectedTrackId || controller.currentTrack?.id || undefined,
     });
     libraryView.render(libraryModel.getState(), latestSnapshot);
+    initTooltips(root);
+    if (libraryModel.getState().catalog.tracks.length === 0) libraryView.show();
     queuePersistence();
   }
 
   async function handleLibraryDialogSubmit(mode, value, context = {}) {
-    if (mode === "youtube") return importYouTube(value);
+    if (mode === "youtube") {
+      const analysis = await youtubeProvider.analyzeSource(value);
+      return { step: "quality", analysis, url: value };
+    }
+    if (mode === "youtubeQuality") {
+      const quality = context.qualities?.find((item) => item.id === value);
+      if (!quality) return false;
+      return importYouTube(context.url, quality.selector);
+    }
     if (mode === "create") {
       libraryModel.createPlaylist(value);
       libraryView.render(libraryModel.getState(), latestSnapshot);
+      initTooltips(root);
       queuePersistence();
       return true;
     }
@@ -281,6 +456,7 @@ export function createNowPlayingView({
       }
       libraryModel.renamePlaylist(activePlaylist.id, value);
       libraryView.render(libraryModel.getState(), latestSnapshot);
+      initTooltips(root);
       queuePersistence();
       return true;
     }
@@ -291,7 +467,15 @@ export function createNowPlayingView({
         return false;
       }
       libraryView.render(libraryModel.getState(), latestSnapshot);
+      initTooltips(root);
       queuePersistence();
+      return true;
+    }
+    if (mode === "renameTrack") {
+      if (typeof libraryModel.renameTrack !== "function") return false;
+      const renamed = libraryModel.renameTrack(context.trackId, value);
+      if (!renamed) return false;
+      syncLibraryQueue({ selectedTrackId: controller.currentTrack?.id });
       return true;
     }
     return false;
@@ -372,10 +556,13 @@ export function createNowPlayingView({
     if (action === "clear") return clearQueue();
     if (action === "play-pause") return controller.togglePlayback();
     if (action === "previous") return controller.previous();
-    if (action === "next") return controller.next();
+    if (action === "next") return playNextTrack();
     if (action === "shuffle") return controller.toggleShuffle();
     if (action === "repeat") return controller.cycleRepeat();
-    if (action === "mute") return controller.toggleMute();
+    if (action === "mute") {
+      showVolumeFeedback();
+      return controller.toggleMute();
+    }
     if (action === "fullscreen") return fullscreen.toggle();
     if (action === "retry") return controller.retry();
     if (action === "show-library") return libraryView.show();
@@ -392,6 +579,23 @@ export function createNowPlayingView({
       });
     }
     if (action === "close-library-dialog") return libraryView.closeDialog();
+    if (action === "clear-transient-queue") return transientQueue.clear();
+    if (action === "remove-transient") {
+      return transientQueue.remove(target.dataset.trackId);
+    }
+    if (action === "move-transient-up" || action === "move-transient-down") {
+      return transientQueue.move(
+        target.dataset.trackId,
+        action.endsWith("up") ? -1 : 1,
+      );
+    }
+    if (action === "open-track-context-menu") {
+      const context = libraryView.getTrackContext(target.dataset.trackId);
+      if (!context) return false;
+      const bounds = target.getBoundingClientRect();
+      contextMenu.open(context, target, { x: bounds.right, y: bounds.bottom });
+      return true;
+    }
     if (action === "select-playlist") {
       return selectPlaylist(target.dataset.playlistId);
     }
@@ -442,6 +646,73 @@ export function createNowPlayingView({
     return undefined;
   }
 
+  async function playNextTrack(options = {}) {
+    const queuedTrack = transientQueue.takeNext();
+    if (queuedTrack) {
+      if (!controller.queue.some((track) => track.id === queuedTrack.id)) {
+        const merged = controller.queue.filter(
+          (track) => track.id !== queuedTrack.id,
+        );
+        merged.splice(Math.max(0, controller.currentIndex + 1), 0, queuedTrack);
+        controller.setQueue(merged, {
+          selectedTrackId: controller.currentTrack?.id,
+        });
+      }
+      return controller.selectTrack(queuedTrack.id);
+    }
+    return controller.next(options);
+  }
+
+  async function handleContextAction(action, context) {
+    const track = context?.track;
+    if (!track) return false;
+    if (action === "play") return controller.selectTrack(track.id);
+    if (action === "queue") return transientQueue.add(track);
+    if (action === "playlist") {
+      return libraryView.openDialog("addTrack", { trackId: track.id });
+    }
+    if (action === "move-up" || action === "move-down") {
+      libraryModel.reorderTrack(
+        context.playlist.id,
+        track.id,
+        context.index + (action === "move-up" ? -1 : 1),
+      );
+      syncLibraryQueue({ selectedTrackId: controller.currentTrack?.id });
+      return true;
+    }
+    if (action === "delete") return removeFromActivePlaylist(track.id);
+    if (action === "rename") {
+      return libraryView.openDialog("renameTrack", { trackId: track.id, track });
+    }
+    if (action === "info") {
+      return libraryView.openDialog("trackInfo", { track });
+    }
+    if (action === "reveal" || action === "open-location") {
+      const method = action === "reveal" ? "revealTrack" : "openTrackLocation";
+      if (typeof api?.[method] !== "function") {
+        libraryView.setOperationStatus(t("nowPlaying.context.unavailable"), {
+          error: true,
+        });
+        return false;
+      }
+      try {
+        const result = await api[method](track.sourceRef);
+        if (result?.success === false) {
+          throw new Error(
+            result.error?.message || t("nowPlaying.context.unavailable"),
+          );
+        }
+        return true;
+      } catch (error) {
+        libraryView.setOperationStatus(error?.message || t("nowPlaying.error"), {
+          error: true,
+        });
+        return false;
+      }
+    }
+    return false;
+  }
+
   function onClick(event) {
     const actionTarget = event.target.closest("[data-action]");
     if (!actionTarget || !root.contains(actionTarget)) return;
@@ -449,6 +720,19 @@ export function createNowPlayingView({
   }
 
   function onKeydown(event) {
+    const libraryRow = event.target.closest(".player-library__track");
+    if (libraryRow && (event.key === "ContextMenu" || (event.shiftKey && event.key === "F10"))) {
+      event.preventDefault();
+      const context = libraryView.getTrackContext(libraryRow.dataset.trackId);
+      const bounds = libraryRow.getBoundingClientRect();
+      if (context) contextMenu.open(context, libraryRow, { x: bounds.left + 24, y: bounds.top + 24 });
+      return;
+    }
+    if (libraryRow && ["Enter", " "].includes(event.key)) {
+      event.preventDefault();
+      void controller.selectTrack(libraryRow.dataset.trackId);
+      return;
+    }
     const row = event.target.closest(".now-playing__track");
     if (!row || !["Enter", " "].includes(event.key)) return;
     event.preventDefault();
@@ -460,6 +744,7 @@ export function createNowPlayingView({
       controller.seek(event.target.value);
     }
     if (event.target.matches('[data-action="volume"]')) {
+      showVolumeFeedback();
       controller.setVolume(event.target.value);
     }
   }
@@ -479,6 +764,7 @@ export function createNowPlayingView({
     }
     event.preventDefault();
     controlsVisibility.show();
+    showVolumeFeedback();
     const currentPercent = Math.round(
       (latestSnapshot?.muted ? 0 : latestSnapshot?.volume || 0) * 100,
     );
@@ -487,6 +773,21 @@ export function createNowPlayingView({
       Math.max(0, currentPercent + (event.deltaY < 0 ? 5 : -5)),
     );
     controller.setVolume(nextPercent / 100);
+  }
+
+  function onContextMenu(event) {
+    const row = event.target.closest(".player-library__track");
+    if (!row || !root.contains(row)) return;
+    event.preventDefault();
+    const context = libraryView.getTrackContext(row.dataset.trackId);
+    if (context) contextMenu.open(context, row, { x: event.clientX, y: event.clientY });
+  }
+
+  function onMediaEnded(event) {
+    if (event.target !== controller.activeMedia) return;
+    if (!transientQueue.getItems().length) return;
+    event.stopImmediatePropagation();
+    void playNextTrack({ fromEnded: true });
   }
 
   function onChange(event) {
@@ -532,16 +833,29 @@ export function createNowPlayingView({
     if (active) void controller.resume();
   }
 
+  function onSystemMediaCommand(payload = {}) {
+    const action = {
+      play: () => controller.play(),
+      pause: () => controller.pause(),
+      next: () => playNextTrack(),
+      previous: () => controller.previous(),
+    }[payload.command];
+    if (action) void action();
+  }
+
   root.addEventListener("click", onClick);
   root.addEventListener("keydown", onKeydown);
   root.addEventListener("input", onInput);
   root.addEventListener("wheel", onWheel, { passive: false });
   root.addEventListener("change", onChange);
+  root.addEventListener("contextmenu", onContextMenu);
+  mediaLayers.forEach((media) => media.addEventListener("ended", onMediaEnded, true));
   window.addEventListener("blur", onWindowBlur);
   window.addEventListener("focus", onWindowFocus);
   window.addEventListener("i18n:changed", onI18nChanged);
   document.addEventListener("visibilitychange", onVisibilityChange);
   const unsubscribe = controller.subscribe(render);
+  const unsubscribeMediaCommand = api?.onMediaCommand?.(onSystemMediaCommand);
 
   const ready = (async () => {
     try {
@@ -559,9 +873,17 @@ export function createNowPlayingView({
           (track) => track.providerId === "youtube",
         ),
       );
+      networkProvider.restore(
+        libraryState.catalog.tracks.filter(
+          (track) => track.providerId === "network",
+        ),
+      );
       controller.restoreState(libraryState);
       applyI18n(root);
       libraryView.render(libraryState, latestSnapshot);
+      renderTransientQueue();
+      initTooltips(root);
+      if (libraryState.catalog.tracks.length === 0) libraryView.show();
       if (controller.currentTrack) {
         await controller.selectTrack(controller.currentTrack.id, {
           autoplay: false,
@@ -584,6 +906,7 @@ export function createNowPlayingView({
 
   return {
     element: root,
+    importPaths,
     ready,
     onShow() {
       active = true;
@@ -606,12 +929,21 @@ export function createNowPlayingView({
       overlayVisibility.onHide();
       fullscreen.onHide();
       libraryView.closeDialog();
+      void flushPersistence();
       if (preferences.shouldSuspendInBackground()) controller.suspend();
     },
     dispose() {
       if (disposed) return;
+      void flushPersistence();
       disposed = true;
       unsubscribe();
+      unsubscribeMediaCommand?.();
+      api?.publishMediaState?.({
+        track: null,
+        isPlaying: false,
+        canNext: false,
+        canPrevious: false,
+      });
       mediaSession.dispose();
       controller.dispose();
       providers.dispose();
@@ -620,11 +952,16 @@ export function createNowPlayingView({
       fullscreen.dispose();
       visualTransitions.dispose();
       libraryView.dispose();
+      contextMenu.dispose();
+      if (volumeFeedbackTimer !== null) clearTimeout(volumeFeedbackTimer);
+      if (persistenceTimer !== null) clearTimeout(persistenceTimer);
       root.removeEventListener("click", onClick);
       root.removeEventListener("keydown", onKeydown);
       root.removeEventListener("input", onInput);
       root.removeEventListener("wheel", onWheel);
       root.removeEventListener("change", onChange);
+      root.removeEventListener("contextmenu", onContextMenu);
+      mediaLayers.forEach((media) => media.removeEventListener("ended", onMediaEnded, true));
       window.removeEventListener("blur", onWindowBlur);
       window.removeEventListener("focus", onWindowFocus);
       window.removeEventListener("i18n:changed", onI18nChanged);

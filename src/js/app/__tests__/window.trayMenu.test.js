@@ -182,6 +182,39 @@ describe("window tray/dock menu templates", () => {
     expect(app.quit).toHaveBeenCalledTimes(1);
   });
 
+  test("dock exposes the current track and transport commands", () => {
+    const mediaCommand = jest.fn();
+    const template = buildDockMenuTemplate({
+      app: { isQuitting: false, quit: jest.fn() },
+      store: createStore({ downloadPath: os.tmpdir() }),
+      downloadPath: os.tmpdir(),
+      mainWindow: {},
+      handlers: {
+        open: jest.fn(),
+        openLastVideo: jest.fn(),
+        openDownloadsFolder: jest.fn(),
+        openSettings: jest.fn(),
+        quit: jest.fn(),
+        mediaCommand,
+      },
+      mediaState: {
+        track: { title: "Demo track" },
+        isPlaying: true,
+        canNext: true,
+        canPrevious: false,
+      },
+    });
+
+    expect(findMenuItem(template, "Сейчас играет:").label).toContain(
+      "Demo track",
+    );
+    findMenuItem(template, "Пауза").click();
+    findMenuItem(template, "Следующий").click();
+    expect(findMenuItem(template, "Предыдущий").enabled).toBe(false);
+    expect(mediaCommand).toHaveBeenNthCalledWith(1, "pause");
+    expect(mediaCommand).toHaveBeenNthCalledWith(2, "next");
+  });
+
   test("tray and dock keep identical action order", () => {
     const filePath = path.join(
       os.tmpdir(),

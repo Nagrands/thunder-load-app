@@ -3,6 +3,9 @@ const log = require("electron-log");
 const { CHANNELS } = require("../ipc/channels");
 const {
   importMediaPaths,
+  isSupportedPlaylistPath,
+  normalizeSourcePath,
+  parseMediaPlaylist,
   refreshAvailability,
   scanMediaDirectory,
 } = require("./nowPlayingLibrary");
@@ -15,6 +18,7 @@ const {
   sanitizeState,
 } = require("./nowPlayingState");
 const { createYouTubeHandlers } = require("./nowPlayingYouTube");
+const { NowPlayingHlsService } = require("./nowPlayingHlsService");
 
 const STATE_KEY = "nowPlaying.state";
 const MAX_STATE_BYTES = 2 * 1024 * 1024;
@@ -123,8 +127,25 @@ function registerNowPlayingIpcHandlers({
   ipcMain,
   mainWindow,
   store,
+  shell,
+  hlsService: providedHlsService = null,
 }) {
-  const youtube = createYouTubeHandlers({ getVideoInfo, getVideoPreview });
+  const hlsService =
+    providedHlsService ||
+    new NowPlayingHlsService({
+      cacheRoot: path.join(app.getPath("userData"), "now-playing-hls"),
+      ffmpegPathResolver: () => resolveToolPath(ffmpegPathResolver, store),
+    });
+  const youtube = createYouTubeHandlers({
+    getVideoInfo,
+    getVideoPreview,
+    hlsService,
+  });
+  if (typeof app.once === "function") {
+    app.once("before-quit", () => {
+      void hlsService.dispose();
+    });
+  }
   const importOptions = () => ({
     artworkDir: path.join(app.getPath("userData"), "now-playing-artwork"),
     ffmpegPath: resolveToolPath(ffmpegPathResolver, store),
@@ -132,14 +153,50 @@ function registerNowPlayingIpcHandlers({
   });
 
   const importFiles = async (filePaths) => {
-    const imported = await importMediaPaths(filePaths, importOptions());
+    const warnings = [];
+    const imported = await importMediaPaths(filePaths, {
+      ...importOptions(),
+      onWarning: (warning) => warnings.push(warning),
+    });
     const result = appendImportedTracks(readState(store), imported);
+    const playlistImports = [];
+    for (const [index, playlistPath] of filePaths.entries()) {
+      if (!isSupportedPlaylistPath(playlistPath)) continue;
+      const entries = await parseMediaPlaylist(playlistPath);
+      const entryKeys = new Set(
+        entries.map((entry) =>
+          /^https?:/i.test(entry) ? entry : normalizeSourcePath(entry),
+        ),
+      );
+      const trackIds = result.state.catalog.tracks
+        .filter((track) =>
+          entryKeys.has(
+            track.providerId === "network"
+              ? track.sourceRef
+              : normalizeSourcePath(track.sourceRef),
+          ),
+        )
+        .map((track) => track.id);
+      if (!trackIds.length) continue;
+      const playlist = {
+        id: `playlist-import-${Date.now().toString(36)}-${index.toString(36)}`,
+        title: path.basename(playlistPath, path.extname(playlistPath)),
+        trackIds,
+        createdAt: String(Date.now()),
+        updatedAt: String(Date.now()),
+      };
+      result.state.playlists.push(playlist);
+      result.state.activePlaylistId = playlist.id;
+      playlistImports.push(playlist);
+    }
     const nextState = writeState(store, result.state);
     return success({
       canceled: false,
       added: result.added,
       tracks: result.added,
       importedTrackIds: result.importedIds,
+      playlistImports,
+      warnings,
       state: await hydrateState(nextState),
     });
   };
@@ -161,11 +218,16 @@ function registerNowPlayingIpcHandlers({
               "opus",
               "wav",
               "weba",
+              "avi",
               "m4v",
               "mkv",
               "mov",
               "mp4",
+              "mpeg",
+              "mpg",
               "webm",
+              "m3u",
+              "m3u8",
             ],
           },
         ],
@@ -213,9 +275,67 @@ function registerNowPlayingIpcHandlers({
     }
   });
 
+  ipcMain.handle(CHANNELS.NOW_PLAYING_IMPORT_PATHS, async (_event, paths) => {
+    if (!Array.isArray(paths) || paths.length < 1 || paths.length > 256) {
+      return failure("INVALID_PATHS", "One to 256 media paths are required");
+    }
+    const candidates = paths.filter(
+      (item) =>
+        typeof item === "string" &&
+        !item.includes("\u0000") &&
+        path.isAbsolute(item),
+    );
+    if (candidates.length !== paths.length) {
+      return failure("INVALID_PATHS", "Invalid media path payload");
+    }
+    try {
+      return await importFiles(candidates);
+    } catch (error) {
+      return failure(error.code || "IMPORT_FAILED", error.message);
+    }
+  });
+
+  const getStoredLocalPath = (sourceRef) => {
+    if (typeof sourceRef !== "string" || !path.isAbsolute(sourceRef)) return "";
+    const resolved = path.resolve(sourceRef);
+    return readState(store).catalog.tracks.some(
+      (track) =>
+        track.providerId === "local" && path.resolve(track.sourceRef) === resolved,
+    )
+      ? resolved
+      : "";
+  };
+
+  ipcMain.handle(CHANNELS.NOW_PLAYING_REVEAL_TRACK, async (_event, sourceRef) => {
+    const filePath = getStoredLocalPath(sourceRef);
+    if (!filePath) return failure("INVALID_PATH", "Unknown media file");
+    shell.showItemInFolder(filePath);
+    return success({ revealed: true });
+  });
+
+  ipcMain.handle(
+    CHANNELS.NOW_PLAYING_OPEN_TRACK_LOCATION,
+    async (_event, sourceRef) => {
+      const filePath = getStoredLocalPath(sourceRef);
+      if (!filePath) return failure("INVALID_PATH", "Unknown media file");
+      const result = await shell.openPath(path.dirname(filePath));
+      return result
+        ? failure("OPEN_FAILED", result)
+        : success({ opened: true });
+    },
+  );
+
+  ipcMain.handle(
+    CHANNELS.NOW_PLAYING_ANALYZE_YOUTUBE_VIDEO,
+    async (_event, url, options = {}) =>
+      youtube.analyzeVideo(url, {
+        forceRefresh: options?.forceRefresh === true,
+      }),
+  );
+
   ipcMain.handle(
     CHANNELS.NOW_PLAYING_IMPORT_YOUTUBE_VIDEO,
-    async (_event, url) => {
+    async (_event, url, qualitySelection = null) => {
       const canonical = canonicalizeYouTubeUrl(url);
       const currentState = readState(store);
       const existingTrack = canonical
@@ -226,16 +346,27 @@ function registerNowPlayingIpcHandlers({
           )
         : null;
       if (existingTrack) {
-        const appended = appendImportedTracks(currentState, [existingTrack]);
+        const updatedTrack = qualitySelection
+          ? { ...existingTrack, qualitySelection }
+          : existingTrack;
+        const updatedState = {
+          ...currentState,
+          catalog: {
+            tracks: currentState.catalog.tracks.map((track) =>
+              track.id === existingTrack.id ? updatedTrack : track,
+            ),
+          },
+        };
+        const appended = appendImportedTracks(updatedState, [updatedTrack]);
         const state = await hydrateState(writeState(store, appended.state));
         return success({
-          track: existingTrack,
+          track: updatedTrack,
           added: [],
           importedTrackIds: appended.importedIds,
           state,
         });
       }
-      const result = await youtube.importVideo(url);
+      const result = await youtube.importVideo(url, qualitySelection);
       if (!result.success) return result;
       try {
         const appended = appendImportedTracks(currentState, [result.data]);
@@ -258,7 +389,41 @@ function registerNowPlayingIpcHandlers({
     async (_event, sourceRef, options = {}) =>
       youtube.resolveTrack(sourceRef, {
         forceRefresh: options?.forceRefresh === true,
+        qualitySelection: options?.qualitySelection,
       }),
+  );
+
+  ipcMain.handle(
+    CHANNELS.NOW_PLAYING_CLOSE_PLAYBACK_SESSION,
+    async (_event, sessionId) => {
+      if (typeof sessionId !== "string" || !/^[a-f0-9-]{36}$/.test(sessionId)) {
+        return failure("INVALID_SESSION_ID", "Invalid playback session ID");
+      }
+      try {
+        return success({ closed: await hlsService.closeSession(sessionId) });
+      } catch (error) {
+        return failure(error.code || "SESSION_CLOSE_FAILED", error.message);
+      }
+    },
+  );
+
+  ipcMain.handle(
+    CHANNELS.NOW_PLAYING_CREATE_LOCAL_PLAYBACK_SESSION,
+    async (_event, sourceRef) => {
+      const filePath = getStoredLocalPath(sourceRef);
+      if (!filePath) return failure("INVALID_PATH", "Unknown media file");
+      try {
+        return success(
+          await hlsService.createSession({
+            inputs: [filePath],
+            copyCodecs: false,
+            allowLocal: true,
+          }),
+        );
+      } catch (error) {
+        return failure(error.code || "HLS_TRANSCODE_FAILED", error.message);
+      }
+    },
   );
 
   ipcMain.handle(CHANNELS.NOW_PLAYING_GET_STATE, async () => {
@@ -279,7 +444,7 @@ function registerNowPlayingIpcHandlers({
       if (inputSize > MAX_STATE_BYTES) {
         return failure("PAYLOAD_TOO_LARGE", "Now Playing state is too large");
       }
-      return success(await hydrateState(writeState(store, state)));
+      return success(writeState(store, state));
     } catch (error) {
       log.error("[now-playing] Failed to persist state:", error);
       return failure(error.code || "INVALID_STATE", error.message);

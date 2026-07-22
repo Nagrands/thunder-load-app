@@ -117,7 +117,7 @@ describe("Now Playing view", () => {
     view.dispose();
   });
 
-  test("keeps empty onboarding outside the minimal library sidebar", async () => {
+  test("opens a non-blocking media library empty state", async () => {
     const api = {
       getState: jest.fn().mockResolvedValue({
         data: { playlist: { tracks: [] } },
@@ -131,9 +131,11 @@ describe("Now Playing view", () => {
     await view.ready;
 
     const sidebar = view.element.querySelector(".now-playing__sidebar");
-    const empty = view.element.querySelector(".now-playing__empty");
+    const empty = view.element.querySelector('[data-ui="library-empty"]');
     const error = view.element.querySelector(".now-playing__error");
-    expect(empty.parentElement).toBe(view.element);
+    expect(view.element.querySelector(".now-playing__empty")).toBeNull();
+    expect(empty.hidden).toBe(false);
+    expect(view.element.classList.contains("is-library-view")).toBe(true);
     expect(error.parentElement).toBe(view.element);
     expect(
       view.element.querySelector(".now-playing__sidebar-reveal-zone"),
@@ -141,9 +143,7 @@ describe("Now Playing view", () => {
     expect(
       view.element.querySelector(".now-playing__topbar-reveal-zone"),
     ).not.toBeNull();
-    expect(sidebar.querySelector(".now-playing__brand-label").textContent).toBe(
-      "nowPlaying.label",
-    );
+    expect(sidebar.querySelector(".now-playing__brand-label").hidden).toBe(true);
     expect(sidebar.querySelector(".now-playing__library-title")).not.toBeNull();
     expect(sidebar.querySelector(".now-playing__track-stage").hidden).toBe(
       true,
@@ -181,7 +181,7 @@ describe("Now Playing view", () => {
     view.element.querySelector('[data-action="play-pause"]').click();
     expect(
       view.element.querySelector('[data-ui="brand-label"]').textContent,
-    ).toBe("nowPlaying.paused");
+    ).toBe("nowPlaying.label");
     view.dispose();
   });
 
@@ -204,6 +204,7 @@ describe("Now Playing view", () => {
     const range = view.element.querySelector('[data-action="volume"]');
     const percent = view.element.querySelector('[data-ui="volume-percent"]');
     const mute = view.element.querySelector('[data-action="mute"]');
+    jest.useFakeTimers();
 
     expect(percent.textContent).toBe("50%");
     expect(range.getAttribute("aria-valuetext")).toBe("50%");
@@ -218,6 +219,9 @@ describe("Now Playing view", () => {
     expect(wheelUp.defaultPrevented).toBe(true);
     expect(percent.textContent).toBe("55%");
     expect(range.value).toBe("0.55");
+    expect(
+      view.element.classList.contains("is-volume-feedback-visible"),
+    ).toBe(true);
 
     range.dispatchEvent(
       new WheelEvent("wheel", {
@@ -227,6 +231,10 @@ describe("Now Playing view", () => {
       }),
     );
     expect(percent.textContent).toBe("50%");
+    jest.advanceTimersByTime(1500);
+    expect(
+      view.element.classList.contains("is-volume-feedback-visible"),
+    ).toBe(false);
 
     mute.click();
     expect(percent.textContent).toBe("0%");
@@ -262,6 +270,7 @@ describe("Now Playing view", () => {
     expect(outsideWheel.defaultPrevented).toBe(false);
     expect(percent.textContent).toBe("5%");
     view.dispose();
+    jest.useRealTimers();
   });
 
   test("syncs fullscreen controls, Escape and tab hide with preload state", async () => {
@@ -328,7 +337,7 @@ describe("Now Playing view", () => {
     fullscreenButton.setAttribute("aria-label", "stale");
     window.dispatchEvent(new CustomEvent("i18n:changed"));
 
-    expect(brandLabel.textContent).toBe("nowPlaying.paused");
+    expect(brandLabel.textContent).toBe("nowPlaying.label");
     expect(fullscreenButton.getAttribute("aria-label")).toBe(
       "nowPlaying.exitFullscreen",
     );
@@ -430,7 +439,7 @@ describe("Now Playing view", () => {
     expect(row.getAttribute("aria-busy")).toBe("true");
     expect(
       view.element.querySelector('[data-ui="brand-label"]').textContent,
-    ).toBe("nowPlaying.playback.preparing");
+    ).toBe("nowPlaying.label");
 
     resolveYouTube({
       success: true,
@@ -591,7 +600,7 @@ describe("Now Playing view", () => {
     expect(HTMLMediaElement.prototype.pause).toHaveBeenCalled();
     backgroundButton.click();
     pinButton.click();
-    jest.runAllTicks();
+    jest.advanceTimersByTime(250);
     await Promise.resolve();
     await Promise.resolve();
     expect(backgroundButton.getAttribute("aria-pressed")).toBe("true");
@@ -805,6 +814,7 @@ describe("Now Playing view", () => {
     await Promise.resolve();
     await Promise.resolve();
     await Promise.resolve();
+    await new Promise((resolve) => setTimeout(resolve, 260));
 
     expect(api.importFiles).toHaveBeenCalledTimes(1);
     expect(
@@ -906,9 +916,8 @@ describe("Now Playing view", () => {
       view.element.querySelector('.now-playing__track[data-track-id="second"]'),
     ).toBeNull();
     view.element.querySelector('[data-action="clear"]').click();
-    expect(view.element.querySelector(".now-playing__empty").hidden).toBe(
-      false,
-    );
+    expect(view.element.querySelector('[data-ui="library-empty"]').hidden).toBe(false);
+    expect(view.element.classList.contains("is-library-view")).toBe(true);
     view.dispose();
   });
 
@@ -1066,7 +1075,7 @@ describe("Now Playing view", () => {
     ).toBe("second");
     expect(
       view.element.querySelector('[data-ui="brand-label"]').textContent,
-    ).toBe("nowPlaying.paused");
+    ).toBe("nowPlaying.label");
 
     play.click();
     await Promise.resolve();
@@ -1086,7 +1095,7 @@ describe("Now Playing view", () => {
 
     sidebarSwitcher.value = "calm";
     sidebarSwitcher.dispatchEvent(new Event("change", { bubbles: true }));
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await new Promise((resolve) => setTimeout(resolve, 260));
 
     expect(HTMLMediaElement.prototype.pause).toHaveBeenCalled();
     expect(HTMLMediaElement.prototype.play).not.toHaveBeenCalled();
@@ -1133,7 +1142,7 @@ describe("Now Playing view", () => {
     dialog
       .querySelector('[data-ui="library-dialog-form"]')
       .dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
-    await Promise.resolve();
+    await new Promise((resolve) => setTimeout(resolve, 260));
 
     expect(dialog.getAttribute("aria-hidden")).toBe("true");
     expect(
@@ -1143,7 +1152,7 @@ describe("Now Playing view", () => {
     ).toBe(true);
     expect(api.setState).toHaveBeenCalledWith(
       expect.objectContaining({
-        version: 2,
+        version: 3,
         activePlaylistId: "media-library",
         playlists: expect.arrayContaining([
           expect.objectContaining({ title: "Road trip" }),
@@ -1174,6 +1183,16 @@ describe("Now Playing view", () => {
       setState: jest.fn().mockResolvedValue({ success: true }),
       importFiles: jest.fn(),
       importFolder: jest.fn(),
+      analyzeYouTubeVideo: jest.fn().mockResolvedValue({
+        success: true,
+        data: {
+          track: youtubeTrack,
+          qualities: [
+            { id: "auto", label: "Auto", selector: { mode: "auto" } },
+          ],
+          defaultSelection: { mode: "auto" },
+        },
+      }),
       importYouTubeVideo: jest.fn().mockResolvedValue({
         success: true,
         data: { track: youtubeTrack },
@@ -1201,7 +1220,17 @@ describe("Now Playing view", () => {
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(api.importYouTubeVideo).toHaveBeenCalledWith(youtubeTrack.sourceRef);
+    dialog
+      .querySelector('[data-ui="library-dialog-form"]')
+      .dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(api.importYouTubeVideo).toHaveBeenCalledWith(
+      youtubeTrack.sourceRef,
+      { mode: "auto" },
+    );
     expect(
       view.element.querySelector(
         '.player-library__track[data-track-id="youtube:demo123"]',

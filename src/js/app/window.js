@@ -19,6 +19,19 @@ const { trayIconController } = require("./trayIconController.js");
 
 let windowTray = null;
 let appMenu = null;
+let dockMediaState = null;
+
+function setDockMediaState(snapshot) {
+  const title = String(snapshot?.track?.title || "").trim().slice(0, 1024);
+  dockMediaState = title
+    ? {
+        track: { title },
+        isPlaying: snapshot?.isPlaying === true,
+        canNext: snapshot?.canNext !== false,
+        canPrevious: snapshot?.canPrevious !== false,
+      }
+    : null;
+}
 
 function isMacPlatform() {
   return process.platform === "darwin";
@@ -95,6 +108,10 @@ function createMenuHandlers({ app, mainWindow, notifications = {} }) {
       showMainWindow();
       mainWindow?.webContents?.send?.("open-settings");
     },
+    mediaCommand: (command) => {
+      if (!["play", "pause", "next", "previous"].includes(command)) return;
+      mainWindow?.webContents?.send?.("now-playing:media-command", { command });
+    },
     openLastVideo: async (lastPath) => {
       if (!lastPath || !fs.existsSync(lastPath)) return;
       const result = await shell.openPath(lastPath);
@@ -130,17 +147,44 @@ function buildDockMenuTemplate({
   downloadPath,
   mainWindow,
   handlers,
+  mediaState = dockMediaState,
 }) {
   const menuHandlers =
     handlers || createMenuHandlers({ app, mainWindow, notifications: {} });
   const lastVideo = buildLastVideoState(store);
   const downloads = buildDownloadFolderState(store, downloadPath);
 
+  const mediaItems = mediaState?.track
+    ? [
+        { type: "separator" },
+        {
+          label: `Сейчас играет: ${trimMenuText(mediaState.track.title, 36)}`,
+          enabled: false,
+        },
+        {
+          label: mediaState.isPlaying ? "Пауза" : "Воспроизвести",
+          click: () =>
+            menuHandlers.mediaCommand(mediaState.isPlaying ? "pause" : "play"),
+        },
+        {
+          label: "Предыдущий",
+          enabled: mediaState.canPrevious !== false,
+          click: () => menuHandlers.mediaCommand("previous"),
+        },
+        {
+          label: "Следующий",
+          enabled: mediaState.canNext !== false,
+          click: () => menuHandlers.mediaCommand("next"),
+        },
+      ]
+    : [];
+
   return [
     {
       label: "Открыть",
       click: () => menuHandlers.open(),
     },
+    ...mediaItems,
     {
       label: lastVideo.label,
       enabled: lastVideo.exists,
@@ -430,6 +474,15 @@ function createWindow(
 
     refreshDockMenu();
     ipcMain.on("download-finished", refreshDockMenu);
+    const refreshPlayerDockMenu = () => {
+      refreshDockMenu();
+    };
+    app.on("thunder-load:dock-player-refresh", refreshPlayerDockMenu);
+    mainWindow.once("closed", () => {
+      ipcMain.removeListener("download-finished", refreshDockMenu);
+      app.removeListener("thunder-load:dock-player-refresh", refreshPlayerDockMenu);
+      dockMediaState = null;
+    });
   }
   return mainWindow;
 }
@@ -597,6 +650,7 @@ function setReloadMenuEnabled(enabled) {
 
 function resetWindowStateForTests() {
   windowTray = null;
+  dockMediaState = null;
   trayIconController.reset();
 }
 
@@ -604,6 +658,7 @@ module.exports = {
   createWindow,
   buildTrayMenuTemplate,
   buildDockMenuTemplate,
+  setDockMediaState,
   setReloadMenuEnabled,
   resetWindowStateForTests,
 };

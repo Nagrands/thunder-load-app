@@ -32,6 +32,24 @@ describe("Now Playing providers", () => {
     expect(playlist.tracks[1].availability).toBe("missing");
   });
 
+  test("normalizes extended video formats and V3 metadata", () => {
+    expect(
+      normalizeLocalTrack({
+        sourceRef: "/media/archive.avi",
+        displayTitle: "Archive",
+        sizeBytes: "2048",
+      }),
+    ).toMatchObject({
+      kind: "video",
+      displayTitle: "Archive",
+      sizeBytes: 2048,
+      qualitySelection: null,
+    });
+    expect(normalizeLocalTrack({ sourceRef: "/media/movie.mpeg" }).kind).toBe(
+      "video",
+    );
+  });
+
   test("merges structured import results without replacing the queue", async () => {
     const api = {
       importFiles: jest.fn().mockResolvedValue({
@@ -87,6 +105,30 @@ describe("Now Playing providers", () => {
         availability: "missing",
       }),
     ).rejects.toMatchObject({ code: "TRACK_UNAVAILABLE" });
+  });
+
+  test("routes AVI/MPEG through the protected local HLS session", async () => {
+    const api = {
+      importFiles: jest.fn(),
+      importFolder: jest.fn(),
+      createLocalPlaybackSession: jest.fn().mockResolvedValue({
+        success: true,
+        data: { kind: "hls", sessionId: "session", src: "http://127.0.0.1/hls" },
+      }),
+      closePlaybackSession: jest.fn().mockResolvedValue({ success: true }),
+    };
+    const provider = new LocalMusicProvider(api);
+
+    const playback = await provider.resolveTrack({
+      sourceRef: "/media/archive.avi",
+      availability: "available",
+    });
+    expect(api.createLocalPlaybackSession).toHaveBeenCalledWith(
+      "/media/archive.avi",
+    );
+    expect(playback).toMatchObject({ kind: "hls", sessionId: "session" });
+    await provider.releasePlayback(playback);
+    expect(api.closePlaybackSession).toHaveBeenCalledWith("session");
   });
 
   test("registry validates and routes provider calls", async () => {

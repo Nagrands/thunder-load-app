@@ -3,6 +3,7 @@ export {
   createNowPlayingView,
 } from "./nowPlayingView.js";
 export { LocalMusicProvider } from "./localMusicProvider.js";
+export { NetworkMediaProvider } from "./networkMediaProvider.js";
 export {
   createMediaLibraryModel,
   getActiveTracksFromState,

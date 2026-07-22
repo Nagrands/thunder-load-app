@@ -75,7 +75,7 @@ function createArtwork(track, fallbackArtworkUrl) {
 function getMetadataSignature(track) {
   return JSON.stringify([
     track?.id || "",
-    track?.title || "",
+    track?.displayTitle || track?.title || "",
     track?.artist || "",
     track?.album || "",
     track?.artworkUrl || "",
@@ -200,7 +200,7 @@ export class MediaSessionManager {
     if (typeof this.Metadata !== "function") return;
     runSafely(() => {
       this.mediaSession.metadata = new this.Metadata({
-        title: String(track.title || ""),
+        title: String(track.displayTitle || track.title || ""),
         artist: String(track.artist || ""),
         album: String(track.album || ""),
         artwork: createArtwork(track, this.fallbackArtworkUrl),

@@ -33,6 +33,13 @@ export class MusicProviderRegistry {
     return provider.resolveTrack(track, options);
   }
 
+  async releasePlayback(track, playback) {
+    const provider = this.get(track?.providerId);
+    if (typeof provider?.releasePlayback === "function") {
+      await provider.releasePlayback(playback);
+    }
+  }
+
   dispose() {
     this.providers.forEach((provider) => provider.dispose());
     this.providers.clear();

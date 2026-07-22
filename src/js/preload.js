@@ -78,10 +78,20 @@ try {
     "get-whats-new",
     "now-playing:import-files",
     "now-playing:import-folder",
+    "now-playing:import-paths",
     "now-playing:import-youtube-video",
+    "now-playing:analyze-youtube-video",
     "now-playing:resolve-youtube-track",
+    "now-playing:create-local-playback-session",
+    "now-playing:close-playback-session",
     "now-playing:get-state",
     "now-playing:set-state",
+    "now-playing:reveal-track",
+    "now-playing:open-track-location",
+    "now-playing:open-files",
+    "now-playing:open-files-ready",
+    "now-playing:media-state",
+    "now-playing:media-command",
     "window:get-fullscreen",
     "window:set-fullscreen",
     "window:fullscreen-changed",
@@ -468,12 +478,29 @@ try {
     nowPlaying: {
       importFiles: () => safeInvoke("now-playing:import-files"),
       importFolder: () => safeInvoke("now-playing:import-folder"),
-      importYouTubeVideo: (url) =>
-        safeInvoke("now-playing:import-youtube-video", url),
+      importPaths: (paths) => safeInvoke("now-playing:import-paths", paths),
+      analyzeYouTubeVideo: (url, options = {}) =>
+        safeInvoke("now-playing:analyze-youtube-video", url, options),
+      importYouTubeVideo: (url, qualitySelection = null) =>
+        safeInvoke("now-playing:import-youtube-video", url, qualitySelection),
       resolveYouTubeTrack: (sourceRef, options = {}) =>
         safeInvoke("now-playing:resolve-youtube-track", sourceRef, options),
+      createLocalPlaybackSession: (sourceRef) =>
+        safeInvoke("now-playing:create-local-playback-session", sourceRef),
+      closePlaybackSession: (sessionId) =>
+        safeInvoke("now-playing:close-playback-session", sessionId),
       getState: () => safeInvoke("now-playing:get-state"),
       setState: (state) => safeInvoke("now-playing:set-state", state),
+      revealTrack: (sourceRef) =>
+        safeInvoke("now-playing:reveal-track", sourceRef),
+      openTrackLocation: (sourceRef) =>
+        safeInvoke("now-playing:open-track-location", sourceRef),
+      publishMediaState: (snapshot) =>
+        safeSend("now-playing:media-state", snapshot),
+      onOpenFiles: (callback) => safeOn("now-playing:open-files", callback),
+      notifyOpenFilesReady: () => safeSend("now-playing:open-files-ready"),
+      onMediaCommand: (callback) =>
+        safeOn("now-playing:media-command", callback),
     },
 
     fullscreen: {

@@ -84,12 +84,13 @@ describe("Now Playing playback controller", () => {
     await controller.next();
     expect(controller.currentTrack.id).toBe("three");
     controller.cycleRepeat();
-    controller.cycleRepeat();
     expect(controller.repeat).toBe("one");
     controller.activeMedia.dispatchEvent(new Event("ended"));
     await Promise.resolve();
     expect(controller.currentTrack.id).toBe("three");
 
+    controller.cycleRepeat();
+    expect(controller.repeat).toBe("all");
     controller.cycleRepeat();
     controller.toggleShuffle();
     await controller.selectTrack("one", { autoplay: false });
@@ -144,7 +145,7 @@ describe("Now Playing playback controller", () => {
     expect(controller.queue.map((track) => track.id)).toEqual(["three", "one"]);
     expect(controller.currentTrack.id).toBe("one");
     expect(controller.getPersistentState()).toMatchObject({
-      version: 2,
+      version: 3,
       activePlaylistId: "favorites",
       selectedTrackId: "one",
       volume: 0.7,

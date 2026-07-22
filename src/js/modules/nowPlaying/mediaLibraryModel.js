@@ -2,9 +2,32 @@ import { normalizeLocalTrack } from "./localMusicProvider.js";
 import { getYouTubeVideoId, normalizeYouTubeTrack } from "./youtubeProvider.js";
 
 export const MEDIA_LIBRARY_ID = "media-library";
-export const MEDIA_LIBRARY_STATE_VERSION = 2;
+export const MEDIA_LIBRARY_STATE_VERSION = 3;
 
 const MAX_TITLE_LENGTH = 160;
+
+function normalizeSizeBytes(value) {
+  const sizeBytes = Number(value);
+  return Number.isFinite(sizeBytes) && sizeBytes >= 0
+    ? Math.min(Number.MAX_SAFE_INTEGER, Math.trunc(sizeBytes))
+    : 0;
+}
+
+function normalizeQualitySelection(value) {
+  const source = value && typeof value === "object" ? value : {};
+  return {
+    mode: ["auto", "best", "audio", "format"].includes(source.mode)
+      ? source.mode
+      : "auto",
+    formatId: source.formatId ? String(source.formatId).slice(0, 128) : null,
+    videoFormatId: source.videoFormatId
+      ? String(source.videoFormatId).slice(0, 128)
+      : null,
+    audioFormatId: source.audioFormatId
+      ? String(source.audioFormatId).slice(0, 128)
+      : null,
+  };
+}
 
 function cleanTitle(value, fallback = "Playlist") {
   return (
@@ -16,11 +39,13 @@ function cleanTitle(value, fallback = "Playlist") {
 
 function normalizeGenericTrack(track = {}, index = 0) {
   const duration = Number(track.duration);
+  const title = String(track.title || "Unknown media");
   return {
     id: String(track.id || `${track.providerId || "unknown"}:${index}`),
     providerId: String(track.providerId || "unknown"),
     sourceRef: String(track.sourceRef || ""),
-    title: String(track.title || "Unknown media"),
+    title,
+    displayTitle: String(track.displayTitle || title),
     artist: String(track.artist || ""),
     album: String(track.album || ""),
     duration: Number.isFinite(duration) && duration >= 0 ? duration : 0,
@@ -28,11 +53,24 @@ function normalizeGenericTrack(track = {}, index = 0) {
     kind: track.kind === "video" ? "video" : "audio",
     availability: String(track.availability || "available"),
     mimeType: String(track.mimeType || ""),
+    sizeBytes: normalizeSizeBytes(track.sizeBytes),
+    qualitySelection:
+      track.providerId === "youtube"
+        ? normalizeQualitySelection(track.qualitySelection)
+        : null,
   };
 }
 
 function normalizeTrack(track, index) {
-  if (track?.providerId === "youtube") return normalizeYouTubeTrack(track);
+  if (track?.providerId === "youtube") {
+    const normalized = normalizeYouTubeTrack(track);
+    return {
+      ...normalized,
+      displayTitle: String(track.displayTitle || normalized.title),
+      sizeBytes: normalizeSizeBytes(track.sizeBytes),
+      qualitySelection: normalizeQualitySelection(track.qualitySelection),
+    };
+  }
   if (!track?.providerId || track.providerId === "local") {
     const { playback: _playback, ...normalized } = normalizeLocalTrack(
       track,
@@ -64,12 +102,21 @@ function cloneState(state) {
   return {
     ...state,
     catalog: {
-      tracks: state.catalog.tracks.map((track) => ({ ...track })),
+      tracks: state.catalog.tracks.map(cloneTrack),
     },
     playlists: state.playlists.map((playlist) => ({
       ...playlist,
       trackIds: [...playlist.trackIds],
     })),
+  };
+}
+
+function cloneTrack(track) {
+  return {
+    ...track,
+    qualitySelection: track.qualitySelection
+      ? { ...track.qualitySelection }
+      : null,
   };
 }
 
@@ -141,7 +188,7 @@ export function normalizeMediaLibraryState(
   const validIds = new Set(tracks.map((track) => track.id));
   const playlists = normalizePlaylists(source.playlists, validIds, idMap, now);
   const requestedActiveId =
-    source.version === MEDIA_LIBRARY_STATE_VERSION
+    Number(source.version) >= 2
       ? String(source.activePlaylistId || MEDIA_LIBRARY_ID)
       : MEDIA_LIBRARY_ID;
   const activePlaylistId =
@@ -150,8 +197,8 @@ export function normalizeMediaLibraryState(
       ? requestedActiveId
       : MEDIA_LIBRARY_ID;
   const selectedTrackId =
-    idMap.get(String(source.selectedTrackId || "")) ||
-    String(source.selectedTrackId || "");
+    idMap.get(String(source.selectedTrackId || source.currentTrackId || "")) ||
+    String(source.selectedTrackId || source.currentTrackId || "");
   return {
     version: MEDIA_LIBRARY_STATE_VERSION,
     catalog: { tracks },
@@ -177,7 +224,7 @@ export function normalizeMediaLibraryState(
 export function getActiveTracksFromState(source = {}) {
   const state = normalizeMediaLibraryState(source);
   if (state.activePlaylistId === MEDIA_LIBRARY_ID) {
-    return state.catalog.tracks.map((track) => ({ ...track }));
+    return state.catalog.tracks.map(cloneTrack);
   }
   const playlist = state.playlists.find(
     (item) => item.id === state.activePlaylistId,
@@ -188,7 +235,7 @@ export function getActiveTracksFromState(source = {}) {
   return (playlist?.trackIds || [])
     .map((trackId) => tracksById.get(trackId))
     .filter(Boolean)
-    .map((track) => ({ ...track }));
+    .map(cloneTrack);
 }
 
 export class MediaLibraryModel {
@@ -354,6 +401,15 @@ export class MediaLibraryModel {
     playlist.trackIds.splice(sourceIndex, 1);
     playlist.trackIds.splice(boundedIndex, 0, trackId);
     playlist.updatedAt = String(this.now());
+    return true;
+  }
+
+  renameTrack(trackId, displayTitle) {
+    const track = this.state.catalog.tracks.find(
+      (item) => item.id === trackId,
+    );
+    if (!track) return false;
+    track.displayTitle = cleanTitle(displayTitle, track.title);
     return true;
   }
 

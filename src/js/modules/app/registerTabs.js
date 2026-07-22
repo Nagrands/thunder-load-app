@@ -281,6 +281,18 @@ export async function registerTabs(mainView) {
   showHistory(tabToActivate === "download");
   tabs.activateTab(tabToActivate);
 
+  window.electron?.nowPlaying?.onOpenFiles?.(async (payload = {}) => {
+    const files = Array.isArray(payload.files) ? payload.files : [];
+    if (!files.length) return;
+    nowPlayingShouldBeActive = true;
+    tabs.activateTab("now-playing");
+    await renderNowPlayingTab(wrappers.nowPlayingWrapper);
+    await nowPlayingViewInstance?.importPaths?.(files, {
+      autoplay: payload.autoplay !== false,
+    });
+  });
+  window.electron?.nowPlaying?.notifyOpenFilesReady?.();
+
   return { tabs, wgConfig, wrappers };
 }
 

@@ -31,7 +31,7 @@ describe("Now Playing media library model", () => {
     });
 
     expect(state).toMatchObject({
-      version: 2,
+      version: 3,
       activePlaylistId: MEDIA_LIBRARY_ID,
       selectedTrackId: "local-two",
       volume: 0.4,
@@ -118,6 +118,11 @@ describe("Now Playing media library model", () => {
       title: "Night drive",
       trackIds: ["local-two", "local-one"],
     });
+    expect(model.renameTrack("local-one", "Renamed track")).toBe(true);
+    expect(model.renameTrack("missing", "Ignored")).toBe(false);
+    expect(
+      model.getState().catalog.tracks.find((track) => track.id === "local-one"),
+    ).toMatchObject({ title: "One", displayTitle: "Renamed track" });
 
     model.setActivePlaylist(playlist.id);
     expect(model.getActiveTracks().map((track) => track.id)).toEqual([
@@ -142,5 +147,73 @@ describe("Now Playing media library model", () => {
 
     expect(model.getState().catalog.tracks[0].title).toBe("One");
     expect(model.getState().catalog.tracks).toHaveLength(2);
+  });
+
+  test("migrates V2 metadata and keeps the active network playlist", () => {
+    const state = normalizeMediaLibraryState({
+      version: 2,
+      catalog: {
+        tracks: [
+          {
+            providerId: "youtube",
+            sourceRef: "https://youtu.be/abcdefghijk",
+            title: "Video",
+            displayTitle: "Custom video",
+            sizeBytes: "2048",
+            qualitySelection: {
+              mode: "format",
+              videoFormatId: "137",
+              audioFormatId: "140",
+            },
+          },
+          {
+            id: "stream",
+            providerId: "network",
+            sourceRef: "https://media.example/live.m3u8",
+            title: "Live",
+          },
+        ],
+      },
+      playlists: [
+        { id: "streams", title: "Streams", trackIds: ["stream"] },
+      ],
+      activePlaylistId: "streams",
+    });
+
+    expect(state.version).toBe(3);
+    expect(state.activePlaylistId).toBe("streams");
+    expect(state.catalog.tracks[0]).toMatchObject({
+      displayTitle: "Custom video",
+      sizeBytes: 2048,
+      qualitySelection: {
+        mode: "format",
+        videoFormatId: "137",
+        audioFormatId: "140",
+      },
+    });
+    expect(state.catalog.tracks[1]).toMatchObject({
+      providerId: "network",
+      displayTitle: "Live",
+    });
+  });
+
+  test("returns defensive copies of quality selections", () => {
+    const model = createMediaLibraryModel({
+      catalog: {
+        tracks: [
+          {
+            providerId: "youtube",
+            sourceRef: "https://youtu.be/abcdefghijk",
+            qualitySelection: { mode: "best" },
+          },
+        ],
+      },
+    });
+    const state = model.getState();
+    state.catalog.tracks[0].qualitySelection.mode = "audio";
+
+    expect(model.getState().catalog.tracks[0].qualitySelection.mode).toBe(
+      "best",
+    );
   });
 });

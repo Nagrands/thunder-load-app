@@ -1,3 +1,5 @@
+import Hls from "../../../../node_modules/hls.js/dist/hls.mjs";
+
 import {
   getActiveTracksFromState,
   normalizeMediaLibraryState,
@@ -46,6 +48,11 @@ export class PlaybackController {
     this.libraryState = null;
     this.selectionVersion = 0;
     this.animationFrame = null;
+    this.lastProgressEmitAt = 0;
+    this.queueSnapshot = [];
+    this.mediaEventHandlers = new Map();
+    this.layerPlaybacks = [null, null];
+    this.hlsInstances = [null, null];
     this.bindMediaEvents();
     this.applyVolume();
   }
@@ -67,7 +74,7 @@ export class PlaybackController {
   getSnapshot() {
     const media = this.activeMedia;
     return {
-      queue: this.queue.map((track) => ({ ...track })),
+      queue: this.queueSnapshot,
       currentTrack: this.currentTrack ? { ...this.currentTrack } : null,
       currentIndex: this.currentIndex,
       activeLayerIndex: this.activeLayerIndex,
@@ -99,6 +106,7 @@ export class PlaybackController {
     this.loadingTrackId = null;
     const previousId = selectedTrackId || this.currentTrack?.id;
     this.queue = Array.isArray(tracks) ? [...tracks] : [];
+    this.queueSnapshot = this.queue.map((track) => ({ ...track }));
     this.currentIndex = previousId
       ? this.queue.findIndex((track) => track.id === previousId)
       : -1;
@@ -196,6 +204,18 @@ export class PlaybackController {
     this.error = null;
     this.emit();
     try {
+      const reusableLayer = forceRefresh ? -1 : this.findReusableLayer(track);
+      if (reusableLayer !== -1) {
+        this.activateLayer(reusableLayer);
+        if (autoplay && !this.isSuspended) {
+          await this.play({ selectionVersion: version });
+        } else {
+          this.isLoading = false;
+          this.loadingTrackId = null;
+          this.emit();
+        }
+        return true;
+      }
       const playback = await this.providers.resolveTrack(track, {
         forceRefresh,
       });
@@ -228,14 +248,29 @@ export class PlaybackController {
     const previousMedia = this.activeMedia;
     const nextLayerIndex = this.activeLayerIndex === 0 ? 1 : 0;
     const nextMedia = this.mediaLayers[nextLayerIndex];
+    this.releaseLayer(nextLayerIndex);
     safeMediaCall(previousMedia, "pause");
     previousMedia.volume = 0;
-    nextMedia.src = playback.src;
+    const playbackKey = this.getPlaybackKey(track);
+    nextMedia.dataset.playbackKey = playbackKey;
     nextMedia.dataset.trackId = track.id;
     nextMedia.dataset.kind = track.kind;
     nextMedia.poster = playback.posterUrl || track.artworkUrl || "";
     nextMedia.currentTime = 0;
-    safeMediaCall(nextMedia, "load");
+    this.layerPlaybacks[nextLayerIndex] = { playback, track };
+    if (playback.kind === "hls" && Hls.isSupported()) {
+      const hls = new Hls({
+        backBufferLength: 30,
+        maxBufferLength: 45,
+        maxMaxBufferLength: 90,
+      });
+      this.hlsInstances[nextLayerIndex] = hls;
+      hls.attachMedia(nextMedia);
+      hls.on(Hls.Events.MEDIA_ATTACHED, () => hls.loadSource(playback.src));
+    } else {
+      nextMedia.src = playback.src;
+      safeMediaCall(nextMedia, "load");
+    }
     this.activeLayerIndex = nextLayerIndex;
     this.applyVolume();
     this.emit();
@@ -340,8 +375,40 @@ export class PlaybackController {
 
   cycleRepeat() {
     this.repeat =
-      this.repeat === "off" ? "all" : this.repeat === "all" ? "one" : "off";
+      this.repeat === "off" ? "one" : this.repeat === "one" ? "all" : "off";
     this.emit();
+  }
+
+  getPlaybackKey(track) {
+    return `${track.id}:${JSON.stringify(track.qualitySelection || null)}`;
+  }
+
+  findReusableLayer(track) {
+    const playbackKey = this.getPlaybackKey(track);
+    return this.mediaLayers.findIndex(
+      (media, index) =>
+        media.dataset.playbackKey === playbackKey &&
+        this.layerPlaybacks[index]?.playback?.src,
+    );
+  }
+
+  activateLayer(index) {
+    if (index === this.activeLayerIndex) return;
+    safeMediaCall(this.activeMedia, "pause");
+    this.activeLayerIndex = index;
+    this.applyVolume();
+    this.emit();
+  }
+
+  releaseLayer(index) {
+    const record = this.layerPlaybacks[index];
+    this.hlsInstances[index]?.destroy();
+    this.hlsInstances[index] = null;
+    this.layerPlaybacks[index] = null;
+    const media = this.mediaLayers[index];
+    media.removeAttribute("src");
+    delete media.dataset.playbackKey;
+    if (record) void this.providers.releasePlayback?.(record.track, record.playback);
   }
 
   async next({ fromEnded = false } = {}) {
@@ -401,16 +468,17 @@ export class PlaybackController {
 
   bindMediaEvents() {
     this.mediaLayers.forEach((media) => {
-      media.addEventListener("timeupdate", () => {
-        if (media === this.activeMedia) this.emit();
-      });
-      media.addEventListener("durationchange", () => {
-        if (media === this.activeMedia) this.emit();
-      });
-      media.addEventListener("ended", () => {
-        if (media === this.activeMedia) void this.next({ fromEnded: true });
-      });
-      media.addEventListener("error", () => {
+      const handlers = {
+        timeupdate: () => {
+          if (media === this.activeMedia) this.emitProgress();
+        },
+        durationchange: () => {
+          if (media === this.activeMedia) this.emit();
+        },
+        ended: () => {
+          if (media === this.activeMedia) void this.next({ fromEnded: true });
+        },
+        error: () => {
         if (media !== this.activeMedia) return;
         this.isPlaying = false;
         this.isStopped = true;
@@ -422,7 +490,12 @@ export class PlaybackController {
           message: "Unable to play this media file",
         };
         this.emit();
-      });
+        },
+      };
+      Object.entries(handlers).forEach(([eventName, handler]) =>
+        media.addEventListener(eventName, handler),
+      );
+      this.mediaEventHandlers.set(media, handlers);
     });
   }
 
@@ -435,15 +508,21 @@ export class PlaybackController {
 
   startProgressFrames() {
     if (this.animationFrame !== null) return;
-    const tick = () => {
+    const tick = (timestamp = performance.now()) => {
       if (!this.isPlaying || this.isSuspended) {
         this.animationFrame = null;
         return;
       }
-      this.emit();
+      this.emitProgress(timestamp);
       this.animationFrame = requestAnimationFrame(tick);
     };
     this.animationFrame = requestAnimationFrame(tick);
+  }
+
+  emitProgress(timestamp = performance.now()) {
+    if (timestamp - this.lastProgressEmitAt < 125) return;
+    this.lastProgressEmitAt = timestamp;
+    this.emit();
   }
 
   stopProgressFrames() {
@@ -461,10 +540,15 @@ export class PlaybackController {
     this.resumeOnShow = false;
     this.stopProgressFrames();
     this.mediaLayers.forEach((media) => {
+      const handlers = this.mediaEventHandlers.get(media) || {};
+      Object.entries(handlers).forEach(([eventName, handler]) =>
+        media.removeEventListener(eventName, handler),
+      );
       safeMediaCall(media, "pause");
-      media.removeAttribute("src");
+      this.releaseLayer(this.mediaLayers.indexOf(media));
       safeMediaCall(media, "load");
     });
+    this.mediaEventHandlers.clear();
     this.listeners.clear();
   }
 }

@@ -70,8 +70,23 @@ function createIconButton(action, icon, label, dataset = {}) {
     button.dataset[key] = String(value);
   });
   button.setAttribute("aria-label", label);
+  button.setAttribute("title", label);
+  button.setAttribute("data-bs-toggle", "tooltip");
+  button.setAttribute("data-bs-placement", "top");
   button.appendChild(createIcon(icon));
   return button;
+}
+
+function formatFileSize(value) {
+  const bytes = Number(value);
+  if (!Number.isFinite(bytes) || bytes <= 0) return "—";
+  const units = ["B", "KB", "MB", "GB"];
+  const exponent = Math.min(
+    units.length - 1,
+    Math.floor(Math.log(bytes) / Math.log(1024)),
+  );
+  const amount = bytes / 1024 ** exponent;
+  return `${amount >= 10 || exponent === 0 ? Math.round(amount) : amount.toFixed(1)} ${units[exponent]}`;
 }
 
 function createPlaylistCard(playlist, tracks, active) {
@@ -122,6 +137,7 @@ function createTrackRow(track, index, playlist, snapshot) {
   row.className = "player-library__track";
   row.dataset.trackId = track.id;
   row.setAttribute("role", "option");
+  row.setAttribute("tabindex", track.availability === "missing" ? "-1" : "0");
   row.setAttribute("aria-selected", String(current));
   row.classList.toggle("is-current", current);
   if (current) row.setAttribute("aria-current", "true");
@@ -131,7 +147,7 @@ function createTrackRow(track, index, playlist, snapshot) {
     current && snapshot?.isPlaying
       ? "fa-solid fa-volume-high"
       : "fa-solid fa-play",
-    `${t("nowPlaying.play")} ${track.title}`,
+    `${t("nowPlaying.play")} ${track.displayTitle || track.title}`,
     { trackId: track.id },
   );
   play.classList.add("player-library__track-play");
@@ -154,74 +170,38 @@ function createTrackRow(track, index, playlist, snapshot) {
   const metadata = document.createElement("span");
   metadata.className = "player-library__track-copy";
   const title = document.createElement("strong");
-  title.textContent = track.title;
+  title.textContent = track.displayTitle || track.title;
   const artist = document.createElement("span");
   artist.textContent =
     track.artist || track.album || t("nowPlaying.unknownArtist");
   metadata.append(title, artist);
 
-  const source = document.createElement("span");
-  source.className = "player-library__track-source";
-  source.append(
-    createIcon(
-      track.providerId === "youtube"
-        ? "fa-brands fa-youtube"
-        : track.kind === "video"
-          ? "fa-solid fa-film"
-          : "fa-solid fa-wave-square",
-    ),
-    document.createTextNode(
-      track.providerId === "youtube"
-        ? "YouTube"
-        : t(track.kind === "video" ? "nowPlaying.video" : "nowPlaying.audio"),
-    ),
-  );
-
   const duration = document.createElement("span");
   duration.className = "player-library__track-time";
   duration.textContent = formatPlaybackTime(track.duration);
 
-  const actions = document.createElement("span");
-  actions.className = "player-library__track-actions";
-  if (isSystemPlaylist(playlist)) {
-    actions.append(
-      createIconButton(
-        "open-add-to-playlist-dialog",
-        "fa-solid fa-plus",
-        t("nowPlaying.playlists.addItem"),
-        { trackId: track.id },
-      ),
-    );
-  } else {
-    actions.append(
-      createIconButton(
-        "move-library-track-up",
-        "fa-solid fa-arrow-up",
-        t("nowPlaying.playlists.moveUp"),
-        { trackId: track.id, trackIndex: index },
-      ),
-      createIconButton(
-        "move-library-track-down",
-        "fa-solid fa-arrow-down",
-        t("nowPlaying.playlists.moveDown"),
-        { trackId: track.id, trackIndex: index },
-      ),
-    );
-  }
-  actions.append(
-    createIconButton(
-      isSystemPlaylist(playlist)
-        ? "delete-from-catalog"
-        : "remove-from-playlist",
-      "fa-solid fa-xmark",
-      isSystemPlaylist(playlist)
-        ? t("nowPlaying.library.deleteItem")
-        : t("nowPlaying.playlists.removeItem"),
-      { trackId: track.id },
-    ),
-  );
+  const size = document.createElement("span");
+  size.className = "player-library__track-size";
+  size.textContent = formatFileSize(track.sizeBytes);
 
-  row.append(play, artwork, metadata, source, duration, actions);
+  const state = document.createElement("span");
+  state.className = "player-library__track-status";
+  state.textContent = t(
+    track.availability === "missing"
+      ? "nowPlaying.library.status.missing"
+      : "nowPlaying.library.status.ready",
+  );
+  state.classList.toggle("is-missing", track.availability === "missing");
+
+  const menu = createIconButton(
+    "open-track-context-menu",
+    "fa-solid fa-ellipsis",
+    t("nowPlaying.context.open"),
+    { trackId: track.id, trackIndex: index },
+  );
+  menu.classList.add("player-library__track-menu");
+
+  row.append(play, artwork, metadata, duration, size, state, menu);
   return row;
 }
 
@@ -248,6 +228,9 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
   const operationStatus = root.querySelector(
     '[data-ui="library-operation-status"]',
   );
+  let trackRowsById = new Map();
+  let previousPlaybackTrackId = null;
+  let previousLoadingTrackId = null;
   const dialog = root.querySelector('[data-ui="library-dialog"]');
   const dialogForm = root.querySelector('[data-ui="library-dialog-form"]');
   const dialogTitle = root.querySelector('[data-ui="library-dialog-title"]');
@@ -256,6 +239,7 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
   );
   const dialogHint = root.querySelector('[data-ui="library-dialog-hint"]');
   const dialogLabel = root.querySelector('[data-ui="library-dialog-label"]');
+  const dialogField = dialogLabel.closest("label");
   const dialogInput = root.querySelector('[data-ui="library-dialog-input"]');
   const dialogSelect = root.querySelector('[data-ui="library-dialog-select"]');
   const dialogSubmit = root.querySelector('[data-ui="library-dialog-submit"]');
@@ -265,6 +249,59 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
   let dialogContext = {};
   let latestState = {};
   let submitting = false;
+
+  function formatQualityOption(option = {}) {
+    const specialLabel = {
+      auto: t("nowPlaying.youtube.quality.auto"),
+      best: t("nowPlaying.youtube.quality.best"),
+      audio: t("nowPlaying.youtube.quality.audio"),
+    }[option.id];
+    const details = [
+      option.height ? `${option.height}p` : "",
+      option.fps ? `${option.fps} FPS` : "",
+      option.videoCodec || option.audioCodec || "",
+      option.container || "",
+      option.bitrateKbps ? `${Math.round(option.bitrateKbps)} kbps` : "",
+      option.sizeBytes ? formatFileSize(option.sizeBytes) : "",
+    ].filter(Boolean);
+    return [specialLabel || option.label || option.id, ...details].join(" · ");
+  }
+
+  function showYouTubeQualities({ analysis, url }) {
+    const qualities = Array.isArray(analysis?.qualities)
+      ? analysis.qualities
+      : [];
+    mode = "youtubeQuality";
+    dialogContext = { qualities, url };
+    dialogTitle.textContent = t("nowPlaying.youtube.quality.title");
+    dialogHint.textContent =
+      analysis?.track?.title || t("nowPlaying.youtube.quality.hint");
+    dialogLabel.textContent = t("nowPlaying.youtube.quality.label");
+    dialogSubmit.textContent = t("nowPlaying.youtube.addAction");
+    dialogField.hidden = false;
+    dialogInput.hidden = true;
+    dialogSelect.hidden = false;
+    dialogSelect.replaceChildren(
+      ...qualities.map((quality) => {
+        const option = document.createElement("option");
+        option.value = quality.id;
+        option.textContent = formatQualityOption(quality);
+        return option;
+      }),
+    );
+    const defaultId = qualities.find(
+      (quality) =>
+        JSON.stringify(quality.selector) ===
+        JSON.stringify(analysis?.defaultSelection),
+    )?.id;
+    dialogSelect.value = defaultId || qualities[0]?.id || "";
+    dialogError.hidden = qualities.length > 0;
+    dialogError.textContent = qualities.length
+      ? ""
+      : t("nowPlaying.youtube.quality.empty");
+    dialogSubmit.disabled = qualities.length === 0;
+    queueMicrotask(() => dialogSelect.focus());
+  }
 
   function render(state, snapshot) {
     latestState = state || {};
@@ -296,6 +333,14 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
         createTrackRow(track, index, activePlaylist, snapshot),
       ),
     );
+    trackRowsById = new Map(
+      [...trackList.querySelectorAll(".player-library__track")].map((row) => [
+        row.dataset.trackId,
+        row,
+      ]),
+    );
+    previousPlaybackTrackId = null;
+    previousLoadingTrackId = null;
     playlistCount.textContent = String(playlists.length);
     activeType.textContent = t(
       isSystemPlaylist(activePlaylist)
@@ -316,7 +361,15 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
 
   function renderPlayback(snapshot = {}) {
     renderMiniPlayer(snapshot);
-    trackList.querySelectorAll(".player-library__track").forEach((row) => {
+    const affectedIds = new Set([
+      previousPlaybackTrackId,
+      previousLoadingTrackId,
+      snapshot.currentTrack?.id,
+      snapshot.loadingTrackId,
+    ]);
+    affectedIds.forEach((trackId) => {
+      const row = trackRowsById.get(trackId);
+      if (!row) return;
       const current = row.dataset.trackId === snapshot.currentTrack?.id;
       const loading = row.dataset.trackId === snapshot.loadingTrackId;
       row.classList.toggle("is-current", current);
@@ -335,13 +388,29 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
           ? "fa-solid fa-volume-high"
           : "fa-solid fa-play";
     });
+    previousPlaybackTrackId = snapshot.currentTrack?.id || null;
+    previousLoadingTrackId = snapshot.loadingTrackId || null;
+  }
+
+  function getTrackContext(trackId) {
+    const activePlaylist = getActivePlaylist(latestState);
+    const tracks = getPlaylistTracks(latestState, activePlaylist);
+    const index = tracks.findIndex((track) => track.id === trackId);
+    if (index < 0) return null;
+    return {
+      track: tracks[index],
+      index,
+      playlist: activePlaylist,
+      isSystemPlaylist: isSystemPlaylist(activePlaylist),
+    };
   }
 
   function renderMiniPlayer(snapshot = {}) {
     const track = snapshot.currentTrack;
     miniPlayer.hidden = !track;
     if (!track) return;
-    root.querySelector('[data-ui="mini-title"]').textContent = track.title;
+    root.querySelector('[data-ui="mini-title"]').textContent =
+      track.displayTitle || track.title;
     root.querySelector('[data-ui="mini-artist"]').textContent =
       track.artist || track.album || t("nowPlaying.unknownArtist");
     const image = root.querySelector('[data-ui="mini-artwork"]');
@@ -362,19 +431,17 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
       if (button) {
         button.disabled = snapshot.isLoading;
         button.setAttribute("aria-busy", String(snapshot.isLoading));
-      }
-      icon
-        .closest("button")
-        ?.setAttribute(
-          "aria-label",
-          t(
-            snapshot.isLoading
-              ? "nowPlaying.playback.preparing"
-              : snapshot.isPlaying
-                ? "nowPlaying.pause"
-                : "nowPlaying.play",
-          ),
+        const label = t(
+          snapshot.isLoading
+            ? "nowPlaying.playback.preparing"
+            : snapshot.isPlaying
+              ? "nowPlaying.pause"
+              : "nowPlaying.play",
         );
+        button.setAttribute("aria-label", label);
+        button.setAttribute("title", label);
+        button.setAttribute("data-bs-original-title", label);
+      }
     });
   }
 
@@ -427,19 +494,49 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
         value: "",
         type: "select",
       },
+      renameTrack: {
+        title: "nowPlaying.context.rename",
+        hint: "nowPlaying.context.renameHint",
+        label: "nowPlaying.context.displayTitle",
+        submit: "nowPlaying.playlists.save",
+        value: context.track?.displayTitle || context.track?.title || "",
+        type: "text",
+        maxLength: 160,
+      },
+      trackInfo: {
+        title: "nowPlaying.context.info",
+        hintText: [
+          context.track?.displayTitle || context.track?.title,
+          context.track?.artist,
+          context.track?.album,
+          formatPlaybackTime(context.track?.duration),
+          formatFileSize(context.track?.sizeBytes),
+          context.track?.providerId,
+        ]
+          .filter(Boolean)
+          .join(" · "),
+        label: "nowPlaying.context.info",
+        submit: "modal.close",
+        value: "",
+        type: "info",
+      },
     }[nextMode];
     if (!config) return;
     mode = nextMode;
     dialogContext = context;
     dialogTitle.textContent = t(config.title);
     dialogEyebrow.textContent = t("tabs.nowPlaying");
-    dialogHint.textContent = t(config.hint);
+    dialogHint.textContent = config.hintText || t(config.hint);
     dialogLabel.textContent = t(config.label);
     dialogSubmit.textContent = t(config.submit);
     const isSelect = config.type === "select";
+    const isInfo = config.type === "info";
+    dialogField.hidden = isInfo;
     dialogInput.hidden = isSelect;
     dialogSelect.hidden = !isSelect;
-    if (isSelect) {
+    if (isInfo) {
+      dialogInput.hidden = true;
+    } else if (isSelect && nextMode === "addTrack") {
       const userPlaylists = getPlaylists(latestState).filter(
         (playlist) => !isSystemPlaylist(playlist),
       );
@@ -460,9 +557,9 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
     dialogError.textContent = "";
     openRegisteredModal(dialog, { blocking: false });
     queueMicrotask(() => {
-      const field = isSelect ? dialogSelect : dialogInput;
+      const field = isInfo ? dialogSubmit : isSelect ? dialogSelect : dialogInput;
       field.focus();
-      if (!isSelect) field.select();
+      if (!isSelect && !isInfo) field.select();
     });
   }
 
@@ -499,13 +596,19 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
   async function handleSubmit(event) {
     event.preventDefault();
     if (submitting) return;
-    const value =
-      mode === "addTrack" ? dialogSelect.value : dialogInput.value.trim();
+    if (mode === "trackInfo") {
+      closeDialog();
+      return;
+    }
+    const value = ["addTrack", "youtubeQuality"].includes(mode)
+      ? dialogSelect.value
+      : dialogInput.value.trim();
     if (!value) {
       showDialogError(t("nowPlaying.library.required"));
       return;
     }
     submitting = true;
+    const submitMode = mode;
     const submitLabel = dialogSubmit.textContent;
     dialogSubmit.disabled = true;
     dialogForm.setAttribute("aria-busy", "true");
@@ -514,12 +617,18 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
     }
     try {
       const success = await onDialogSubmit?.(mode, value, dialogContext);
+      if (success?.step === "quality") {
+        submitting = false;
+        dialogForm.removeAttribute("aria-busy");
+        showYouTubeQualities(success);
+        return;
+      }
       if (success === false) return;
       closeDialog();
     } catch (error) {
       showDialogError(error?.message || t("nowPlaying.error"));
     } finally {
-      if (dialog.open) {
+      if (dialog.open && mode === submitMode) {
         submitting = false;
         dialogSubmit.disabled = false;
         dialogSubmit.textContent = submitLabel;
@@ -548,11 +657,13 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
       unregisterModal();
     },
     getActivePlaylist: () => getActivePlaylist(latestState),
+    getTrackContext,
     hide,
     openDialog,
     render,
     renderPlayback,
     setOperationStatus,
+    showYouTubeQualities,
     show,
     showDialogError,
   };

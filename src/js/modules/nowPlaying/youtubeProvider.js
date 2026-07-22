@@ -73,6 +73,10 @@ export function normalizeYouTubeTrack(track = {}) {
     : canonicalizeYouTubeUrl(rawSource);
   const videoId = getYouTubeVideoId(canonicalUrl);
   const duration = Number(track.duration);
+  const kind =
+    track.qualitySelection?.mode === "audio" || track.kind === "audio"
+      ? "audio"
+      : "video";
   return {
     id: `youtube:${videoId}`,
     providerId: YOUTUBE_PROVIDER_ID,
@@ -84,10 +88,17 @@ export function normalizeYouTubeTrack(track = {}) {
     artworkUrl: String(
       track.artworkUrl || track.thumbnail || track.posterUrl || "",
     ),
-    kind: "video",
+    kind,
     availability:
       track.availability === "unavailable" ? "unavailable" : "available",
-    mimeType: String(track.mimeType || ""),
+    mimeType: String(
+      track.mimeType || (kind === "audio" ? "audio/mp4" : "video/mp4"),
+    ),
+    qualitySelection:
+      track.qualitySelection && typeof track.qualitySelection === "object"
+        ? { ...track.qualitySelection }
+        : null,
+    sizeBytes: Math.max(0, Number(track.sizeBytes) || 0),
   };
 }
 
@@ -99,14 +110,28 @@ export class YouTubeProvider {
     this.tracks = [];
   }
 
-  async importSource(input) {
+  async analyzeSource(input, options = {}) {
+    if (typeof this.api.analyzeYouTubeVideo !== "function") {
+      throw new Error(
+        "Now Playing preload API does not implement analyzeYouTubeVideo()",
+      );
+    }
+    const url = canonicalizeYouTubeUrl(input);
+    return unwrapResult(await this.api.analyzeYouTubeVideo(url, options));
+  }
+
+  async importSource(input, options = {}) {
     if (typeof this.api.importYouTubeVideo !== "function") {
       throw new Error(
         "Now Playing preload API does not implement importYouTubeVideo()",
       );
     }
     const url = canonicalizeYouTubeUrl(input);
-    const payload = unwrapResult(await this.api.importYouTubeVideo(url));
+    const payload = unwrapResult(
+      options.qualitySelection
+        ? await this.api.importYouTubeVideo(url, options.qualitySelection)
+        : await this.api.importYouTubeVideo(url),
+    );
     const track = normalizeYouTubeTrack(getTrackPayload(payload));
     const existingIndex = this.tracks.findIndex((item) => item.id === track.id);
     if (existingIndex === -1) this.tracks.push(track);
@@ -140,10 +165,12 @@ export class YouTubeProvider {
       );
     }
     const normalized = normalizeYouTubeTrack(track);
+    const resolveOptions = { forceRefresh: options.forceRefresh === true };
+    if (normalized.qualitySelection) {
+      resolveOptions.qualitySelection = normalized.qualitySelection;
+    }
     const payload = unwrapResult(
-      await this.api.resolveYouTubeTrack(normalized.sourceRef, {
-        forceRefresh: options.forceRefresh === true,
-      }),
+      await this.api.resolveYouTubeTrack(normalized.sourceRef, resolveOptions),
     );
     const playback = payload.playback || payload;
     const src = String(playback.src || playback.url || "");
@@ -153,13 +180,25 @@ export class YouTubeProvider {
         "No compatible YouTube playback format is available",
       );
     }
-    return {
+    const result = {
       src,
       mimeType: String(playback.mimeType || playback.mime_type || ""),
       posterUrl: String(
         playback.posterUrl || playback.thumbnail || normalized.artworkUrl || "",
       ),
     };
+    if (playback.kind) result.kind = String(playback.kind);
+    if (playback.sessionId) result.sessionId = String(playback.sessionId);
+    return result;
+  }
+
+  async releasePlayback(playback = {}) {
+    if (
+      playback.sessionId &&
+      typeof this.api.closePlaybackSession === "function"
+    ) {
+      await this.api.closePlaybackSession(playback.sessionId);
+    }
   }
 
   dispose() {

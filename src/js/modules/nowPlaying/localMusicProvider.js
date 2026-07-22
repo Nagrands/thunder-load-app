@@ -1,5 +1,16 @@
 const LOCAL_PROVIDER_ID = "local";
-const VIDEO_EXTENSIONS = new Set(["mp4", "m4v", "webm", "mov", "ogv", "mkv"]);
+const HLS_FALLBACK_EXTENSIONS = new Set(["avi", "mpeg", "mpg"]);
+const VIDEO_EXTENSIONS = new Set([
+  "avi",
+  "m4v",
+  "mkv",
+  "mov",
+  "mp4",
+  "mpeg",
+  "mpg",
+  "ogv",
+  "webm",
+]);
 
 function unwrapResult(result) {
   if (result?.success === false) {
@@ -50,11 +61,14 @@ export function normalizeLocalTrack(track = {}, index = 0) {
   );
   const extension = getExtension(sourceRef);
   const duration = Number(track.duration);
+  const title = String(track.title || getFallbackTitle(sourceRef));
+  const sizeBytes = Number(track.sizeBytes);
   return {
     id: String(track.id || `${LOCAL_PROVIDER_ID}:${sourceRef || index}`),
     providerId: LOCAL_PROVIDER_ID,
     sourceRef,
-    title: String(track.title || getFallbackTitle(sourceRef)),
+    title,
+    displayTitle: String(track.displayTitle || title),
     artist: String(track.artist || ""),
     album: String(track.album || ""),
     duration: Number.isFinite(duration) && duration >= 0 ? duration : 0,
@@ -68,6 +82,9 @@ export function normalizeLocalTrack(track = {}, index = 0) {
         ? "missing"
         : "available",
     mimeType: String(track.mimeType || ""),
+    sizeBytes:
+      Number.isFinite(sizeBytes) && sizeBytes >= 0 ? Math.trunc(sizeBytes) : 0,
+    qualitySelection: null,
     playback: track.playback || null,
   };
 }
@@ -95,6 +112,12 @@ export class LocalMusicProvider {
         : importedTracks.map(
             (track, index) => normalizeLocalTrack(track, index).id,
           ),
+      playlistImports: Array.isArray(payload?.playlistImports)
+        ? payload.playlistImports.map((playlist) => ({ ...playlist }))
+        : [],
+      warnings: Array.isArray(payload?.warnings)
+        ? payload.warnings.map((warning) => ({ ...warning }))
+        : [],
     };
   }
 
@@ -137,6 +160,15 @@ export class LocalMusicProvider {
       throw error;
     }
     const playback = track?.playback || {};
+    const extension = getExtension(normalized.sourceRef);
+    if (
+      HLS_FALLBACK_EXTENSIONS.has(extension) &&
+      typeof this.api.createLocalPlaybackSession === "function"
+    ) {
+      return unwrapResult(
+        await this.api.createLocalPlaybackSession(normalized.sourceRef),
+      );
+    }
     return {
       src: String(
         playback.src || track?.src || pathToFileUrl(track?.sourceRef),
@@ -144,6 +176,15 @@ export class LocalMusicProvider {
       mimeType: String(playback.mimeType || track?.mimeType || ""),
       posterUrl: String(playback.posterUrl || track?.artworkUrl || ""),
     };
+  }
+
+  async releasePlayback(playback = {}) {
+    if (
+      playback.sessionId &&
+      typeof this.api.closePlaybackSession === "function"
+    ) {
+      await this.api.closePlaybackSession(playback.sessionId);
+    }
   }
 
   dedupeTracks(tracks) {

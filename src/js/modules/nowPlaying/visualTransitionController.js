@@ -95,7 +95,8 @@ export function createVisualTransitionController({
     pendingMetadataIndex =
       activeMetadataIndex < 0 ? 0 : 1 - activeMetadataIndex;
     const slot = metadataSlots[pendingMetadataIndex];
-    slot.querySelector(".now-playing__track-title").textContent = track.title;
+    slot.querySelector(".now-playing__track-title").textContent =
+      track.displayTitle || track.title;
     const artist = slot.querySelector(".now-playing__track-artist");
     const artistText = String(track.artist || "").trim();
     artist.textContent = artistText;

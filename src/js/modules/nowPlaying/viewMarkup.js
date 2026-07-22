@@ -7,6 +7,10 @@ function iconButton(action, icon, labelKey, extraClass = "") {
       class="now-playing__control ${extraClass}"
       data-action="${action}"
       data-i18n-aria="${labelKey}"
+      data-bs-toggle="tooltip"
+      data-bs-placement="top"
+      data-i18n-title="${labelKey}"
+      title="${t(labelKey)}"
       aria-label="${t(labelKey)}"
     >
       <i class="${icon}" aria-hidden="true"></i>
@@ -130,7 +134,7 @@ export function buildNowPlayingMarkup() {
         </div>
       </aside>
 
-      <section class="now-playing__dock" aria-label="${t("nowPlaying.controls")}">
+      <section class="now-playing__dock" aria-label="${t("nowPlaying.controls")}" aria-hidden="true" inert>
         <div class="now-playing__transport">
           ${iconButton("shuffle", "fa-solid fa-shuffle", "nowPlaying.shuffle")}
           ${iconButton("previous", "fa-solid fa-backward-step", "nowPlaying.previous")}
@@ -177,20 +181,11 @@ export function buildNowPlayingMarkup() {
       </section>
     </div>
 
-    <section class="now-playing__scene-overlay now-playing__empty" aria-labelledby="now-playing-empty-title">
-      <i class="fa-solid fa-circle-play" aria-hidden="true"></i>
-      <h2 id="now-playing-empty-title" data-i18n="nowPlaying.empty.title">${t("nowPlaying.empty.title")}</h2>
-      <p data-i18n="nowPlaying.empty.hint">${t("nowPlaying.empty.hint")}</p>
-      <div class="now-playing__empty-actions">
-        <button class="now-playing__empty-button" type="button" data-action="add-files" data-i18n="nowPlaying.addFiles">${t("nowPlaying.addFiles")}</button>
-        <button class="now-playing__empty-button" type="button" data-action="add-folder" data-i18n="nowPlaying.addFolder">${t("nowPlaying.addFolder")}</button>
-      </div>
-    </section>
     <section class="now-playing__scene-overlay now-playing__error" role="alert" hidden>
       <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
       <p data-ui="error-message"></p>
       <div class="now-playing__error-actions">
-        <button class="now-playing__empty-button now-playing__retry" type="button" data-action="retry" data-i18n="nowPlaying.retry">${t("nowPlaying.retry")}</button>
+        <button class="now-playing__retry" type="button" data-action="retry" data-i18n="nowPlaying.retry">${t("nowPlaying.retry")}</button>
       </div>
     </section>
 
@@ -243,6 +238,13 @@ export function buildNowPlayingMarkup() {
             <span class="player-library__count" data-ui="library-playlist-count"></span>
           </div>
           <div class="player-library__playlist-grid" data-ui="library-playlists"></div>
+          <section class="player-library__up-next" aria-labelledby="player-up-next-title">
+            <div class="player-library__up-next-heading">
+              <h3 id="player-up-next-title" data-i18n="nowPlaying.queue.upNext">${t("nowPlaying.queue.upNext")}</h3>
+              <button type="button" data-action="clear-transient-queue" data-i18n="nowPlaying.queue.clear">${t("nowPlaying.queue.clear")}</button>
+            </div>
+            <div data-ui="transient-queue"></div>
+          </section>
         </nav>
 
         <section class="player-library__collection" aria-labelledby="player-collection-title">
@@ -267,6 +269,18 @@ export function buildNowPlayingMarkup() {
             <i class="fa-solid fa-circle-play" aria-hidden="true"></i>
             <h3 data-i18n="nowPlaying.library.empty.title">${t("nowPlaying.library.empty.title")}</h3>
             <p data-i18n="nowPlaying.library.empty.hint">${t("nowPlaying.library.empty.hint")}</p>
+            <ul aria-label="${t("nowPlaying.library.empty.canAdd")}">
+              <li data-i18n="nowPlaying.audio">${t("nowPlaying.audio")}</li>
+              <li data-i18n="nowPlaying.video">${t("nowPlaying.video")}</li>
+              <li data-i18n="nowPlaying.addFolder">${t("nowPlaying.addFolder")}</li>
+              <li>YouTube</li>
+            </ul>
+            <div class="player-library__empty-actions">
+              ${libraryActionButton("add-files", "fa-solid fa-file-audio", "nowPlaying.addFiles", "player-library__action--primary")}
+              ${libraryActionButton("add-folder", "fa-solid fa-folder-plus", "nowPlaying.addFolder")}
+              ${libraryActionButton("open-youtube-dialog", "fa-brands fa-youtube", "nowPlaying.youtube.add")}
+              ${libraryActionButton("open-create-playlist-dialog", "fa-solid fa-plus", "nowPlaying.playlists.create")}
+            </div>
           </div>
         </section>
       </div>

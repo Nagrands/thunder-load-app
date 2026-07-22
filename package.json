@@ -30,7 +30,8 @@
     "test-check:summary": "node scripts/update-test-check-summary.mjs",
     "format": "prettier --write .",
     "lint": "eslint . --ext .js,.cjs,.mjs --max-warnings 0",
-    "check": "npm run lint && npm test",
+    "check": "npm run lint && npm run typecheck:player && npm test",
+    "typecheck:player": "tsc -p tsconfig.player.json",
     "dist": "electron-builder --publish always",
     "predist": "npm run whats-new:build && npm run css:build",
     "release:patch": "npm version patch -m \"chore(release): %s\" && git push && git push --tags",
@@ -46,6 +47,7 @@
     "electron-store": "^11.0.2",
     "electron-updater": "^6.3.3",
     "electron-window-state": "^5.0.3",
+    "hls.js": "^1.6.16",
     "lucide": "^0.575.0",
     "marked": "^16.4.1",
     "sudo-prompt": "^9.2.1",
@@ -68,7 +70,8 @@
     "nodemon": "^3.1.11",
     "nunjucks": "^3.2.4",
     "prettier": "^3.3.3",
-    "sass": "^1.32.8"
+    "sass": "^1.32.8",
+    "typescript": "^5.9.3"
   },
   "build": {
     "appId": "com.thunderload.app",
@@ -95,11 +98,56 @@
         "releaseType": "release"
       }
     ],
+    "fileAssociations": [
+      {
+        "ext": [
+          "mp3",
+          "m4a",
+          "aac",
+          "flac",
+          "wav",
+          "ogg",
+          "opus"
+        ],
+        "name": "Thunder Audio",
+        "description": "Audio media",
+        "role": "Viewer",
+        "rank": "Alternate"
+      },
+      {
+        "ext": [
+          "mp4",
+          "mkv",
+          "webm",
+          "mov",
+          "avi",
+          "mpeg",
+          "mpg"
+        ],
+        "name": "Thunder Video",
+        "description": "Video media",
+        "role": "Viewer",
+        "rank": "Alternate"
+      },
+      {
+        "ext": [
+          "m3u",
+          "m3u8"
+        ],
+        "name": "Thunder Playlist",
+        "description": "Media playlist",
+        "role": "Viewer",
+        "rank": "Alternate"
+      }
+    ],
     "win": {
       "target": [
         "nsis"
       ],
       "icon": "assets/icons/app/app-icon.ico"
+    },
+    "nsis": {
+      "perMachine": true
     },
     "linux": {
       "target": [

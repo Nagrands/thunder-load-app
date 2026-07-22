@@ -16,6 +16,7 @@ describe("nowPlayingIpcHandlers", () => {
   let storeValues;
   let getVideoInfo;
   let getVideoPreview;
+  let hlsService;
 
   beforeEach(() => {
     Object.keys(handlers).forEach((key) => delete handlers[key]);
@@ -35,6 +36,16 @@ describe("nowPlayingIpcHandlers", () => {
     dialog = { showOpenDialog: jest.fn() };
     getVideoInfo = jest.fn();
     getVideoPreview = jest.fn();
+    hlsService = {
+      createSession: jest.fn().mockResolvedValue({
+        kind: "hls",
+        sessionId: "12345678-1234-1234-1234-123456789abc",
+        src: "http://127.0.0.1:1234/token/session/index.m3u8",
+        mimeType: "application/vnd.apple.mpegurl",
+      }),
+      closeSession: jest.fn().mockResolvedValue(true),
+      dispose: jest.fn().mockResolvedValue(undefined),
+    };
   });
 
   afterEach(() => {
@@ -58,6 +69,7 @@ describe("nowPlayingIpcHandlers", () => {
       ffprobePathResolver: jest.fn(() => ""),
       getVideoInfo,
       getVideoPreview,
+      hlsService,
       ipcMain,
       mainWindow: {},
       store,
@@ -72,7 +84,10 @@ describe("nowPlayingIpcHandlers", () => {
       CHANNELS.NOW_PLAYING_IMPORT_FILES,
       CHANNELS.NOW_PLAYING_IMPORT_FOLDER,
       CHANNELS.NOW_PLAYING_IMPORT_YOUTUBE_VIDEO,
+      CHANNELS.NOW_PLAYING_ANALYZE_YOUTUBE_VIDEO,
       CHANNELS.NOW_PLAYING_RESOLVE_YOUTUBE_TRACK,
+      CHANNELS.NOW_PLAYING_CLOSE_PLAYBACK_SESSION,
+      CHANNELS.NOW_PLAYING_CREATE_LOCAL_PLAYBACK_SESSION,
       CHANNELS.NOW_PLAYING_GET_STATE,
       CHANNELS.NOW_PLAYING_SET_STATE,
     ].forEach((channel) => {
@@ -106,7 +121,7 @@ describe("nowPlayingIpcHandlers", () => {
     expect(second.data.added).toHaveLength(0);
     expect(store.set).toHaveBeenCalledWith(
       "nowPlaying.state",
-      expect.objectContaining({ version: 2 }),
+      expect.objectContaining({ version: 3 }),
     );
   });
 
@@ -197,7 +212,7 @@ describe("nowPlayingIpcHandlers", () => {
     });
   });
 
-  test("sanitizes persisted state and marks unavailable tracks as missing", async () => {
+  test("sanitizes persisted state without rescanning every local file", async () => {
     const { CHANNELS } = register();
     const missingPath = path.join(root, "gone.mp4");
     const result = await handlers[CHANNELS.NOW_PLAYING_SET_STATE](null, {
@@ -221,7 +236,7 @@ describe("nowPlayingIpcHandlers", () => {
 
     expect(result.success).toBe(true);
     expect(result.data).toMatchObject({
-      version: 2,
+      version: 3,
       activePlaylistId: "media-library",
       selectedTrackId: "gone",
       volume: 1,
@@ -232,8 +247,7 @@ describe("nowPlayingIpcHandlers", () => {
     expect(result.data.catalog.tracks).toEqual([
       expect.objectContaining({
         id: "gone",
-        availability: "missing",
-        playbackUrl: null,
+        availability: "available",
       }),
     ]);
   });
@@ -280,7 +294,7 @@ describe("nowPlayingIpcHandlers", () => {
     expect(result).toMatchObject({
       success: true,
       data: {
-        version: 2,
+        version: 3,
         catalog: { tracks: [] },
         activePlaylistId: "broken",
         selectedTrackId: null,
@@ -314,7 +328,7 @@ describe("nowPlayingIpcHandlers", () => {
     const result = await handlers[CHANNELS.NOW_PLAYING_GET_STATE]();
 
     expect(result.data).toMatchObject({
-      version: 2,
+      version: 3,
       activePlaylistId: "media-library",
       selectedTrackId: "legacy",
       volume: 0.4,
@@ -324,7 +338,7 @@ describe("nowPlayingIpcHandlers", () => {
     expect(result.data.playlists).toEqual([]);
     expect(store.set).toHaveBeenCalledWith(
       "nowPlaying.state",
-      expect.objectContaining({ version: 2 }),
+      expect.objectContaining({ version: 3 }),
     );
   });
 
@@ -407,7 +421,10 @@ describe("nowPlayingIpcHandlers", () => {
       null,
       first.data.track.sourceRef,
     );
-    expect(playback.data.src).toBe("https://video.example/leased");
+    expect(playback.data).toMatchObject({
+      kind: "hls",
+      src: "http://127.0.0.1:1234/token/session/index.m3u8",
+    });
     expect(getVideoInfo).not.toHaveBeenCalled();
   });
 
@@ -426,7 +443,7 @@ describe("nowPlayingIpcHandlers", () => {
     expect(getVideoPreview).not.toHaveBeenCalled();
   });
 
-  test("resolves a fresh muxed YouTube stream without persisting it", async () => {
+  test("resolves a fresh muxed YouTube stream through a loopback HLS session", async () => {
     const { CHANNELS } = register();
     getVideoInfo.mockResolvedValue({
       thumbnail: "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
@@ -453,15 +470,114 @@ describe("nowPlayingIpcHandlers", () => {
       null,
       { forceRefresh: false },
     );
-    expect(result).toEqual({
+    expect(hlsService.createSession).toHaveBeenCalledWith({
+      inputs: ["https://video.example/videoplayback?itag=18"],
+      copyCodecs: true,
+    });
+    expect(result).toMatchObject({
       success: true,
       data: {
-        src: "https://video.example/videoplayback?itag=18",
-        mimeType: "video/mp4",
+        kind: "hls",
+        mimeType: "application/vnd.apple.mpegurl",
         posterUrl: "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
       },
-      error: null,
     });
+  });
+
+  test("deduplicates parallel YouTube resolves for the same quality", async () => {
+    const { CHANNELS } = register();
+    let resolveInfo;
+    getVideoInfo.mockReturnValue(
+      new Promise((resolve) => {
+        resolveInfo = resolve;
+      }),
+    );
+    const resolveTrack = () =>
+      handlers[CHANNELS.NOW_PLAYING_RESOLVE_YOUTUBE_TRACK](
+        null,
+        "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        { qualitySelection: { mode: "best" } },
+      );
+
+    const first = resolveTrack();
+    const second = resolveTrack();
+    resolveInfo({
+      formats: [
+        {
+          format_id: "18",
+          url: "https://video.example/shared",
+          ext: "mp4",
+          vcodec: "avc1.42001E",
+          acodec: "mp4a.40.2",
+        },
+      ],
+    });
+
+    await expect(Promise.all([first, second])).resolves.toHaveLength(2);
+    expect(getVideoInfo).toHaveBeenCalledTimes(1);
+    expect(hlsService.createSession).toHaveBeenCalledTimes(1);
+  });
+
+  test("analyzes YouTube formats and preserves an exact quality selector", async () => {
+    const { CHANNELS } = register();
+    getVideoInfo.mockResolvedValue({
+      id: "dQw4w9WgXcQ",
+      webpage_url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      title: "Quality demo",
+      formats: [
+        {
+          format_id: "137",
+          url: "https://video.example/1080",
+          ext: "mp4",
+          width: 1920,
+          height: 1080,
+          fps: 30,
+          tbr: 4500,
+          vcodec: "avc1.640028",
+          acodec: "none",
+        },
+        {
+          format_id: "140",
+          url: "https://video.example/audio",
+          ext: "m4a",
+          abr: 128,
+          vcodec: "none",
+          acodec: "mp4a.40.2",
+        },
+      ],
+    });
+
+    const analysis = await handlers[
+      CHANNELS.NOW_PLAYING_ANALYZE_YOUTUBE_VIDEO
+    ](null, "https://youtu.be/dQw4w9WgXcQ");
+    const quality = analysis.data.qualities.find(
+      (item) => item.selector.videoFormatId === "137",
+    );
+    expect(analysis.data.qualities.slice(0, 3).map((item) => item.id)).toEqual([
+      "auto",
+      "best",
+      "audio",
+    ]);
+    expect(quality).toMatchObject({
+      height: 1080,
+      fps: 30,
+      videoCodec: "avc1.640028",
+      audioCodec: "mp4a.40.2",
+    });
+
+    await handlers[CHANNELS.NOW_PLAYING_RESOLVE_YOUTUBE_TRACK](
+      null,
+      "https://youtu.be/dQw4w9WgXcQ",
+      { qualitySelection: quality.selector },
+    );
+    expect(hlsService.createSession).toHaveBeenCalledWith({
+      inputs: [
+        "https://video.example/1080",
+        "https://video.example/audio",
+      ],
+      copyCodecs: true,
+    });
+    expect(getVideoInfo).toHaveBeenCalledTimes(1);
   });
 
   test("forces a fresh YouTube stream only for an explicit retry", async () => {

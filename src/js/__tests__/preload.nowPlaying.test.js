@@ -34,6 +34,7 @@ describe("preload Now Playing API", () => {
     await api.nowPlaying.resolveYouTubeTrack(
       "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
     );
+    await api.nowPlaying.createLocalPlaybackSession("/media/archive.avi");
     await api.nowPlaying.getState();
     await api.nowPlaying.setState(state);
 
@@ -43,12 +44,14 @@ describe("preload Now Playing API", () => {
       [
         "now-playing:import-youtube-video",
         "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        null,
       ],
       [
         "now-playing:resolve-youtube-track",
         "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
         {},
       ],
+      ["now-playing:create-local-playback-session", "/media/archive.avi"],
       ["now-playing:get-state"],
       ["now-playing:set-state", state],
     ]);

@@ -4,7 +4,9 @@ const path = require("path");
 
 const {
   importMediaPaths,
+  isSupportedMediaPath,
   normalizeSourcePath,
+  parseMediaPlaylist,
   refreshAvailability,
   scanMediaDirectory,
 } = require("../nowPlayingLibrary");
@@ -60,6 +62,84 @@ describe("nowPlayingLibrary", () => {
       mimeType: "audio/mpeg",
     });
     expect(result[0].playbackUrl).toMatch(/^file:/);
+    expect(result[0].displayTitle).toBe("My Song");
+    expect(result[0].sizeBytes).toBe(5);
+  });
+
+  test("supports AVI and MPEG files for the playback fallback", async () => {
+    const aviPath = path.join(root, "clip.avi");
+    const mpegPath = path.join(root, "movie.mpeg");
+    fs.writeFileSync(aviPath, "video");
+    fs.writeFileSync(mpegPath, "video");
+
+    const result = await importMediaPaths([aviPath, mpegPath]);
+
+    expect(isSupportedMediaPath(aviPath)).toBe(true);
+    expect(result).toEqual([
+      expect.objectContaining({ kind: "video", mimeType: "video/x-msvideo" }),
+      expect.objectContaining({ kind: "video", mimeType: "video/mpeg" }),
+    ]);
+  });
+
+  test("parses local M3U entries with safe relative and network media", async () => {
+    const songPath = path.join(root, "Album", "song.mp3");
+    const playlistPath = path.join(root, "mix.m3u8");
+    fs.mkdirSync(path.dirname(songPath));
+    fs.writeFileSync(songPath, "audio");
+    fs.writeFileSync(
+      playlistPath,
+      [
+        "\uFEFF#EXTM3U",
+        "#EXTINF:1,Song",
+        "Album/song.mp3",
+        "https://media.example/live/stream.m3u8?token=1",
+        "https://media.example/audio/remote.mp3",
+        "https://youtu.be/abcdefghijk",
+        "https://example.com/not-media",
+        "nested.m3u",
+      ].join("\n"),
+    );
+
+    const onWarning = jest.fn();
+    await expect(
+      parseMediaPlaylist(playlistPath, { onWarning }),
+    ).resolves.toEqual([
+      songPath,
+      "https://media.example/live/stream.m3u8?token=1",
+      "https://media.example/audio/remote.mp3",
+    ]);
+    expect(onWarning).toHaveBeenCalledWith({
+      code: "YOUTUBE_REQUIRES_QUALITY",
+      source: "https://youtu.be/abcdefghijk",
+    });
+    const imported = await importMediaPaths([playlistPath]);
+    expect(imported).toEqual([
+      expect.objectContaining({ providerId: "local", sourceRef: songPath }),
+      expect.objectContaining({
+        providerId: "network",
+        mimeType: "application/vnd.apple.mpegurl",
+      }),
+      expect.objectContaining({
+        providerId: "network",
+        kind: "audio",
+        playbackUrl: "https://media.example/audio/remote.mp3",
+      }),
+    ]);
+  });
+
+  test("enforces playlist byte and entry limits", async () => {
+    const playlistPath = path.join(root, "limited.m3u");
+    fs.writeFileSync(
+      playlistPath,
+      ["one.mp3", "two.mp3", "three.mp3"].join("\n"),
+    );
+
+    await expect(
+      parseMediaPlaylist(playlistPath, { maxPlaylistEntries: 2 }),
+    ).resolves.toEqual([path.join(root, "one.mp3"), path.join(root, "two.mp3")]);
+    await expect(
+      parseMediaPlaylist(playlistPath, { maxPlaylistBytes: 1 }),
+    ).resolves.toEqual([]);
   });
 
   test("uses ffprobe metadata and extracts embedded artwork best-effort", async () => {

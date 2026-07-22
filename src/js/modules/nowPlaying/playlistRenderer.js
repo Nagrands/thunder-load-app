@@ -35,7 +35,10 @@ function createTrackRow(
   play.type = "button";
   play.className = "now-playing__track-play";
   play.dataset.action = "select-track";
-  play.setAttribute("aria-label", `${t("nowPlaying.play")} ${track.title}`);
+  play.setAttribute(
+    "aria-label",
+    `${t("nowPlaying.play")} ${track.displayTitle || track.title}`,
+  );
   play.disabled = unavailable || track.id === loadingTrackId;
   play.innerHTML =
     track.id === loadingTrackId
@@ -44,7 +47,7 @@ function createTrackRow(
 
   const name = document.createElement("span");
   name.className = "now-playing__track-name";
-  name.textContent = track.title;
+  name.textContent = track.displayTitle || track.title;
 
   const duration = document.createElement("span");
   duration.className = "now-playing__track-duration";
@@ -61,7 +64,10 @@ function createTrackRow(
   remove.type = "button";
   remove.className = "now-playing__track-remove";
   remove.dataset.action = "remove-track";
-  remove.setAttribute("aria-label", `${t("nowPlaying.remove")} ${track.title}`);
+  remove.setAttribute(
+    "aria-label",
+    `${t("nowPlaying.remove")} ${track.displayTitle || track.title}`,
+  );
   remove.innerHTML = '<i class="fa-solid fa-xmark" aria-hidden="true"></i>';
 
   const leading = document.createElement("span");
@@ -72,13 +78,35 @@ function createTrackRow(
 }
 
 export function createPlaylistRenderer(playlist) {
-  let signature = "";
+  let queueReference = null;
+  let rowsById = new Map();
+  let previousCurrentTrackId = null;
+  let previousLoadingTrackId = null;
+
+  const updateRow = (row, snapshot) => {
+    if (!row) return;
+    const current = row.dataset.trackId === snapshot.currentTrack?.id;
+    row.classList.toggle("is-current", current);
+    row.classList.toggle("is-playing", current && snapshot.isPlaying);
+    const loading = row.dataset.trackId === snapshot.loadingTrackId;
+    row.classList.toggle("is-loading", loading);
+    row.setAttribute("aria-busy", String(loading));
+    const play = row.querySelector(".now-playing__track-play");
+    const icon = play?.querySelector("i");
+    if (play && icon) {
+      play.disabled = row.classList.contains("is-unavailable") || loading;
+      icon.className = loading
+        ? "fa-solid fa-spinner fa-spin"
+        : "fa-solid fa-play";
+    }
+    row.setAttribute("aria-selected", String(current));
+    if (current) row.setAttribute("aria-current", "true");
+    else row.removeAttribute("aria-current");
+  };
+
   return (snapshot) => {
-    const nextSignature = snapshot.queue
-      .map((track) => `${track.id}:${track.availability}`)
-      .join("|");
-    if (nextSignature !== signature) {
-      signature = nextSignature;
+    if (snapshot.queue !== queueReference) {
+      queueReference = snapshot.queue;
       playlist.replaceChildren(
         ...snapshot.queue.map((track, index) =>
           createTrackRow(
@@ -90,27 +118,25 @@ export function createPlaylistRenderer(playlist) {
           ),
         ),
       );
+      rowsById = new Map(
+        [...playlist.querySelectorAll(".now-playing__track")].map((row) => [
+          row.dataset.trackId,
+          row,
+        ]),
+      );
+      previousCurrentTrackId = snapshot.currentTrack?.id || null;
+      previousLoadingTrackId = snapshot.loadingTrackId || null;
       return;
     }
-    playlist.querySelectorAll(".now-playing__track").forEach((row) => {
-      const current = row.dataset.trackId === snapshot.currentTrack?.id;
-      row.classList.toggle("is-current", current);
-      row.classList.toggle("is-playing", current && snapshot.isPlaying);
-      const loading = row.dataset.trackId === snapshot.loadingTrackId;
-      row.classList.toggle("is-loading", loading);
-      row.setAttribute("aria-busy", String(loading));
-      const play = row.querySelector(".now-playing__track-play");
-      const icon = play?.querySelector("i");
-      if (play && icon) {
-        play.disabled = row.classList.contains("is-unavailable") || loading;
-        icon.className = loading
-          ? "fa-solid fa-spinner fa-spin"
-          : "fa-solid fa-play";
-      }
-      row.setAttribute("aria-selected", String(current));
-      if (current) row.setAttribute("aria-current", "true");
-      else row.removeAttribute("aria-current");
-    });
+    const affectedIds = new Set([
+      previousCurrentTrackId,
+      previousLoadingTrackId,
+      snapshot.currentTrack?.id,
+      snapshot.loadingTrackId,
+    ]);
+    affectedIds.forEach((trackId) => updateRow(rowsById.get(trackId), snapshot));
+    previousCurrentTrackId = snapshot.currentTrack?.id || null;
+    previousLoadingTrackId = snapshot.loadingTrackId || null;
   };
 }
 

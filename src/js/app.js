@@ -25,7 +25,7 @@ const fs = require("fs");
 const ElectronStore = require("electron-store").default;
 const log = require("electron-log");
 
-const { app, BrowserWindow, dialog } = require("electron");
+const { app, BrowserWindow } = require("electron");
 const { configureLegacyUserDataPath } = require("./app/userDataPath.js");
 const { createStartupMetrics } = require("./app/startupMetrics.js");
 
@@ -74,13 +74,14 @@ const { scheduleAutoUpdateCheck, setupAutoUpdater } = startupMetrics.measure(
 );
 const { setupGlobalShortcuts } = require("./app/shortcuts.js");
 const { createWebControlServer } = require("./app/webControlServer.js");
+const { createMediaOpenService } = require("./app/mediaOpenService.js");
 
 // Initialize store and logging
 const store = new ElectronStore();
 const isDev = process.argv.includes("--dev");
 
-// Keep the legacy Windows notification identity for update compatibility.
-app.setAppUserModelId("Thunderload");
+app.setAppUserModelId("com.thunderload.app");
+const mediaOpenService = createMediaOpenService({ app, fs });
 
 // Define essential paths
 const historyFilePath = path.join(
@@ -156,12 +157,9 @@ async function getAppVersion() {
 }
 
 if (!app.requestSingleInstanceLock()) {
-  dialog.showErrorBox(
-    "Приложение уже запущено",
-    "Вы не можете открыть несколько копий приложения одновременно.",
-  );
   app.quit();
 } else {
+  mediaOpenService.enqueueArgv(process.argv, process.cwd());
   const dependencies = {
     mainWindow: null,
     store,
@@ -205,6 +203,7 @@ if (!app.requestSingleInstanceLock()) {
     webControlServer: null,
     dispatchPendingWhatsNew: () => false,
     clearPendingWhatsNewVersion: () => false,
+    mediaOpenService,
   };
 
   const getPendingWhatsNewVersion = () =>
@@ -376,6 +375,7 @@ if (!app.requestSingleInstanceLock()) {
         },
       ),
     );
+    mediaOpenService.setMainWindow(mainWindow);
 
     // DevTools noticeably increase GPU usage; keep them closed in production
     if (isDev || process.env.OPEN_DEVTOOLS === "1") {
@@ -426,14 +426,12 @@ if (!app.requestSingleInstanceLock()) {
   /**
    * Handle second instance lock.
    */
-  app.on("second-instance", () => {
+  app.on("second-instance", (_event, argv, workingDirectory) => {
+    mediaOpenService.enqueueArgv(argv, workingDirectory);
     if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.show();
       mainWindow.focus();
-      mainWindow.webContents.send(
-        "show-warning",
-        "Вы не можете открыть несколько копий приложения одновременно.",
-      );
     }
   });
 
@@ -491,6 +489,7 @@ app.on("before-quit", () => {
       log.warn("Failed to stop web control server:", error);
     });
   }
+  mediaOpenService.dispose();
 });
 
 module.exports = {

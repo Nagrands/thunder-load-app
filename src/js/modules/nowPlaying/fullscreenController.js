@@ -25,12 +25,11 @@ export function createFullscreenController({
     root.classList.toggle("is-fullscreen", fullscreen);
     button.classList.toggle("is-active", fullscreen);
     button.setAttribute("aria-pressed", String(fullscreen));
-    button.setAttribute(
-      "aria-label",
-      t(
-        fullscreen ? "nowPlaying.exitFullscreen" : "nowPlaying.enterFullscreen",
-      ),
+    const label = t(
+      fullscreen ? "nowPlaying.exitFullscreen" : "nowPlaying.enterFullscreen",
     );
+    button.setAttribute("aria-label", label);
+    button.setAttribute("title", label);
     const icon = button.querySelector("i");
     icon?.classList.toggle("fa-expand", !fullscreen);
     icon?.classList.toggle("fa-compress", fullscreen);

@@ -15,6 +15,18 @@ export function createPlaybackControlsView({
   currentTime,
   duration,
 }) {
+  let lastCurrentSecond = null;
+  let lastDurationSecond = null;
+  let lastVolumeKey = "";
+  let dockHideVersion = 0;
+  let hadPlaybackSession = false;
+  function setControlLabel(button, label) {
+    if (!button) return;
+    button.setAttribute("aria-label", label);
+    button.setAttribute("title", label);
+    button.setAttribute("data-bs-original-title", label);
+  }
+
   return (snapshot) => {
     const playIcon = playButton?.querySelector("i");
     playIcon?.classList.toggle(
@@ -28,8 +40,8 @@ export function createPlaybackControlsView({
       playButton.disabled = snapshot.isLoading;
       playButton.setAttribute("aria-busy", String(snapshot.isLoading));
     }
-    playButton?.setAttribute(
-      "aria-label",
+    setControlLabel(
+      playButton,
       t(
         snapshot.isLoading
           ? "nowPlaying.playback.preparing"
@@ -42,10 +54,15 @@ export function createPlaybackControlsView({
     setPressedState(repeatButton, snapshot.repeat !== "off");
     if (repeatButton) {
       repeatButton.dataset.mode = snapshot.repeat;
-      repeatButton.setAttribute(
-        "aria-label",
-        t(`nowPlaying.repeat.${snapshot.repeat}`),
-      );
+      setControlLabel(repeatButton, t(`nowPlaying.repeat.${snapshot.repeat}`));
+      let indicator = repeatButton.querySelector(".now-playing__repeat-indicator");
+      if (!indicator) {
+        indicator = document.createElement("span");
+        indicator.className = "now-playing__repeat-indicator";
+        indicator.setAttribute("aria-hidden", "true");
+        repeatButton.appendChild(indicator);
+      }
+      indicator.textContent = snapshot.repeat === "one" ? "1" : "";
     }
     if (progress) {
       progress.max = String(snapshot.duration || 0);
@@ -67,32 +84,72 @@ export function createPlaybackControlsView({
     if (volume) {
       const effectiveVolume = snapshot.muted ? 0 : snapshot.volume;
       const effectivePercent = Math.round(effectiveVolume * 100);
-      volume.value = String(effectiveVolume);
-      volume.style.setProperty("--range-progress", `${effectiveVolume * 100}%`);
-      volume.setAttribute("aria-valuetext", `${effectivePercent}%`);
-      if (volumePercent) volumePercent.textContent = `${effectivePercent}%`;
+      const volumeKey = `${effectiveVolume}:${effectivePercent}`;
+      if (volumeKey !== lastVolumeKey) {
+        lastVolumeKey = volumeKey;
+        volume.value = String(effectiveVolume);
+        volume.style.setProperty(
+          "--range-progress",
+          `${effectiveVolume * 100}%`,
+        );
+        volume.setAttribute("aria-valuetext", `${effectivePercent}%`);
+        if (volumePercent) volumePercent.textContent = `${effectivePercent}%`;
+      }
     }
-    if (currentTime) {
+    const currentSecond = Math.floor(Number(snapshot.currentTime) || 0);
+    if (currentTime && currentSecond !== lastCurrentSecond) {
+      lastCurrentSecond = currentSecond;
       currentTime.textContent = formatPlaybackTime(snapshot.currentTime);
     }
-    if (duration) duration.textContent = formatPlaybackTime(snapshot.duration);
+    const durationSecond = Math.floor(Number(snapshot.duration) || 0);
+    if (duration && durationSecond !== lastDurationSecond) {
+      lastDurationSecond = durationSecond;
+      duration.textContent = formatPlaybackTime(snapshot.duration);
+    }
     const muted = snapshot.muted || snapshot.volume === 0;
     setPressedState(muteButton, muted);
-    muteButton?.setAttribute(
-      "aria-label",
+    setControlLabel(
+      muteButton,
       t(muted ? "nowPlaying.unmute" : "nowPlaying.mute"),
     );
     muteButton?.querySelector("i")?.classList.toggle("fa-volume-high", !muted);
     muteButton?.querySelector("i")?.classList.toggle("fa-volume-xmark", muted);
     root.classList.toggle("is-playing", snapshot.isPlaying);
     root.classList.toggle("is-loading", snapshot.isLoading);
-    brandLabel.textContent = t(
-      snapshot.isLoading
-        ? "nowPlaying.playback.preparing"
-        : snapshot.currentTrack && !snapshot.isPlaying
-          ? "nowPlaying.paused"
-          : "nowPlaying.label",
+    const hasPlaybackSession = Boolean(
+      snapshot.currentTrack &&
+        (snapshot.isLoading || snapshot.isPlaying || !snapshot.isStopped),
     );
+    root.classList.toggle("has-playback-session", hasPlaybackSession);
+    const dock = root.querySelector(".now-playing__dock");
+    if (dock) {
+      dock.setAttribute("aria-hidden", String(!hasPlaybackSession));
+      if (hasPlaybackSession) {
+        dockHideVersion += 1;
+        dock.removeAttribute("inert");
+      } else if (hadPlaybackSession) {
+        const hideVersion = ++dockHideVersion;
+        const reducedMotion = window.matchMedia?.(
+          "(prefers-reduced-motion: reduce)",
+        )?.matches;
+        setTimeout(
+          () => {
+            if (
+              hideVersion === dockHideVersion &&
+              !root.classList.contains("has-playback-session")
+            ) {
+              dock.setAttribute("inert", "");
+            }
+          },
+          reducedMotion ? 0 : 220,
+        );
+      } else {
+        dock.setAttribute("inert", "");
+      }
+    }
+    hadPlaybackSession = hasPlaybackSession;
+    brandLabel.textContent = t("nowPlaying.label");
+    brandLabel.hidden = !hasPlaybackSession;
     controlsVisibility.setPlaybackState(snapshot.isPlaying);
   };
 }
