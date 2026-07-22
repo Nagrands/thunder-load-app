@@ -3,9 +3,9 @@
 Thunder is a focused desktop utility for downloading media and managing local
 workflow tools. The 1.6.0 release codename is Thunder Spark.
 
-The Phase 1 visual direction uses an electric lightning symbol inside a circular
-energy ring, a dark technical backdrop, bright blue light, and a small amber
-Spark accent. The release slogan is:
+The visual direction uses a sharp electric-blue lightning symbol inside an open
+energy ring, a deep navy technical backdrop, cool white highlights, and a
+controlled cyan glow. The release slogan is:
 
 Spark ignites the future of downloads.
 
@@ -41,8 +41,10 @@ runtime tools, and practical file utilities without hiding important state.
 - Keep the primary task visible.
 - Prefer compact, scannable controls for repeated workflows.
 - Use color to communicate state and hierarchy, not decoration alone.
-- Preserve calm surfaces; reserve glow and motion for focus, progress, and
-  release-brand surfaces.
+- Preserve calm surfaces; reserve glow for the symbol, focus, progress, and
+  large release-brand surfaces.
+- Keep the core identity blue and cyan. Semantic red, green, and yellow are
+  status colors and must not become logo accents.
 - Use the lightning symbol as the primary brand signal for Thunder Spark.
 - Keep copy direct, action-oriented, and specific.
 

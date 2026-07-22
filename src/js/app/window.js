@@ -13,10 +13,7 @@ const {
   nativeImage,
 } = require("electron");
 const windowStateKeeper = require("electron-window-state");
-const {
-  resolveIconPathFrom,
-  resolveIconPathFromAppDir,
-} = require("./iconPaths");
+const { resolveIconPathFrom } = require("./iconPaths");
 const { showTrayNotification } = require("./notifications.js");
 const { trayIconController } = require("./trayIconController.js");
 
@@ -246,9 +243,7 @@ function createWindow(
 
   const preloadPath = path.join(__dirname, "../preload.js");
 
-  const baseAssetsPath = app.isPackaged
-    ? process.resourcesPath
-    : app.getAppPath();
+  const baseAssetsPath = app.getAppPath();
   const macIcns = resolveIconPathFrom(baseAssetsPath, "APP_ICON_ICNS");
   const macPng = resolveIconPathFrom(baseAssetsPath, "APP_ICON_PNG");
   const winIco = resolveIconPathFrom(baseAssetsPath, "APP_ICON_ICO");
@@ -451,10 +446,10 @@ function createTray(mainWindow, app, store, downloadPath) {
   const trayImage = trayIconController.loadImage("idle");
   const trayMenuPaths = {
     trayIconPath,
-    videoIconPath: resolveIconPathFromAppDir("MENU_VIDEO"),
-    folderIconPath: resolveIconPathFromAppDir("MENU_OPEN_FOLDER"),
-    settingsIconPath: resolveIconPathFromAppDir("MENU_SETTINGS"),
-    logoutIconPath: resolveIconPathFromAppDir("MENU_LOGOUT"),
+    videoIconPath: resolveIconPathFrom(app.getAppPath(), "MENU_VIDEO"),
+    folderIconPath: resolveIconPathFrom(app.getAppPath(), "MENU_OPEN_FOLDER"),
+    settingsIconPath: resolveIconPathFrom(app.getAppPath(), "MENU_SETTINGS"),
+    logoutIconPath: resolveIconPathFrom(app.getAppPath(), "MENU_LOGOUT"),
   };
 
   if (!trayImage) return;

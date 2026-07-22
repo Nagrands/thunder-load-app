@@ -3,6 +3,7 @@ jest.mock("electron", () => ({
     show: jest.fn(),
     on: jest.fn(),
   })),
+  app: { getAppPath: jest.fn(() => "/tmp/thunder") },
   shell: {
     openPath: jest.fn(),
   },

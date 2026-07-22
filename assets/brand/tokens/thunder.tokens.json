@@ -4,19 +4,37 @@
     "releaseName": "Thunder Spark",
     "releaseVersion": "1.6.0",
     "slogan": "Spark ignites the future of downloads.",
-    "symbol": "lightning-circle"
+    "symbol": "lightning-circle",
+    "symbolGeometry": {
+      "viewBox": "0 0 256 256",
+      "boltPath": "M146.5 21 61.5 144h55.5l-18.5 86 98-113h-58z",
+      "ring": "open-energy-ring"
+    }
   },
   "color": {
+    "identity": {
+      "tile": "#050914",
+      "boltShadow": "#03101F",
+      "boltCore": "#FFFFFF",
+      "boltEdge": "#DDF9FF",
+      "ringCyan": "#00A8FF",
+      "ringBlue": "#0B4DFF"
+    },
     "primary": {
       "blue600": "#2D9CFF",
       "blue500": "#4AA8FF",
       "blue300": "#85C9FF",
-      "electricCyan400": "#16D8FF"
+      "electricCyan400": "#16D8FF",
+      "electricBlue700": "#0B4DFF",
+      "electricBlue600": "#087BFF",
+      "electricBlue500": "#00A8FF",
+      "electricBlue200": "#7BE7FF",
+      "electricBlue100": "#BFF7FF"
     },
     "accent": {
-      "sparkAmber500": "#FFB238",
-      "sparkAmber300": "#FFD27A",
-      "sparkOrange500": "#FF8A00",
+      "sparkBlue500": "#0A8BFF",
+      "sparkBlue300": "#5FCFFF",
+      "sparkCyan200": "#DDF9FF",
       "boltWhite": "#F8FBFF"
     },
     "neutral": {
@@ -50,7 +68,7 @@
   "shadow": {
     "raised": "0 10px 24px rgba(4, 8, 15, 0.52)",
     "focus": "0 0 0 3px rgba(74, 168, 255, 0.28)",
-    "sparkGlow": "0 0 32px rgba(255, 178, 56, 0.28)",
+    "sparkGlow": "0 0 32px rgba(10, 139, 255, 0.34)",
     "electricGlow": "0 0 44px rgba(22, 216, 255, 0.42)"
   },
   "motion": {

@@ -2,6 +2,7 @@
 
 ## Font Stack
 
+- Brand wordmark: Orbitron 900 italic, then Inter and Segoe UI fallbacks.
 - Primary: Inter, system UI, Segoe UI, Roboto, Arial, sans-serif.
 - Secondary: system UI, Segoe UI, Roboto, Arial, sans-serif.
 - Monospace: JetBrains Mono, SFMono-Regular, Consolas, monospace.
@@ -21,6 +22,7 @@
 ## Rules
 
 - Letter spacing is `0` by default.
+- Brand lockups use the authored Orbitron spacing and must not be reflowed.
 - Use sentence case for interface labels.
 - Use short noun labels for tabs and sections.
 - Do not use display sizes inside dense controls, cards, modals, or toolbars.

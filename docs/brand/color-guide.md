@@ -1,8 +1,8 @@
 # Thunder Color Guide
 
 The Thunder palette uses electric blue for the lightning energy system, cool
-white for the bolt and wordmark, warm amber for the Spark release tag, and deep
-near-black surfaces for contrast.
+white for the bolt and wordmark, saturated blue for the Spark release tag, and
+deep near-black surfaces for contrast.
 
 ## Primary
 
@@ -12,15 +12,20 @@ near-black surfaces for contrast.
 | `thunder-blue-500`  | `#4AA8FF` | Hover, progress, highlights     |
 | `thunder-blue-300`  | `#85C9FF` | Links on dark surfaces          |
 | `electric-cyan-400` | `#16D8FF` | Lightning edge and release glow |
+| `electric-blue-700` | `#0B4DFF` | Ring depth                      |
+| `electric-blue-600` | `#087BFF` | Bolt base                       |
+| `electric-blue-500` | `#00A8FF` | Ring core                       |
+| `electric-blue-200` | `#7BE7FF` | Ring highlight                  |
+| `electric-blue-100` | `#BFF7FF` | Bolt highlight                  |
 
-## Secondary And Accent
+## Electric Accent
 
-| Token              | Hex       | Use                            |
-| ------------------ | --------- | ------------------------------ |
-| `spark-amber-500`  | `#FFB238` | Thunder Spark accent           |
-| `spark-orange-500` | `#FF8A00` | Small Spark tag and separators |
-| `spark-amber-300`  | `#FFD27A` | Soft highlight                 |
-| `bolt-white`       | `#F8FBFF` | Bolt core and primary wordmark |
+| Token            | Hex       | Use                            |
+| ---------------- | --------- | ------------------------------ |
+| `spark-blue-500` | `#0A8BFF` | Thunder Spark accent           |
+| `spark-blue-300` | `#5FCFFF` | Wordmark and ring highlight    |
+| `spark-cyan-200` | `#DDF9FF` | Bolt edge highlight            |
+| `bolt-white`     | `#F8FBFF` | Bolt core and primary wordmark |
 
 ## Neutral
 
@@ -49,5 +54,13 @@ near-black surfaces for contrast.
 - Border: `#2A384C`, `#354965`.
 - Text: `slate-100`, `slate-300`, `#667184`.
 - Focus: `thunder-blue-500` outline with a soft blue glow.
-- Glow: electric blue for the lightning ring and progress, amber only for the
-  small Spark tag and release accents.
+- Glow: electric blue and cyan for the lightning ring and release accents.
+- Semantic colors may appear in status UI, never in the core logo.
+
+## Identity Surfaces
+
+- Full-color marks use `#050914` for the tile and `#03101F` for bolt depth.
+- The bolt travels from white through cyan to `#087BFF`; the open ring travels
+  from white through `#00A8FF` to `#0B4DFF`.
+- Light-background lockups replace the light wordmark with `#07111F` while the
+  symbol keeps its blue identity palette.

@@ -8,6 +8,8 @@
 - End caps and joins: round by default.
 - Perspective: flat, front-facing, no fake 3D.
 - Brand symbol: angular lightning bolt inside a circular energy ring.
+- Master canvas: `0 0 256 256`; use the canonical bolt path from
+  `thunder.tokens.json` and an open ring with rounded ends.
 
 ## Style
 
@@ -23,7 +25,7 @@
 - Active: stronger color and explicit selected state.
 - Focus: visible focus ring from the focus color system.
 - Motion: use short transitions for state changes only; do not animate icons
-  decoratively in Phase 1.
+  decoratively.
 
 ## Brand Pictograms
 

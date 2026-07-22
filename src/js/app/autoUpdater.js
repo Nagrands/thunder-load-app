@@ -3,10 +3,11 @@
 const { autoUpdater } = require("electron-updater");
 const log = require("electron-log");
 const { Notification, app } = require("electron");
-const { resolveIconPathFromAppDir } = require("./iconPaths");
+const { resolveIconPathFromApp } = require("./iconPaths");
 
 const isMac = process.platform === "darwin";
-const iconPath = resolveIconPathFromAppDir(
+const iconPath = resolveIconPathFromApp(
+  app,
   isMac ? "APP_ICON_ICNS" : "APP_ICON_ICO",
 );
 

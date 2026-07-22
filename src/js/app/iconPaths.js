@@ -44,6 +44,14 @@ function resolveIconPathFromAppDir(key) {
   return resolveIconPathFrom(path.resolve(__dirname, "../../../"), key);
 }
 
+function resolveIconPathFromApp(app, key) {
+  const appPath = app?.getAppPath?.();
+  if (!appPath) {
+    throw new Error("Unable to resolve Electron app path for icon");
+  }
+  return resolveIconPathFrom(appPath, key);
+}
+
 function resolveTrayIconPath(basePath, platform, state) {
   const platformPaths = TRAY_ICON_PATH_SEGMENTS[platform];
   const segments = platformPaths?.[state];
@@ -57,6 +65,7 @@ module.exports = {
   ICON_PATH_SEGMENTS,
   TRAY_ICON_PATH_SEGMENTS,
   resolveIconPathFrom,
+  resolveIconPathFromApp,
   resolveIconPathFromAppDir,
   resolveTrayIconPath,
 };

@@ -39,9 +39,9 @@
   </defs><rect width="1200" height="630" fill="#050914"/><circle cx="216" cy="202" r="202" fill="#0A8BFF" opacity=".16" filter="url(#socialtemplate-glow)"/><circle cx="864" cy="151" r="126" fill="#16D8FF" opacity=".1"/><g transform="translate(192.32 205.51999999999998) scale(0.56)" filter="url(#socialtemplate-glow)">
     <circle cx="128" cy="128" r="111" fill="url(#socialtemplate-aura)"/>
     <path d="M182 41a91 91 0 1 0 38 86" fill="none" stroke="url(#socialtemplate-ring)" stroke-width="12" stroke-linecap="round" stroke-dasharray="410 58"/>
-    <path d="M151 16 58 148h58l-18 92 100-139h-61z" fill="#03101F" opacity=".62" transform="translate(8 9)"/>
-    <path d="M151 16 58 148h58l-18 92 100-139h-61z" fill="url(#socialtemplate-bolt)"/>
-    <path d="M151 16 58 148h58l-18 92 100-139h-61z" fill="none" stroke="#DDF9FF" stroke-width="3" opacity=".7"/>
+    <path d="M146.5 21 61.5 144h55.5l-18.5 86 98-113h-58z" fill="#03101F" opacity=".62" transform="translate(8 9)"/>
+    <path d="M146.5 21 61.5 144h55.5l-18.5 86 98-113h-58z" fill="url(#socialtemplate-bolt)"/>
+    <path d="M146.5 21 61.5 144h55.5l-18.5 86 98-113h-58z" fill="none" stroke="#DDF9FF" stroke-width="3" opacity=".7"/>
   </g>
   <text class="word" x="504" y="271" fill="url(#socialtemplate-metal)" font-size="58">THUNDER</text>
   <text class="word" x="504" y="359" fill="url(#socialtemplate-spark)" font-size="62">SPARK</text>

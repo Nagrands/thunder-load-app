@@ -2,18 +2,42 @@
 from __future__ import annotations
 
 import io
+import json
 import struct
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFilter, ImageOps
+from PIL import Image, ImageColor, ImageDraw, ImageFilter, ImageOps
 
 
 ROOT = Path(__file__).resolve().parents[1]
 ICONS_DIR = ROOT / "assets" / "icons"
 APP_DIR = ICONS_DIR / "app"
+APP_ICON_MASTER_PATH = APP_DIR / "app-icon-master.png"
 TRAY_DIR = ICONS_DIR / "tray"
 MACOS_DIR = ICONS_DIR / "platform" / "macos"
 ICONSET_DIR = MACOS_DIR / "app.iconset"
+MENU_DIR = ICONS_DIR / "menu"
+NOTIFICATIONS_DIR = ICONS_DIR / "notifications"
+TOKENS_PATH = ROOT / "assets" / "brand" / "tokens" / "thunder.tokens.json"
+
+
+def load_brand_colors() -> dict[str, str]:
+    with TOKENS_PATH.open(encoding="utf-8") as source:
+        tokens = json.load(source)
+    color = tokens["color"]
+    return {
+        "blue": color["primary"]["blue600"],
+        "blue_light": color["primary"]["blue300"],
+        "cyan": color["primary"]["electricCyan400"],
+        "white": color["accent"]["boltWhite"],
+        "ink": color["neutral"]["ink950"],
+        "tile": color["neutral"]["ink800"],
+        "success": color["semantic"]["success500"],
+        "danger": color["semantic"]["danger500"],
+    }
+
+
+COLORS = load_brand_colors()
 
 APP_ICON_SIZE = 1024
 ICONSET_SPECS = [
@@ -28,15 +52,7 @@ ICONSET_SPECS = [
     ("icon_512x512.png", 512),
     ("icon_512x512@2x.png", 1024),
 ]
-ICO_SIZES = [
-    (16, 16),
-    (24, 24),
-    (32, 32),
-    (48, 48),
-    (64, 64),
-    (128, 128),
-    (256, 256),
-]
+ICO_SIZES = (16, 24, 32, 48, 64, 128, 256)
 
 TRAY_STATES = ("idle", "downloading", "paused", "error", "offline")
 MACOS_TRAY_NAMES = {
@@ -109,14 +125,14 @@ def build_tile_mask(size: int) -> tuple[Image.Image, int, int]:
 
 
 def add_tile_background(canvas: Image.Image, size: int) -> None:
-    tile = make_vertical_gradient((size, size), "#0d1930", "#040813")
+    tile = make_vertical_gradient((size, size), COLORS["tile"], COLORS["ink"])
     tile = Image.alpha_composite(
         tile,
         glow(size, (31, 145, 255, 116), (64, 88, 520, 786), 92),
     )
     tile = Image.alpha_composite(
         tile,
-        glow(size, (255, 163, 48, 86), (526, 136, 968, 780), 110),
+        glow(size, (22, 216, 255, 72), (526, 136, 968, 780), 110),
     )
 
     top_sheen = Image.new("RGBA", (size, size), (0, 0, 0, 0))
@@ -238,14 +254,14 @@ def render_lightning_symbol(size: int) -> Image.Image:
         ring_bbox,
         start=124,
         end=386,
-        fill=(248, 251, 255, 236),
+        fill=(*ImageColor.getrgb(COLORS["blue"]), 236),
         width=ring_width,
     )
     ring_draw.arc(
         ring_bbox,
         start=292,
         end=68,
-        fill=(0, 168, 255, 232),
+        fill=(*ImageColor.getrgb(COLORS["cyan"]), 232),
         width=max(4, int(ring_width * 0.82)),
     )
     ring_glow = ring.filter(ImageFilter.GaussianBlur(max(1, size // 24)))
@@ -262,18 +278,18 @@ def render_lightning_symbol(size: int) -> Image.Image:
     lightning_shape = colored_shape(
         size,
         mask,
-        "#ffffff",
-        "#128bff",
+        COLORS["white"],
+        COLORS["blue"],
         glow_color=(22, 216, 255, 148),
         glow_bbox=(198, 154, 852, 932),
-        outline_color=(248, 251, 255, 96),
+        outline_color=(*ImageColor.getrgb(COLORS["white"]), 112),
         highlight_alpha=68,
     )
 
     warm_accent = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     ImageDraw.Draw(warm_accent).ellipse(
         fit_bbox((548, 176, 942, 670), size),
-        fill=(22, 216, 255, 56),
+        fill=(*ImageColor.getrgb(COLORS["cyan"]), 56),
     )
     warm_accent = warm_accent.filter(ImageFilter.GaussianBlur(max(1, size // 18)))
 
@@ -287,9 +303,72 @@ def render_lightning_symbol(size: int) -> Image.Image:
 
 
 def create_app_icon(size: int = APP_ICON_SIZE) -> Image.Image:
+    with Image.open(APP_ICON_MASTER_PATH) as source:
+        master = source.convert("RGBA")
+    if master.size == (size, size):
+        return master
+    return master.resize((size, size), Image.Resampling.LANCZOS)
+
+
+def create_menu_icon(name: str, size: int = 16) -> Image.Image:
+    """Draw a crisp system-menu glyph directly on the 16 px pixel grid."""
     canvas = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-    add_tile_background(canvas, size)
-    canvas.alpha_composite(render_lightning_symbol(size))
+    draw = ImageDraw.Draw(canvas)
+    neutral = (*ImageColor.getrgb(COLORS["white"]), 238)
+    blue = (*ImageColor.getrgb(COLORS["blue"]), 255)
+
+    if name == "video":
+        draw.rounded_rectangle((2, 4, 11, 12), radius=2, outline=neutral, width=1)
+        draw.polygon(((6, 6), (6, 10), (9, 8)), fill=blue)
+        draw.polygon(((11, 6), (14, 5), (14, 11), (11, 10)), fill=neutral)
+    elif name == "open-folder":
+        draw.polygon(((1, 5), (6, 5), (7, 7), (15, 7), (13, 13), (2, 13)), fill=neutral)
+        draw.polygon(((2, 4), (7, 4), (8, 6), (14, 6), (14, 7), (2, 7)), fill=blue)
+    elif name == "settings":
+        draw.ellipse((3, 3, 13, 13), outline=neutral, width=2)
+        draw.ellipse((6, 6, 10, 10), fill=blue)
+        for box in ((7, 1, 9, 4), (7, 12, 9, 15), (1, 7, 4, 9), (12, 7, 15, 9)):
+            draw.rectangle(box, fill=neutral)
+    elif name == "logout":
+        draw.arc((1, 2, 11, 14), 75, 285, fill=neutral, width=2)
+        draw.line((8, 8, 15, 8), fill=blue, width=2)
+        draw.polygon(((12, 5), (15, 8), (12, 11)), fill=blue)
+    else:
+        raise ValueError(f"Unsupported menu icon: {name}")
+    return canvas
+
+
+def create_notification_icon(state: str, size: int = 256) -> Image.Image:
+    canvas = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    symbol_size = round(size * 0.86)
+    symbol = render_lightning_symbol(symbol_size)
+    offset = (size - symbol_size) // 2
+    canvas.alpha_composite(symbol, (offset, offset))
+    draw = ImageDraw.Draw(canvas)
+    badge_size = round(size * 0.32)
+    margin = round(size * 0.07)
+    left = size - badge_size - margin
+    top = size - badge_size - margin
+    right = size - margin
+    bottom = size - margin
+    badge_color = COLORS["success"] if state == "done" else COLORS["danger"]
+    draw.ellipse((left, top, right, bottom), fill=badge_color, outline=COLORS["ink"], width=max(2, size // 64))
+    width = max(4, size // 32)
+    if state == "done":
+        draw.line(
+            ((left + badge_size * 0.23, top + badge_size * 0.53),
+             (left + badge_size * 0.43, top + badge_size * 0.72),
+             (left + badge_size * 0.78, top + badge_size * 0.31)),
+            fill=COLORS["white"],
+            width=width,
+            joint="curve",
+        )
+    elif state == "error":
+        inset = round(badge_size * 0.28)
+        draw.line((left + inset, top + inset, right - inset, bottom - inset), fill=COLORS["white"], width=width)
+        draw.line((right - inset, top + inset, left + inset, bottom - inset), fill=COLORS["white"], width=width)
+    else:
+        raise ValueError(f"Unsupported notification state: {state}")
     return canvas
 
 
@@ -423,25 +502,50 @@ def save_png(image: Image.Image, path: Path, size: int | None = None) -> None:
     output.save(path)
 
 
-def build_iconset(app_icon: Image.Image) -> None:
+def build_iconset() -> None:
     ICONSET_DIR.mkdir(parents=True, exist_ok=True)
     for filename, size in ICONSET_SPECS:
-        save_png(app_icon, ICONSET_DIR / filename, size)
+        save_png(create_app_icon(size), ICONSET_DIR / filename)
 
 
-def build_icns(app_icon: Image.Image) -> None:
-    app_icon.save(MACOS_DIR / "app-icon.icns")
+def build_icns() -> None:
+    """Package the complete 1x/2x iconset into a deterministic ICNS file."""
+    chunk_types = {
+        "icon_16x16.png": b"icp4",
+        "icon_16x16@2x.png": b"ic11",
+        "icon_32x32.png": b"icp5",
+        "icon_32x32@2x.png": b"ic12",
+        "icon_128x128.png": b"ic07",
+        "icon_128x128@2x.png": b"ic13",
+        "icon_256x256.png": b"ic08",
+        "icon_256x256@2x.png": b"ic14",
+        "icon_512x512.png": b"ic09",
+        "icon_512x512@2x.png": b"ic10",
+    }
+    chunks = []
+    for filename, _size in ICONSET_SPECS:
+        png_data = (ICONSET_DIR / filename).read_bytes()
+        chunks.append(chunk_types[filename] + struct.pack(">I", len(png_data) + 8) + png_data)
+    payload = b"".join(chunks)
+    (MACOS_DIR / "app-icon.icns").write_bytes(
+        b"icns" + struct.pack(">I", len(payload) + 8) + payload,
+    )
 
 
 def main() -> None:
     app_icon = create_app_icon()
     save_png(app_icon, APP_DIR / "app-icon.png")
-    app_icon.save(APP_DIR / "app-icon.ico", format="ICO", sizes=ICO_SIZES)
-    save_png(app_icon, APP_DIR / "app-icon-512.png", 512)
-    save_png(app_icon, APP_DIR / "app-icon-256.png", 256)
+    save_ico([create_app_icon(size) for size in ICO_SIZES], APP_DIR / "app-icon.ico")
+    save_png(create_app_icon(512), APP_DIR / "app-icon-512.png")
+    save_png(create_app_icon(256), APP_DIR / "app-icon-256.png")
 
-    build_iconset(app_icon)
-    build_icns(app_icon)
+    build_iconset()
+    build_icns()
+
+    for name in ("video", "open-folder", "settings", "logout"):
+        save_png(create_menu_icon(name), MENU_DIR / f"{name}.png")
+    save_png(create_notification_icon("done"), NOTIFICATIONS_DIR / "info-done.png")
+    save_png(create_notification_icon("error"), NOTIFICATIONS_DIR / "info-error.png")
 
     build_tray_icons()
 

@@ -15,6 +15,9 @@
 
 - Основные иконки приложения:
   `assets/icons/app/app-icon.png`, `assets/icons/app/app-icon.ico`
+- Исходный 1024×1024 RGBA master основного значка:
+  `assets/icons/app/app-icon-master.png`. Генератор не перезаписывает master и
+  использует его только для создания platform/app производных.
 - Иконка сборки macOS:
   `assets/icons/platform/macos/app-icon.icns`
 - Производные размеры:
@@ -27,6 +30,8 @@
     `tray-error.ico`, `tray-offline.ico`.
 - Иконки уведомлений:
   `info-done.png`, `info-error.png`
+- Иконки tray menu:
+  `video.png`, `open-folder.png`, `settings.png`, `logout.png`
 
 ## Правила
 
@@ -35,11 +40,15 @@
 - Если ассет используется только в одном сценарии, называйте его по сценарию:
   `tray-*`, `menu-*`, `notification-*` либо устоявшимся коротким именем внутри своей папки.
 - Для новых системных иконок сначала обновляйте [src/js/app/iconPaths.js](../src/js/app/iconPaths.js), а уже потом подключайте их в `window.js`, `notifications.js`, `autoUpdater.js` или другие модули.
-- При изменении брендовых иконок пересобирайте производные файлы через [scripts/generate_brand_icons.py](../scripts/generate_brand_icons.py).
+- App, platform, menu, notification и tray-иконки генерируются через
+  [scripts/generate_brand_icons.py](../scripts/generate_brand_icons.py) из
+  общей геометрии Thunder и палитры `assets/brand/tokens/thunder.tokens.json`.
 - macOS tray-иконки должны оставаться монохромными Template Images с прозрачным
   фоном. Windows tray-иконки содержат отдельно отрисованные кадры 16, 20, 24,
   32 и 48 px.
 - Не смешивайте брендовые app icons, menu assets и social SVG в одной плоской папке.
+- Логотипы сторонних платформ в `assets/icons/social` не являются производными
+  Thunder brand kit и не должны изменяться генератором.
 
 ## Текущие точки использования
 

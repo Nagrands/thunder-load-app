@@ -13,7 +13,10 @@ jest.mock("electron-updater", () => ({
 
 jest.mock("electron", () => ({
   Notification: { isSupported: jest.fn(() => false) },
-  app: { getVersion: jest.fn(() => "1.6.0") },
+  app: {
+    getAppPath: jest.fn(() => "/tmp/thunder"),
+    getVersion: jest.fn(() => "1.6.0"),
+  },
 }));
 
 jest.mock("electron-log", () => ({
@@ -28,7 +31,7 @@ jest.mock("electron-log", () => ({
 }));
 
 jest.mock("../iconPaths", () => ({
-  resolveIconPathFromAppDir: jest.fn(() => "/tmp/icon.ico"),
+  resolveIconPathFromApp: jest.fn(() => "/tmp/icon.ico"),
 }));
 
 function createMainWindow({ isLoading = true, destroyed = false } = {}) {

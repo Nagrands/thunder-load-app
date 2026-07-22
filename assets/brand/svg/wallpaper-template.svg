@@ -39,9 +39,9 @@
   </defs><rect width="2560" height="1440" fill="#050914"/><circle cx="461" cy="461" r="461" fill="#0A8BFF" opacity=".16" filter="url(#wallpapertemplate-glow)"/><circle cx="1843" cy="346" r="288" fill="#16D8FF" opacity=".1"/><g transform="translate(491.52000000000004 561.9200000000001) scale(0.56)" filter="url(#wallpapertemplate-glow)">
     <circle cx="128" cy="128" r="111" fill="url(#wallpapertemplate-aura)"/>
     <path d="M182 41a91 91 0 1 0 38 86" fill="none" stroke="url(#wallpapertemplate-ring)" stroke-width="12" stroke-linecap="round" stroke-dasharray="410 58"/>
-    <path d="M151 16 58 148h58l-18 92 100-139h-61z" fill="#03101F" opacity=".62" transform="translate(8 9)"/>
-    <path d="M151 16 58 148h58l-18 92 100-139h-61z" fill="url(#wallpapertemplate-bolt)"/>
-    <path d="M151 16 58 148h58l-18 92 100-139h-61z" fill="none" stroke="#DDF9FF" stroke-width="3" opacity=".7"/>
+    <path d="M146.5 21 61.5 144h55.5l-18.5 86 98-113h-58z" fill="#03101F" opacity=".62" transform="translate(8 9)"/>
+    <path d="M146.5 21 61.5 144h55.5l-18.5 86 98-113h-58z" fill="url(#wallpapertemplate-bolt)"/>
+    <path d="M146.5 21 61.5 144h55.5l-18.5 86 98-113h-58z" fill="none" stroke="#DDF9FF" stroke-width="3" opacity=".7"/>
   </g>
   <text class="word" x="1075.2" y="619" fill="url(#wallpapertemplate-metal)" font-size="78">THUNDER</text>
   <text class="word" x="1075.2" y="821" fill="url(#wallpapertemplate-spark)" font-size="86">SPARK</text>

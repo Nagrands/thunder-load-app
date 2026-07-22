@@ -10,10 +10,13 @@
 - Dark version: light mark on dark backgrounds.
 - Light version: dark mark on light backgrounds.
 - Favicon: simplified lightning-circle symbol.
+- Campaign templates: the same full-color mark on a dark navy field with
+  restrained blue/cyan ambient light.
 
 ## Clear Space
 
-Keep clear space around every logo equal to at least half the symbol width.
+Keep clear space around standalone symbols equal to at least one quarter of the
+symbol width. For wordmark lockups, keep at least half the bolt width.
 Do not place text, controls, badges, or screenshots inside this area.
 
 ## Minimum Size
@@ -27,6 +30,7 @@ Do not place text, controls, badges, or screenshots inside this area.
 - Stretch, rotate, or skew the logo.
 - Add unapproved shadows or outlines.
 - Change the lightning bolt angle or remove the circular energy ring.
+- Introduce amber, orange, or another decorative logo accent.
 - Place the full-color logo on low-contrast backgrounds.
 - Use the old Thunder Load wordmark for new release assets.
 
