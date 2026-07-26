@@ -157,20 +157,35 @@ export function buildNowPlayingMarkup() {
         </div>
 
         <div class="now-playing__library-heading">
-          <label class="now-playing__playlist-switcher">
+          <div class="now-playing__playlist-switcher">
             <span data-i18n="nowPlaying.playlists.active">${t("nowPlaying.playlists.active")}</span>
-            <span class="now-playing__playlist-select-shell">
-              <i data-lucide="list-video" aria-hidden="true"></i>
-              <select
+            <div class="now-playing__playlist-select-shell">
+              <button
+                type="button"
                 class="now-playing__library-title"
                 data-ui="sidebar-playlist-switcher"
+                data-action="toggle-sidebar-playlist-menu"
                 data-i18n-aria="nowPlaying.playlists.select"
                 aria-label="${t("nowPlaying.playlists.select")}"
-                aria-controls="now-playing-sidebar-queue"
-              ></select>
-              <i data-lucide="chevron-down" aria-hidden="true"></i>
-            </span>
-          </label>
+                aria-haspopup="listbox"
+                aria-expanded="false"
+                aria-controls="now-playing-sidebar-playlist-menu"
+              >
+                <i data-lucide="list-video" aria-hidden="true"></i>
+                <span data-ui="sidebar-playlist-label"></span>
+                <i data-lucide="chevron-down" aria-hidden="true"></i>
+              </button>
+              <div
+                class="now-playing__playlist-menu"
+                id="now-playing-sidebar-playlist-menu"
+                data-ui="sidebar-playlist-menu"
+                role="listbox"
+                data-i18n-aria="nowPlaying.playlists.select"
+                aria-label="${t("nowPlaying.playlists.select")}"
+                hidden
+              ></div>
+            </div>
+          </div>
           <span class="now-playing__library-count" data-ui="playlist-count"></span>
         </div>
 
@@ -314,21 +329,38 @@ export function buildNowPlayingMarkup() {
             placeholder="${t("nowPlaying.library.searchPlaceholder")}"
           />
           <button
+            class="player-library__search-clear"
             type="button"
             data-action="clear-library-search"
             data-ui="library-search-clear"
             data-i18n-aria="nowPlaying.library.clearSearch"
+            data-i18n-title="nowPlaying.library.clearSearch"
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
             aria-label="${t("nowPlaying.library.clearSearch")}"
+            title="${t("nowPlaying.library.clearSearch")}"
             hidden
           >
-            <i data-lucide="x" aria-hidden="true"></i>
+            <i data-lucide="circle-x" aria-hidden="true"></i>
           </button>
         </div>
         <div class="player-library__filters" role="group" aria-label="${t("nowPlaying.library.filters")}">
-          <button type="button" data-action="set-library-filter" data-filter="all" aria-pressed="true" data-i18n="nowPlaying.library.filter.all">${t("nowPlaying.library.filter.all")}</button>
-          <button type="button" data-action="set-library-filter" data-filter="video" aria-pressed="false" data-i18n="nowPlaying.library.filter.video">${t("nowPlaying.library.filter.video")}</button>
-          <button type="button" data-action="set-library-filter" data-filter="audio" aria-pressed="false" data-i18n="nowPlaying.library.filter.audio">${t("nowPlaying.library.filter.audio")}</button>
-          <button type="button" data-action="set-library-filter" data-filter="missing" aria-pressed="false" data-i18n="nowPlaying.library.filter.missing">${t("nowPlaying.library.filter.missing")}</button>
+          <button type="button" data-action="set-library-filter" data-filter="all" aria-pressed="true">
+            <i data-lucide="layout-grid" aria-hidden="true"></i>
+            <span data-i18n="nowPlaying.library.filter.all">${t("nowPlaying.library.filter.all")}</span>
+          </button>
+          <button type="button" data-action="set-library-filter" data-filter="video" aria-pressed="false">
+            <i data-lucide="clapperboard" aria-hidden="true"></i>
+            <span data-i18n="nowPlaying.library.filter.video">${t("nowPlaying.library.filter.video")}</span>
+          </button>
+          <button type="button" data-action="set-library-filter" data-filter="audio" aria-pressed="false">
+            <i data-lucide="music-2" aria-hidden="true"></i>
+            <span data-i18n="nowPlaying.library.filter.audio">${t("nowPlaying.library.filter.audio")}</span>
+          </button>
+          <button type="button" data-action="set-library-filter" data-filter="missing" aria-pressed="false">
+            <i data-lucide="file-warning" aria-hidden="true"></i>
+            <span data-i18n="nowPlaying.library.filter.missing">${t("nowPlaying.library.filter.missing")}</span>
+          </button>
         </div>
         <div class="player-library__header-actions" aria-label="${t("nowPlaying.library.actions")}">
           ${libraryActionButton("add-files", "fa-solid fa-file-audio", "nowPlaying.addFiles")}

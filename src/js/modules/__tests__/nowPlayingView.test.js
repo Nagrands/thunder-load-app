@@ -1051,6 +1051,16 @@ describe("Now Playing view", () => {
     expect(library.querySelector(".player-library__command-bar")).not.toBeNull();
     expect(library.querySelector(".player-library__column-header")).not.toBeNull();
     expect(
+      library
+        .querySelector('[data-ui="library-search-clear"] [data-lucide]')
+        .dataset.lucide,
+    ).toBe("circle-x");
+    expect(
+      [...library.querySelectorAll(".player-library__filters [data-lucide]")].map(
+        (icon) => icon.dataset.lucide,
+      ),
+    ).toEqual(["layout-grid", "clapperboard", "music-2", "file-warning"]);
+    expect(
       library.querySelector('[data-ui="playlist-management-actions"]').hidden,
     ).toBe(true);
     expect(
@@ -1098,10 +1108,16 @@ describe("Now Playing view", () => {
     const sidebarSwitcher = view.element.querySelector(
       '[data-ui="sidebar-playlist-switcher"]',
     );
+    const sidebarPlaylistMenu = view.element.querySelector(
+      '[data-ui="sidebar-playlist-menu"]',
+    );
     expect(
-      Array.from(sidebarSwitcher.options).map((option) => option.value),
+      [...sidebarPlaylistMenu.querySelectorAll('[role="option"]')].map(
+        (option) => option.dataset.playlistId,
+      ),
     ).toEqual(["media-library", "favorites"]);
-    expect(sidebarSwitcher.value).toBe("media-library");
+    expect(sidebarSwitcher.dataset.playlistId).toBe("media-library");
+    expect(sidebarSwitcher.getAttribute("aria-haspopup")).toBe("listbox");
     const libraryCard = library.querySelector(
       '.player-library__playlist-card[data-playlist-id="media-library"]',
     );
@@ -1154,15 +1170,29 @@ describe("Now Playing view", () => {
     expect(
       library.querySelector('[data-ui="playlist-management-actions"]').hidden,
     ).toBe(false);
-    expect(sidebarSwitcher.value).toBe("favorites");
+    expect(sidebarSwitcher.dataset.playlistId).toBe("favorites");
 
-    sidebarSwitcher.value = "media-library";
-    sidebarSwitcher.dispatchEvent(new Event("change", { bubbles: true }));
+    sidebarSwitcher.click();
+    expect(sidebarPlaylistMenu.hidden).toBe(false);
+    sidebarPlaylistMenu
+      .querySelector('[data-playlist-id="media-library"]')
+      .click();
     await Promise.resolve();
     expect(
       library.querySelector('[data-ui="active-playlist-title"]').textContent,
     ).toBe("nowPlaying.library.title");
-    expect(sidebarSwitcher.value).toBe("media-library");
+    expect(sidebarSwitcher.dataset.playlistId).toBe("media-library");
+    expect(sidebarPlaylistMenu.hidden).toBe(true);
+    sidebarSwitcher.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }),
+    );
+    expect(sidebarPlaylistMenu.hidden).toBe(false);
+    expect(document.activeElement.getAttribute("role")).toBe("option");
+    document.activeElement.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+    );
+    expect(sidebarPlaylistMenu.hidden).toBe(true);
+    expect(document.activeElement).toBe(sidebarSwitcher);
 
     library.querySelector('[data-action="show-player"]').click();
     expect(library.hidden).toBe(true);
@@ -1221,6 +1251,9 @@ describe("Now Playing view", () => {
 
     search.value = "season one";
     search.dispatchEvent(new Event("input", { bubbles: true }));
+    expect(library.querySelector('[data-ui="library-search-clear"]').hidden).toBe(
+      false,
+    );
     expect(library.querySelectorAll(".player-library__track")).toHaveLength(1);
     expect(
       library.querySelector(".player-library__track").dataset.trackId,
@@ -1344,19 +1377,22 @@ describe("Now Playing view", () => {
       '[data-ui="sidebar-playlist-switcher"]',
     );
     expect(sidebarSwitcher.getAttribute("aria-controls")).toBe(
-      "now-playing-sidebar-queue",
+      "now-playing-sidebar-playlist-menu",
     );
     expect(
       sidebarSwitcher.closest(".now-playing__library-heading").hidden,
     ).toBe(false);
 
-    sidebarSwitcher.value = "calm";
-    sidebarSwitcher.dispatchEvent(new Event("change", { bubbles: true }));
+    sidebarSwitcher.click();
+    const sidebarPlaylistMenu = view.element.querySelector(
+      '[data-ui="sidebar-playlist-menu"]',
+    );
+    sidebarPlaylistMenu.querySelector('[data-playlist-id="calm"]').click();
     await new Promise((resolve) => setTimeout(resolve, 260));
 
     expect(HTMLMediaElement.prototype.pause).toHaveBeenCalled();
     expect(HTMLMediaElement.prototype.play).not.toHaveBeenCalled();
-    expect(sidebarSwitcher.value).toBe("calm");
+    expect(sidebarSwitcher.dataset.playlistId).toBe("calm");
     expect(
       view.element.querySelector(".now-playing__track.is-current").dataset
         .trackId,

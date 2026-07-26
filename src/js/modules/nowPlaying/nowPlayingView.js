@@ -644,6 +644,13 @@ export function createNowPlayingView({
     if (action === "select-playlist") {
       return selectPlaylist(target.dataset.playlistId);
     }
+    if (action === "toggle-sidebar-playlist-menu") {
+      return libraryView.toggleSidebarPlaylistMenu();
+    }
+    if (action === "select-sidebar-playlist") {
+      libraryView.closeSidebarPlaylistMenu({ restoreFocus: true });
+      return selectPlaylist(target.dataset.playlistId);
+    }
     if (action === "select-library-track") {
       if (target.dataset.trackId === controller.currentTrack?.id) {
         return controller.togglePlayback();
@@ -763,6 +770,9 @@ export function createNowPlayingView({
 
   function onClick(event) {
     const actionTarget = event.target.closest("[data-action]");
+    if (!event.target.closest(".now-playing__playlist-select-shell")) {
+      libraryView.closeSidebarPlaylistMenu();
+    }
     if (
       !playerMenu.hidden &&
       !event.target.closest('[data-ui="player-menu"]') &&
@@ -775,6 +785,42 @@ export function createNowPlayingView({
   }
 
   function onKeydown(event) {
+    const playlistTrigger = event.target.closest(
+      '[data-action="toggle-sidebar-playlist-menu"]',
+    );
+    if (
+      playlistTrigger &&
+      ["ArrowDown", "ArrowUp", "Enter", " "].includes(event.key)
+    ) {
+      event.preventDefault();
+      libraryView.toggleSidebarPlaylistMenu(true);
+      return;
+    }
+    const playlistOption = event.target.closest(
+      '[data-action="select-sidebar-playlist"]',
+    );
+    if (
+      playlistOption &&
+      ["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)
+    ) {
+      event.preventDefault();
+      libraryView.moveSidebarPlaylistFocus(playlistOption, event.key);
+      return;
+    }
+    if (playlistOption && ["Enter", " "].includes(event.key)) {
+      event.preventDefault();
+      playlistOption.click();
+      return;
+    }
+    if (
+      event.key === "Escape" &&
+      (playlistOption || playlistTrigger)
+    ) {
+      event.preventDefault();
+      event.stopPropagation();
+      libraryView.closeSidebarPlaylistMenu({ restoreFocus: true });
+      return;
+    }
     const libraryRow = event.target.closest(".player-library__track");
     if (libraryRow && (event.key === "ContextMenu" || (event.shiftKey && event.key === "F10"))) {
       event.preventDefault();
@@ -946,12 +992,6 @@ export function createNowPlayingView({
     void playNextTrack({ fromEnded: true });
   }
 
-  function onChange(event) {
-    if (event.target.matches('[data-ui="sidebar-playlist-switcher"]')) {
-      void selectPlaylist(event.target.value);
-    }
-  }
-
   async function selectPlaylist(playlistId) {
     const previousTrack = controller.currentTrack;
     if (!libraryModel.setActivePlaylist(playlistId)) return false;
@@ -1003,7 +1043,6 @@ export function createNowPlayingView({
   root.addEventListener("keydown", onKeydown);
   root.addEventListener("input", onInput);
   root.addEventListener("wheel", onWheel, { passive: false });
-  root.addEventListener("change", onChange);
   root.addEventListener("contextmenu", onContextMenu);
   root.addEventListener("dblclick", onDoubleClick);
   root.addEventListener("dragstart", onDragStart);
@@ -1122,7 +1161,6 @@ export function createNowPlayingView({
       root.removeEventListener("keydown", onKeydown);
       root.removeEventListener("input", onInput);
       root.removeEventListener("wheel", onWheel);
-      root.removeEventListener("change", onChange);
       root.removeEventListener("contextmenu", onContextMenu);
       root.removeEventListener("dblclick", onDoubleClick);
       root.removeEventListener("dragstart", onDragStart);

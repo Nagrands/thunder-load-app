@@ -166,6 +166,38 @@ function createPlaylistCard(playlist, tracks, active) {
   return card;
 }
 
+function createSidebarPlaylistOption(playlist, tracks, active) {
+  const option = document.createElement("button");
+  option.type = "button";
+  option.className = "now-playing__playlist-menu-option";
+  option.dataset.action = "select-sidebar-playlist";
+  option.dataset.playlistId = playlist.id;
+  option.dataset.value = playlist.id;
+  option.setAttribute("role", "option");
+  option.setAttribute("aria-selected", String(active));
+  option.tabIndex = -1;
+  option.classList.toggle("is-active", active);
+  option.appendChild(
+    createIcon(isSystemPlaylist(playlist) ? "library" : "list-video"),
+  );
+
+  const copy = document.createElement("span");
+  const title = document.createElement("strong");
+  title.textContent = isSystemPlaylist(playlist)
+    ? t("nowPlaying.library.title")
+    : playlist.title;
+  const count = document.createElement("small");
+  count.textContent = t("nowPlaying.library.itemsCount", {
+    count: tracks.length,
+  });
+  copy.append(title, count);
+
+  const check = createIcon("check");
+  check.classList.add("now-playing__playlist-menu-check");
+  option.append(copy, check);
+  return option;
+}
+
 function createTrackRow(track, index, playlist, snapshot) {
   const row = document.createElement("div");
   const current = track.id === snapshot?.currentTrack?.id;
@@ -287,6 +319,12 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
   const sidebarPlaylistSwitcher = root.querySelector(
     '[data-ui="sidebar-playlist-switcher"]',
   );
+  const sidebarPlaylistLabel = root.querySelector(
+    '[data-ui="sidebar-playlist-label"]',
+  );
+  const sidebarPlaylistMenu = root.querySelector(
+    '[data-ui="sidebar-playlist-menu"]',
+  );
   const activeType = root.querySelector('[data-ui="active-playlist-type"]');
   const activeTitle = root.querySelector('[data-ui="active-playlist-title"]');
   const activeSummary = root.querySelector(
@@ -344,17 +382,21 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
         ),
       ),
     );
-    sidebarPlaylistSwitcher.replaceChildren(
-      ...playlists.map((playlist) => {
-        const option = document.createElement("option");
-        option.value = playlist.id;
-        option.textContent = isSystemPlaylist(playlist)
-          ? t("nowPlaying.library.title")
-          : playlist.title;
-        return option;
-      }),
+    sidebarPlaylistMenu.replaceChildren(
+      ...playlists.map((playlist) =>
+        createSidebarPlaylistOption(
+          playlist,
+          getPlaylistTracks(latestState, playlist),
+          playlist.id === activePlaylist?.id,
+        ),
+      ),
     );
-    sidebarPlaylistSwitcher.value = activePlaylist?.id || "media-library";
+    sidebarPlaylistSwitcher.dataset.playlistId =
+      activePlaylist?.id || "media-library";
+    sidebarPlaylistLabel.textContent = isSystemPlaylist(activePlaylist)
+      ? t("nowPlaying.library.title")
+      : activePlaylist?.title || "";
+    closeSidebarPlaylistMenu();
     renderTrackList(activeTracks, activePlaylist, latestSnapshot);
     renderSearchControls();
     previousPlaybackTrackId = null;
@@ -448,6 +490,43 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
     activeFilter = "all";
     rerenderTrackList();
     searchInput.focus();
+  }
+
+  function closeSidebarPlaylistMenu({ restoreFocus = false } = {}) {
+    sidebarPlaylistMenu.hidden = true;
+    sidebarPlaylistSwitcher.setAttribute("aria-expanded", "false");
+    sidebarPlaylistSwitcher.classList.remove("is-open");
+    if (restoreFocus) sidebarPlaylistSwitcher.focus();
+  }
+
+  function toggleSidebarPlaylistMenu(force) {
+    const open =
+      typeof force === "boolean" ? force : sidebarPlaylistMenu.hidden;
+    sidebarPlaylistMenu.hidden = !open;
+    sidebarPlaylistSwitcher.setAttribute("aria-expanded", String(open));
+    sidebarPlaylistSwitcher.classList.toggle("is-open", open);
+    if (open) {
+      const selected = sidebarPlaylistMenu.querySelector(
+        '[aria-selected="true"]',
+      );
+      (selected || sidebarPlaylistMenu.querySelector('[role="option"]'))?.focus();
+    }
+    return open;
+  }
+
+  function moveSidebarPlaylistFocus(option, key) {
+    const options = [
+      ...sidebarPlaylistMenu.querySelectorAll('[role="option"]'),
+    ];
+    if (!options.length) return;
+    const index = Math.max(0, options.indexOf(option));
+    const nextIndexByKey = {
+      ArrowDown: (index + 1) % options.length,
+      ArrowUp: (index - 1 + options.length) % options.length,
+      Home: 0,
+      End: options.length - 1,
+    };
+    options[nextIndexByKey[key]]?.focus();
   }
 
   function renderPlayback(snapshot = {}) {
@@ -660,6 +739,7 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
 
   return {
     closeDialog,
+    closeSidebarPlaylistMenu,
     dispose() {
       closeDialog();
       playerDialog?.dispose();
@@ -680,6 +760,8 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
     },
     show,
     showDialogError,
+    toggleSidebarPlaylistMenu,
+    moveSidebarPlaylistFocus,
   };
 }
 
