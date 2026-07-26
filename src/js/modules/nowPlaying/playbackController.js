@@ -4,6 +4,7 @@ import {
 } from "./mediaLibraryModel.js";
 
 const REPEAT_MODES = new Set(["off", "all", "one"]);
+const HLS_START_TIMEOUT_MS = 15_000;
 let hlsModulePromise = null;
 
 async function loadHlsConstructor() {
@@ -32,6 +33,7 @@ export class PlaybackController {
     mediaLayers,
     random = Math.random,
     lifecycleLog = null,
+    hlsLoader = loadHlsConstructor,
   }) {
     if (!providers || !Array.isArray(mediaLayers) || mediaLayers.length !== 2) {
       throw new TypeError(
@@ -41,6 +43,7 @@ export class PlaybackController {
     this.providers = providers;
     this.mediaLayers = mediaLayers;
     this.random = random;
+    this.hlsLoader = hlsLoader;
     this.lifecycleLog =
       typeof lifecycleLog === "function" ? lifecycleLog : null;
     this.listeners = new Set();
@@ -328,8 +331,7 @@ export class PlaybackController {
       });
       this.applyPendingStartTime(nextMedia, { retain: true });
     }
-    const Hls =
-      playback.kind === "hls" ? await loadHlsConstructor() : null;
+    const Hls = playback.kind === "hls" ? await this.hlsLoader() : null;
     if (!this.isCurrentSession(session)) {
       await this.releaseLayer(nextLayerIndex);
       return false;
@@ -341,8 +343,18 @@ export class PlaybackController {
         maxMaxBufferLength: 90,
       });
       this.hlsInstances[nextLayerIndex] = hls;
-      hls.attachMedia(nextMedia);
-      hls.on(Hls.Events.MEDIA_ATTACHED, () => hls.loadSource(playback.src));
+      await this.waitForHlsReady({
+        Hls,
+        hls,
+        media: nextMedia,
+        src: playback.src,
+        session,
+      });
+      if (!this.isCurrentSession(session)) {
+        await this.releaseLayer(nextLayerIndex);
+        return false;
+      }
+      this.applyPendingStartTime(nextMedia);
     } else {
       nextMedia.src = playback.src;
       safeMediaCall(nextMedia, "load");
@@ -351,6 +363,66 @@ export class PlaybackController {
     this.applyVolume();
     this.emit();
     return true;
+  }
+
+  waitForHlsReady({ Hls, hls, media, src, session }) {
+    return new Promise((resolve, reject) => {
+      let settled = false;
+      const signal = session.controller.signal;
+      const finish = (error = null) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timeout);
+        signal.removeEventListener("abort", handleAbort);
+        hls.off(Hls.Events.MEDIA_ATTACHED, handleMediaAttached);
+        hls.off(Hls.Events.MANIFEST_PARSED, handleManifestParsed);
+        hls.off(Hls.Events.ERROR, handleError);
+        if (error) reject(error);
+        else resolve();
+      };
+      const createError = (code, message) =>
+        Object.assign(new Error(message), { code });
+      const handleAbort = () =>
+        finish(
+          createError(
+            "PLAYBACK_SESSION_CANCELLED",
+            "Playback session was cancelled",
+          ),
+        );
+      const handleMediaAttached = () => {
+        if (!this.isCurrentSession(session)) {
+          handleAbort();
+          return;
+        }
+        hls.loadSource(src);
+      };
+      const handleManifestParsed = () => finish();
+      const handleError = (_event, data = {}) => {
+        if (!data.fatal) return;
+        finish(
+          createError(
+            "HLS_LOAD_FAILED",
+            data.details || "Unable to prepare the media stream",
+          ),
+        );
+      };
+      const timeout = setTimeout(
+        () =>
+          finish(
+            createError(
+              "HLS_LOAD_TIMEOUT",
+              "Timed out while preparing the media stream",
+            ),
+          ),
+        HLS_START_TIMEOUT_MS,
+      );
+
+      hls.on(Hls.Events.MEDIA_ATTACHED, handleMediaAttached);
+      hls.on(Hls.Events.MANIFEST_PARSED, handleManifestParsed);
+      hls.on(Hls.Events.ERROR, handleError);
+      signal.addEventListener("abort", handleAbort, { once: true });
+      hls.attachMedia(media);
+    });
   }
 
   async play({ selectionVersion = null } = {}) {

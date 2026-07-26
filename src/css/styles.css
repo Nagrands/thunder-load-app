@@ -40480,14 +40480,14 @@ body.is-now-playing-active:has(.now-playing.is-reduced-motion) .top-bar {
   top: 74px;
   right: 26px;
   display: grid;
-  width: 230px;
-  padding: 8px;
+  width: 305px;
+  padding: 4px;
   border: 1px solid var(--player-border);
-  border-radius: 13px;
+  border-radius: 12px;
   background: var(--player-glass-strong);
   box-shadow: var(--player-shadow);
-  backdrop-filter: blur(22px) saturate(118%);
-  -webkit-backdrop-filter: blur(22px) saturate(118%);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 .now-playing__player-menu[hidden] {
   display: none;

@@ -13,7 +13,7 @@ function createMedia() {
   return media;
 }
 
-function createController(random = () => 0) {
+function createController(random = () => 0, { hlsLoader = undefined } = {}) {
   const mediaLayers = [createMedia(), createMedia()];
   const providers = {
     resolveTrack: jest.fn(async (track) => ({
@@ -27,6 +27,7 @@ function createController(random = () => 0) {
     providers,
     mediaLayers,
     random,
+    ...(hlsLoader ? { hlsLoader } : {}),
   });
   return { controller, mediaLayers, providers };
 }
@@ -102,6 +103,83 @@ describe("Now Playing playback controller", () => {
     expect(mediaLayers[1].src).toContain("/two.mp3");
     expect(mediaLayers[1].play).toHaveBeenCalledTimes(1);
     expect(mediaLayers[0].muted).toBe(true);
+  });
+
+  test("waits for an HLS manifest before starting playback", async () => {
+    const operationOrder = [];
+    class DeferredHls {
+      static Events = {
+        MEDIA_ATTACHED: "mediaAttached",
+        MANIFEST_PARSED: "manifestParsed",
+        ERROR: "error",
+      };
+
+      static instances = [];
+
+      static isSupported() {
+        return true;
+      }
+
+      constructor() {
+        this.handlers = new Map();
+        DeferredHls.instances.push(this);
+      }
+
+      on(eventName, handler) {
+        const handlers = this.handlers.get(eventName) || new Set();
+        handlers.add(handler);
+        this.handlers.set(eventName, handlers);
+      }
+
+      off(eventName, handler) {
+        this.handlers.get(eventName)?.delete(handler);
+      }
+
+      emit(eventName, data) {
+        this.handlers
+          .get(eventName)
+          ?.forEach((handler) => handler(eventName, data));
+      }
+
+      attachMedia(media) {
+        this.media = media;
+        queueMicrotask(() => this.emit(DeferredHls.Events.MEDIA_ATTACHED));
+      }
+
+      loadSource(src) {
+        operationOrder.push("load-source");
+        this.media.src = src;
+      }
+
+      destroy() {}
+    }
+
+    const { controller, mediaLayers, providers } = createController(
+      () => 0,
+      { hlsLoader: async () => DeferredHls },
+    );
+    providers.resolveTrack.mockResolvedValue({
+      kind: "hls",
+      src: "http://127.0.0.1/playback/master.m3u8",
+      posterUrl: "",
+    });
+    mediaLayers[1].play.mockImplementation(async () => {
+      operationOrder.push("play");
+    });
+    controller.setQueue(tracks);
+
+    const selection = controller.selectTrack("one");
+    await flushPlaybackCleanup();
+
+    expect(DeferredHls.instances).toHaveLength(1);
+    expect(operationOrder).toEqual(["load-source"]);
+    expect(mediaLayers[1].play).not.toHaveBeenCalled();
+
+    DeferredHls.instances[0].emit(DeferredHls.Events.MANIFEST_PARSED);
+    await selection;
+
+    expect(operationOrder).toEqual(["load-source", "play"]);
+    expect(controller.getSnapshot().error).toBeNull();
   });
 
   test("restores playback position while preserving a paused state", async () => {
