@@ -27,6 +27,13 @@ function safeMediaCall(media, method) {
   }
 }
 
+function isInterruptedPlayError(error) {
+  return (
+    error?.name === "AbortError" &&
+    /interrupted by a new load request/i.test(String(error?.message || ""))
+  );
+}
+
 export class PlaybackController {
   constructor({
     providers,
@@ -285,7 +292,7 @@ export class PlaybackController {
         trackId: track.id,
       });
       if (autoplay && !this.isSuspended) {
-        await this.play({ selectionVersion: version });
+        return this.play({ selectionVersion: version });
       } else {
         this.isLoading = false;
         this.loadingTrackId = null;
@@ -368,12 +375,18 @@ export class PlaybackController {
   waitForHlsReady({ Hls, hls, media, src, session }) {
     return new Promise((resolve, reject) => {
       let settled = false;
+      let manifestReady = false;
+      let metadataReady = Number(media.readyState) >= 1;
       const signal = session.controller.signal;
+      const tryFinish = () => {
+        if (manifestReady && metadataReady) finish();
+      };
       const finish = (error = null) => {
         if (settled) return;
         settled = true;
         clearTimeout(timeout);
         signal.removeEventListener("abort", handleAbort);
+        media.removeEventListener("loadedmetadata", handleLoadedMetadata);
         hls.off(Hls.Events.MEDIA_ATTACHED, handleMediaAttached);
         hls.off(Hls.Events.MANIFEST_PARSED, handleManifestParsed);
         hls.off(Hls.Events.ERROR, handleError);
@@ -396,7 +409,14 @@ export class PlaybackController {
         }
         hls.loadSource(src);
       };
-      const handleManifestParsed = () => finish();
+      const handleManifestParsed = () => {
+        manifestReady = true;
+        tryFinish();
+      };
+      const handleLoadedMetadata = () => {
+        metadataReady = true;
+        tryFinish();
+      };
       const handleError = (_event, data = {}) => {
         if (!data.fatal) return;
         finish(
@@ -420,8 +440,68 @@ export class PlaybackController {
       hls.on(Hls.Events.MEDIA_ATTACHED, handleMediaAttached);
       hls.on(Hls.Events.MANIFEST_PARSED, handleManifestParsed);
       hls.on(Hls.Events.ERROR, handleError);
+      media.addEventListener("loadedmetadata", handleLoadedMetadata);
       signal.addEventListener("abort", handleAbort, { once: true });
       hls.attachMedia(media);
+    });
+  }
+
+  isActivePlaybackPrepared() {
+    const index = this.activeLayerIndex;
+    const media = this.mediaLayers[index];
+    const record = this.layerPlaybacks[index];
+    if (
+      !record?.playback ||
+      record.track?.id !== this.currentTrack?.id ||
+      media?.dataset.trackId !== this.currentTrack?.id
+    ) {
+      return false;
+    }
+    return record.playback.kind === "hls"
+      ? Boolean(this.hlsInstances[index])
+      : Boolean(media.src);
+  }
+
+  waitForPlaybackReady(media, session) {
+    if (Number(media.readyState) >= 3) return Promise.resolve();
+    return new Promise((resolve, reject) => {
+      let settled = false;
+      const signal = session?.controller.signal;
+      const finish = (error = null) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timeout);
+        media.removeEventListener("canplay", handleCanPlay);
+        media.removeEventListener("error", handleMediaError);
+        signal?.removeEventListener("abort", handleAbort);
+        if (error) reject(error);
+        else resolve();
+      };
+      const handleCanPlay = () => finish();
+      const handleMediaError = () =>
+        finish(
+          Object.assign(new Error("Unable to resume media playback"), {
+            code: "PLAYBACK_RESTART_FAILED",
+          }),
+        );
+      const handleAbort = () =>
+        finish(
+          Object.assign(new Error("Playback session was cancelled"), {
+            code: "PLAYBACK_SESSION_CANCELLED",
+          }),
+        );
+      const timeout = setTimeout(
+        () =>
+          finish(
+            Object.assign(new Error("Timed out resuming media playback"), {
+              code: "PLAYBACK_RESTART_FAILED",
+            }),
+          ),
+        HLS_START_TIMEOUT_MS,
+      );
+      media.addEventListener("canplay", handleCanPlay, { once: true });
+      media.addEventListener("error", handleMediaError, { once: true });
+      signal?.addEventListener("abort", handleAbort, { once: true });
     });
   }
 
@@ -434,14 +514,12 @@ export class PlaybackController {
     ) {
       return false;
     }
-    if (
-      !this.activeMedia?.src ||
-      this.activeMedia.dataset.trackId !== this.currentTrack.id
-    ) {
+    if (!this.isActivePlaybackPrepared()) {
       return this.selectTrack(this.currentTrack.id, { autoplay: true });
     }
     const media = this.activeMedia;
     const playVersion = this.selectionVersion;
+    const playbackSession = this.playbackSession;
     try {
       this.applyVolume();
       const result = safeMediaCall(media, "play");
@@ -468,6 +546,65 @@ export class PlaybackController {
       return true;
     } catch (error) {
       if (
+        isInterruptedPlayError(error) &&
+        !this.disposed &&
+        playVersion === this.selectionVersion &&
+        media === this.activeMedia &&
+        playbackSession === this.playbackSession
+      ) {
+        try {
+          this.trace("playback-retry-waiting", {
+            sessionId: playVersion,
+            trackId: this.currentTrack?.id,
+          });
+          await this.waitForPlaybackReady(media, playbackSession);
+          if (
+            this.disposed ||
+            playVersion !== this.selectionVersion ||
+            media !== this.activeMedia ||
+            playbackSession !== this.playbackSession
+          ) {
+            return false;
+          }
+          this.applyVolume();
+          const retryResult = safeMediaCall(media, "play");
+          if (retryResult && typeof retryResult.catch === "function") {
+            await retryResult;
+          }
+          this.isPlaying = true;
+          this.isStopped = false;
+          this.isLoading = false;
+          this.loadingTrackId = null;
+          this.error = null;
+          this.startProgressFrames();
+          this.trace("playback-retry-completed", {
+            sessionId: playVersion,
+            trackId: this.currentTrack?.id,
+          });
+          this.emit();
+          return true;
+        } catch (retryError) {
+          if (
+            this.disposed ||
+            playVersion !== this.selectionVersion ||
+            media !== this.activeMedia ||
+            playbackSession !== this.playbackSession
+          ) {
+            safeMediaCall(media, "pause");
+            return false;
+          }
+          this.trace("playback-retry-failed", {
+            sessionId: playVersion,
+            trackId: this.currentTrack?.id,
+            code: retryError?.code || retryError?.name || "UNKNOWN",
+          });
+          error = Object.assign(
+            new Error("Unable to resume playback after changing media source"),
+            { code: "PLAYBACK_RESTART_FAILED" },
+          );
+        }
+      }
+      if (
         this.disposed ||
         playVersion !== this.selectionVersion ||
         media !== this.activeMedia
@@ -480,7 +617,7 @@ export class PlaybackController {
       this.isLoading = false;
       this.loadingTrackId = null;
       this.error = {
-        code: "PLAYBACK_BLOCKED",
+        code: error?.code || "PLAYBACK_BLOCKED",
         message: error?.message || "Playback was blocked",
       };
       this.emit();

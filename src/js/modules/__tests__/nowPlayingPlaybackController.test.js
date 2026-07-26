@@ -105,7 +105,7 @@ describe("Now Playing playback controller", () => {
     expect(mediaLayers[0].muted).toBe(true);
   });
 
-  test("waits for an HLS manifest before starting playback", async () => {
+  test("waits for HLS metadata without requiring media.src", async () => {
     const operationOrder = [];
     class DeferredHls {
       static Events = {
@@ -148,7 +148,7 @@ describe("Now Playing playback controller", () => {
 
       loadSource(src) {
         operationOrder.push("load-source");
-        this.media.src = src;
+        this.source = src;
       }
 
       destroy() {}
@@ -164,11 +164,11 @@ describe("Now Playing playback controller", () => {
       posterUrl: "",
     });
     mediaLayers[1].play.mockImplementation(async () => {
-      operationOrder.push("play");
+      operationOrder.push(`play-at-${mediaLayers[1].currentTime}`);
     });
     controller.setQueue(tracks);
 
-    const selection = controller.selectTrack("one");
+    const selection = controller.selectTrack("one", { startTime: 42 });
     await flushPlaybackCleanup();
 
     expect(DeferredHls.instances).toHaveLength(1);
@@ -176,9 +176,93 @@ describe("Now Playing playback controller", () => {
     expect(mediaLayers[1].play).not.toHaveBeenCalled();
 
     DeferredHls.instances[0].emit(DeferredHls.Events.MANIFEST_PARSED);
+    await Promise.resolve();
+    expect(mediaLayers[1].play).not.toHaveBeenCalled();
+    expect(mediaLayers[1].src).toBe("");
+
+    mediaLayers[1].dispatchEvent(new Event("loadedmetadata"));
     await selection;
 
-    expect(operationOrder).toEqual(["load-source", "play"]);
+    expect(operationOrder).toEqual(["load-source", "play-at-42"]);
+    expect(providers.resolveTrack).toHaveBeenCalledTimes(1);
+    expect(DeferredHls.instances).toHaveLength(1);
+    expect(controller.getSnapshot().error).toBeNull();
+  });
+
+  test("retries an interrupted play once after media becomes ready", async () => {
+    const { controller, mediaLayers } = createController();
+    const interrupted = new DOMException(
+      "The play() request was interrupted by a new load request.",
+      "AbortError",
+    );
+    mediaLayers[1].play
+      .mockRejectedValueOnce(interrupted)
+      .mockResolvedValueOnce(undefined);
+    controller.setQueue(tracks);
+
+    const selection = controller.selectTrack("one");
+    await flushPlaybackCleanup();
+
+    expect(mediaLayers[1].play).toHaveBeenCalledTimes(1);
+    expect(controller.getSnapshot().error).toBeNull();
+
+    mediaLayers[1].dispatchEvent(new Event("canplay"));
+    await selection;
+
+    expect(mediaLayers[1].play).toHaveBeenCalledTimes(2);
+    expect(controller.getSnapshot()).toMatchObject({
+      isPlaying: true,
+      isLoading: false,
+      error: null,
+    });
+  });
+
+  test("returns a sanitized terminal error when the play retry fails", async () => {
+    const { controller, mediaLayers } = createController();
+    mediaLayers[1].play
+      .mockRejectedValueOnce(
+        new DOMException(
+          "The play() request was interrupted by a new load request. https://goo.gl/LdLk22",
+          "AbortError",
+        ),
+      )
+      .mockRejectedValueOnce(new Error("Media pipeline reset"));
+    controller.setQueue(tracks);
+
+    const selection = controller.selectTrack("one");
+    await flushPlaybackCleanup();
+    mediaLayers[1].dispatchEvent(new Event("canplay"));
+
+    await expect(selection).resolves.toBe(false);
+    expect(mediaLayers[1].play).toHaveBeenCalledTimes(2);
+    expect(controller.getSnapshot().error).toEqual({
+      code: "PLAYBACK_RESTART_FAILED",
+      message: "Unable to resume playback after changing media source",
+    });
+    expect(controller.getSnapshot().error.message).not.toContain("goo.gl");
+  });
+
+  test("does not retry an interrupted play after the session is replaced", async () => {
+    const { controller, mediaLayers } = createController();
+    mediaLayers[1].play.mockRejectedValueOnce(
+      new DOMException(
+        "The play() request was interrupted by a new load request.",
+        "AbortError",
+      ),
+    );
+    controller.setQueue(tracks);
+
+    const firstSelection = controller.selectTrack("one");
+    await flushPlaybackCleanup();
+    expect(mediaLayers[1].play).toHaveBeenCalledTimes(1);
+
+    const secondSelection = controller.selectTrack("two");
+    await expect(firstSelection).resolves.toBe(false);
+    await expect(secondSelection).resolves.toBe(true);
+    mediaLayers[1].dispatchEvent(new Event("canplay"));
+
+    expect(mediaLayers[1].play).toHaveBeenCalledTimes(1);
+    expect(controller.currentTrack.id).toBe("two");
     expect(controller.getSnapshot().error).toBeNull();
   });
 

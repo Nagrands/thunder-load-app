@@ -323,6 +323,13 @@ export function createNowPlayingView({
     };
   }
 
+  function getPlaybackErrorMessage(error) {
+    if (error?.code === "PLAYBACK_RESTART_FAILED") {
+      return t("nowPlaying.audioTracks.switchError");
+    }
+    return error?.message || "";
+  }
+
   function render(snapshot) {
     latestSnapshot = snapshot;
     mediaSession.sync(snapshot);
@@ -345,7 +352,7 @@ export function createNowPlayingView({
       !snapshot.error || root.classList.contains("is-library-view");
     errorPanel.classList.toggle("is-visible", !!snapshot.error);
     root.querySelector('[data-ui="error-message"]').textContent =
-      snapshot.error?.message || "";
+      getPlaybackErrorMessage(snapshot.error);
     if (libraryModel) libraryView.renderPlayback(snapshot);
     const systemState = snapshot.currentTrack && !snapshot.isStopped
       ? {
@@ -443,9 +450,9 @@ export function createNowPlayingView({
     if (generation !== audioSwitchGeneration) return false;
     if (switched) return true;
 
-    const switchError =
-      controller.getSnapshot().error?.message ||
-      t("nowPlaying.audioTracks.switchError");
+    const switchError = getPlaybackErrorMessage(
+      controller.getSnapshot().error,
+    ) || t("nowPlaying.audioTracks.switchError");
     libraryModel.setTrackAudioSelection(track.id, previousAudioTrackId);
     syncLibraryQueue({ selectedTrackId: track.id });
     await controller.selectTrack(track.id, {

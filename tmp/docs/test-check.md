@@ -2,7 +2,7 @@
 
 - Автосборка списка: `npm run test-check:sync-tests`
 - Найдено файлов: 137
-- Найдено тест-кейсов (test/it): 1184
+- Найдено тест-кейсов (test/it): 1187
 
 <!-- AUTO-JEST-TESTS:START -->
 
@@ -811,10 +811,13 @@
 - [ ] accepts credential-free HTTP(S) URLs
 - [ ] marks HLS manifests for the HLS playback adapter
 
-### `src/js/modules/__tests__/nowPlayingPlaybackController.test.js` (25)
+### `src/js/modules/__tests__/nowPlayingPlaybackController.test.js` (28)
 - [ ] reports the buffered range without mutating playback position
 - [ ] selects a track, swaps the reusable media layer and starts playback
-- [ ] waits for an HLS manifest before starting playback
+- [ ] waits for HLS metadata without requiring media.src
+- [ ] retries an interrupted play once after media becomes ready
+- [ ] returns a sanitized terminal error when the play retry fails
+- [ ] does not retry an interrupted play after the session is replaced
 - [ ] restores playback position while preserving a paused state
 - [ ] supports previous, next, shuffle and repeat modes
 - [ ] applies explicit playback preferences in one snapshot update
