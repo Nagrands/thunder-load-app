@@ -152,7 +152,7 @@ describe("nowPlayingLibrary", () => {
     fs.writeFileSync(
       ffprobePath,
       `#!/bin/sh
-printf '%s' '{"format":{"duration":"125.5","tags":{"title":"Thunder Song","artist":"NGR","album":"Blue"}},"streams":[{"index":1,"codec_type":"video","disposition":{"attached_pic":1}}]}'
+printf '%s' '{"format":{"duration":"125.5","format_name":"mov,mp4","tags":{"title":"Thunder Song","artist":"NGR","album":"Blue"}},"streams":[{"index":0,"codec_type":"audio","codec_name":"aac"},{"index":1,"codec_type":"video","codec_name":"mjpeg","disposition":{"attached_pic":1}}]}'
 `,
     );
     fs.writeFileSync(
@@ -176,6 +176,13 @@ printf '%s' cover > "$last"
       artist: "NGR",
       album: "Blue",
       duration: 125.5,
+      mediaInfo: {
+        audioCodec: "aac",
+        container: "mov",
+        height: 0,
+        videoCodec: "",
+        width: 0,
+      },
     });
     expect(track.artworkUrl).toMatch(/^file:/);
     expect(fs.readdirSync(artworkDir)).toHaveLength(1);

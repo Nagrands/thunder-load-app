@@ -18,6 +18,8 @@ function createTrackRow(
   row.className = "now-playing__track";
   row.dataset.trackId = track.id;
   row.setAttribute("role", "option");
+  row.setAttribute("draggable", String(!unavailable));
+  row.setAttribute("aria-keyshortcuts", "Alt+ArrowUp Alt+ArrowDown");
   row.setAttribute("tabindex", unavailable ? "-1" : "0");
   row.setAttribute("aria-selected", String(track.id === currentTrackId));
   if (track.id === currentTrackId) row.setAttribute("aria-current", "true");
@@ -42,8 +44,8 @@ function createTrackRow(
   play.disabled = unavailable || track.id === loadingTrackId;
   play.innerHTML =
     track.id === loadingTrackId
-      ? '<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>'
-      : '<i class="fa-solid fa-play" aria-hidden="true"></i>';
+      ? '<i data-lucide="loader-circle" class="is-spinning" aria-hidden="true"></i>'
+      : '<i data-lucide="play" aria-hidden="true"></i>';
 
   const name = document.createElement("span");
   name.className = "now-playing__track-name";
@@ -68,12 +70,17 @@ function createTrackRow(
     "aria-label",
     `${t("nowPlaying.remove")} ${track.displayTitle || track.title}`,
   );
-  remove.innerHTML = '<i class="fa-solid fa-xmark" aria-hidden="true"></i>';
+  remove.innerHTML = '<i data-lucide="x" aria-hidden="true"></i>';
+
+  const grip = document.createElement("span");
+  grip.className = "now-playing__track-grip";
+  grip.setAttribute("aria-hidden", "true");
+  grip.innerHTML = '<i data-lucide="grip-vertical"></i>';
 
   const leading = document.createElement("span");
   leading.className = "now-playing__track-leading";
   leading.append(indexLabel, play);
-  row.append(leading, name, waveform, duration, remove);
+  row.append(leading, name, waveform, duration, grip, remove);
   return row;
 }
 
@@ -84,24 +91,27 @@ export function createPlaylistRenderer(playlist) {
   let previousLoadingTrackId = null;
 
   const updateRow = (row, snapshot) => {
-    if (!row) return;
+    if (!row) return false;
     const current = row.dataset.trackId === snapshot.currentTrack?.id;
     row.classList.toggle("is-current", current);
     row.classList.toggle("is-playing", current && snapshot.isPlaying);
+    const wasLoading = row.classList.contains("is-loading");
     const loading = row.dataset.trackId === snapshot.loadingTrackId;
     row.classList.toggle("is-loading", loading);
     row.setAttribute("aria-busy", String(loading));
     const play = row.querySelector(".now-playing__track-play");
-    const icon = play?.querySelector("i");
-    if (play && icon) {
+    if (play) {
       play.disabled = row.classList.contains("is-unavailable") || loading;
-      icon.className = loading
-        ? "fa-solid fa-spinner fa-spin"
-        : "fa-solid fa-play";
+      if (wasLoading !== loading) {
+        play.innerHTML = loading
+          ? '<i data-lucide="loader-circle" class="is-spinning" aria-hidden="true"></i>'
+          : '<i data-lucide="play" aria-hidden="true"></i>';
+      }
     }
     row.setAttribute("aria-selected", String(current));
     if (current) row.setAttribute("aria-current", "true");
     else row.removeAttribute("aria-current");
+    return wasLoading !== loading;
   };
 
   return (snapshot) => {
@@ -126,7 +136,7 @@ export function createPlaylistRenderer(playlist) {
       );
       previousCurrentTrackId = snapshot.currentTrack?.id || null;
       previousLoadingTrackId = snapshot.loadingTrackId || null;
-      return;
+      return true;
     }
     const affectedIds = new Set([
       previousCurrentTrackId,
@@ -134,9 +144,14 @@ export function createPlaylistRenderer(playlist) {
       snapshot.currentTrack?.id,
       snapshot.loadingTrackId,
     ]);
-    affectedIds.forEach((trackId) => updateRow(rowsById.get(trackId), snapshot));
+    let iconsChanged = false;
+    affectedIds.forEach((trackId) => {
+      iconsChanged =
+        updateRow(rowsById.get(trackId), snapshot) || iconsChanged;
+    });
     previousCurrentTrackId = snapshot.currentTrack?.id || null;
     previousLoadingTrackId = snapshot.loadingTrackId || null;
+    return iconsChanged;
   };
 }
 

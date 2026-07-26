@@ -55,6 +55,17 @@ function pathToFileUrl(sourceRef = "") {
   return encodeURI(`file://${prefixed}`).replaceAll("#", "%23");
 }
 
+function normalizeMediaInfo(value) {
+  const source = value && typeof value === "object" ? value : {};
+  return {
+    width: Math.max(0, Math.trunc(Number(source.width) || 0)),
+    height: Math.max(0, Math.trunc(Number(source.height) || 0)),
+    container: String(source.container || ""),
+    videoCodec: String(source.videoCodec || ""),
+    audioCodec: String(source.audioCodec || ""),
+  };
+}
+
 export function normalizeLocalTrack(track = {}, index = 0) {
   const sourceRef = String(
     track.sourceRef || track.filePath || track.path || "",
@@ -84,6 +95,7 @@ export function normalizeLocalTrack(track = {}, index = 0) {
     mimeType: String(track.mimeType || ""),
     sizeBytes:
       Number.isFinite(sizeBytes) && sizeBytes >= 0 ? Math.trunc(sizeBytes) : 0,
+    mediaInfo: normalizeMediaInfo(track.mediaInfo),
     qualitySelection: null,
     playback: track.playback || null,
   };

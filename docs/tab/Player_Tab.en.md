@@ -175,6 +175,7 @@ Main-process responsibilities are split across:
 - `nowPlayingLibrary.js`: import, metadata, M3U, availability;
 - `nowPlayingYouTube.js`: quality DTOs, selection, and resolve;
 - `nowPlayingHlsService.js`: FFmpeg/HLS lifecycle;
+- `nowPlayingTimelinePreviewService.js`: cancellable frame extraction and LRU;
 - `nowPlayingIpcHandlers.js`: validation and structured results;
 - `mediaOpenService.js`: startup argv, Windows second instance, macOS open-file;
 - `window.js`: macOS Dock Menu snapshot and transport commands.
@@ -185,11 +186,42 @@ Renderer code does not call `ipcRenderer` directly.
 
 | Direction               | Channels                                                                                                                                                                                                                                                                                                                                                                                              |
 | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Renderer → main, invoke | `now-playing:import-files`, `now-playing:import-folder`, `now-playing:import-paths`, `now-playing:analyze-youtube-video`, `now-playing:import-youtube-video`, `now-playing:resolve-youtube-track`, `now-playing:create-local-playback-session`, `now-playing:close-playback-session`, `now-playing:get-state`, `now-playing:set-state`, `now-playing:reveal-track`, `now-playing:open-track-location` |
-| Renderer → main, send   | `now-playing:open-files-ready`, `now-playing:media-state`                                                                                                                                                                                                                                                                                                                                             |
+| Renderer → main, invoke | `now-playing:import-files`, `now-playing:import-folder`, `now-playing:import-paths`, `now-playing:analyze-youtube-video`, `now-playing:import-youtube-video`, `now-playing:resolve-youtube-track`, `now-playing:create-local-playback-session`, `now-playing:close-playback-session`, `now-playing:get-timeline-preview`, `now-playing:get-state`, `now-playing:set-state`, `now-playing:reveal-track`, `now-playing:open-track-location` |
+| Renderer → main, send   | `now-playing:cancel-timeline-preview`, `now-playing:open-files-ready`, `now-playing:media-state`                                                                                                                                                                                                                                                                                                      |
 | Main → renderer         | `now-playing:open-files`, `now-playing:media-command`                                                                                                                                                                                                                                                                                                                                                 |
 
 Operations return `{ success, data, error: { code, message } }`.
+
+## Premium interface and timeline previews
+
+Video uses `contain`, preserving the complete frame against a black surface
+with a subtle vignette. The sidebar, top toolbar, and bottom dock are separate
+glass panels that auto-hide during playback while respecting pin, low-effects,
+and `prefers-reduced-motion`.
+
+The current-media card shows resolution, video/audio codecs, and size when
+available. The values live in optional `TrackV3.mediaInfo`; the existing local
+import probe supplies local metadata and selected YouTube formats supply remote
+metadata. The persisted state remains version 3.
+
+The Information window uses a dedicated presentation card inside the shared
+Player modal. It shows artwork or an available transient timeline poster,
+title, artist/album, badges, and known technical details without exposing the
+full local path or URL. Unknown values are omitted, with a Lucide fallback for
+audio and missing artwork. Information mode keeps one Close button; other
+shared-form modes restore their regular fields and footer.
+
+Timeline hover invokes `now-playing:get-timeline-preview`. The main process
+validates the track/session, buckets time to two seconds, and extracts a
+320×180 JPEG in a separate FFmpeg process. Only one extraction runs at once;
+stale requests are cancelled through
+`now-playing:cancel-timeline-preview`, and results use a bounded LRU cache.
+Preview generation never seeks the active media element or creates a second
+playback session.
+
+The sidebar supports double-click playback and drag-and-drop reordering of the
+active list. User-playlist or system-library order is persisted without
+changing the separate transient Up Next queue.
 
 ## Performance and Lifecycle
 

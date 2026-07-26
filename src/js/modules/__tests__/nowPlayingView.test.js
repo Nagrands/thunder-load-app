@@ -22,6 +22,13 @@ const sampleTrack = {
   artworkUrl: "file:///cover.jpg",
   kind: "audio",
   availability: "available",
+  sizeBytes: 3_435_973_837,
+  mediaInfo: {
+    width: 1920,
+    height: 1080,
+    videoCodec: "h264",
+    audioCodec: "aac",
+  },
 };
 
 function installPlayerDialogFixture() {
@@ -32,6 +39,25 @@ function installPlayerDialogFixture() {
     <form data-ui="player-form-modal-form">
       <h2 data-ui="player-form-modal-title"></h2>
       <p data-ui="player-form-modal-hint"></p>
+      <section data-ui="player-form-modal-info" hidden>
+        <img data-ui="player-form-modal-info-artwork" alt="" hidden />
+        <span data-ui="player-form-modal-info-fallback"><i></i></span>
+        <h3 data-ui="player-form-modal-info-title"></h3>
+        <p data-ui="player-form-modal-info-subtitle" hidden></p>
+        <div data-ui="player-form-modal-info-badges" hidden></div>
+        <dl>
+          ${["duration", "size", "dimensions", "container", "kind", "provider"]
+            .map(
+              (field) => `
+                <div data-info-field="${field}" hidden>
+                  <dt>${field}</dt>
+                  <dd data-ui="player-form-modal-info-${field}"></dd>
+                </div>
+              `,
+            )
+            .join("")}
+        </dl>
+      </section>
       <label data-ui="player-form-modal-field">
         <span data-ui="player-form-modal-label"></span>
         <input data-ui="player-form-modal-input" />
@@ -136,6 +162,56 @@ describe("Now Playing view", () => {
     expect(
       view.element.querySelector('[data-ui="brand-label"]').textContent,
     ).toBe("nowPlaying.label");
+    expect(
+      view.element.querySelector('[data-ui="floating-title"]').textContent,
+    ).toBe("Demo track");
+    expect(
+      view.element.querySelector(
+        '[data-action="placeholder-subtitles"]',
+      ).getAttribute("aria-disabled"),
+    ).toBe("true");
+    expect(
+      view.element.querySelector(".now-playing__sidebar-toolbar"),
+    ).not.toBeNull();
+    expect(
+      [...view.element.querySelectorAll('[data-ui="media-badges"] span')].map(
+        (badge) => badge.textContent,
+      ),
+    ).toEqual(["1080p", "H.264", "AAC"]);
+    expect(view.element.querySelector('[data-ui="media-size"]').textContent).toBe(
+      "3.2 GB",
+    );
+    view.dispose();
+  });
+
+  test("opens structured track information with the current poster", async () => {
+    const dialog = installPlayerDialogFixture();
+    const api = {
+      getState: jest.fn().mockResolvedValue({
+        success: true,
+        data: {
+          playlist: { tracks: [sampleTrack] },
+          selectedTrackId: sampleTrack.id,
+        },
+      }),
+      setState: jest.fn().mockResolvedValue({ success: true }),
+      importFiles: jest.fn(),
+      importFolder: jest.fn(),
+    };
+    const view = createNowPlayingView({ api });
+    document.body.appendChild(view.element);
+    await view.ready;
+
+    view.element.querySelector('[data-action="current-track-info"]').click();
+
+    expect(dialog.getAttribute("aria-hidden")).toBe("false");
+    expect(dialog.dataset.mode).toBe("trackInfo");
+    expect(
+      dialog.querySelector('[data-ui="player-form-modal-info-title"]').textContent,
+    ).toBe(sampleTrack.title);
+    expect(
+      dialog.querySelector('[data-ui="player-form-modal-info-artwork"]').src,
+    ).toBe(sampleTrack.artworkUrl);
     view.dispose();
   });
 
@@ -317,8 +393,8 @@ describe("Now Playing view", () => {
     await Promise.resolve();
     expect(window.electron.fullscreen.setState).toHaveBeenCalledWith(true);
     expect(view.element.classList.contains("is-fullscreen")).toBe(true);
-    expect(button.querySelector("i").classList.contains("fa-compress")).toBe(
-      true,
+    expect(button.querySelector("[data-lucide]").dataset.lucide).toBe(
+      "minimize",
     );
 
     window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
@@ -401,10 +477,8 @@ describe("Now Playing view", () => {
     ).toHaveLength(0);
 
     view.element
-      .querySelector(
-        '.now-playing__track[data-track-id="video"] [data-action="select-track"]',
-      )
-      .click();
+      .querySelector('.now-playing__track[data-track-id="video"]')
+      .dispatchEvent(new MouseEvent("dblclick", { bubbles: true }));
     await Promise.resolve();
     await Promise.resolve();
 
@@ -696,7 +770,7 @@ describe("Now Playing view", () => {
     view.dispose();
   });
 
-  test("hides missing sidebar artwork and unknown artist metadata", async () => {
+  test("keeps a neutral fallback for missing artwork and hides unknown metadata", async () => {
     const trackWithoutMetadata = {
       ...sampleTrack,
       artworkUrl: null,
@@ -723,11 +797,11 @@ describe("Now Playing view", () => {
     );
     expect(
       view.element.querySelector(".now-playing__artwork-stack").hidden,
-    ).toBe(true);
+    ).toBe(false);
     expect(view.element.classList.contains("has-artwork")).toBe(false);
     expect(
       view.element.querySelector(".now-playing__artwork-fallback"),
-    ).toBeNull();
+    ).not.toBeNull();
     expect(
       activeMetadata.querySelector(".now-playing__track-title").textContent,
     ).toBe("Demo track");
@@ -775,7 +849,7 @@ describe("Now Playing view", () => {
     );
     expect(
       view.element.querySelector(".now-playing__artwork-stack").hidden,
-    ).toBe(true);
+    ).toBe(false);
     expect(
       activeMetadata.querySelector(".now-playing__track-artist").hidden,
     ).toBe(true);

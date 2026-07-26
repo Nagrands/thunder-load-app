@@ -68,6 +68,8 @@ function createYouTubeTrack(info, canonical, qualitySelection = null) {
       total + Number(format?.filesize || format?.filesize_approx || 0),
     0,
   );
+  const videoFormat = selectedFormats.find((format) => hasVideo(format));
+  const audioFormat = selectedFormats.find((format) => hasAudio(format));
   return {
     id: `youtube:${resolved.videoId}`,
     providerId: "youtube",
@@ -83,6 +85,17 @@ function createYouTubeTrack(info, canonical, qualitySelection = null) {
     mimeType: selection.mode === "audio" ? "audio/mp4" : "video/mp4",
     qualitySelection: selection,
     sizeBytes: Number.isFinite(sizeBytes) && sizeBytes >= 0 ? sizeBytes : 0,
+    mediaInfo: {
+      width: Math.max(0, Number(videoFormat?.width) || 0),
+      height: Math.max(0, Number(videoFormat?.height) || 0),
+      container: String(videoFormat?.ext || audioFormat?.ext || "").slice(0, 64),
+      videoCodec: String(videoFormat?.vcodec || "").slice(0, 64),
+      audioCodec: String(
+        audioFormat?.acodec ||
+          (hasAudio(videoFormat) ? videoFormat?.acodec : "") ||
+          "",
+      ).slice(0, 64),
+    },
   };
 }
 

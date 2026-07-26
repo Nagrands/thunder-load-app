@@ -229,6 +229,7 @@ Main-модули:
 - `nowPlayingLibrary.js` — импорт, metadata, M3U и availability;
 - `nowPlayingYouTube.js` — анализ качества, selector и resolve;
 - `nowPlayingHlsService.js` — FFmpeg/HLS lifecycle;
+- `nowPlayingTimelinePreviewService.js` — отменяемое извлечение и LRU кадров;
 - `nowPlayingIpcHandlers.js` — валидация и structured results;
 - `mediaOpenService.js` — startup argv, `second-instance` и macOS `open-file`;
 - `window.js` — macOS Dock Menu snapshot и transport commands.
@@ -241,11 +242,44 @@ Renderer не вызывает `ipcRenderer` напрямую.
 
 | Направление             | Каналы                                                                                                                                                                                                                                                                                                                                                                                                |
 | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Renderer → main, invoke | `now-playing:import-files`, `now-playing:import-folder`, `now-playing:import-paths`, `now-playing:analyze-youtube-video`, `now-playing:import-youtube-video`, `now-playing:resolve-youtube-track`, `now-playing:create-local-playback-session`, `now-playing:close-playback-session`, `now-playing:get-state`, `now-playing:set-state`, `now-playing:reveal-track`, `now-playing:open-track-location` |
-| Renderer → main, send   | `now-playing:open-files-ready`, `now-playing:media-state`                                                                                                                                                                                                                                                                                                                                             |
+| Renderer → main, invoke | `now-playing:import-files`, `now-playing:import-folder`, `now-playing:import-paths`, `now-playing:analyze-youtube-video`, `now-playing:import-youtube-video`, `now-playing:resolve-youtube-track`, `now-playing:create-local-playback-session`, `now-playing:close-playback-session`, `now-playing:get-timeline-preview`, `now-playing:get-state`, `now-playing:set-state`, `now-playing:reveal-track`, `now-playing:open-track-location` |
+| Renderer → main, send   | `now-playing:cancel-timeline-preview`, `now-playing:open-files-ready`, `now-playing:media-state`                                                                                                                                                                                                                                                                                                      |
 | Main → renderer         | `now-playing:open-files`, `now-playing:media-command`                                                                                                                                                                                                                                                                                                                                                 |
 
 Ошибки возвращаются в форме `{ success, data, error: { code, message } }`.
+
+## Премиальный интерфейс и preview шкалы
+
+Видео использует режим `contain`: кадр не обрезается, а свободное пространство
+остаётся чёрным и перекрывается только мягкой виньеткой. Sidebar, верхний
+toolbar и нижний dock являются отдельными glass-панелями, автоматически
+скрываются во время воспроизведения и соблюдают настройки pin, low-effects и
+`prefers-reduced-motion`.
+
+Карточка текущего файла показывает доступные разрешение, video/audio codec и
+размер. Эти данные находятся в необязательном `TrackV3.mediaInfo`; локальные
+значения получает уже выполняемый при импорте `ffprobe`, YouTube — выбранные
+форматы. Версия состояния остаётся v3.
+
+Окно «Информация» использует отдельную presentation-карточку внутри общей
+Player-модалки. Оно показывает artwork или временный timeline-poster,
+название, artist/album, badges и доступные технические характеристики без
+раскрытия полного локального пути или URL. Неизвестные значения скрываются;
+для audio и отсутствующего artwork используется Lucide fallback. В режиме
+информации остаётся одна кнопка «Закрыть», а остальные режимы общей формы
+восстанавливают обычные поля и footer.
+
+При наведении на шкалу renderer отправляет
+`now-playing:get-timeline-preview`. Main process проверяет track/session,
+округляет время до двухсекундного bucket и получает JPEG 320×180 отдельным
+FFmpeg-процессом. Одновременно работает не более одного запроса; устаревшие
+запросы отменяются через `now-playing:cancel-timeline-preview`, а результаты
+хранятся в ограниченном LRU-кэше. Preview никогда не меняет `currentTime`
+активного media element и не создаёт вторую playback-сессию.
+
+Sidebar поддерживает double click для немедленного запуска и drag-and-drop
+активного списка. Порядок пользовательского плейлиста или системной Медиатеки
+сохраняется, а отдельная временная очередь «Далее» не изменяется.
 
 ## Производительность
 

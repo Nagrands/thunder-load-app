@@ -321,7 +321,14 @@ class NowPlayingHlsService {
         { stdio: ["ignore", "ignore", "pipe"], windowsHide: true },
       );
     let child = spawnFfmpeg(true);
-    const session = { child, createdAt: this.now(), directory, id, token };
+    const session = {
+      child,
+      createdAt: this.now(),
+      directory,
+      id,
+      inputs: [...safeInputs],
+      token,
+    };
     this.sessions.set(id, session);
     this.trace("instance-created", { generation, sessionId: id });
     try {
@@ -384,6 +391,11 @@ class NowPlayingHlsService {
     await fsPromises.rm(session.directory, { recursive: true, force: true });
     this.trace("resources-released", { sessionId: session.id });
     return true;
+  }
+
+  getPreviewInputs(sessionId) {
+    const session = this.sessions.get(String(sessionId || ""));
+    return session ? [...session.inputs] : [];
   }
 
   async cleanupExpired() {

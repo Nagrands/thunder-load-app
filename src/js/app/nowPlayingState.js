@@ -83,6 +83,23 @@ function sanitizeQualitySelection(value) {
   };
 }
 
+function sanitizeMediaInfo(value) {
+  const source = value && typeof value === "object" ? value : {};
+  const integer = (entry) => {
+    const number = Number(entry);
+    return Number.isFinite(number) && number > 0
+      ? Math.min(16384, Math.trunc(number))
+      : 0;
+  };
+  return {
+    width: integer(source.width),
+    height: integer(source.height),
+    container: sanitizeText(source.container, 64),
+    videoCodec: sanitizeText(source.videoCodec, 64),
+    audioCodec: sanitizeText(source.audioCodec, 64),
+  };
+}
+
 function getDisplayTitle(track, title) {
   return sanitizeText(track.displayTitle, 1024) || title;
 }
@@ -113,6 +130,7 @@ function sanitizeLocalTrack(track) {
     availability: track.availability === "missing" ? "missing" : "available",
     mimeType: sanitizeText(track.mimeType, 128),
     sizeBytes: sanitizeSizeBytes(track.sizeBytes),
+    mediaInfo: sanitizeMediaInfo(track.mediaInfo),
     qualitySelection: null,
   };
 }
@@ -144,6 +162,7 @@ function sanitizeYouTubeTrack(track) {
       sanitizeText(track.mimeType, 128) ||
       (kind === "audio" ? "audio/mp4" : "video/mp4"),
     sizeBytes: sanitizeSizeBytes(track.sizeBytes),
+    mediaInfo: sanitizeMediaInfo(track.mediaInfo),
     qualitySelection,
   };
 }
@@ -197,6 +216,7 @@ function sanitizeNetworkTrack(track) {
       track.availability === "unavailable" ? "unavailable" : "available",
     mimeType: sanitizeText(track.mimeType, 128),
     sizeBytes: sanitizeSizeBytes(track.sizeBytes),
+    mediaInfo: sanitizeMediaInfo(track.mediaInfo),
     qualitySelection: null,
   };
 }

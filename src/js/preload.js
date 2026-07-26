@@ -84,6 +84,8 @@ try {
     "now-playing:resolve-youtube-track",
     "now-playing:create-local-playback-session",
     "now-playing:close-playback-session",
+    "now-playing:get-timeline-preview",
+    "now-playing:cancel-timeline-preview",
     "now-playing:get-state",
     "now-playing:set-state",
     "now-playing:reveal-track",
@@ -492,6 +494,10 @@ try {
         safeInvoke("now-playing:create-local-playback-session", sourceRef),
       closePlaybackSession: (sessionId) =>
         safeInvoke("now-playing:close-playback-session", sessionId),
+      getTimelinePreview: (request) =>
+        safeInvoke("now-playing:get-timeline-preview", request),
+      cancelTimelinePreview: (requestId) =>
+        safeSend("now-playing:cancel-timeline-preview", requestId),
       getState: () => safeInvoke("now-playing:get-state"),
       setState: (state) => safeInvoke("now-playing:set-state", state),
       revealTrack: (sourceRef) =>

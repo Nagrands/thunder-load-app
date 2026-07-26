@@ -29,6 +29,17 @@ function normalizeQualitySelection(value) {
   };
 }
 
+function normalizeMediaInfo(value) {
+  const source = value && typeof value === "object" ? value : {};
+  return {
+    width: Math.max(0, Math.trunc(Number(source.width) || 0)),
+    height: Math.max(0, Math.trunc(Number(source.height) || 0)),
+    container: String(source.container || "").slice(0, 64),
+    videoCodec: String(source.videoCodec || "").slice(0, 64),
+    audioCodec: String(source.audioCodec || "").slice(0, 64),
+  };
+}
+
 function cleanTitle(value, fallback = "Playlist") {
   return (
     String(value || "")
@@ -54,6 +65,7 @@ function normalizeGenericTrack(track = {}, index = 0) {
     availability: String(track.availability || "available"),
     mimeType: String(track.mimeType || ""),
     sizeBytes: normalizeSizeBytes(track.sizeBytes),
+    mediaInfo: normalizeMediaInfo(track.mediaInfo),
     qualitySelection:
       track.providerId === "youtube"
         ? normalizeQualitySelection(track.qualitySelection)
@@ -114,6 +126,7 @@ function cloneState(state) {
 function cloneTrack(track) {
   return {
     ...track,
+    mediaInfo: track.mediaInfo ? { ...track.mediaInfo } : null,
     qualitySelection: track.qualitySelection
       ? { ...track.qualitySelection }
       : null,
@@ -389,6 +402,22 @@ export class MediaLibraryModel {
   }
 
   reorderTrack(playlistId, trackId, targetIndex) {
+    if (playlistId === MEDIA_LIBRARY_ID) {
+      const sourceIndex = this.state.catalog.tracks.findIndex(
+        (track) => track.id === trackId,
+      );
+      if (sourceIndex === -1) return false;
+      const boundedIndex = Math.max(
+        0,
+        Math.min(
+          Number(targetIndex) || 0,
+          this.state.catalog.tracks.length - 1,
+        ),
+      );
+      const [track] = this.state.catalog.tracks.splice(sourceIndex, 1);
+      this.state.catalog.tracks.splice(boundedIndex, 0, track);
+      return true;
+    }
     const playlist = this.state.playlists.find(
       (item) => item.id === playlistId,
     );

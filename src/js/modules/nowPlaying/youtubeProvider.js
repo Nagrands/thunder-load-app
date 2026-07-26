@@ -99,6 +99,13 @@ export function normalizeYouTubeTrack(track = {}) {
         ? { ...track.qualitySelection }
         : null,
     sizeBytes: Math.max(0, Number(track.sizeBytes) || 0),
+    mediaInfo: {
+      width: Math.max(0, Math.trunc(Number(track.mediaInfo?.width) || 0)),
+      height: Math.max(0, Math.trunc(Number(track.mediaInfo?.height) || 0)),
+      container: String(track.mediaInfo?.container || ""),
+      videoCodec: String(track.mediaInfo?.videoCodec || ""),
+      audioCodec: String(track.mediaInfo?.audioCodec || ""),
+    },
   };
 }
 

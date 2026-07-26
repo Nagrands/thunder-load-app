@@ -87,7 +87,7 @@ export function createVisualTransitionController({
   syncMotionPreference();
 
   function setArtworkVisibility(visible) {
-    artworkStack.hidden = !visible;
+    artworkStack.hidden = false;
     root.classList.toggle("has-artwork", visible);
   }
 

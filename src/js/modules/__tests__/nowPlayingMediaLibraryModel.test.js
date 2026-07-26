@@ -135,6 +135,22 @@ describe("Now Playing media library model", () => {
     expect(model.getState().activePlaylistId).toBe(MEDIA_LIBRARY_ID);
   });
 
+  test("reorders the system media library without changing the selected track", () => {
+    const model = createMediaLibraryModel({
+      version: 3,
+      catalog: { tracks: localTracks },
+      activePlaylistId: MEDIA_LIBRARY_ID,
+      selectedTrackId: "local-one",
+    });
+
+    expect(model.reorderTrack(MEDIA_LIBRARY_ID, "local-two", 0)).toBe(true);
+    expect(model.getState().catalog.tracks.map((track) => track.id)).toEqual([
+      "local-two",
+      "local-one",
+    ]);
+    expect(model.getState().selectedTrackId).toBe("local-one");
+  });
+
   test("returns defensive state copies", () => {
     const model = createMediaLibraryModel({
       version: 2,
@@ -160,6 +176,12 @@ describe("Now Playing media library model", () => {
             title: "Video",
             displayTitle: "Custom video",
             sizeBytes: "2048",
+            mediaInfo: {
+              width: 1920,
+              height: 1080,
+              videoCodec: "avc1",
+              audioCodec: "aac",
+            },
             qualitySelection: {
               mode: "format",
               videoFormatId: "137",
@@ -189,6 +211,12 @@ describe("Now Playing media library model", () => {
         mode: "format",
         videoFormatId: "137",
         audioFormatId: "140",
+      },
+      mediaInfo: {
+        width: 1920,
+        height: 1080,
+        videoCodec: "avc1",
+        audioCodec: "aac",
       },
     });
     expect(state.catalog.tracks[1]).toMatchObject({

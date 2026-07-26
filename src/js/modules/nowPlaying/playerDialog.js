@@ -8,7 +8,14 @@ import {
   acquireOverlayActive,
   releaseOverlayActive,
 } from "../scrollLockManager.js";
-import { formatPlaybackTime } from "./viewUtils.js";
+import { refreshPlayerIcons, setPlayerIcon } from "./playerIcons.js";
+import {
+  formatMediaCodec,
+  formatMediaDimensions,
+  formatMediaResolution,
+  formatMediaSize,
+  formatPlaybackTime,
+} from "./viewUtils.js";
 
 const PLAYER_MODAL_OVERLAY_OWNER = "player-form-modal";
 
@@ -28,18 +35,6 @@ const SUBMIT_MODES = {
   renameTrack: "renameTrack",
 };
 
-function formatFileSize(value) {
-  const bytes = Number(value);
-  if (!Number.isFinite(bytes) || bytes <= 0) return "—";
-  const units = ["B", "KB", "MB", "GB"];
-  const exponent = Math.min(
-    units.length - 1,
-    Math.floor(Math.log(bytes) / Math.log(1024)),
-  );
-  const amount = bytes / 1024 ** exponent;
-  return `${amount >= 10 || exponent === 0 ? Math.round(amount) : amount.toFixed(1)} ${units[exponent]}`;
-}
-
 function formatQualityOption(option = {}) {
   const specialLabel = {
     auto: t("nowPlaying.youtube.quality.auto"),
@@ -52,22 +47,9 @@ function formatQualityOption(option = {}) {
     option.videoCodec || option.audioCodec || "",
     option.container || "",
     option.bitrateKbps ? `${Math.round(option.bitrateKbps)} kbps` : "",
-    option.sizeBytes ? formatFileSize(option.sizeBytes) : "",
+    option.sizeBytes ? formatMediaSize(option.sizeBytes) : "",
   ].filter(Boolean);
   return [specialLabel || option.label || option.id, ...details].join(" · ");
-}
-
-function getTrackInfo(track = {}) {
-  return [
-    track.displayTitle || track.title,
-    track.artist,
-    track.album,
-    formatPlaybackTime(track.duration),
-    formatFileSize(track.sizeBytes),
-    track.providerId,
-  ]
-    .filter(Boolean)
-    .join(" · ");
 }
 
 function getConfig(mode, context) {
@@ -127,7 +109,6 @@ function getConfig(mode, context) {
     },
     trackInfo: {
       title: "nowPlaying.context.info",
-      hintText: getTrackInfo(context.track),
       submit: "modal.close",
       type: "info",
     },
@@ -143,12 +124,29 @@ export function createPlayerDialog({ element, onSubmit } = {}) {
   const form = modal.querySelector('[data-ui="player-form-modal-form"]');
   const title = modal.querySelector('[data-ui="player-form-modal-title"]');
   const hint = modal.querySelector('[data-ui="player-form-modal-hint"]');
+  const info = modal.querySelector('[data-ui="player-form-modal-info"]');
+  const infoArtwork = modal.querySelector(
+    '[data-ui="player-form-modal-info-artwork"]',
+  );
+  const infoFallback = modal.querySelector(
+    '[data-ui="player-form-modal-info-fallback"]',
+  );
+  const infoTitle = modal.querySelector(
+    '[data-ui="player-form-modal-info-title"]',
+  );
+  const infoSubtitle = modal.querySelector(
+    '[data-ui="player-form-modal-info-subtitle"]',
+  );
+  const infoBadges = modal.querySelector(
+    '[data-ui="player-form-modal-info-badges"]',
+  );
   const field = modal.querySelector('[data-ui="player-form-modal-field"]');
   const label = modal.querySelector('[data-ui="player-form-modal-label"]');
   const input = modal.querySelector('[data-ui="player-form-modal-input"]');
   const select = modal.querySelector('[data-ui="player-form-modal-select"]');
   const error = modal.querySelector('[data-ui="player-form-modal-error"]');
   const submit = modal.querySelector('[data-ui="player-form-modal-submit"]');
+  const cancel = modal.querySelector('[data-ui="player-form-modal-cancel"]');
   const closeButtons = modal.querySelectorAll(
     '[data-ui="player-form-modal-close"], [data-ui="player-form-modal-cancel"]',
   );
@@ -157,6 +155,111 @@ export function createPlayerDialog({ element, onSubmit } = {}) {
   let activeContext = {};
   let returnFocus = null;
   let busy = false;
+
+  function setInfoField(name, value) {
+    const row = info?.querySelector(`[data-info-field="${name}"]`);
+    const target = row?.querySelector("dd");
+    if (!row || !target) return;
+    target.textContent = String(value || "");
+    row.hidden = !target.textContent;
+  }
+
+  function showInfoArtwork(visible) {
+    if (infoArtwork) infoArtwork.hidden = !visible;
+    if (infoFallback) infoFallback.hidden = visible;
+  }
+
+  function resetTrackInfo() {
+    if (!info) return;
+    info.hidden = true;
+    infoTitle.textContent = "";
+    infoSubtitle.textContent = "";
+    infoSubtitle.hidden = true;
+    infoBadges.replaceChildren();
+    infoBadges.hidden = true;
+    info.querySelectorAll("[data-info-field]").forEach((row) => {
+      row.hidden = true;
+      const value = row.querySelector("dd");
+      if (value) value.textContent = "";
+    });
+    infoArtwork?.removeAttribute("src");
+    showInfoArtwork(false);
+  }
+
+  function renderTrackInfo(context = {}) {
+    const track = context.track || {};
+    const mediaInfo = track.mediaInfo || {};
+    const titleText =
+      track.displayTitle || track.title || t("nowPlaying.info.untitled");
+    const subtitleText = [track.artist, track.album].filter(Boolean).join(" · ");
+    info.hidden = false;
+    infoTitle.textContent = titleText;
+    infoSubtitle.textContent = subtitleText;
+    infoSubtitle.hidden = !subtitleText;
+
+    const badgeLabels = [
+      formatMediaResolution(mediaInfo),
+      formatMediaCodec(mediaInfo.videoCodec),
+      formatMediaCodec(mediaInfo.audioCodec),
+    ].filter(Boolean);
+    const availability = String(track.availability || "");
+    if (availability && availability !== "available") {
+      badgeLabels.push({
+        label: t(`nowPlaying.info.availability.${availability}`),
+        warning: true,
+      });
+    }
+    infoBadges.replaceChildren(
+      ...badgeLabels.map((badgeValue) => {
+        const badge =
+          typeof badgeValue === "string"
+            ? { label: badgeValue, warning: false }
+            : badgeValue;
+        const badgeElement = document.createElement("span");
+        badgeElement.textContent = badge.label;
+        badgeElement.classList.toggle("is-warning", badge.warning);
+        return badgeElement;
+      }),
+    );
+    infoBadges.hidden = badgeLabels.length === 0;
+
+    const duration = Number(track.duration);
+    setInfoField(
+      "duration",
+      Number.isFinite(duration) && duration > 0
+        ? formatPlaybackTime(duration)
+        : "",
+    );
+    setInfoField("size", formatMediaSize(track.sizeBytes));
+    setInfoField("dimensions", formatMediaDimensions(mediaInfo));
+    setInfoField(
+      "container",
+      String(mediaInfo.container || "").trim().toUpperCase(),
+    );
+    setInfoField(
+      "kind",
+      track.kind ? t(`nowPlaying.info.kind.${track.kind}`) : "",
+    );
+    setInfoField(
+      "provider",
+      track.providerId
+        ? t(`nowPlaying.info.provider.${track.providerId}`)
+        : "",
+    );
+
+    setPlayerIcon(
+      infoFallback,
+      track.kind === "audio" ? "music-2" : "film",
+    );
+    const posterUrl = String(context.posterUrl || track.artworkUrl || "");
+    if (posterUrl && infoArtwork) {
+      infoArtwork.src = posterUrl;
+      showInfoArtwork(true);
+    } else {
+      showInfoArtwork(false);
+    }
+    refreshPlayerIcons(info);
+  }
 
   function getFocusable() {
     return [...modal.querySelectorAll("button:not([disabled]), input:not([hidden]):not([disabled]), select:not([hidden]):not([disabled])")].filter(
@@ -187,6 +290,9 @@ export function createPlayerDialog({ element, onSubmit } = {}) {
     releaseOverlayActive(PLAYER_MODAL_OVERLAY_OWNER);
     activeMode = "";
     activeContext = {};
+    delete modal.dataset.mode;
+    modal.setAttribute("aria-describedby", "player-form-modal-hint");
+    resetTrackInfo();
     error.hidden = true;
     error.textContent = "";
     if (restoreFocus) returnFocus?.focus?.();
@@ -231,16 +337,27 @@ export function createPlayerDialog({ element, onSubmit } = {}) {
     activeMode = mode;
     activeContext = normalizedContext;
     title.textContent = t(config.title);
-    hint.textContent = config.hintText || t(config.hint);
+    hint.textContent =
+      config.hintText || (config.hint ? t(config.hint) : "");
     label.textContent = config.label ? t(config.label) : "";
     submit.textContent = t(config.submit);
     error.hidden = true;
     error.textContent = "";
     const isSelect = config.type === "select";
     const isInfo = config.type === "info";
+    modal.dataset.mode = mode;
+    modal.setAttribute(
+      "aria-describedby",
+      isInfo ? "player-form-modal-info-title" : "player-form-modal-hint",
+    );
+    hint.hidden = isInfo;
+    info.hidden = !isInfo;
+    cancel.hidden = isInfo;
     field.hidden = isInfo;
     input.hidden = isSelect || isInfo;
     select.hidden = !isSelect;
+    if (isInfo) renderTrackInfo(normalizedContext);
+    else resetTrackInfo();
     if (isSelect) populateSelect(mode, config, normalizedContext);
     if (!isSelect && !isInfo) {
       input.type = config.type;
@@ -321,7 +438,12 @@ export function createPlayerDialog({ element, onSubmit } = {}) {
     if (event.target === modal) close();
   }
 
+  function handleInfoArtworkError() {
+    showInfoArtwork(false);
+  }
+
   form.addEventListener("submit", handleSubmit);
+  infoArtwork?.addEventListener("error", handleInfoArtworkError);
   modal.addEventListener("keydown", handleKeydown);
   modal.addEventListener("click", handleOverlayClick);
   closeButtons.forEach((button) => button.addEventListener("click", close));
@@ -334,6 +456,7 @@ export function createPlayerDialog({ element, onSubmit } = {}) {
       form.removeEventListener("submit", handleSubmit);
       modal.removeEventListener("keydown", handleKeydown);
       modal.removeEventListener("click", handleOverlayClick);
+      infoArtwork?.removeEventListener("error", handleInfoArtworkError);
       closeButtons.forEach((button) => button.removeEventListener("click", close));
       unregister();
     },

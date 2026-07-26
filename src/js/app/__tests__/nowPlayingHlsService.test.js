@@ -71,7 +71,11 @@ describe("Now Playing HLS service", () => {
     });
     expect(new URL(descriptor.src).hostname).toBe("127.0.0.1");
     expect(new URL(descriptor.src).port).toBe("43123");
+    expect(service.getPreviewInputs(descriptor.sessionId)).toEqual([
+      "https://media.example/video",
+    ]);
     await expect(service.closeSession(descriptor.sessionId)).resolves.toBe(true);
+    expect(service.getPreviewInputs(descriptor.sessionId)).toEqual([]);
     expect(spawnProcess.mock.results[0].value.kill).toHaveBeenCalledWith(
       "SIGTERM",
     );

@@ -3,6 +3,7 @@ const os = require("os");
 const path = require("path");
 
 const handlers = {};
+const eventHandlers = {};
 
 jest.mock("electron-log", () => ({
   error: jest.fn(),
@@ -17,9 +18,11 @@ describe("nowPlayingIpcHandlers", () => {
   let getVideoInfo;
   let getVideoPreview;
   let hlsService;
+  let timelinePreviewService;
 
   beforeEach(() => {
     Object.keys(handlers).forEach((key) => delete handlers[key]);
+    Object.keys(eventHandlers).forEach((key) => delete eventHandlers[key]);
     jest.clearAllMocks();
     root = fs.mkdtempSync(path.join(os.tmpdir(), "now-playing-ipc-"));
     storeValues = {};
@@ -46,6 +49,15 @@ describe("nowPlayingIpcHandlers", () => {
       closeSession: jest.fn().mockResolvedValue(true),
       dispose: jest.fn().mockResolvedValue(undefined),
     };
+    timelinePreviewService = {
+      cancel: jest.fn(),
+      dispose: jest.fn(),
+      getPreview: jest.fn().mockResolvedValue({
+        dataUrl: "data:image/jpeg;base64,frame",
+        requestId: "preview-1",
+        timestamp: 12,
+      }),
+    };
   });
 
   afterEach(() => {
@@ -61,6 +73,9 @@ describe("nowPlayingIpcHandlers", () => {
       handle: jest.fn((channel, callback) => {
         handlers[channel] = callback;
       }),
+      on: jest.fn((channel, callback) => {
+        eventHandlers[channel] = callback;
+      }),
     };
     registerNowPlayingIpcHandlers({
       app: { getPath: jest.fn(() => root) },
@@ -73,6 +88,7 @@ describe("nowPlayingIpcHandlers", () => {
       ipcMain,
       mainWindow: {},
       store,
+      timelinePreviewService,
     });
     return { CHANNELS, ipcMain };
   }
@@ -88,6 +104,7 @@ describe("nowPlayingIpcHandlers", () => {
       CHANNELS.NOW_PLAYING_RESOLVE_YOUTUBE_TRACK,
       CHANNELS.NOW_PLAYING_CLOSE_PLAYBACK_SESSION,
       CHANNELS.NOW_PLAYING_CREATE_LOCAL_PLAYBACK_SESSION,
+      CHANNELS.NOW_PLAYING_GET_TIMELINE_PREVIEW,
       CHANNELS.NOW_PLAYING_GET_STATE,
       CHANNELS.NOW_PLAYING_SET_STATE,
     ].forEach((channel) => {
@@ -96,6 +113,32 @@ describe("nowPlayingIpcHandlers", () => {
         expect.any(Function),
       );
     });
+  });
+
+  test("routes timeline preview requests and cancellation", async () => {
+    const { CHANNELS } = register();
+    const request = {
+      requestId: "preview-1",
+      trackId: "demo",
+      timestamp: 12,
+    };
+
+    await expect(
+      handlers[CHANNELS.NOW_PLAYING_GET_TIMELINE_PREVIEW](null, request),
+    ).resolves.toMatchObject({
+      success: true,
+      data: {
+        dataUrl: "data:image/jpeg;base64,frame",
+        requestId: "preview-1",
+      },
+    });
+    eventHandlers[CHANNELS.NOW_PLAYING_CANCEL_TIMELINE_PREVIEW](
+      null,
+      "preview-1",
+    );
+
+    expect(timelinePreviewService.getPreview).toHaveBeenCalledWith(request);
+    expect(timelinePreviewService.cancel).toHaveBeenCalledWith("preview-1");
   });
 
   test("imports files, removes duplicates, and persists the queue", async () => {

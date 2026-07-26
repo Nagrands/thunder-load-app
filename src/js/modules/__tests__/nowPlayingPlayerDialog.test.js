@@ -12,6 +12,25 @@ function createFixture() {
     <form data-ui="player-form-modal-form">
       <h2 data-ui="player-form-modal-title"></h2>
       <p data-ui="player-form-modal-hint"></p>
+      <section data-ui="player-form-modal-info" hidden>
+        <img data-ui="player-form-modal-info-artwork" alt="" hidden />
+        <span data-ui="player-form-modal-info-fallback"><i></i></span>
+        <h3 data-ui="player-form-modal-info-title"></h3>
+        <p data-ui="player-form-modal-info-subtitle" hidden></p>
+        <div data-ui="player-form-modal-info-badges" hidden></div>
+        <dl>
+          ${["duration", "size", "dimensions", "container", "kind", "provider"]
+            .map(
+              (field) => `
+                <div data-info-field="${field}" hidden>
+                  <dt>${field}</dt>
+                  <dd data-ui="player-form-modal-info-${field}"></dd>
+                </div>
+              `,
+            )
+            .join("")}
+        </dl>
+      </section>
       <label data-ui="player-form-modal-field">
         <span data-ui="player-form-modal-label"></span>
         <input data-ui="player-form-modal-input" />
@@ -101,7 +120,7 @@ describe("Player dialog", () => {
     dialog.dispose();
   });
 
-  test("reports async errors and renders track information without a field", async () => {
+  test("reports async errors and renders premium track information", async () => {
     const modal = createFixture();
     const dialog = createPlayerDialog({
       element: modal,
@@ -120,14 +139,110 @@ describe("Player dialog", () => {
     );
 
     dialog.open("trackInfo", {
-      track: { title: "Song", artist: "Artist", duration: 65 },
+      posterUrl: "data:image/jpeg;base64,preview",
+      track: {
+        title: "Original title",
+        displayTitle: "Song",
+        artist: "Artist",
+        album: "Album",
+        duration: 65,
+        sizeBytes: 576716800,
+        kind: "video",
+        providerId: "local",
+        availability: "available",
+        mediaInfo: {
+          width: 1920,
+          height: 1080,
+          container: "matroska",
+          videoCodec: "hevc",
+          audioCodec: "aac",
+        },
+      },
     });
+    const info = modal.querySelector('[data-ui="player-form-modal-info"]');
     expect(modal.querySelector('[data-ui="player-form-modal-field"]').hidden).toBe(
       true,
     );
-    expect(modal.querySelector('[data-ui="player-form-modal-hint"]').textContent).toContain(
-      "Song · Artist · 1:05",
+    expect(info.hidden).toBe(false);
+    expect(
+      modal.querySelector('[data-ui="player-form-modal-info-title"]').textContent,
+    ).toBe("Song");
+    expect(
+      modal.querySelector('[data-ui="player-form-modal-info-subtitle"]').textContent,
+    ).toBe("Artist · Album");
+    expect(
+      modal.querySelector('[data-ui="player-form-modal-info-badges"]').textContent,
+    ).toContain("1080pHEVCAAC");
+    expect(
+      modal.querySelector('[data-ui="player-form-modal-info-duration"]').textContent,
+    ).toBe("1:05");
+    expect(
+      modal.querySelector('[data-ui="player-form-modal-info-size"]').textContent,
+    ).toBe("550 MB");
+    expect(
+      modal.querySelector('[data-ui="player-form-modal-info-dimensions"]').textContent,
+    ).toBe("1920 × 1080");
+    expect(
+      modal.querySelector('[data-ui="player-form-modal-info-container"]').textContent,
+    ).toBe("MATROSKA");
+    expect(
+      modal.querySelector('[data-ui="player-form-modal-info-artwork"]').src,
+    ).toBe("data:image/jpeg;base64,preview");
+    modal
+      .querySelector('[data-ui="player-form-modal-info-artwork"]')
+      .dispatchEvent(new Event("error"));
+    expect(
+      modal.querySelector('[data-ui="player-form-modal-info-fallback"]').hidden,
+    ).toBe(false);
+    expect(
+      modal.querySelector('[data-ui="player-form-modal-cancel"]').hidden,
+    ).toBe(true);
+    expect(modal.getAttribute("aria-describedby")).toBe(
+      "player-form-modal-info-title",
     );
+
+    dialog.open("rename", {
+      activePlaylist: { title: "Restored form" },
+    });
+    expect(info.hidden).toBe(true);
+    expect(modal.querySelector('[data-ui="player-form-modal-hint"]').hidden).toBe(
+      false,
+    );
+    expect(
+      modal.querySelector('[data-ui="player-form-modal-cancel"]').hidden,
+    ).toBe(false);
+    dialog.dispose();
+  });
+
+  test("omits unknown metadata and falls back for unavailable audio", () => {
+    const modal = createFixture();
+    const dialog = createPlayerDialog({ element: modal });
+    dialog.open("trackInfo", {
+      track: {
+        title: "Audio",
+        kind: "audio",
+        providerId: "network",
+        availability: "unavailable",
+        mediaInfo: { audioCodec: "opus" },
+      },
+    });
+
+    expect(
+      modal.querySelector('[data-info-field="duration"]').hidden,
+    ).toBe(true);
+    expect(modal.querySelector('[data-info-field="size"]').hidden).toBe(true);
+    expect(
+      modal.querySelector('[data-info-field="dimensions"]').hidden,
+    ).toBe(true);
+    expect(
+      modal.querySelector('[data-ui="player-form-modal-info-badges"]').textContent,
+    ).toContain("OpusnowPlaying.info.availability.unavailable");
+    expect(
+      modal.querySelector('[data-ui="player-form-modal-info-artwork"]').hidden,
+    ).toBe(true);
+    expect(
+      modal.querySelector('[data-ui="player-form-modal-info-fallback"]').hidden,
+    ).toBe(false);
     dialog.dispose();
   });
 });

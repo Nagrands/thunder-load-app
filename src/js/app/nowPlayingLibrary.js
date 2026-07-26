@@ -226,6 +226,26 @@ function getDuration(probe = {}) {
   return duration && duration > 0 ? duration : 0;
 }
 
+function getMediaInfo(probe = {}) {
+  const safeProbe = probe && typeof probe === "object" ? probe : {};
+  const streams = Array.isArray(safeProbe.streams) ? safeProbe.streams : [];
+  const video = streams.find(
+    (stream) =>
+      stream.codec_type === "video" &&
+      Number(stream.disposition?.attached_pic) !== 1,
+  );
+  const audio = streams.find((stream) => stream.codec_type === "audio");
+  return {
+    width: Math.max(0, Number(video?.width) || 0),
+    height: Math.max(0, Number(video?.height) || 0),
+    container: String(safeProbe.format?.format_name || "")
+      .split(",", 1)[0]
+      .slice(0, 64),
+    videoCodec: String(video?.codec_name || "").slice(0, 64),
+    audioCodec: String(audio?.codec_name || "").slice(0, 64),
+  };
+}
+
 async function readMetadata(filePath, ffprobePath) {
   if (!ffprobePath) return null;
   try {
@@ -235,7 +255,7 @@ async function readMetadata(filePath, ffprobePath) {
         "-v",
         "error",
         "-show_entries",
-        "format=duration:format_tags=title,artist,album:stream=index,codec_type,disposition,duration:stream_tags=title,artist,album",
+        "format=duration,format_name:format_tags=title,artist,album:stream=index,codec_type,codec_name,width,height,disposition,duration:stream_tags=title,artist,album",
         "-of",
         "json",
         filePath,
@@ -325,6 +345,7 @@ async function createTrack(filePath, options = {}) {
     availability: "available",
     mimeType: MIME_TYPES[extension] || "",
     sizeBytes: stat.size,
+    mediaInfo: getMediaInfo(probe),
     qualitySelection: null,
     playbackUrl: pathToFileURL(path.resolve(filePath)).href,
   };

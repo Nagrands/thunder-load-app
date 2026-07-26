@@ -1,5 +1,6 @@
 const mockExposeInMainWorld = jest.fn();
 const mockInvoke = jest.fn();
+const mockSend = jest.fn();
 
 jest.mock("electron", () => ({
   contextBridge: { exposeInMainWorld: mockExposeInMainWorld },
@@ -9,7 +10,7 @@ jest.mock("electron", () => ({
     once: jest.fn(),
     removeListener: jest.fn(),
     removeAllListeners: jest.fn(),
-    send: jest.fn(),
+    send: mockSend,
   },
   webUtils: { getPathForFile: jest.fn() },
 }));
@@ -19,6 +20,7 @@ describe("preload Now Playing API", () => {
     jest.resetModules();
     mockExposeInMainWorld.mockClear();
     mockInvoke.mockClear();
+    mockSend.mockClear();
     require("../preload");
   });
 
@@ -35,6 +37,12 @@ describe("preload Now Playing API", () => {
       "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
     );
     await api.nowPlaying.createLocalPlaybackSession("/media/archive.avi");
+    await api.nowPlaying.getTimelinePreview({
+      requestId: "preview-1",
+      trackId: "demo",
+      timestamp: 12,
+    });
+    api.nowPlaying.cancelTimelinePreview("preview-1");
     await api.nowPlaying.getState();
     await api.nowPlaying.setState(state);
 
@@ -52,8 +60,16 @@ describe("preload Now Playing API", () => {
         {},
       ],
       ["now-playing:create-local-playback-session", "/media/archive.avi"],
+      [
+        "now-playing:get-timeline-preview",
+        { requestId: "preview-1", trackId: "demo", timestamp: 12 },
+      ],
       ["now-playing:get-state"],
       ["now-playing:set-state", state],
     ]);
+    expect(mockSend).toHaveBeenCalledWith(
+      "now-playing:cancel-timeline-preview",
+      "preview-1",
+    );
   });
 });

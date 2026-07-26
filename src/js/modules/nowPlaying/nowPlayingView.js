@@ -13,6 +13,7 @@ import {
 import createMediaLibraryView from "./mediaLibraryView.js";
 import createMediaSessionManager from "./mediaSessionManager.js";
 import createPlaybackControlsView from "./playbackControlsView.js";
+import createPlayerPresentationView from "./playerPresentationView.js";
 import createPlayerContextMenu from "./playerContextMenu.js";
 import createPlaylistRenderer from "./playlistRenderer.js";
 import PlaybackController from "./playbackController.js";
@@ -23,6 +24,7 @@ import createVisualTransitionController from "./visualTransitionController.js";
 import buildNowPlayingMarkup from "./viewMarkup.js";
 import { unwrapNowPlayingState } from "./viewUtils.js";
 import createTransientQueue from "./transientQueue.js";
+import createTimelinePreviewController from "./timelinePreviewController.js";
 import YouTubeProvider from "./youtubeProvider.js";
 export function createNowPlayingView({
   api = window.electron?.nowPlaying,
@@ -78,6 +80,7 @@ export function createNowPlayingView({
   const count = root.querySelector('[data-ui="playlist-count"]');
   const currentTime = root.querySelector('[data-ui="current-time"]');
   const duration = root.querySelector('[data-ui="duration"]');
+  const playerMenu = root.querySelector('[data-ui="player-menu"]');
   const ambientLayers = Array.from(
     root.querySelectorAll(".now-playing__ambient"),
   );
@@ -97,6 +100,7 @@ export function createNowPlayingView({
   let persistenceInFlight = null;
   let persistenceRequested = false;
   let volumeFeedbackTimer = null;
+  let draggedTrackId = "";
   let libraryModel = null;
   const renderPlaylist = createPlaylistRenderer(playlist);
   const controlsVisibility = createControlsVisibility({ root, dock });
@@ -144,6 +148,15 @@ export function createNowPlayingView({
     currentTime,
     duration,
   });
+  const presentation = createPlayerPresentationView({ root });
+  const timelinePreview = createTimelinePreviewController({
+    api,
+    controller,
+    onPreviewImage: (trackId, dataUrl) =>
+      presentation.useGeneratedPoster(trackId, dataUrl),
+    progress,
+    root,
+  });
   const libraryView = createMediaLibraryView({
     root,
     onDialogSubmit: handleLibraryDialogSubmit,
@@ -178,9 +191,9 @@ export function createNowPlayingView({
         const actions = document.createElement("span");
         actions.className = "player-library__queued-actions";
         [
-          ["move-transient-up", "fa-solid fa-arrow-up", "nowPlaying.playlists.moveUp"],
-          ["move-transient-down", "fa-solid fa-arrow-down", "nowPlaying.playlists.moveDown"],
-          ["remove-transient", "fa-solid fa-xmark", "nowPlaying.queue.remove"],
+          ["move-transient-up", "arrow-up", "nowPlaying.playlists.moveUp"],
+          ["move-transient-down", "arrow-down", "nowPlaying.playlists.moveDown"],
+          ["remove-transient", "x", "nowPlaying.queue.remove"],
         ].forEach(([action, icon, labelKey]) => {
           const button = document.createElement("button");
           button.type = "button";
@@ -190,7 +203,7 @@ export function createNowPlayingView({
           button.setAttribute("aria-label", t(labelKey));
           button.setAttribute("title", t(labelKey));
           button.setAttribute("data-bs-toggle", "tooltip");
-          button.innerHTML = `<i class="${icon}" aria-hidden="true"></i>`;
+          button.innerHTML = `<i data-lucide="${icon}" aria-hidden="true"></i>`;
           actions.appendChild(button);
         });
         row.append(title, actions);
@@ -287,9 +300,11 @@ export function createNowPlayingView({
   function render(snapshot) {
     latestSnapshot = snapshot;
     mediaSession.sync(snapshot);
-    renderPlaylist(snapshot);
+    const playlistIconsChanged = renderPlaylist(snapshot);
     visualTransitions.update(snapshot);
     updateControls(snapshot);
+    presentation.update(snapshot);
+    if (playlistIconsChanged) presentation.refreshIcons();
     const nextControlTooltipKey = `${snapshot.isPlaying}:${snapshot.isLoading}:${snapshot.muted}:${snapshot.repeat}`;
     if (nextControlTooltipKey !== controlTooltipKey) {
       controlTooltipKey = nextControlTooltipKey;
@@ -336,13 +351,17 @@ export function createNowPlayingView({
 
   function onI18nChanged() {
     applyI18n(root);
-    if (latestSnapshot) updateControls(latestSnapshot);
+    if (latestSnapshot) {
+      updateControls(latestSnapshot);
+      presentation.update(latestSnapshot);
+    }
     if (libraryModel && latestSnapshot) {
       libraryView.render(libraryModel.getState(), latestSnapshot);
     }
     fullscreen.refresh();
     renderTransientQueue();
     initTooltips(root);
+    presentation.refreshIcons();
   }
 
   async function importSource(source) {
@@ -435,6 +454,7 @@ export function createNowPlayingView({
     });
     libraryView.render(libraryModel.getState(), latestSnapshot);
     initTooltips(root);
+    presentation.refreshIcons();
     if (libraryModel.getState().catalog.tracks.length === 0) libraryView.show();
     queuePersistence();
   }
@@ -550,13 +570,27 @@ export function createNowPlayingView({
       );
     }
     syncLibraryQueue();
-    mediaLayers.forEach((media) => {
-      media.removeAttribute("src");
-      media.load();
-    });
   }
 
   async function handleAction(action, target) {
+    if (action?.startsWith("placeholder-")) return false;
+    if (action === "toggle-player-menu") {
+      playerMenu.hidden = !playerMenu.hidden;
+      target.setAttribute("aria-expanded", String(!playerMenu.hidden));
+      if (!playerMenu.hidden) {
+        playerMenu.querySelector("button")?.focus();
+      }
+      return true;
+    }
+    if (action === "current-track-info") {
+      const track = controller.currentTrack;
+      if (!track) return false;
+      playerMenu.hidden = true;
+      return libraryView.openDialog("trackInfo", {
+        track,
+        posterUrl: presentation.getPosterUrl(track),
+      });
+    }
     if (preferences.handleAction(action)) return true;
     if (action === "add-files") return importSource("files");
     if (action === "add-folder") return importSource("folder");
@@ -722,6 +756,13 @@ export function createNowPlayingView({
 
   function onClick(event) {
     const actionTarget = event.target.closest("[data-action]");
+    if (
+      !playerMenu.hidden &&
+      !event.target.closest('[data-ui="player-menu"]') &&
+      actionTarget?.dataset.action !== "toggle-player-menu"
+    ) {
+      playerMenu.hidden = true;
+    }
     if (!actionTarget || !root.contains(actionTarget)) return;
     void handleAction(actionTarget.dataset.action, actionTarget);
   }
@@ -741,6 +782,37 @@ export function createNowPlayingView({
       return;
     }
     const row = event.target.closest(".now-playing__track");
+    if (
+      row &&
+      event.altKey &&
+      ["ArrowUp", "ArrowDown"].includes(event.key)
+    ) {
+      event.preventDefault();
+      const activePlaylist = libraryView.getActivePlaylist();
+      const sourceIndex = controller.queue.findIndex(
+        (track) => track.id === row.dataset.trackId,
+      );
+      const targetIndex =
+        sourceIndex + (event.key === "ArrowUp" ? -1 : 1);
+      if (
+        activePlaylist &&
+        libraryModel.reorderTrack(
+          activePlaylist.id,
+          row.dataset.trackId,
+          targetIndex,
+        )
+      ) {
+        syncLibraryQueue({ selectedTrackId: controller.currentTrack?.id });
+        [...playlist.querySelectorAll(".now-playing__track")]
+          .find((item) => item.dataset.trackId === row.dataset.trackId)
+          ?.focus();
+      }
+      return;
+    }
+    if (event.key === "Escape" && !playerMenu.hidden) {
+      playerMenu.hidden = true;
+      return;
+    }
     if (!row || !["Enter", " "].includes(event.key)) return;
     event.preventDefault();
     void controller.selectTrack(row.dataset.trackId);
@@ -788,6 +860,72 @@ export function createNowPlayingView({
     event.preventDefault();
     const context = libraryView.getTrackContext(row.dataset.trackId);
     if (context) contextMenu.open(context, row, { x: event.clientX, y: event.clientY });
+  }
+
+  function onDoubleClick(event) {
+    const row = event.target.closest(".now-playing__track");
+    if (
+      event.target.closest("button") ||
+      !row ||
+      !root.contains(row) ||
+      row.classList.contains("is-unavailable")
+    ) {
+      return;
+    }
+    void controller.selectTrack(row.dataset.trackId);
+  }
+
+  function onDragStart(event) {
+    const row = event.target.closest(".now-playing__track");
+    if (!row || row.classList.contains("is-unavailable")) return;
+    draggedTrackId = row.dataset.trackId;
+    row.classList.add("is-dragging");
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", draggedTrackId);
+  }
+
+  function onDragOver(event) {
+    const row = event.target.closest(".now-playing__track");
+    if (!row || !draggedTrackId || row.dataset.trackId === draggedTrackId) {
+      return;
+    }
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "move";
+    playlist
+      .querySelectorAll(".is-drag-target")
+      .forEach((item) => item.classList.remove("is-drag-target"));
+    row.classList.add("is-drag-target");
+  }
+
+  function onDrop(event) {
+    const row = event.target.closest(".now-playing__track");
+    if (!row || !draggedTrackId) return;
+    event.preventDefault();
+    const activePlaylist = libraryView.getActivePlaylist();
+    const targetIndex = controller.queue.findIndex(
+      (track) => track.id === row.dataset.trackId,
+    );
+    if (
+      activePlaylist &&
+      targetIndex >= 0 &&
+      libraryModel.reorderTrack(
+        activePlaylist.id,
+        draggedTrackId,
+        targetIndex,
+      )
+    ) {
+      syncLibraryQueue({ selectedTrackId: controller.currentTrack?.id });
+    }
+    onDragEnd();
+  }
+
+  function onDragEnd() {
+    draggedTrackId = "";
+    playlist
+      .querySelectorAll(".is-dragging, .is-drag-target")
+      .forEach((row) =>
+        row.classList.remove("is-dragging", "is-drag-target"),
+      );
   }
 
   function onMediaEnded(event) {
@@ -856,6 +994,11 @@ export function createNowPlayingView({
   root.addEventListener("wheel", onWheel, { passive: false });
   root.addEventListener("change", onChange);
   root.addEventListener("contextmenu", onContextMenu);
+  root.addEventListener("dblclick", onDoubleClick);
+  root.addEventListener("dragstart", onDragStart);
+  root.addEventListener("dragover", onDragOver);
+  root.addEventListener("drop", onDrop);
+  root.addEventListener("dragend", onDragEnd);
   mediaLayers.forEach((media) => media.addEventListener("ended", onMediaEnded, true));
   window.addEventListener("blur", onWindowBlur);
   window.addEventListener("focus", onWindowFocus);
@@ -890,6 +1033,7 @@ export function createNowPlayingView({
       libraryView.render(libraryState, latestSnapshot);
       renderTransientQueue();
       initTooltips(root);
+      presentation.refreshIcons();
       if (libraryState.catalog.tracks.length === 0) libraryView.show();
       if (controller.currentTrack) {
         await controller.selectTrack(controller.currentTrack.id, {
@@ -958,6 +1102,7 @@ export function createNowPlayingView({
       overlayVisibility.dispose();
       fullscreen.dispose();
       visualTransitions.dispose();
+      timelinePreview.dispose();
       libraryView.dispose();
       contextMenu.dispose();
       if (volumeFeedbackTimer !== null) clearTimeout(volumeFeedbackTimer);
@@ -968,6 +1113,11 @@ export function createNowPlayingView({
       root.removeEventListener("wheel", onWheel);
       root.removeEventListener("change", onChange);
       root.removeEventListener("contextmenu", onContextMenu);
+      root.removeEventListener("dblclick", onDoubleClick);
+      root.removeEventListener("dragstart", onDragStart);
+      root.removeEventListener("dragover", onDragOver);
+      root.removeEventListener("drop", onDrop);
+      root.removeEventListener("dragend", onDragEnd);
       mediaLayers.forEach((media) => media.removeEventListener("ended", onMediaEnded, true));
       window.removeEventListener("blur", onWindowBlur);
       window.removeEventListener("focus", onWindowFocus);

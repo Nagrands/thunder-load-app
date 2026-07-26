@@ -1,4 +1,5 @@
 import { t } from "../i18n.js";
+import { setPlayerIcon } from "./playerIcons.js";
 import { formatPlaybackTime, setPressedState } from "./viewUtils.js";
 
 export function createPlaybackControlsView({
@@ -17,6 +18,7 @@ export function createPlaybackControlsView({
 }) {
   let lastCurrentSecond = null;
   let lastDurationSecond = null;
+  let lastRemainingSecond = null;
   let lastVolumeKey = "";
   let dockHideVersion = 0;
   let hadPlaybackSession = false;
@@ -28,14 +30,15 @@ export function createPlaybackControlsView({
   }
 
   return (snapshot) => {
-    const playIcon = playButton?.querySelector("i");
-    playIcon?.classList.toggle(
-      "fa-play",
-      !snapshot.isPlaying && !snapshot.isLoading,
+    setPlayerIcon(
+      playButton,
+      snapshot.isLoading
+        ? "loader-circle"
+        : snapshot.isPlaying
+          ? "pause"
+          : "play",
+      { spinning: snapshot.isLoading },
     );
-    playIcon?.classList.toggle("fa-pause", snapshot.isPlaying);
-    playIcon?.classList.toggle("fa-spinner", snapshot.isLoading);
-    playIcon?.classList.toggle("fa-spin", snapshot.isLoading);
     if (playButton) {
       playButton.disabled = snapshot.isLoading;
       playButton.setAttribute("aria-busy", String(snapshot.isLoading));
@@ -76,6 +79,15 @@ export function createPlaybackControlsView({
         "--range-progress",
         `${Math.min(100, progressPercent)}%`,
       );
+      const bufferedPercent = snapshot.duration
+        ? (Math.min(snapshot.bufferedEnd || 0, snapshot.duration) /
+            snapshot.duration) *
+          100
+        : 0;
+      progress.style.setProperty(
+        "--range-buffered",
+        `${Math.max(progressPercent, Math.min(100, bufferedPercent))}%`,
+      );
       progress.setAttribute(
         "aria-valuetext",
         `${formatPlaybackTime(snapshot.currentTime)} / ${formatPlaybackTime(snapshot.duration)}`,
@@ -102,9 +114,15 @@ export function createPlaybackControlsView({
       currentTime.textContent = formatPlaybackTime(snapshot.currentTime);
     }
     const durationSecond = Math.floor(Number(snapshot.duration) || 0);
-    if (duration && durationSecond !== lastDurationSecond) {
+    const remainingSecond = Math.max(0, durationSecond - currentSecond);
+    if (
+      duration &&
+      (durationSecond !== lastDurationSecond ||
+        remainingSecond !== lastRemainingSecond)
+    ) {
       lastDurationSecond = durationSecond;
-      duration.textContent = formatPlaybackTime(snapshot.duration);
+      lastRemainingSecond = remainingSecond;
+      duration.textContent = `-${formatPlaybackTime(remainingSecond)}`;
     }
     const muted = snapshot.muted || snapshot.volume === 0;
     setPressedState(muteButton, muted);
@@ -112,8 +130,7 @@ export function createPlaybackControlsView({
       muteButton,
       t(muted ? "nowPlaying.unmute" : "nowPlaying.mute"),
     );
-    muteButton?.querySelector("i")?.classList.toggle("fa-volume-high", !muted);
-    muteButton?.querySelector("i")?.classList.toggle("fa-volume-xmark", muted);
+    setPlayerIcon(muteButton, muted ? "volume-x" : "volume-2");
     root.classList.toggle("is-playing", snapshot.isPlaying);
     root.classList.toggle("is-loading", snapshot.isLoading);
     const hasPlaybackSession = Boolean(

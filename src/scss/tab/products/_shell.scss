@@ -33,7 +33,6 @@
   padding: 16px;
   box-sizing: border-box;
   overflow-x: hidden;
-  background: #0a111c;
 }
 
 .products-formatter-shell {
@@ -116,6 +115,7 @@
 
 .products-pane__body--editor {
   display: flex;
+  flex-direction: column;
 }
 
 .products-pane__body--result {

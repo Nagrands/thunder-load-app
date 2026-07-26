@@ -19,6 +19,9 @@ const {
 } = require("./nowPlayingState");
 const { createYouTubeHandlers } = require("./nowPlayingYouTube");
 const { NowPlayingHlsService } = require("./nowPlayingHlsService");
+const {
+  NowPlayingTimelinePreviewService,
+} = require("./nowPlayingTimelinePreviewService");
 
 const STATE_KEY = "nowPlaying.state";
 const MAX_STATE_BYTES = 2 * 1024 * 1024;
@@ -129,6 +132,7 @@ function registerNowPlayingIpcHandlers({
   store,
   shell,
   hlsService: providedHlsService = null,
+  timelinePreviewService: providedTimelinePreviewService = null,
 }) {
   const hlsService =
     providedHlsService ||
@@ -142,8 +146,21 @@ function registerNowPlayingIpcHandlers({
     getVideoPreview,
     hlsService,
   });
+  const getTrackById = (trackId) =>
+    readState(store).catalog.tracks.find(
+      (track) => track.id === String(trackId || ""),
+    ) || null;
+  const timelinePreviewService =
+    providedTimelinePreviewService ||
+    new NowPlayingTimelinePreviewService({
+      ffmpegPathResolver: () => resolveToolPath(ffmpegPathResolver, store),
+      getSessionInputs: (sessionId) =>
+        hlsService.getPreviewInputs?.(sessionId) || [],
+      getTrackById,
+    });
   if (typeof app.once === "function") {
     app.once("before-quit", () => {
+      timelinePreviewService.dispose();
       void hlsService.dispose();
     });
   }
@@ -347,9 +364,16 @@ function registerNowPlayingIpcHandlers({
           )
         : null;
       if (existingTrack) {
-        const updatedTrack = qualitySelection
-          ? { ...existingTrack, qualitySelection }
-          : existingTrack;
+        let updatedTrack = existingTrack;
+        if (qualitySelection) {
+          const refreshed = await youtube.importVideo(url, qualitySelection);
+          if (!refreshed.success) return refreshed;
+          updatedTrack = {
+            ...refreshed.data,
+            id: existingTrack.id,
+            displayTitle: existingTrack.displayTitle,
+          };
+        }
         const updatedState = {
           ...currentState,
           catalog: {
@@ -405,6 +429,24 @@ function registerNowPlayingIpcHandlers({
       } catch (error) {
         return failure(error.code || "SESSION_CLOSE_FAILED", error.message);
       }
+    },
+  );
+
+  ipcMain.handle(
+    CHANNELS.NOW_PLAYING_GET_TIMELINE_PREVIEW,
+    async (_event, request) => {
+      try {
+        return success(await timelinePreviewService.getPreview(request));
+      } catch (error) {
+        return failure(error.code || "PREVIEW_FAILED", error.message);
+      }
+    },
+  );
+
+  ipcMain.on?.(
+    CHANNELS.NOW_PLAYING_CANCEL_TIMELINE_PREVIEW,
+    (_event, requestId) => {
+      timelinePreviewService.cancel(requestId);
     },
   );
 

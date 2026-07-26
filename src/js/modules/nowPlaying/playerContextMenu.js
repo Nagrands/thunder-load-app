@@ -1,16 +1,16 @@
 import { t } from "../i18n.js";
 
 const MENU_ITEMS = [
-  ["play", "fa-solid fa-play", "nowPlaying.context.play"],
-  ["queue", "fa-solid fa-list-ol", "nowPlaying.context.queue"],
-  ["playlist", "fa-solid fa-plus", "nowPlaying.playlists.addItem"],
-  ["move-up", "fa-solid fa-arrow-up", "nowPlaying.playlists.moveUp"],
-  ["move-down", "fa-solid fa-arrow-down", "nowPlaying.playlists.moveDown"],
-  ["reveal", "fa-regular fa-folder-open", "nowPlaying.context.reveal"],
-  ["open-location", "fa-solid fa-folder-open", "nowPlaying.context.openLocation"],
-  ["info", "fa-solid fa-circle-info", "nowPlaying.context.info"],
-  ["rename", "fa-solid fa-pen", "nowPlaying.context.rename"],
-  ["delete", "fa-solid fa-trash", "nowPlaying.library.deleteItem"],
+  ["play", "play", "nowPlaying.context.play"],
+  ["queue", "list-end", "nowPlaying.context.queue"],
+  ["playlist", "list-plus", "nowPlaying.playlists.addItem"],
+  ["move-up", "arrow-up", "nowPlaying.playlists.moveUp"],
+  ["move-down", "arrow-down", "nowPlaying.playlists.moveDown"],
+  ["reveal", "folder-search", "nowPlaying.context.reveal"],
+  ["open-location", "folder-open", "nowPlaying.context.openLocation"],
+  ["info", "info", "nowPlaying.context.info"],
+  ["rename", "pencil", "nowPlaying.context.rename"],
+  ["delete", "trash-2", "nowPlaying.library.deleteItem"],
 ];
 
 function createMenu() {
@@ -25,7 +25,7 @@ function createMenu() {
     button.dataset.contextAction = action;
     button.dataset.i18n = labelKey;
     button.setAttribute("role", "menuitem");
-    button.innerHTML = `<i class="${icon}" aria-hidden="true"></i><span>${t(labelKey)}</span>`;
+    button.innerHTML = `<i data-lucide="${icon}" aria-hidden="true"></i><span>${t(labelKey)}</span>`;
     menu.appendChild(button);
   });
   return menu;

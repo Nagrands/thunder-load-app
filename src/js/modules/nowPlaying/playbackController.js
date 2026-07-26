@@ -95,6 +95,14 @@ export class PlaybackController {
 
   getSnapshot() {
     const media = this.activeMedia;
+    let bufferedEnd = 0;
+    try {
+      if (media?.buffered?.length) {
+        bufferedEnd = Number(media.buffered.end(media.buffered.length - 1)) || 0;
+      }
+    } catch {
+      bufferedEnd = 0;
+    }
     return {
       queue: this.queueSnapshot,
       currentTrack: this.currentTrack ? { ...this.currentTrack } : null,
@@ -113,7 +121,16 @@ export class PlaybackController {
       currentTime: Number(media?.currentTime) || 0,
       duration:
         Number(media?.duration) || Number(this.currentTrack?.duration) || 0,
+      bufferedEnd,
       error: this.error,
+    };
+  }
+
+  getPreviewContext() {
+    const playback = this.layerPlaybacks[this.activeLayerIndex]?.playback;
+    return {
+      sessionId: String(playback?.sessionId || ""),
+      trackId: String(this.currentTrack?.id || ""),
     };
   }
 

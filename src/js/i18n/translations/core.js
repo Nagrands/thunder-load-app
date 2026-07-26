@@ -122,6 +122,22 @@ export const coreTranslations = {
     "nowPlaying.libraryTitle": "Локальная библиотека",
     "nowPlaying.playlist": "Очередь",
     "nowPlaying.controls": "Управление воспроизведением",
+    "nowPlaying.tools": "Инструменты плеера",
+    "nowPlaying.more": "Ещё",
+    "nowPlaying.trackInfo": "Информация о текущем файле",
+    "nowPlaying.playlist.count": "{count} элементов",
+    "nowPlaying.unavailable.subtitles":
+      "Выбор субтитров появится в следующем обновлении",
+    "nowPlaying.unavailable.audioTracks":
+      "Выбор аудиодорожки появится в следующем обновлении",
+    "nowPlaying.unavailable.miniPlayer":
+      "Отдельный мини-плеер пока недоступен",
+    "nowPlaying.unavailable.picture":
+      "Настройки изображения пока недоступны",
+    "nowPlaying.unavailable.settings":
+      "Дополнительные настройки воспроизведения пока недоступны",
+    "nowPlaying.unavailable.download":
+      "Загрузка из Плеера пока недоступна",
     "nowPlaying.addFiles": "Добавить файлы",
     "nowPlaying.addFolder": "Добавить папку",
     "nowPlaying.clear": "Очистить очередь",
@@ -187,6 +203,20 @@ export const coreTranslations = {
     "nowPlaying.context.reveal": "Показать в Finder / Explorer",
     "nowPlaying.context.openLocation": "Открыть расположение",
     "nowPlaying.context.info": "Информация",
+    "nowPlaying.info.untitled": "Без названия",
+    "nowPlaying.info.duration": "Длительность",
+    "nowPlaying.info.size": "Размер",
+    "nowPlaying.info.dimensions": "Разрешение",
+    "nowPlaying.info.container": "Контейнер",
+    "nowPlaying.info.kind": "Тип медиа",
+    "nowPlaying.info.source": "Источник",
+    "nowPlaying.info.kind.audio": "Аудио",
+    "nowPlaying.info.kind.video": "Видео",
+    "nowPlaying.info.provider.local": "Локальный файл",
+    "nowPlaying.info.provider.youtube": "YouTube",
+    "nowPlaying.info.provider.network": "Сетевой поток",
+    "nowPlaying.info.availability.missing": "Файл не найден",
+    "nowPlaying.info.availability.unavailable": "Недоступно",
     "nowPlaying.context.rename": "Переименовать",
     "nowPlaying.context.renameHint":
       "Изменяется только название в медиатеке. Имя файла останется прежним.",
@@ -445,6 +475,22 @@ export const coreTranslations = {
     "nowPlaying.libraryTitle": "Local library",
     "nowPlaying.playlist": "Queue",
     "nowPlaying.controls": "Playback controls",
+    "nowPlaying.tools": "Player tools",
+    "nowPlaying.more": "More",
+    "nowPlaying.trackInfo": "Current media information",
+    "nowPlaying.playlist.count": "{count} items",
+    "nowPlaying.unavailable.subtitles":
+      "Subtitle selection is coming in a future update",
+    "nowPlaying.unavailable.audioTracks":
+      "Audio track selection is coming in a future update",
+    "nowPlaying.unavailable.miniPlayer":
+      "The standalone mini player is not available yet",
+    "nowPlaying.unavailable.picture":
+      "Picture settings are not available yet",
+    "nowPlaying.unavailable.settings":
+      "Advanced playback settings are not available yet",
+    "nowPlaying.unavailable.download":
+      "Downloading from Player is not available yet",
     "nowPlaying.addFiles": "Add files",
     "nowPlaying.addFolder": "Add folder",
     "nowPlaying.clear": "Clear queue",
@@ -510,6 +556,20 @@ export const coreTranslations = {
     "nowPlaying.context.reveal": "Show in Finder / Explorer",
     "nowPlaying.context.openLocation": "Open location",
     "nowPlaying.context.info": "Information",
+    "nowPlaying.info.untitled": "Untitled",
+    "nowPlaying.info.duration": "Duration",
+    "nowPlaying.info.size": "File size",
+    "nowPlaying.info.dimensions": "Resolution",
+    "nowPlaying.info.container": "Container",
+    "nowPlaying.info.kind": "Media type",
+    "nowPlaying.info.source": "Source",
+    "nowPlaying.info.kind.audio": "Audio",
+    "nowPlaying.info.kind.video": "Video",
+    "nowPlaying.info.provider.local": "Local file",
+    "nowPlaying.info.provider.youtube": "YouTube",
+    "nowPlaying.info.provider.network": "Network stream",
+    "nowPlaying.info.availability.missing": "File not found",
+    "nowPlaying.info.availability.unavailable": "Unavailable",
     "nowPlaying.context.rename": "Rename",
     "nowPlaying.context.renameHint":
       "Only the library title changes. The file name stays unchanged.",

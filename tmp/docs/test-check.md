@@ -1,8 +1,8 @@
 ## Автотесты (Jest)
 
 - Автосборка списка: `npm run test-check:sync-tests`
-- Найдено файлов: 133
-- Найдено тест-кейсов (test/it): 1136
+- Найдено файлов: 135
+- Найдено тест-кейсов (test/it): 1148
 
 <!-- AUTO-JEST-TESTS:START -->
 
@@ -210,8 +210,9 @@
 - [ ] serves tokenized manifests on loopback and cleans the session
 - [ ] supersedes an initializing session and keeps only one FFmpeg process
 
-### `src/js/app/__tests__/nowPlayingIpcHandlers.test.js` (17)
+### `src/js/app/__tests__/nowPlayingIpcHandlers.test.js` (18)
 - [ ] registers all Player channels
+- [ ] routes timeline preview requests and cancellation
 - [ ] imports files, removes duplicates, and persists the queue
 - [ ] adds imported media to the active custom playlist
 - [ ] links an existing catalog item into the active custom playlist
@@ -244,6 +245,13 @@
 - [ ] migrates V2 state to V3 while preserving playlist selection
 - [ ] migrates legacy V1 tracks into the media library
 - [ ] sanitizes YouTube quality selections and network tracks
+
+### `src/js/app/__tests__/nowPlayingTimelinePreviewService.test.js` (5)
+- [ ] builds bounded frame-only FFmpeg arguments
+- [ ] validates and buckets requests
+- [ ] extracts, caches and reuses a local preview
+- [ ] uses active HLS inputs and cancels stale extraction
+- [ ] returns a safe fallback for audio and keeps cache bounded
 
 ### `src/js/app/__tests__/playerPackaging.test.js` (2)
 - [ ] registers the requested media associations
@@ -777,11 +785,12 @@
 - [ ] keeps a pinned sidebar visible across pointer leave and restores it
 - [ ] syncs fullscreen state and removes external listeners on dispose
 
-### `src/js/modules/__tests__/nowPlayingMediaLibraryModel.test.js` (7)
+### `src/js/modules/__tests__/nowPlayingMediaLibraryModel.test.js` (8)
 - [ ] migrates the V1 queue into the virtual media library
 - [ ] sanitizes broken playlist references and falls back to the library
 - [ ] deduplicates local paths and YouTube videos by canonical video id
 - [ ] supports playlist CRUD, ordering and catalog deletion
+- [ ] reorders the system media library without changing the selected track
 - [ ] returns defensive state copies
 - [ ] migrates V2 metadata and keeps the active network playlist
 - [ ] returns defensive copies of quality selections
@@ -790,7 +799,8 @@
 - [ ] accepts credential-free HTTP(S) URLs
 - [ ] marks HLS manifests for the HLS playback adapter
 
-### `src/js/modules/__tests__/nowPlayingPlaybackController.test.js` (19)
+### `src/js/modules/__tests__/nowPlayingPlaybackController.test.js` (20)
+- [ ] reports the buffered range without mutating playback position
 - [ ] selects a track, swaps the reusable media layer and starts playback
 - [ ] supports previous, next, shuffle and repeat modes
 - [ ] persists selectedTrackId and settings but not playback position
@@ -811,10 +821,11 @@
 - [ ] waits for resource release before resolving the next track
 - [ ] does not let a rejected stale play promise overwrite the latest state
 
-### `src/js/modules/__tests__/nowPlayingPlayerDialog.test.js` (3)
+### `src/js/modules/__tests__/nowPlayingPlayerDialog.test.js` (4)
 - [ ] supports aliases, traps focus and restores the invoking control
 - [ ] keeps the modal busy during submit and advances YouTube to quality
-- [ ] reports async errors and renders track information without a field
+- [ ] reports async errors and renders premium track information
+- [ ] omits unknown metadata and falls back for unavailable audio
 
 ### `src/js/modules/__tests__/nowPlayingProviders.test.js` (10)
 - [ ] normalizes metadata and deduplicates local paths
@@ -828,12 +839,17 @@
 - [ ] restores canonical YouTube tracks and resolves fresh playback URLs
 - [ ] surfaces structured YouTube resolve errors
 
+### `src/js/modules/__tests__/nowPlayingTimelinePreviewController.test.js` (2)
+- [ ] debounces frame requests and does not seek active playback
+- [ ] cancels a pending request when pointer leaves
+
 ### `src/js/modules/__tests__/nowPlayingTransientQueue.test.js` (2)
 - [ ] keeps insertion order and supports reorder, removal and filtering
 - [ ] never exposes mutable internal items
 
-### `src/js/modules/__tests__/nowPlayingView.test.js` (22)
+### `src/js/modules/__tests__/nowPlayingView.test.js` (23)
 - [ ] renders an accessible player and restores selectedTrackId
+- [ ] opens structured track information with the current poster
 - [ ] opens a non-blocking media library empty state
 - [ ] updates the brand label from playback state
 - [ ] adjusts volume with the mouse wheel and shows the percentage
@@ -845,7 +861,7 @@
 - [ ] syncs system media commands with playback while the view is active
 - [ ] restores and persists background playback and sidebar pin preferences
 - [ ] hands artwork and metadata off together after the new cover loads
-- [ ] hides missing sidebar artwork and unknown artist metadata
+- [ ] keeps a neutral fallback for missing artwork and hides unknown metadata
 - [ ] hides broken artwork while preserving real album metadata
 - [ ] exposes reduced-motion state and commits track visuals immediately
 - [ ] imports files, selects the first new track and persists the queue

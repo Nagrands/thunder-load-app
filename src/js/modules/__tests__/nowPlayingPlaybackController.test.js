@@ -69,6 +69,21 @@ describe("Now Playing playback controller", () => {
     jest.spyOn(window, "cancelAnimationFrame").mockImplementation(() => {});
   });
 
+  test("reports the buffered range without mutating playback position", () => {
+    const { controller, mediaLayers } = createController();
+    controller.setQueue(tracks);
+    mediaLayers[0].currentTime = 12;
+    Object.defineProperty(mediaLayers[0], "buffered", {
+      configurable: true,
+      value: { length: 1, end: jest.fn(() => 48) },
+    });
+
+    expect(controller.getSnapshot()).toMatchObject({
+      bufferedEnd: 48,
+      currentTime: 12,
+    });
+  });
+
   test("selects a track, swaps the reusable media layer and starts playback", async () => {
     const { controller, mediaLayers, providers } = createController();
     controller.setQueue(tracks);

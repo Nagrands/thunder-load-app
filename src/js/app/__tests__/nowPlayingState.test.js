@@ -20,6 +20,14 @@ describe("nowPlayingState", () => {
             title: "Metadata title",
             displayTitle: "My title",
             sizeBytes: "42",
+            mediaInfo: {
+              width: "1920",
+              height: 1080.8,
+              container: "mp4",
+              videoCodec: "h264",
+              audioCodec: "aac",
+              ignored: "value",
+            },
           },
         ],
       },
@@ -37,6 +45,13 @@ describe("nowPlayingState", () => {
       displayTitle: "My title",
       sizeBytes: 42,
       qualitySelection: null,
+      mediaInfo: {
+        width: 1920,
+        height: 1080,
+        container: "mp4",
+        videoCodec: "h264",
+        audioCodec: "aac",
+      },
     });
   });
 

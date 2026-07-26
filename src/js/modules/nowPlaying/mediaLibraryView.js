@@ -1,5 +1,10 @@
 import { t } from "../i18n.js";
 import createPlayerDialog from "./playerDialog.js";
+import {
+  createPlayerIcon,
+  refreshPlayerIcons,
+  setPlayerIcon,
+} from "./playerIcons.js";
 import { formatPlaybackTime } from "./viewUtils.js";
 
 const SYSTEM_PLAYLIST_IDS = new Set([
@@ -50,11 +55,18 @@ function getPlaylistTracks(state, playlist) {
     .filter(Boolean);
 }
 
-function createIcon(className) {
-  const icon = document.createElement("i");
-  icon.className = className;
-  icon.setAttribute("aria-hidden", "true");
-  return icon;
+const ICONS = Object.freeze({
+  "fa-solid fa-photo-film": "library",
+  "fa-solid fa-list": "list-video",
+  "fa-solid fa-volume-high": "volume-2",
+  "fa-solid fa-play": "play",
+  "fa-solid fa-film": "film",
+  "fa-solid fa-music": "music-2",
+  "fa-solid fa-ellipsis": "ellipsis",
+});
+
+function createIcon(name) {
+  return createPlayerIcon(ICONS[name] || name);
 }
 
 function createIconButton(action, icon, label, dataset = {}) {
@@ -296,6 +308,7 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
     empty.hidden = activeTracks.length > 0;
     trackList.hidden = activeTracks.length === 0;
     renderPlayback(snapshot);
+    refreshPlayerIcons(element);
   }
 
   function renderPlayback(snapshot = {}) {
@@ -318,14 +331,17 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
       if (current) row.setAttribute("aria-current", "true");
       else row.removeAttribute("aria-current");
       const button = row.querySelector('[data-action="select-library-track"]');
-      const icon = button?.querySelector("i");
-      if (!button || !icon) return;
+      if (!button) return;
       button.disabled = loading;
-      icon.className = loading
-        ? "fa-solid fa-spinner fa-spin"
-        : current && snapshot.isPlaying
-          ? "fa-solid fa-volume-high"
-          : "fa-solid fa-play";
+      setPlayerIcon(
+        button,
+        loading
+          ? "loader-circle"
+          : current && snapshot.isPlaying
+            ? "volume-2"
+            : "play",
+        { spinning: loading },
+      );
     });
     previousPlaybackTrackId = snapshot.currentTrack?.id || null;
     previousLoadingTrackId = snapshot.loadingTrackId || null;
@@ -370,12 +386,15 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
     artwork.classList.toggle("has-artwork", Boolean(track.artworkUrl));
 
     const playButton = miniPlayer.querySelector('[data-action="play-pause"]');
-    const playIcon = playButton.querySelector("i");
-    playIcon.className = snapshot.isLoading
-      ? "fa-solid fa-spinner fa-spin"
-      : snapshot.isPlaying
-        ? "fa-solid fa-pause"
-        : "fa-solid fa-play";
+    setPlayerIcon(
+      playButton,
+      snapshot.isLoading
+        ? "loader-circle"
+        : snapshot.isPlaying
+          ? "pause"
+          : "play",
+      { spinning: snapshot.isLoading },
+    );
     playButton.disabled = Boolean(snapshot.isLoading);
     playButton.setAttribute("aria-busy", String(Boolean(snapshot.isLoading)));
     const playLabel = t(
@@ -437,11 +456,10 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
     ["aria-label", "title", "data-bs-original-title"].forEach((attribute) =>
       muteButton.setAttribute(attribute, muteLabel),
     );
-    muteButton.querySelector("i").className = muted
-      ? "fa-solid fa-volume-xmark"
-      : volumeValue < 0.5
-        ? "fa-solid fa-volume-low"
-        : "fa-solid fa-volume-high";
+    setPlayerIcon(
+      muteButton,
+      muted ? "volume-x" : volumeValue < 0.5 ? "volume-1" : "volume-2",
+    );
   }
 
   function show() {
@@ -482,11 +500,11 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
     operationStatus.hidden = !message;
     operationStatus.classList.toggle("is-loading", loading);
     operationStatus.classList.toggle("is-error", error);
-    operationStatus.querySelector("i").className = error
-      ? "fa-solid fa-triangle-exclamation"
-      : loading
-        ? "fa-solid fa-spinner fa-spin"
-        : "fa-solid fa-circle-check";
+    setPlayerIcon(
+      operationStatus,
+      error ? "triangle-alert" : loading ? "loader-circle" : "circle-check",
+      { spinning: loading },
+    );
     operationStatus.querySelector("span").textContent = message || "";
   }
 

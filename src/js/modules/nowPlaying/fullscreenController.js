@@ -1,4 +1,5 @@
 import { t } from "../i18n.js";
+import { setPlayerIcon } from "./playerIcons.js";
 
 function unwrapFullscreenState(result) {
   if (result?.success === false) {
@@ -30,9 +31,7 @@ export function createFullscreenController({
     );
     button.setAttribute("aria-label", label);
     button.setAttribute("title", label);
-    const icon = button.querySelector("i");
-    icon?.classList.toggle("fa-expand", !fullscreen);
-    icon?.classList.toggle("fa-compress", fullscreen);
+    setPlayerIcon(button, fullscreen ? "minimize" : "maximize");
   }
 
   async function setState(nextFullscreen) {

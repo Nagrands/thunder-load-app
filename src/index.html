@@ -1404,6 +1404,60 @@
 
     <div class="modal-body">
       <p id="player-form-modal-hint" data-ui="player-form-modal-hint"></p>
+      <section
+        class="player-form-modal__info"
+        data-ui="player-form-modal-info"
+        aria-labelledby="player-form-modal-info-title"
+        hidden
+      >
+        <div class="player-form-modal__hero">
+          <div class="player-form-modal__artwork" aria-hidden="true">
+            <img data-ui="player-form-modal-info-artwork" alt="" hidden />
+            <span data-ui="player-form-modal-info-fallback">
+              <i data-lucide="film" aria-hidden="true"></i>
+            </span>
+          </div>
+          <div class="player-form-modal__summary">
+            <h3
+              id="player-form-modal-info-title"
+              data-ui="player-form-modal-info-title"
+            ></h3>
+            <p data-ui="player-form-modal-info-subtitle" hidden></p>
+            <div
+              class="player-form-modal__badges"
+              data-ui="player-form-modal-info-badges"
+              hidden
+            ></div>
+          </div>
+        </div>
+
+        <dl class="player-form-modal__details">
+          <div data-info-field="duration" hidden>
+            <dt data-i18n="nowPlaying.info.duration">Длительность</dt>
+            <dd data-ui="player-form-modal-info-duration"></dd>
+          </div>
+          <div data-info-field="size" hidden>
+            <dt data-i18n="nowPlaying.info.size">Размер</dt>
+            <dd data-ui="player-form-modal-info-size"></dd>
+          </div>
+          <div data-info-field="dimensions" hidden>
+            <dt data-i18n="nowPlaying.info.dimensions">Разрешение</dt>
+            <dd data-ui="player-form-modal-info-dimensions"></dd>
+          </div>
+          <div data-info-field="container" hidden>
+            <dt data-i18n="nowPlaying.info.container">Контейнер</dt>
+            <dd data-ui="player-form-modal-info-container"></dd>
+          </div>
+          <div data-info-field="kind" hidden>
+            <dt data-i18n="nowPlaying.info.kind">Тип медиа</dt>
+            <dd data-ui="player-form-modal-info-kind"></dd>
+          </div>
+          <div data-info-field="provider" hidden>
+            <dt data-i18n="nowPlaying.info.source">Источник</dt>
+            <dd data-ui="player-form-modal-info-provider"></dd>
+          </div>
+        </dl>
+      </section>
       <label data-ui="player-form-modal-field">
         <span data-ui="player-form-modal-label"></span>
         <input
