@@ -5,10 +5,14 @@ export function buildMarkup() {
     <div class="products-center">
       <div class="products-formatter-shell" data-ui="products-shell">
         <div class="products-workbench" data-ui="products-workbench">
-          <section class="products-pane products-pane--input wg-glass" data-ui="products-input-pane">
+          <section class="products-pane products-pane--input" data-ui="products-input-pane">
             <header class="products-pane__header">
               <div class="products-pane__title products-pane__title--stack">
                 <h2 data-i18n="productsFormatter.inputLabel">${t("productsFormatter.inputLabel")}</h2>
+                <p
+                  class="products-pane__description"
+                  data-i18n="productsFormatter.inputDescription"
+                >${t("productsFormatter.inputDescription")}</p>
               </div>
             </header>
 
@@ -71,6 +75,12 @@ export function buildMarkup() {
 
             <div class="products-pane__body products-pane__body--editor">
               <div class="products-editor-layout" data-ui="products-editor-layout">
+                <div
+                  id="products-line-numbers"
+                  class="products-editor-gutter"
+                  data-ui="products-line-numbers"
+                  aria-hidden="true"
+                ><span>1</span></div>
                 <div class="products-editor-main" data-ui="products-editor-main">
                   <textarea
                     id="products-input"
@@ -102,9 +112,11 @@ export function buildMarkup() {
                 id="products-format"
                 type="button"
                 class="large-button products-format-button"
+                aria-busy="false"
               >
-                <i class="fa-solid fa-wand-magic-sparkles"></i>
-                <span data-i18n="productsFormatter.format">${t("productsFormatter.format")}</span>
+                <i class="fa-solid fa-wand-magic-sparkles products-format-button__icon" aria-hidden="true"></i>
+                <i class="fa-solid fa-spinner products-format-button__spinner" aria-hidden="true"></i>
+                <span class="products-format-button__label" data-i18n="productsFormatter.format">${t("productsFormatter.format")}</span>
               </button>
               <div
                 class="products-pane__toggles products-pane__toggles--footer"
@@ -162,7 +174,7 @@ export function buildMarkup() {
 
           <aside
             id="products-dictionary-layer"
-            class="products-dictionary-layer products-pane wg-glass"
+            class="products-dictionary-layer products-pane"
             data-ui="products-dictionary"
             aria-labelledby="products-dictionary-title"
             hidden
@@ -263,7 +275,7 @@ export function buildMarkup() {
             </div>
           </aside>
 
-          <section class="products-pane products-pane--result wg-glass" data-ui="products-result-pane">
+          <section class="products-pane products-pane--result" data-ui="products-result-pane">
             <header class="products-pane__header products-pane__header--result">
               <div class="products-pane__title products-pane__title--stack">
                 <h2 data-i18n="productsFormatter.outputLabel">${t("productsFormatter.outputLabel")}</h2>
@@ -430,24 +442,28 @@ export function buildMarkup() {
                       type="button"
                       class="small-button products-diagnostics__filter"
                       data-filter="all"
+                      aria-pressed="true"
                       data-i18n="productsFormatter.diagnostics.filter.all"
                     >${t("productsFormatter.diagnostics.filter.all")}</button>
                     <button
                       type="button"
                       class="small-button products-diagnostics__filter"
                       data-filter="review"
+                      aria-pressed="false"
                       data-i18n="productsFormatter.diagnostics.filter.review"
                     >${t("productsFormatter.diagnostics.filter.review")}</button>
                     <button
                       type="button"
                       class="small-button products-diagnostics__filter"
                       data-filter="typos"
+                      aria-pressed="false"
                       data-i18n="productsFormatter.diagnostics.filter.typos"
                     >${t("productsFormatter.diagnostics.filter.typos")}</button>
                     <button
                       type="button"
                       class="small-button products-diagnostics__filter"
                       data-filter="duplicates"
+                      aria-pressed="false"
                       data-i18n="productsFormatter.diagnostics.filter.duplicates"
                     >${t("productsFormatter.diagnostics.filter.duplicates")}</button>
                   </div>

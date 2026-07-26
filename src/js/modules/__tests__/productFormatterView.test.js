@@ -25,6 +25,12 @@ describe("productFormatterView", () => {
     expect(
       wrapper.querySelector('[data-ui="products-workbench"]'),
     ).not.toBeNull();
+    expect(
+      wrapper.querySelector(".products-pane__description")?.textContent,
+    ).toBe("Вставьте или введите список ингредиентов или товаров");
+    expect(
+      wrapper.querySelector('[data-ui="products-line-numbers"]'),
+    ).not.toBeNull();
     expect(wrapper.querySelector("#products-paste")).not.toBeNull();
     expect(wrapper.querySelector("#products-clear")).not.toBeNull();
     expect(wrapper.querySelector("#products-demo")).not.toBeNull();
@@ -108,6 +114,11 @@ describe("productFormatterView", () => {
       wrapper.querySelector('[data-ui="products-result-pane"]')?.hidden,
     ).toBe(false);
     expect(wrapper.querySelector("#products-copy")?.disabled).toBe(true);
+    expect(
+      wrapper
+        .querySelector('.products-diagnostics__filter[data-filter="all"]')
+        ?.getAttribute("aria-pressed"),
+    ).toBe("true");
     expect(wrapper.querySelector('[data-ui="products-empty"]')?.hidden).toBe(
       false,
     );
@@ -139,6 +150,49 @@ describe("productFormatterView", () => {
     expect(
       wrapper.querySelectorAll(".products-diagnostics__filter").length,
     ).toBe(4);
+  });
+
+  test("synchronizes editor line numbers after input, demo and clear actions", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+    const input = wrapper.querySelector("#products-input");
+    const lineNumbers = wrapper.querySelector("#products-line-numbers");
+
+    input.value = "Заявка 1\nБанан\nЛимон";
+    input.dispatchEvent(new Event("input"));
+    expect(lineNumbers.children).toHaveLength(3);
+    expect(lineNumbers.textContent).toBe("123");
+
+    wrapper.querySelector("#products-demo").click();
+    expect(lineNumbers.children.length).toBeGreaterThan(10);
+
+    wrapper.querySelector("#products-clear").click();
+    expect(lineNumbers.children).toHaveLength(1);
+    expect(lineNumbers.textContent).toBe("1");
+  });
+
+  test("exposes busy state and rejects a duplicate formatting launch", async () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+    const input = wrapper.querySelector("#products-input");
+    const formatButton = wrapper.querySelector("#products-format");
+
+    input.value = "Заявка 4\nЛук 1";
+    formatButton.click();
+
+    expect(formatButton.dataset.loading).toBe("true");
+    expect(formatButton.getAttribute("aria-busy")).toBe("true");
+    expect(formatButton.getAttribute("aria-disabled")).toBe("true");
+    const initialResult = wrapper.querySelector("#products-preview").innerHTML;
+
+    formatButton.click();
+    expect(wrapper.querySelector("#products-preview").innerHTML).toBe(
+      initialResult,
+    );
+
+    await Promise.resolve();
+    expect(formatButton.dataset.loading).toBe("false");
+    expect(formatButton.getAttribute("aria-busy")).toBe("false");
   });
 
   test("formats into a single preview flow with summary at the end and enables the compact result controls", () => {

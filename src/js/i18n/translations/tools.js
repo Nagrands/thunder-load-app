@@ -1,6 +1,8 @@
 export const toolsTranslations = {
   ru: {
     "productsFormatter.inputLabel": "Исходный список",
+    "productsFormatter.inputDescription":
+      "Вставьте или введите список ингредиентов или товаров",
     "productsFormatter.inputPlaceholder":
       "Вставьте неструктурированный список продуктов с разделами и позициями.",
     "productsFormatter.summaryToggle": "Итого",
@@ -127,6 +129,9 @@ export const toolsTranslations = {
     "productsFormatter.status.empty":
       "Вставьте список продуктов перед форматированием.",
     "productsFormatter.status.formatted": "Список подготовлен.",
+    "productsFormatter.status.formatting": "Форматирование…",
+    "productsFormatter.status.formatError":
+      "Не удалось отформатировать список.",
     "productsFormatter.status.copied": "Результат скопирован.",
     "productsFormatter.status.sectionCopied": "Раздел скопирован.",
     "productsFormatter.status.pasted": "Текст вставлен из буфера обмена.",
@@ -990,6 +995,8 @@ export const toolsTranslations = {
   },
   en: {
     "productsFormatter.inputLabel": "Source list",
+    "productsFormatter.inputDescription":
+      "Paste or enter a list of ingredients or products",
     "productsFormatter.inputPlaceholder":
       "Paste an unstructured product list with section headers and items.",
     "productsFormatter.summaryToggle": "Summary",
@@ -1114,6 +1121,8 @@ export const toolsTranslations = {
     "productsFormatter.comparison.removed": "Removed",
     "productsFormatter.status.empty": "Paste a product list before formatting.",
     "productsFormatter.status.formatted": "The list is ready.",
+    "productsFormatter.status.formatting": "Formatting…",
+    "productsFormatter.status.formatError": "Could not format the list.",
     "productsFormatter.status.copied": "The result was copied.",
     "productsFormatter.status.sectionCopied": "Section copied.",
     "productsFormatter.status.pasted": "Text was pasted from the clipboard.",

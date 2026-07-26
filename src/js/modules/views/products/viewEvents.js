@@ -48,6 +48,7 @@ export function bindViewEvents({
   clearProductFormatterDictionary,
   syncDictionaryMeta,
   syncDirtyFromInputs,
+  syncLineNumbers,
   clearCopyFeedbackTimer,
   refreshDiagnostics,
   refreshPreview,
@@ -164,6 +165,7 @@ export function bindViewEvents({
         return;
       }
       input.value = text;
+      syncLineNumbers();
       input.focus();
       clearPreview({ resetComparison: true });
       setStatus(t("productsFormatter.status.pasted"), "success");
@@ -175,6 +177,7 @@ export function bindViewEvents({
 
   clearButton?.addEventListener("click", () => {
     input.value = "";
+    syncLineNumbers();
     input.focus();
     clearPreview({ resetComparison: true });
     setStatus(t("productsFormatter.status.cleared"));
@@ -182,6 +185,7 @@ export function bindViewEvents({
 
   demoButton?.addEventListener("click", () => {
     input.value = demoInput;
+    syncLineNumbers();
     input.focus();
     clearPreview({ resetComparison: true });
     setStatus(t("productsFormatter.status.demoLoaded"), "success");
@@ -236,6 +240,7 @@ export function bindViewEvents({
     }
     if (!state.currentResult?.formattedSectionsText) return;
     input.value = state.currentResult.formattedSectionsText;
+    syncLineNumbers();
     input.focus();
     clearPreview({ resetComparison: true });
     setStatus(t("productsFormatter.status.appliedToInput"), "success");
@@ -266,6 +271,7 @@ export function bindViewEvents({
   });
 
   input?.addEventListener("input", () => {
+    syncLineNumbers();
     if (String(input.value || "").trim()) {
       if (autoReformatIfEnabled()) return;
       syncDirtyFromInputs();
@@ -274,6 +280,8 @@ export function bindViewEvents({
     clearPreview({ resetComparison: true });
     setStatus("", "");
   });
+
+  input?.addEventListener("scroll", syncLineNumbers);
 
   searchInput?.addEventListener("input", () => {
     state.resultSearchQuery = String(searchInput.value || "").trim();

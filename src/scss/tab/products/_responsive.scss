@@ -4,12 +4,21 @@
   }
 
   .products-workbench {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr);
+    grid-template-columns: minmax(0, 48fr) minmax(0, 52fr);
     gap: 14px;
   }
 
-  .products-view--dictionary-open .products-workbench {
-    grid-template-columns: minmax(0, 1.04fr) minmax(420px, 0.96fr);
+  .products-pane {
+    padding: 18px;
+  }
+
+  .products-pane__footer--action {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+
+  .products-format-button {
+    width: 100%;
   }
 }
 
@@ -19,100 +28,91 @@
     overflow: visible;
   }
 
-  .products-center {
-    height: auto;
-    min-height: auto;
-    padding: 16px;
-    overflow: visible;
-  }
-
+  .products-center,
   .products-formatter-shell {
     height: auto;
-    min-height: auto;
-    grid-template-rows: auto;
+    min-height: 0;
   }
 
-  .products-workbench {
-    grid-template-columns: 1fr;
+  .products-center {
+    padding: 14px;
   }
 
-  .products-pane--input,
-  .products-pane--result {
-    grid-template-rows: auto auto minmax(0, 1fr) auto;
+  .products-workbench,
+  .products-view--dictionary-open .products-workbench {
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  .products-pane__body--editor {
-    min-height: 280px;
+  .products-pane {
+    height: auto;
+    min-height: 520px;
+    padding: 18px;
   }
 
-  .products-editor-layout {
-    display: flex;
-  }
-
+  .products-pane__body--editor,
   .products-editor-main {
-    min-height: 280px;
+    min-height: 310px;
   }
 
   .products-pane__body--result {
-    min-height: 300px;
+    min-height: 320px;
+    overflow: visible;
+  }
+
+  .products-pane__footer--action {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+
+  .products-format-button {
+    width: 100%;
+    min-width: 0;
   }
 
   .products-result-toolbar {
-    grid-template-columns: 1fr;
-  }
-
-  .products-result-menu {
-    justify-content: stretch;
-  }
-
-  .products-result-menu__toggle {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .products-result-menu__panel {
-    left: 0;
-    right: 0;
-    min-width: 0;
+    grid-template-columns: minmax(0, 1fr) auto;
   }
 
   .products-diagnostics__filters {
-    gap: 6px;
-  }
-
-  .products-diagnostics__filter {
-    flex: 0 1 auto;
-    min-height: 30px;
-    padding-inline: 10px;
-  }
-
-  .products-issue {
-    grid-template-columns: 1fr;
-  }
-
-  .products-issue__actions {
-    justify-content: flex-end;
-  }
-
-  .products-pane__toggles {
     flex-wrap: wrap;
   }
 
-  .products-pane__toggles--footer {
-    padding-left: 0;
+  .products-dictionary-layer,
+  .products-dictionary {
+    min-height: 420px;
+  }
+}
+
+@media (max-width: 620px) {
+  .products-center {
+    padding: 10px;
+  }
+
+  .products-pane {
+    min-height: 480px;
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .products-pane__toolbar {
+    gap: 8px;
+  }
+
+  .products-editor-layout {
+    grid-template-columns: 42px minmax(0, 1fr);
+  }
+
+  .products-editor-gutter {
+    padding-inline: 8px;
   }
 
   .products-result-toolbar {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  .products-result-menu {
-    justify-content: stretch;
-  }
-
+  .products-result-menu,
   .products-result-menu__toggle {
     width: 100%;
-    justify-content: center;
   }
 
   .products-result-menu__panel {
@@ -121,27 +121,31 @@
     min-width: 0;
   }
 
-  .products-dictionary {
-    min-height: 320px;
+  .products-pane__toggles--footer {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .products-dictionary-layer {
-    min-height: 320px;
+  .products-formatter-toggle:last-child {
+    grid-column: 1 / -1;
   }
 
-  .products-view--dictionary-open .products-workbench {
-    grid-template-columns: 1fr;
+  .products-issue {
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  .products-dictionary__textarea {
-    min-height: 200px;
+  .products-issue__actions {
+    justify-content: flex-start;
   }
+}
 
-  .products-dictionary__actions {
-    gap: 10px;
-  }
-
-  .products-formatter-empty {
-    min-height: 220px;
+@media (prefers-reduced-motion: reduce) {
+  .products-view *,
+  .products-view *::before,
+  .products-view *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }

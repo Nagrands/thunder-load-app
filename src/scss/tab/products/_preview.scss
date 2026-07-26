@@ -1,213 +1,146 @@
-// ============================================================
-// ПЕРЕМЕННЫЕ (если не определены глобально – задаём fallback)
-// ============================================================
-:root {
-  --preview-radius-section: 20px;
-  --preview-radius-item: 12px;
-  --preview-radius-badge: 999px;
-  --preview-gap-section: 14px;
-  --preview-gap-list: 8px;
-  --preview-gap-header: 12px;
-  --preview-padding-section: 12px;
-  --preview-padding-empty: 16px 18px;
-  --preview-padding-uncertain: 8px 10px;
-}
-
-// ============================================================
-// МИКСИНЫ
-// ============================================================
-@mixin focus-ring($color-var: --color-accent-rgb) {
-  &:focus-visible {
-    box-shadow: 0 0 0 3px rgba(var(#{$color-var}), 0.16);
-  }
-}
-
-// Градиент для секций (можно переиспользовать)
-@mixin section-gradient($accent-opacity: 0.14, $angle: 135deg) {
-  background:
-    linear-gradient(
-      $angle,
-      rgba(var(--color-accent-rgb), $accent-opacity),
-      transparent 52%
-    ),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(4, 8, 14, 0.18)),
-    rgba(255, 255, 255, 0.025);
-}
-
-// Обычный фон секции (без акцентного градиента)
-@mixin base-section-bg() {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(4, 8, 14, 0.18)),
-    rgba(255, 255, 255, 0.02);
-}
-
-// ============================================================
-// ОСНОВНЫЕ СТИЛИ
-// ============================================================
 .products-preview-scroll {
+  min-width: 0;
   min-height: 0;
-  overflow: visible;
-  padding-right: 0;
 }
 
 .products-preview {
-  min-height: 0;
+  min-width: 0;
   display: grid;
-  gap: var(--preview-gap-section, 14px);
-  align-content: start;
+  gap: 10px;
 }
 
-// Сообщение о пустом результате фильтрации
 .products-preview__filtered-empty {
-  padding: var(--preview-padding-empty, 16px 18px);
-  border-radius: 16px;
-  border: 1px dashed rgba(255, 255, 255, 0.14);
-  color: var(--color-quality);
+  padding: 20px;
+  border: 1px dashed var(--border-emphasis);
+  border-radius: 14px;
+  color: var(--text-muted);
   text-align: center;
-  font-size: 0.86rem;
-  line-height: 1.45;
-  background: rgba(255, 255, 255, 0.02);
 }
 
-// Базовая секция
 .products-preview__section {
-  padding: var(--preview-padding-section, 12px);
-  border-radius: var(--preview-radius-section, 20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  @include base-section-bg();
+  min-width: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--border-default);
+  border-radius: 15px;
+  background: var(--surface-secondary);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.12);
 
-  // Свёрнутое состояние
-  &--collapsed {
-    .products-preview__list {
-      display: none;
-    }
-    .products-preview__header {
-      margin-bottom: 0;
-    }
+  &--summary {
+    border-color: rgba(74, 137, 255, 0.32);
   }
 
-  // Секция с итогами (акцентная)
-  &--summary {
-    border-color: rgba(var(--color-accent-rgb), 0.22);
-    @include section-gradient(0.14, 135deg);
-    box-shadow:
-      inset 0 0 0 1px rgba(var(--color-accent-rgb), 0.06),
-      0 14px 28px rgba(0, 0, 0, 0.1);
+  &--collapsed .products-preview__list {
+    display: none;
   }
 }
 
-// Заголовок секции
 .products-preview__header {
-  display: flex;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--preview-gap-header, 12px);
+  gap: 10px;
   margin-bottom: 10px;
 }
 
-// Кнопка-заголовок (разворачивание/сворачивание)
+.products-preview__section--collapsed .products-preview__header {
+  margin-bottom: 0;
+}
+
+.products-preview__document {
+  color: var(--accent-primary);
+}
+
 .products-preview__heading-button {
+  min-width: 0;
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 0;
+  gap: 9px;
+  padding: 4px;
   border: 0;
+  border-radius: 8px;
   background: transparent;
   color: inherit;
   text-align: left;
   cursor: pointer;
-  @include focus-ring();
 
   i {
-    color: var(--color-quality);
-    font-size: 0.78rem;
-  }
-}
-
-// Текст заголовка
-.products-preview__title {
-  margin: 0;
-  font-size: 1.18rem;
-  font-weight: 500;
-  color: var(--color-accent);
-}
-
-// Кнопка копирования для секции
-.products-section-copy {
-  flex: 0 0 auto;
-  width: 32px;
-  min-width: 32px;
-  min-height: 32px;
-  padding: 0;
-  border: 0;
-  border-radius: 10px;
-  background: transparent;
-  box-shadow: none;
-  color: var(--color-quality);
-  opacity: 0.82;
-  transition:
-    opacity 0.2s ease,
-    color 0.2s ease;
-  @include focus-ring();
-
-  i {
+    order: 2;
+    margin-left: auto;
+    color: var(--text-muted);
     font-size: 0.72rem;
   }
 
-  &:hover {
-    color: var(--color-highlight);
-    background: transparent;
-    transform: none; // отключаем подъём, так как это маленькая иконка
-    opacity: 1;
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
   }
 }
 
-// Список элементов
-.products-preview__list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: var(--preview-gap-list, 8px);
-}
-
-// Элемент списка
-.products-preview__item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  color: var(--color-highlight);
-  white-space: pre-wrap;
-  word-break: break-word;
-
-  // Неопределённые/проблемные элементы
-  &--uncertain {
-    padding: var(--preview-padding-uncertain, 8px 10px);
-    border-radius: var(--preview-radius-item, 12px);
-    background: rgba(255, 184, 77, 0.06);
-    outline: 1px solid rgba(255, 184, 77, 0.12);
-  }
-}
-
-// Текст элемента
-.products-preview__item-text {
+.products-preview__title {
   min-width: 0;
-  flex: 1 1 auto;
+  margin: 0;
+  color: var(--accent-primary);
+  font-size: 1rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
 }
 
-// Бейдж (например, "неизвестно")
+.products-section-copy {
+  width: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  padding: 0;
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--accent-primary);
+
+  &:hover:not(:disabled) {
+    background: var(--surface-hover);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+}
+
+.products-preview__list {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding: 0 0 0 20px;
+}
+
+.products-preview__item {
+  min-width: 0;
+  padding-left: 2px;
+  color: var(--text-primary);
+  line-height: 1.45;
+
+  &::marker {
+    color: var(--text-muted);
+  }
+
+  &--uncertain {
+    padding: 7px 9px;
+    border-radius: 9px;
+    background: rgba(240, 171, 70, 0.08);
+  }
+}
+
+.products-preview__item-text {
+  overflow-wrap: anywhere;
+}
+
 .products-preview__badge {
-  flex: 0 0 auto;
   display: inline-flex;
-  align-items: center;
-  min-height: 24px;
-  padding: 0 8px;
-  border-radius: var(--preview-radius-badge, 999px);
-  background: rgba(255, 184, 77, 0.12);
-  border: 1px solid rgba(255, 184, 77, 0.16);
-  color: var(--color-highlight);
-  font-size: 0.72rem;
+  margin-left: 8px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(240, 171, 70, 0.14);
+  color: var(--warning);
+  font-size: 0.7rem;
   font-weight: 700;
 }

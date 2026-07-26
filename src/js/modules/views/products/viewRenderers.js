@@ -96,9 +96,9 @@ export function renderDiagnostics(
 
   const activeFilter = options.activeFilter || "all";
   options.filterButtons?.forEach((button) => {
-    button.dataset.active = String(
-      (button.dataset.filter || "all") === activeFilter,
-    );
+    const active = (button.dataset.filter || "all") === activeFilter;
+    button.dataset.active = String(active);
+    button.setAttribute("aria-pressed", String(active));
   });
 
   const issues = Array.isArray(result.issues) ? result.issues : [];
@@ -385,6 +385,11 @@ function createSectionBlock(
 
   const header = document.createElement("div");
   header.className = "products-preview__header";
+
+  const documentIcon = document.createElement("i");
+  documentIcon.className = "fa-solid fa-file-lines products-preview__document";
+  documentIcon.setAttribute("aria-hidden", "true");
+  header.appendChild(documentIcon);
 
   const headingButton = document.createElement("button");
   headingButton.type = "button";

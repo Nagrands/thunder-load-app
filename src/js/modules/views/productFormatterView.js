@@ -79,6 +79,7 @@ export default function renderProductFormatterView(wrapper) {
   }
 
   const input = wrapper.querySelector("#products-input");
+  const lineNumbers = wrapper.querySelector("#products-line-numbers");
   const includeSummary = wrapper.querySelector("#products-summary-toggle");
   const includeGreensSummary = wrapper.querySelector("#products-greens-toggle");
   const autoReformatToggle = wrapper.querySelector(
@@ -171,7 +172,23 @@ export default function renderProductFormatterView(wrapper) {
       lastFormattedDictionary: "",
       resultMenuOpen: false,
       activeDictionaryLine: 1,
+      isFormatting: false,
+      activeFormattingSignature: "",
+      formattingRunId: 0,
     });
+
+  const syncLineNumbers = () => {
+    if (!input || !lineNumbers) return;
+    const count = Math.max(1, String(input.value || "").split("\n").length);
+    const fragment = document.createDocumentFragment();
+    for (let line = 1; line <= count; line += 1) {
+      const item = document.createElement("span");
+      item.textContent = String(line);
+      fragment.appendChild(item);
+    }
+    lineNumbers.replaceChildren(fragment);
+    lineNumbers.scrollTop = input.scrollTop;
+  };
 
   const setStatus = (message = "", tone = "") => {
     if (!status) return;
@@ -269,6 +286,7 @@ export default function renderProductFormatterView(wrapper) {
         }
         nextLines[lineIndex] = entry.output;
         input.value = nextLines.join("\n");
+        syncLineNumbers();
         input.focus();
         syncDirtyFromInputs();
         setStatus(t("productsFormatter.status.lineApplied"), "success");
@@ -360,35 +378,85 @@ export default function renderProductFormatterView(wrapper) {
   if (resultMenuToggle) resultMenuToggle.disabled = true;
   setResultMenuState(resultMenuToggle, resultMenuPanel, false);
 
-  const formatSource = ({
+  const setFormattingState = (isFormatting) => {
+    state.isFormatting = isFormatting;
+    if (!formatButton) return;
+    formatButton.disabled = isFormatting;
+    formatButton.dataset.loading = String(isFormatting);
+    formatButton.setAttribute("aria-busy", String(isFormatting));
+    formatButton.setAttribute("aria-disabled", String(isFormatting));
+    const label = formatButton.querySelector(".products-format-button__label");
+    if (label) {
+      label.textContent = t(
+        isFormatting
+          ? "productsFormatter.status.formatting"
+          : "productsFormatter.format",
+      );
+      label.dataset.i18n = isFormatting
+        ? "productsFormatter.status.formatting"
+        : "productsFormatter.format";
+    }
+  };
+
+  const formatSource = async ({
     source = getCurrentSource(),
     statusMessage = t("productsFormatter.status.formatted"),
     comparisonBase = state.currentResult,
   } = {}) => {
+    const requestSignature = JSON.stringify({
+      source,
+      includeSummary: includeSummary?.checked !== false,
+      includeGreensSummary: includeGreensSummary?.checked === true,
+      dictionary: dictionaryInput?.value || "",
+    });
+    if (state.isFormatting) {
+      if (state.activeFormattingSignature === requestSignature) return null;
+    }
     if (!source) {
       clearPreview();
       setStatus(t("productsFormatter.status.empty"), "warning");
       return null;
     }
 
-    const result = formatProductLists(
-      source,
-      buildFormatterOptions(
-        includeSummary,
-        includeGreensSummary,
-        dictionaryInput,
-      ),
-    );
-
-    state.previousResult = comparisonBase;
-    state.currentResult = result;
-    state.lastFormattedSource = String(input?.value || "");
-    state.lastFormattedDictionary = String(dictionaryInput?.value || "");
-    showResult(result);
+    setFormattingState(true);
+    state.activeFormattingSignature = requestSignature;
+    state.formattingRunId += 1;
+    const runId = state.formattingRunId;
     if (statusMessage) {
-      setStatus(statusMessage, "success");
+      setStatus(t("productsFormatter.status.formatting"));
     }
-    return result;
+    try {
+      const result = formatProductLists(
+        source,
+        buildFormatterOptions(
+          includeSummary,
+          includeGreensSummary,
+          dictionaryInput,
+        ),
+      );
+
+      state.previousResult = comparisonBase;
+      state.currentResult = result;
+      state.lastFormattedSource = String(input?.value || "");
+      state.lastFormattedDictionary = String(dictionaryInput?.value || "");
+      showResult(result);
+      if (formatButton) {
+        formatButton.disabled = false;
+      }
+      if (statusMessage) {
+        setStatus(statusMessage, "success");
+      }
+      return result;
+    } catch {
+      setStatus(t("productsFormatter.status.formatError"), "error");
+      return null;
+    } finally {
+      await Promise.resolve();
+      if (state.formattingRunId === runId) {
+        state.activeFormattingSignature = "";
+        setFormattingState(false);
+      }
+    }
   };
 
   bindViewEvents({
@@ -437,6 +505,7 @@ export default function renderProductFormatterView(wrapper) {
     clearProductFormatterDictionary,
     syncDictionaryMeta,
     syncDirtyFromInputs,
+    syncLineNumbers,
     clearCopyFeedbackTimer,
     refreshDiagnostics: () => {
       if (!state.currentResult) return;
@@ -454,6 +523,7 @@ export default function renderProductFormatterView(wrapper) {
 
   applyI18n(wrapper);
   syncDictionaryMeta();
+  syncLineNumbers();
   syncDirtyFromInputs();
   syncDictionaryUI();
   initTooltips(wrapper);

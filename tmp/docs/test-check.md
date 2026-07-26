@@ -1,8 +1,8 @@
 ## Автотесты (Jest)
 
 - Автосборка списка: `npm run test-check:sync-tests`
-- Найдено файлов: 132
-- Найдено тест-кейсов (test/it): 1128
+- Найдено файлов: 133
+- Найдено тест-кейсов (test/it): 1136
 
 <!-- AUTO-JEST-TESTS:START -->
 
@@ -204,10 +204,11 @@
 - [ ] expands window on download complete when toggle is enabled
 - [ ] does not expand window on download complete when toggle is disabled
 
-### `src/js/app/__tests__/nowPlayingHlsService.test.js` (3)
+### `src/js/app/__tests__/nowPlayingHlsService.test.js` (4)
 - [ ] accepts only one or two resolved HTTP inputs
 - [ ] maps adaptive video and audio and uses copy for compatible codecs
 - [ ] serves tokenized manifests on loopback and cleans the session
+- [ ] supersedes an initializing session and keeps only one FFmpeg process
 
 ### `src/js/app/__tests__/nowPlayingIpcHandlers.test.js` (17)
 - [ ] registers all Player channels
@@ -789,7 +790,7 @@
 - [ ] accepts credential-free HTTP(S) URLs
 - [ ] marks HLS manifests for the HLS playback adapter
 
-### `src/js/modules/__tests__/nowPlayingPlaybackController.test.js` (16)
+### `src/js/modules/__tests__/nowPlayingPlaybackController.test.js` (19)
 - [ ] selects a track, swaps the reusable media layer and starts playback
 - [ ] supports previous, next, shuffle and repeat modes
 - [ ] persists selectedTrackId and settings but not playback position
@@ -806,6 +807,9 @@
 - [ ] keeps unavailable tracks selected and exposes a recoverable error
 - [ ] shows a distinct loading state and pauses the old track while resolving
 - [ ] requests a forced refresh only when retrying playback
+- [ ] releases a superseded playback descriptor and starts only the latest track
+- [ ] waits for resource release before resolving the next track
+- [ ] does not let a rejected stale play promise overwrite the latest state
 
 ### `src/js/modules/__tests__/nowPlayingPlayerDialog.test.js` (3)
 - [ ] supports aliases, traps focus and restores the invoking control
@@ -868,8 +872,14 @@
 - [ ] removes only invalid dictionary lines
 - [ ] parses structured alias, normalize, and token rules
 
-### `src/js/modules/__tests__/productFormatterView.test.js` (45)
+### `src/js/modules/__tests__/productFormatterStyles.test.js` (2)
+- [ ] defines the two-column workbench and prevents narrow grid overflow
+- [ ] stacks panes, wraps filters and honors reduced motion
+
+### `src/js/modules/__tests__/productFormatterView.test.js` (47)
 - [ ] renders the upgraded workspace with utility actions and empty result state
+- [ ] synchronizes editor line numbers after input, demo and clear actions
+- [ ] exposes busy state and rejects a duplicate formatting launch
 - [ ] formats into a single preview flow with summary at the end and enables the compact result controls
 - [ ] appends the greens summary block when the optional toggle is enabled
 - [ ] reformats the preview immediately when toggles change after formatting
