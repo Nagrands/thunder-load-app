@@ -166,9 +166,9 @@ describe("Now Playing view", () => {
       view.element.querySelector('[data-ui="floating-title"]').textContent,
     ).toBe("Demo track");
     expect(
-      view.element.querySelector(
-        '[data-action="placeholder-subtitles"]',
-      ).getAttribute("aria-disabled"),
+      view.element
+        .querySelector('[data-action="placeholder-subtitles"]')
+        .getAttribute("aria-disabled"),
     ).toBe("true");
     expect(
       view.element.querySelector(".now-playing__sidebar-toolbar"),
@@ -178,9 +178,9 @@ describe("Now Playing view", () => {
         (badge) => badge.textContent,
       ),
     ).toEqual(["1080p", "H.264", "AAC"]);
-    expect(view.element.querySelector('[data-ui="media-size"]').textContent).toBe(
-      "3.2 GB",
-    );
+    expect(
+      view.element.querySelector('[data-ui="media-size"]').textContent,
+    ).toBe("3.2 GB");
     view.dispose();
   });
 
@@ -207,7 +207,8 @@ describe("Now Playing view", () => {
     expect(dialog.getAttribute("aria-hidden")).toBe("false");
     expect(dialog.dataset.mode).toBe("trackInfo");
     expect(
-      dialog.querySelector('[data-ui="player-form-modal-info-title"]').textContent,
+      dialog.querySelector('[data-ui="player-form-modal-info-title"]')
+        .textContent,
     ).toBe(sampleTrack.title);
     expect(
       dialog.querySelector('[data-ui="player-form-modal-info-artwork"]').src,
@@ -241,7 +242,9 @@ describe("Now Playing view", () => {
     expect(
       view.element.querySelector(".now-playing__topbar-reveal-zone"),
     ).not.toBeNull();
-    expect(sidebar.querySelector(".now-playing__brand-label").hidden).toBe(true);
+    expect(sidebar.querySelector(".now-playing__brand-label").hidden).toBe(
+      true,
+    );
     expect(sidebar.querySelector(".now-playing__library-title")).not.toBeNull();
     expect(sidebar.querySelector(".now-playing__track-stage").hidden).toBe(
       true,
@@ -375,9 +378,9 @@ describe("Now Playing view", () => {
     expect(wheelUp.defaultPrevented).toBe(true);
     expect(percent.textContent).toBe("55%");
     expect(range.value).toBe("0.55");
-    expect(
-      view.element.classList.contains("is-volume-feedback-visible"),
-    ).toBe(true);
+    expect(view.element.classList.contains("is-volume-feedback-visible")).toBe(
+      true,
+    );
 
     range.dispatchEvent(
       new WheelEvent("wheel", {
@@ -388,9 +391,9 @@ describe("Now Playing view", () => {
     );
     expect(percent.textContent).toBe("50%");
     jest.advanceTimersByTime(1500);
-    expect(
-      view.element.classList.contains("is-volume-feedback-visible"),
-    ).toBe(false);
+    expect(view.element.classList.contains("is-volume-feedback-visible")).toBe(
+      false,
+    );
 
     mute.click();
     expect(percent.textContent).toBe("0%");
@@ -829,7 +832,9 @@ describe("Now Playing view", () => {
     expect(
       view.element.querySelector('[data-action="repeat"]').dataset.mode,
     ).toBe("all");
-    expect(view.element.querySelector('[data-action="volume"]').value).toBe("0");
+    expect(view.element.querySelector('[data-action="volume"]').value).toBe(
+      "0",
+    );
     expect(settingsState).toHaveBeenCalledTimes(1);
 
     jest.advanceTimersByTime(250);
@@ -877,6 +882,7 @@ describe("Now Playing view", () => {
           tracks: [
             {
               id: "audio-1",
+              order: 0,
               title: "Original",
               language: "eng",
               codec: "aac",
@@ -885,6 +891,7 @@ describe("Now Playing view", () => {
             },
             {
               id: "audio-2",
+              order: 1,
               title: "Дубляж",
               language: "rus",
               codec: "ac3",
@@ -894,14 +901,7 @@ describe("Now Playing view", () => {
           ],
         },
       }),
-      createLocalPlaybackSession: jest.fn().mockResolvedValue({
-        success: true,
-        data: {
-          src: "file:///music/demo-selected.mp3",
-          mimeType: "audio/mpeg",
-          sessionId: "selected-audio",
-        },
-      }),
+      createLocalPlaybackSession: jest.fn(),
       closePlaybackSession: jest.fn().mockResolvedValue({ success: true }),
       importFiles: jest.fn(),
       importFolder: jest.fn(),
@@ -909,6 +909,17 @@ describe("Now Playing view", () => {
     const view = createNowPlayingView({ api });
     document.body.appendChild(view.element);
     await view.ready;
+    const activeMedia = [
+      ...view.element.querySelectorAll(".now-playing__video"),
+    ].find((media) => media.dataset.trackId === "demo");
+    const nativeAudioTracks = [{ enabled: true }, { enabled: false }];
+    Object.defineProperty(activeMedia, "audioTracks", {
+      configurable: true,
+      value: nativeAudioTracks,
+    });
+    activeMedia.currentTime = 36;
+    HTMLMediaElement.prototype.load.mockClear();
+    HTMLMediaElement.prototype.play.mockClear();
     api.setState.mockClear();
 
     const trigger = view.element.querySelector(
@@ -939,10 +950,14 @@ describe("Now Playing view", () => {
       await Promise.resolve();
     }
 
-    expect(api.createLocalPlaybackSession).toHaveBeenCalledWith({
-      trackId: "demo",
-      audioTrackId: "audio-2",
-    });
+    expect(api.createLocalPlaybackSession).not.toHaveBeenCalled();
+    expect(nativeAudioTracks.map((track) => track.enabled)).toEqual([
+      false,
+      true,
+    ]);
+    expect(activeMedia.currentTime).toBe(36);
+    expect(HTMLMediaElement.prototype.load).not.toHaveBeenCalled();
+    expect(HTMLMediaElement.prototype.play).not.toHaveBeenCalled();
     expect(menu.hidden).toBe(true);
     jest.advanceTimersByTime(250);
     await Promise.resolve();
@@ -963,7 +978,7 @@ describe("Now Playing view", () => {
     jest.useRealTimers();
   });
 
-  test("rolls back an audio selection when FFmpeg playback preparation fails", async () => {
+  test("blocks audio selection when native and probed track counts differ", async () => {
     const api = {
       getState: jest.fn().mockResolvedValue({
         data: {
@@ -979,6 +994,7 @@ describe("Now Playing view", () => {
           tracks: [
             {
               id: "audio-2",
+              order: 0,
               title: "Dub",
               codec: "ac3",
               channels: 6,
@@ -986,16 +1002,20 @@ describe("Now Playing view", () => {
           ],
         },
       }),
-      createLocalPlaybackSession: jest.fn().mockResolvedValue({
-        success: false,
-        error: { code: "FFMPEG_UNAVAILABLE", message: "FFmpeg missing" },
-      }),
+      createLocalPlaybackSession: jest.fn(),
       importFiles: jest.fn(),
       importFolder: jest.fn(),
     };
     const view = createNowPlayingView({ api });
     document.body.appendChild(view.element);
     await view.ready;
+    const activeMedia = [
+      ...view.element.querySelectorAll(".now-playing__video"),
+    ].find((media) => media.dataset.trackId === "demo");
+    Object.defineProperty(activeMedia, "audioTracks", {
+      configurable: true,
+      value: [{ enabled: true }, { enabled: false }],
+    });
 
     view.element
       .querySelector(
@@ -1004,24 +1024,16 @@ describe("Now Playing view", () => {
       .click();
     await Promise.resolve();
     await Promise.resolve();
-    view.element
-      .querySelector('[data-audio-track-id="audio-2"]')
-      .click();
-    for (let index = 0; index < 16; index += 1) {
-      await Promise.resolve();
-    }
-
     expect(
       view.element.querySelector('[data-ui="audio-track-menu"]').hidden,
     ).toBe(false);
     expect(
       view.element.querySelector('[data-ui="audio-track-status"]').textContent,
-    ).toBe("FFmpeg missing");
+    ).toBe("nowPlaying.audioTracks.nativeMismatch");
     expect(
-      view.element
-        .querySelector('[data-action="select-audio-track"]')
-        .getAttribute("aria-selected"),
-    ).toBe("true");
+      view.element.querySelector('[data-action="select-audio-track"]').disabled,
+    ).toBe(true);
+    expect(api.createLocalPlaybackSession).not.toHaveBeenCalled();
     view.dispose();
   });
 
@@ -1373,7 +1385,9 @@ describe("Now Playing view", () => {
         confirmText: "nowPlaying.library.clearQueueAction",
       }),
     );
-    expect(view.element.querySelector('[data-ui="library-empty"]').hidden).toBe(false);
+    expect(view.element.querySelector('[data-ui="library-empty"]').hidden).toBe(
+      false,
+    );
     expect(view.element.classList.contains("is-library-view")).toBe(true);
     view.dispose();
   });
@@ -1426,7 +1440,9 @@ describe("Now Playing view", () => {
       }),
     );
     expect(
-      view.element.querySelectorAll('[data-ui="library-tracks"] [data-track-id]'),
+      view.element.querySelectorAll(
+        '[data-ui="library-tracks"] [data-track-id]',
+      ),
     ).toHaveLength(0);
     expect(view.element.querySelector('[data-ui="library-empty"]').hidden).toBe(
       false,
@@ -1510,11 +1526,14 @@ describe("Now Playing view", () => {
     const library = view.element.querySelector('[data-ui="library-view"]');
     expect(library.hidden).toBe(false);
     expect(view.element.classList.contains("is-library-view")).toBe(true);
-    expect(library.querySelector(".player-library__command-bar")).not.toBeNull();
-    expect(library.querySelector(".player-library__column-header")).not.toBeNull();
     expect(
-      library
-        .querySelector('[data-ui="library-search-clear"] [data-lucide]')
+      library.querySelector(".player-library__command-bar"),
+    ).not.toBeNull();
+    expect(
+      library.querySelector(".player-library__column-header"),
+    ).not.toBeNull();
+    expect(
+      library.querySelector('[data-ui="library-search-clear"] [data-lucide]')
         .dataset.lucide,
     ).toBe("x");
     const headerActions = library.querySelector(
@@ -1550,9 +1569,9 @@ describe("Now Playing view", () => {
       },
     ]);
     expect(
-      [...library.querySelectorAll(".player-library__filters [data-lucide]")].map(
-        (icon) => icon.dataset.lucide,
-      ),
+      [
+        ...library.querySelectorAll(".player-library__filters [data-lucide]"),
+      ].map((icon) => icon.dataset.lucide),
     ).toEqual(["layout-grid", "clapperboard", "music-2", "file-warning"]);
     expect(
       library.querySelector('[data-ui="playlist-management-actions"]').hidden,
@@ -1564,7 +1583,8 @@ describe("Now Playing view", () => {
       library.querySelector('[data-action="clear-media-library"]').disabled,
     ).toBe(false);
     expect(
-      library.querySelector('[data-action="open-rename-playlist-dialog"]').hidden,
+      library.querySelector('[data-action="open-rename-playlist-dialog"]')
+        .hidden,
     ).toBe(true);
     expect(
       library.querySelector('[data-action="delete-playlist"]').hidden,
@@ -1592,24 +1612,20 @@ describe("Now Playing view", () => {
     expect(library.querySelector('[data-ui="mini-album"]').textContent).toBe(
       "Local",
     );
-    expect(
-      library.querySelector('.player-library__return'),
-    ).toBeNull();
+    expect(library.querySelector(".player-library__return")).toBeNull();
     expect(
       library
         .querySelector('[data-ui="mini-player"] [data-action="show-player"]')
         .getAttribute("aria-label"),
     ).toBe("nowPlaying.library.openFullPlayer");
+    expect(library.querySelector('[data-action="seek"]').max).toBe("90");
+    expect(library.querySelector('[data-ui="mini-duration"]').textContent).toBe(
+      "1:30",
+    );
     expect(
-      library.querySelector('[data-action="seek"]').max,
-    ).toBe("90");
-    expect(
-      library.querySelector('[data-ui="mini-duration"]').textContent,
-    ).toBe("1:30");
-    expect(
-      library.querySelector('[data-action="volume"]').getAttribute(
-        "aria-valuetext",
-      ),
+      library
+        .querySelector('[data-action="volume"]')
+        .getAttribute("aria-valuetext"),
     ).toBe("100%");
     const sidebarSwitcher = view.element.querySelector(
       '[data-ui="sidebar-playlist-switcher"]',
@@ -1636,9 +1652,7 @@ describe("Now Playing view", () => {
     libraryTrack
       .querySelector('[data-action="open-track-context-menu"]')
       .click();
-    view.element
-      .querySelector('[data-context-action="queue"]')
-      .click();
+    view.element.querySelector('[data-context-action="queue"]').click();
     expect(
       [
         ...library.querySelectorAll(
@@ -1713,7 +1727,8 @@ describe("Now Playing view", () => {
       library.querySelector('[data-action="clear-media-library"]').hidden,
     ).toBe(true);
     expect(
-      library.querySelector('[data-action="open-rename-playlist-dialog"]').hidden,
+      library.querySelector('[data-action="open-rename-playlist-dialog"]')
+        .hidden,
     ).toBe(false);
     expect(
       library.querySelector('[data-action="delete-playlist"]').hidden,
@@ -1853,9 +1868,9 @@ describe("Now Playing view", () => {
 
     search.value = "season one";
     search.dispatchEvent(new Event("input", { bubbles: true }));
-    expect(library.querySelector('[data-ui="library-search-clear"]').hidden).toBe(
-      false,
-    );
+    expect(
+      library.querySelector('[data-ui="library-search-clear"]').hidden,
+    ).toBe(false);
     expect(library.querySelectorAll(".player-library__track")).toHaveLength(1);
     expect(
       library.querySelector(".player-library__track").dataset.trackId,
@@ -1864,7 +1879,9 @@ describe("Now Playing view", () => {
     library
       .querySelector('[data-action="set-library-filter"][data-filter="audio"]')
       .click();
-    expect(library.querySelector('[data-ui="library-tracks"]').hidden).toBe(true);
+    expect(library.querySelector('[data-ui="library-tracks"]').hidden).toBe(
+      true,
+    );
     expect(library.querySelector('[data-ui="library-no-results"]').hidden).toBe(
       false,
     );
@@ -1872,22 +1889,22 @@ describe("Now Playing view", () => {
     library.querySelector('[data-action="clear-library-search"]').click();
     expect(search.value).toBe("");
     expect(
-      library
-        .querySelector('[data-filter="all"]')
-        .getAttribute("aria-pressed"),
+      library.querySelector('[data-filter="all"]').getAttribute("aria-pressed"),
     ).toBe("true");
     expect(library.querySelectorAll(".player-library__track")).toHaveLength(3);
 
     library
-      .querySelector('[data-action="set-library-filter"][data-filter="missing"]')
+      .querySelector(
+        '[data-action="set-library-filter"][data-filter="missing"]',
+      )
       .click();
     expect(library.querySelectorAll(".player-library__track")).toHaveLength(1);
-    expect(
-      library.querySelector(".player-library__track").classList,
-    ).toContain("is-missing");
-    expect(
-      library.querySelector('[data-ui="mini-title"]').textContent,
-    ).toBe("Demo track");
+    expect(library.querySelector(".player-library__track").classList).toContain(
+      "is-missing",
+    );
+    expect(library.querySelector('[data-ui="mini-title"]').textContent).toBe(
+      "Demo track",
+    );
 
     search.value = "royal";
     search.dispatchEvent(new Event("input", { bubbles: true }));

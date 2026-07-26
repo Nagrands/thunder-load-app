@@ -108,7 +108,6 @@ export function createNowPlayingView({
   let persistenceRequested = false;
   let volumeFeedbackTimer = null;
   let operationFeedbackTimer = null;
-  let audioSwitchGeneration = 0;
   let draggedTrackId = "";
   let libraryModel = null;
   const renderPlaylist = createPlaylistRenderer(playlist);
@@ -179,6 +178,7 @@ export function createNowPlayingView({
     root,
     api,
     getCurrentTrack: () => controller.currentTrack,
+    getNativeAudioTrackState: () => controller.getNativeAudioTrackState(),
     onOpenChange: (open) =>
       controlsVisibility.setLocked(
         open || dock.contains(document.activeElement),
@@ -195,7 +195,9 @@ export function createNowPlayingView({
 
   function renderTransientQueue(items = transientQueue.getItems()) {
     const queue = root.querySelector('[data-ui="transient-queue"]');
-    const clearButton = root.querySelector('[data-action="clear-transient-queue"]');
+    const clearButton = root.querySelector(
+      '[data-action="clear-transient-queue"]',
+    );
     if (!queue) return;
     clearButton.disabled = items.length === 0;
     if (!items.length) {
@@ -216,7 +218,11 @@ export function createNowPlayingView({
         actions.className = "player-library__queued-actions";
         [
           ["move-transient-up", "arrow-up", "nowPlaying.playlists.moveUp"],
-          ["move-transient-down", "arrow-down", "nowPlaying.playlists.moveDown"],
+          [
+            "move-transient-down",
+            "arrow-down",
+            "nowPlaying.playlists.moveDown",
+          ],
           ["remove-transient", "x", "nowPlaying.queue.remove"],
         ].forEach(([action, icon, labelKey]) => {
           const button = document.createElement("button");
@@ -354,19 +360,21 @@ export function createNowPlayingView({
     root.querySelector('[data-ui="error-message"]').textContent =
       getPlaybackErrorMessage(snapshot.error);
     if (libraryModel) libraryView.renderPlayback(snapshot);
-    const systemState = snapshot.currentTrack && !snapshot.isStopped
-      ? {
-          track: {
-            title:
-              snapshot.currentTrack.displayTitle || snapshot.currentTrack.title,
-          },
-          isPlaying: snapshot.isPlaying === true,
-          canNext:
-            transientQueue.getItems().length > 0 ||
-            snapshot.currentIndex < snapshot.queue.length - 1,
-          canPrevious: snapshot.currentIndex > 0 || snapshot.currentTime > 3,
-        }
-      : { track: null, isPlaying: false, canNext: false, canPrevious: false };
+    const systemState =
+      snapshot.currentTrack && !snapshot.isStopped
+        ? {
+            track: {
+              title:
+                snapshot.currentTrack.displayTitle ||
+                snapshot.currentTrack.title,
+            },
+            isPlaying: snapshot.isPlaying === true,
+            canNext:
+              transientQueue.getItems().length > 0 ||
+              snapshot.currentIndex < snapshot.queue.length - 1,
+            canPrevious: snapshot.currentIndex > 0 || snapshot.currentTime > 3,
+          }
+        : { track: null, isPlaying: false, canNext: false, canPrevious: false };
     const nextSystemMediaStateKey = JSON.stringify(systemState);
     if (nextSystemMediaStateKey !== systemMediaStateKey) {
       systemMediaStateKey = nextSystemMediaStateKey;
@@ -430,37 +438,38 @@ export function createNowPlayingView({
     audioTracks?.refreshI18n();
   }
 
-  async function switchAudioTrack(nextAudioTrackId) {
+  async function switchAudioTrack({ audioTrackId: nextAudioTrackId, tracks }) {
     const track = controller.currentTrack;
     if (!track || track.providerId !== "local" || !libraryModel) return false;
     const previousAudioTrackId = track.selectedAudioTrackId || null;
     if (previousAudioTrackId === nextAudioTrackId) return true;
-    const startTime = Number(controller.activeMedia?.currentTime) || 0;
-    const wasPlaying = controller.isPlaying;
-    const generation = ++audioSwitchGeneration;
-    if (!libraryModel.setTrackAudioSelection(track.id, nextAudioTrackId)) {
+    const switched = controller.selectNativeAudioTrack({
+      audioTrackId: nextAudioTrackId,
+      tracks,
+    });
+    if (!switched.success) {
+      throw new Error(
+        switched.code === "AUDIO_TRACKS_NATIVE_MISMATCH"
+          ? t("nowPlaying.audioTracks.nativeMismatch")
+          : t("nowPlaying.audioTracks.switchError"),
+      );
+    }
+    if (libraryModel.setTrackAudioSelection(track.id, nextAudioTrackId)) {
+      libraryView.render(libraryModel.getState(), controller.getSnapshot());
+      queuePersistence({ immediate: true });
+      return true;
+    }
+    const rollback = controller.selectNativeAudioTrack({
+      audioTrackId: previousAudioTrackId,
+      tracks,
+    });
+    if (!rollback.success) {
+      status.textContent = t("nowPlaying.audioTracks.switchError");
+    }
+    if (!libraryModel.setTrackAudioSelection(track.id, previousAudioTrackId)) {
       return false;
     }
-    syncLibraryQueue({ selectedTrackId: track.id });
-    const switched = await controller.selectTrack(track.id, {
-      autoplay: wasPlaying,
-      forceRefresh: true,
-      startTime,
-    });
-    if (generation !== audioSwitchGeneration) return false;
-    if (switched) return true;
-
-    const switchError = getPlaybackErrorMessage(
-      controller.getSnapshot().error,
-    ) || t("nowPlaying.audioTracks.switchError");
-    libraryModel.setTrackAudioSelection(track.id, previousAudioTrackId);
-    syncLibraryQueue({ selectedTrackId: track.id });
-    await controller.selectTrack(track.id, {
-      autoplay: wasPlaying,
-      forceRefresh: true,
-      startTime,
-    });
-    throw new Error(switchError);
+    throw new Error(t("nowPlaying.audioTracks.switchError"));
   }
 
   async function importSource(source) {
@@ -492,7 +501,8 @@ export function createNowPlayingView({
   }
 
   async function importPaths(paths, { autoplay = true } = {}) {
-    if (!Array.isArray(paths) || !paths.length || !api?.importPaths) return false;
+    if (!Array.isArray(paths) || !paths.length || !api?.importPaths)
+      return false;
     const payload = unwrapNowPlayingState(await api.importPaths(paths));
     const tracks = Array.isArray(payload?.tracks) ? payload.tracks : [];
     provider.mergeTracks(
@@ -894,7 +904,10 @@ export function createNowPlayingView({
     }
     if (action === "delete") return removeFromActivePlaylist(track.id);
     if (action === "rename") {
-      return libraryView.openDialog("renameTrack", { trackId: track.id, track });
+      return libraryView.openDialog("renameTrack", {
+        trackId: track.id,
+        track,
+      });
     }
     if (action === "info") {
       return libraryView.openDialog("trackInfo", { track });
@@ -916,9 +929,12 @@ export function createNowPlayingView({
         }
         return true;
       } catch (error) {
-        libraryView.setOperationStatus(error?.message || t("nowPlaying.error"), {
-          error: true,
-        });
+        libraryView.setOperationStatus(
+          error?.message || t("nowPlaying.error"),
+          {
+            error: true,
+          },
+        );
         return false;
       }
     }
@@ -971,21 +987,25 @@ export function createNowPlayingView({
       playlistOption.click();
       return;
     }
-    if (
-      event.key === "Escape" &&
-      (playlistOption || playlistTrigger)
-    ) {
+    if (event.key === "Escape" && (playlistOption || playlistTrigger)) {
       event.preventDefault();
       event.stopPropagation();
       libraryView.closeSidebarPlaylistMenu({ restoreFocus: true });
       return;
     }
     const libraryRow = event.target.closest(".player-library__track");
-    if (libraryRow && (event.key === "ContextMenu" || (event.shiftKey && event.key === "F10"))) {
+    if (
+      libraryRow &&
+      (event.key === "ContextMenu" || (event.shiftKey && event.key === "F10"))
+    ) {
       event.preventDefault();
       const context = libraryView.getTrackContext(libraryRow.dataset.trackId);
       const bounds = libraryRow.getBoundingClientRect();
-      if (context) contextMenu.open(context, libraryRow, { x: bounds.left + 24, y: bounds.top + 24 });
+      if (context)
+        contextMenu.open(context, libraryRow, {
+          x: bounds.left + 24,
+          y: bounds.top + 24,
+        });
       return;
     }
     if (libraryRow && ["Enter", " "].includes(event.key)) {
@@ -994,18 +1014,13 @@ export function createNowPlayingView({
       return;
     }
     const row = event.target.closest(".now-playing__track");
-    if (
-      row &&
-      event.altKey &&
-      ["ArrowUp", "ArrowDown"].includes(event.key)
-    ) {
+    if (row && event.altKey && ["ArrowUp", "ArrowDown"].includes(event.key)) {
       event.preventDefault();
       const activePlaylist = libraryView.getActivePlaylist();
       const sourceIndex = controller.queue.findIndex(
         (track) => track.id === row.dataset.trackId,
       );
-      const targetIndex =
-        sourceIndex + (event.key === "ArrowUp" ? -1 : 1);
+      const targetIndex = sourceIndex + (event.key === "ArrowUp" ? -1 : 1);
       if (
         activePlaylist &&
         libraryModel.reorderTrack(
@@ -1075,7 +1090,8 @@ export function createNowPlayingView({
     if (!row || !root.contains(row)) return;
     event.preventDefault();
     const context = libraryView.getTrackContext(row.dataset.trackId);
-    if (context) contextMenu.open(context, row, { x: event.clientX, y: event.clientY });
+    if (context)
+      contextMenu.open(context, row, { x: event.clientX, y: event.clientY });
   }
 
   function onDoubleClick(event) {
@@ -1124,11 +1140,7 @@ export function createNowPlayingView({
     if (
       activePlaylist &&
       targetIndex >= 0 &&
-      libraryModel.reorderTrack(
-        activePlaylist.id,
-        draggedTrackId,
-        targetIndex,
-      )
+      libraryModel.reorderTrack(activePlaylist.id, draggedTrackId, targetIndex)
     ) {
       syncLibraryQueue({ selectedTrackId: controller.currentTrack?.id });
     }
@@ -1139,9 +1151,7 @@ export function createNowPlayingView({
     draggedTrackId = "";
     playlist
       .querySelectorAll(".is-dragging, .is-drag-target")
-      .forEach((row) =>
-        row.classList.remove("is-dragging", "is-drag-target"),
-      );
+      .forEach((row) => row.classList.remove("is-dragging", "is-drag-target"));
   }
 
   function onMediaEnded(event) {
@@ -1208,7 +1218,9 @@ export function createNowPlayingView({
   root.addEventListener("dragover", onDragOver);
   root.addEventListener("drop", onDrop);
   root.addEventListener("dragend", onDragEnd);
-  mediaLayers.forEach((media) => media.addEventListener("ended", onMediaEnded, true));
+  mediaLayers.forEach((media) =>
+    media.addEventListener("ended", onMediaEnded, true),
+  );
   window.addEventListener("blur", onWindowBlur);
   window.addEventListener("focus", onWindowFocus);
   window.addEventListener("i18n:changed", onI18nChanged);
@@ -1332,7 +1344,9 @@ export function createNowPlayingView({
       root.removeEventListener("dragover", onDragOver);
       root.removeEventListener("drop", onDrop);
       root.removeEventListener("dragend", onDragEnd);
-      mediaLayers.forEach((media) => media.removeEventListener("ended", onMediaEnded, true));
+      mediaLayers.forEach((media) =>
+        media.removeEventListener("ended", onMediaEnded, true),
+      );
       window.removeEventListener("blur", onWindowBlur);
       window.removeEventListener("focus", onWindowFocus);
       window.removeEventListener("i18n:changed", onI18nChanged);

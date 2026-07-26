@@ -79,9 +79,12 @@ function normalizeSettingsPatch(value) {
   ]);
   const keys = Object.keys(value);
   if (!keys.length || keys.some((key) => !allowed.has(key))) {
-    throw Object.assign(new Error("Player settings patch contains invalid fields"), {
-      code: "INVALID_SETTINGS",
-    });
+    throw Object.assign(
+      new Error("Player settings patch contains invalid fields"),
+      {
+        code: "INVALID_SETTINGS",
+      },
+    );
   }
   const patch = {};
   ["sidebarPinned", "backgroundPlayback", "shuffle", "muted"].forEach((key) => {
@@ -388,18 +391,22 @@ function registerNowPlayingIpcHandlers({
     const resolved = path.resolve(sourceRef);
     return readState(store).catalog.tracks.some(
       (track) =>
-        track.providerId === "local" && path.resolve(track.sourceRef) === resolved,
+        track.providerId === "local" &&
+        path.resolve(track.sourceRef) === resolved,
     )
       ? resolved
       : "";
   };
 
-  ipcMain.handle(CHANNELS.NOW_PLAYING_REVEAL_TRACK, async (_event, sourceRef) => {
-    const filePath = getStoredLocalPath(sourceRef);
-    if (!filePath) return failure("INVALID_PATH", "Unknown media file");
-    shell.showItemInFolder(filePath);
-    return success({ revealed: true });
-  });
+  ipcMain.handle(
+    CHANNELS.NOW_PLAYING_REVEAL_TRACK,
+    async (_event, sourceRef) => {
+      const filePath = getStoredLocalPath(sourceRef);
+      if (!filePath) return failure("INVALID_PATH", "Unknown media file");
+      shell.showItemInFolder(filePath);
+      return success({ revealed: true });
+    },
+  );
 
   ipcMain.handle(
     CHANNELS.NOW_PLAYING_OPEN_TRACK_LOCATION,
@@ -530,7 +537,10 @@ function registerNowPlayingIpcHandlers({
         Object.keys(request).some((key) => key !== "trackId") ||
         typeof request.trackId !== "string"
       ) {
-        return failure("INVALID_AUDIO_TRACK_REQUEST", "Invalid audio track request");
+        return failure(
+          "INVALID_AUDIO_TRACK_REQUEST",
+          "Invalid audio track request",
+        );
       }
       const track = getTrackById(request.trackId);
       if (!track || track.providerId !== "local") {
@@ -551,7 +561,10 @@ function registerNowPlayingIpcHandlers({
             : null,
         });
       } catch (error) {
-        return failure(error.code || "AUDIO_TRACKS_PROBE_FAILED", error.message);
+        return failure(
+          error.code || "AUDIO_TRACKS_PROBE_FAILED",
+          error.message,
+        );
       }
     },
   );
@@ -563,15 +576,8 @@ function registerNowPlayingIpcHandlers({
         !request ||
         typeof request !== "object" ||
         Array.isArray(request) ||
-        Object.keys(request).some(
-          (key) => !["trackId", "audioTrackId"].includes(key),
-        ) ||
-        typeof request.trackId !== "string" ||
-        !(
-          request.audioTrackId === null ||
-          request.audioTrackId === undefined ||
-          typeof request.audioTrackId === "string"
-        )
+        Object.keys(request).some((key) => key !== "trackId") ||
+        typeof request.trackId !== "string"
       ) {
         return failure(
           "INVALID_AUDIO_TRACK_REQUEST",
@@ -586,17 +592,11 @@ function registerNowPlayingIpcHandlers({
         return failure("TRACK_UNAVAILABLE", "Track file is unavailable");
       }
       try {
-        const audioStreamIndex =
-          await audioTracksService.resolveStreamIndex(
-            track,
-            request.audioTrackId,
-          );
         return success(
           await hlsService.createSession({
             inputs: [track.sourceRef],
             copyCodecs: false,
             allowLocal: true,
-            audioStreamIndex,
           }),
         );
       } catch (error) {

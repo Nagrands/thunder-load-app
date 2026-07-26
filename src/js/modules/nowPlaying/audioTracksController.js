@@ -16,10 +16,9 @@ function getLanguageName(code) {
   if (!code) return "";
   try {
     return (
-      new Intl.DisplayNames(
-        [document.documentElement.lang || "ru"],
-        { type: "language" },
-      ).of(code) || code.toUpperCase()
+      new Intl.DisplayNames([document.documentElement.lang || "ru"], {
+        type: "language",
+      }).of(code) || code.toUpperCase()
     );
   } catch {
     return code.toUpperCase();
@@ -36,7 +35,14 @@ function getChannelLabel(channels) {
     : "";
 }
 
-function createOption({ id, title, details, isDefault, selected }) {
+function createOption({
+  id,
+  title,
+  details,
+  isDefault,
+  selected,
+  disabled = false,
+}) {
   const button = document.createElement("button");
   button.type = "button";
   button.className = "now-playing__audio-option";
@@ -44,6 +50,7 @@ function createOption({ id, title, details, isDefault, selected }) {
   button.dataset.audioTrackId = id || "";
   button.setAttribute("role", "option");
   button.setAttribute("aria-selected", String(selected));
+  button.disabled = disabled;
 
   const icon = document.createElement("i");
   icon.setAttribute("data-lucide", id ? "audio-lines" : "wand-sparkles");
@@ -77,6 +84,7 @@ export function createAudioTracksController({
   root,
   api,
   getCurrentTrack,
+  getNativeAudioTrackState,
   onOpenChange = () => {},
   onSelect,
 }) {
@@ -94,6 +102,19 @@ export function createAudioTracksController({
   let requestVersion = 0;
   let returnFocus = null;
   let busy = false;
+  let selectionAvailable = false;
+  let nativeIssueCode = "AUDIO_TRACKS_NOT_READY";
+
+  function getIssueMessage(code, count = 0) {
+    if (code === "AUDIO_TRACKS_NATIVE_MISMATCH") {
+      return t("nowPlaying.audioTracks.nativeMismatch");
+    }
+    if (code === "AUDIO_TRACKS_FALLBACK_UNSUPPORTED") {
+      return t("nowPlaying.audioTracks.fallbackUnsupported");
+    }
+    if (count === 1) return t("nowPlaying.audioTracks.single");
+    return t("nowPlaying.audioTracks.nativeUnavailable");
+  }
 
   function setBusy(value) {
     busy = value;
@@ -102,7 +123,7 @@ export function createAudioTracksController({
       trigger.classList.toggle("is-loading", value);
     });
     list.querySelectorAll("button").forEach((button) => {
-      button.disabled = value;
+      button.disabled = value || !selectionAvailable;
     });
   }
 
@@ -119,6 +140,7 @@ export function createAudioTracksController({
       title: t("nowPlaying.audioTracks.auto"),
       details: t("nowPlaying.audioTracks.autoHint"),
       selected: !selectedAudioTrackId,
+      disabled: !selectionAvailable,
     });
     list.appendChild(autoOption);
     tracks.forEach((track, index) => {
@@ -140,6 +162,7 @@ export function createAudioTracksController({
           details,
           isDefault: track.isDefault,
           selected: selectedAudioTrackId === track.id,
+          disabled: !selectionAvailable,
         }),
       );
     });
@@ -185,6 +208,11 @@ export function createAudioTracksController({
     list.replaceChildren();
     const version = ++requestVersion;
     try {
+      const nativeState = getNativeAudioTrackState?.() || {
+        supported: false,
+        code: "AUDIO_TRACKS_NATIVE_UNAVAILABLE",
+        count: 0,
+      };
       const payload = unwrap(
         await api?.getAudioTracks?.({ trackId: track.id }),
       );
@@ -194,9 +222,21 @@ export function createAudioTracksController({
       currentTrackId = track.id;
       tracks = Array.isArray(payload.tracks) ? payload.tracks : [];
       selectedAudioTrackId = track.selectedAudioTrackId || null;
+      nativeIssueCode = nativeState.code;
+      selectionAvailable =
+        nativeState.supported === true &&
+        nativeState.count > 1 &&
+        nativeState.count === tracks.length;
+      if (nativeState.supported && nativeState.count !== tracks.length) {
+        nativeIssueCode = "AUDIO_TRACKS_NATIVE_MISMATCH";
+      }
       render();
       setStatus(
-        tracks.length ? "" : t("nowPlaying.audioTracks.empty"),
+        selectionAvailable
+          ? ""
+          : tracks.length
+            ? getIssueMessage(nativeIssueCode, nativeState.count)
+            : t("nowPlaying.audioTracks.empty"),
       );
       setBusy(false);
       list.querySelector('[aria-selected="true"]')?.focus();
@@ -222,7 +262,10 @@ export function createAudioTracksController({
     setBusy(true);
     setStatus(t("nowPlaying.audioTracks.switching"));
     try {
-      const changed = await onSelect(nextId);
+      const changed = await onSelect({
+        audioTrackId: nextId,
+        tracks,
+      });
       if (version !== requestVersion) return false;
       if (!changed) throw new Error(t("nowPlaying.audioTracks.switchError"));
       selectedAudioTrackId = nextId;
@@ -241,8 +284,24 @@ export function createAudioTracksController({
 
   function sync(snapshot) {
     const track = snapshot?.currentTrack || null;
-    const supported =
+    const isLocal =
       track?.providerId === "local" && track.availability !== "missing";
+    const nativeState = isLocal
+      ? getNativeAudioTrackState?.() || {
+          supported: false,
+          code: "AUDIO_TRACKS_NATIVE_UNAVAILABLE",
+          count: 0,
+        }
+      : null;
+    const supported = isLocal && nativeState.supported && nativeState.count > 1;
+    if (track?.id !== currentTrackId) {
+      selectionAvailable = false;
+      nativeIssueCode =
+        nativeState?.code ||
+        (isLocal
+          ? "AUDIO_TRACKS_NATIVE_UNAVAILABLE"
+          : "AUDIO_TRACKS_LOCAL_ONLY");
+    }
     triggers.forEach((trigger) => {
       trigger.setAttribute("aria-disabled", String(!supported));
       trigger.classList.toggle("is-disabled", !supported);
@@ -250,13 +309,17 @@ export function createAudioTracksController({
         "title",
         supported
           ? t("nowPlaying.audioTracks.open")
-          : t("nowPlaying.audioTracks.localOnly"),
+          : isLocal
+            ? getIssueMessage(nativeIssueCode, nativeState?.count)
+            : t("nowPlaying.audioTracks.localOnly"),
       );
       trigger.setAttribute(
         "aria-label",
         supported
           ? t("nowPlaying.audioTracks.open")
-          : t("nowPlaying.audioTracks.localOnly"),
+          : isLocal
+            ? getIssueMessage(nativeIssueCode, nativeState?.count)
+            : t("nowPlaying.audioTracks.localOnly"),
       );
     });
     if (track?.id !== currentTrackId && !menu.hidden) close();

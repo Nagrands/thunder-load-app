@@ -42,6 +42,8 @@ Media Session contracts и package configuration, но не системный U
 | Direct MP3/FLAC/MP4/WebM             | [ ]       | [ ]         | [ ]           |
 | HLS YouTube Auto/Best/Audio/exact    | [ ]       | [ ]         | [ ]           |
 | AVI/MPEG FFmpeg fallback             | [ ]       | [ ]         | [ ]           |
+| Native audio switch MP4/MKV          | [ ]       | [ ]         | [ ]           |
+| Native audio switch keeps time/state | [ ]       | [ ]         | [ ]           |
 | M3U local/HTTP/HLS                   | [ ]       | [ ]         | [ ]           |
 | Background/minimized playback        | [ ]       | [ ]         | [ ]           |
 | Media keys: Play/Pause/Next/Previous | [ ]       | [ ]         | [ ]           |

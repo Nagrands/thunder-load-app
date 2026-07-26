@@ -113,7 +113,11 @@ describe("Now Playing providers", () => {
       importFolder: jest.fn(),
       createLocalPlaybackSession: jest.fn().mockResolvedValue({
         success: true,
-        data: { kind: "hls", sessionId: "session", src: "http://127.0.0.1/hls" },
+        data: {
+          kind: "hls",
+          sessionId: "session",
+          src: "http://127.0.0.1/hls",
+        },
       }),
       closePlaybackSession: jest.fn().mockResolvedValue({ success: true }),
     };
@@ -123,36 +127,50 @@ describe("Now Playing providers", () => {
       sourceRef: "/media/archive.avi",
       availability: "available",
     });
-    expect(api.createLocalPlaybackSession).toHaveBeenCalledWith(
-      {
-        trackId: "local:/media/archive.avi",
-        audioTrackId: null,
-      },
-    );
+    expect(api.createLocalPlaybackSession).toHaveBeenCalledWith({
+      trackId: "local:/media/archive.avi",
+    });
     expect(playback).toMatchObject({ kind: "hls", sessionId: "session" });
     await provider.releasePlayback(playback);
     expect(api.closePlaybackSession).toHaveBeenCalledWith("session");
   });
 
-  test("routes an exact selected audio track through local HLS", async () => {
+  test("keeps exact selected audio tracks on the direct local source", async () => {
     const api = {
       createLocalPlaybackSession: jest.fn().mockResolvedValue({
         success: true,
         data: { kind: "hls", sessionId: "audio", src: "http://127.0.0.1/hls" },
       }),
+      getAudioTracks: jest.fn().mockResolvedValue({
+        success: true,
+        data: {
+          tracks: [
+            { id: "audio-1", order: 0, isDefault: true },
+            { id: "audio-3", order: 1, isDefault: false },
+          ],
+        },
+      }),
     };
     const provider = new LocalMusicProvider(api);
 
-    await provider.resolveTrack({
+    const playback = await provider.resolveTrack({
       id: "movie",
       sourceRef: "/media/movie.mp4",
       availability: "available",
       selectedAudioTrackId: "audio-3",
     });
 
-    expect(api.createLocalPlaybackSession).toHaveBeenCalledWith({
-      trackId: "movie",
-      audioTrackId: "audio-3",
+    expect(api.createLocalPlaybackSession).not.toHaveBeenCalled();
+    expect(api.getAudioTracks).toHaveBeenCalledWith({ trackId: "movie" });
+    expect(playback).toMatchObject({
+      src: "file:///media/movie.mp4",
+      nativeAudioTrackSelection: {
+        selectedAudioTrackId: "audio-3",
+        tracks: [
+          { id: "audio-1", order: 0 },
+          { id: "audio-3", order: 1 },
+        ],
+      },
     });
   });
 

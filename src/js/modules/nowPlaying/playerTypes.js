@@ -48,6 +48,7 @@
  * @property {string=} mimeType
  * @property {string=} posterUrl
  * @property {string=} sessionId
+ * @property {{selectedAudioTrackId: string, tracks: Array<{id: string, order: number, isDefault?: boolean}>}=} nativeAudioTrackSelection
  */
 
 /**

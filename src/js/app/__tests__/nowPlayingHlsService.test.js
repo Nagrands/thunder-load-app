@@ -17,12 +17,12 @@ describe("Now Playing HLS service", () => {
     expect(() => validateInputs(["file:///private/demo.mp4"])).toThrow(
       expect.objectContaining({ code: "INVALID_HLS_INPUT" }),
     );
-    expect(validateInputs(["/private/demo.avi"], { allowLocal: true })).toEqual([
-      "/private/demo.avi",
-    ]);
-    expect(() => validateInputs(["https://one", "https://two", "https://three"])).toThrow(
-      expect.objectContaining({ code: "INVALID_HLS_INPUT" }),
+    expect(validateInputs(["/private/demo.avi"], { allowLocal: true })).toEqual(
+      ["/private/demo.avi"],
     );
+    expect(() =>
+      validateInputs(["https://one", "https://two", "https://three"]),
+    ).toThrow(expect.objectContaining({ code: "INVALID_HLS_INPUT" }));
   });
 
   test("maps adaptive video and audio and uses copy for compatible codecs", () => {
@@ -37,42 +37,30 @@ describe("Now Playing HLS service", () => {
     );
     expect(args).not.toContain("libx264");
     expect(args).toEqual(
-      expect.arrayContaining(["-hls_list_size", "0", "-hls_playlist_type", "event"]),
+      expect.arrayContaining([
+        "-hls_list_size",
+        "0",
+        "-hls_playlist_type",
+        "event",
+      ]),
     );
   });
 
-  test("maps only a validated local audio stream with optional video", () => {
+  test("does not map a selected stream for local compatibility playback", () => {
     const args = buildFfmpegArgs({
       inputs: ["/media/movie.mkv"],
-      audioStreamIndex: 3,
       copyCodecs: false,
       outputPath: "/tmp/player/index.m3u8",
     });
 
-    expect(args).toEqual(
-      expect.arrayContaining(["-map", "0:v:0?", "-map", "0:3"]),
-    );
-    expect(args.join(" ")).not.toContain("0:a:");
-  });
-
-  test("rejects unvalidated audio stream mapping before starting FFmpeg", async () => {
-    const service = new NowPlayingHlsService({
-      cacheRoot: "/tmp/unused-player-hls",
-      ffmpegPathResolver: () => "/tools/ffmpeg",
-      spawnProcess: jest.fn(),
-    });
-
-    await expect(
-      service.createSession({
-        inputs: ["/media/movie.mkv"],
-        allowLocal: true,
-        audioStreamIndex: "0:a:2",
-      }),
-    ).rejects.toMatchObject({ code: "INVALID_AUDIO_TRACK" });
+    expect(args).not.toContain("-map");
+    expect(args).toEqual(expect.arrayContaining(["-c:a", "aac"]));
   });
 
   test("serves tokenized manifests on loopback and cleans the session", async () => {
-    const cacheRoot = fs.mkdtempSync(path.join(os.tmpdir(), "now-playing-hls-"));
+    const cacheRoot = fs.mkdtempSync(
+      path.join(os.tmpdir(), "now-playing-hls-"),
+    );
     const spawnProcess = jest.fn((_binary, args) => {
       const child = new EventEmitter();
       child.stderr = new EventEmitter();
@@ -104,7 +92,9 @@ describe("Now Playing HLS service", () => {
     expect(service.getPreviewInputs(descriptor.sessionId)).toEqual([
       "https://media.example/video",
     ]);
-    await expect(service.closeSession(descriptor.sessionId)).resolves.toBe(true);
+    await expect(service.closeSession(descriptor.sessionId)).resolves.toBe(
+      true,
+    );
     expect(service.getPreviewInputs(descriptor.sessionId)).toEqual([]);
     expect(spawnProcess.mock.results[0].value.kill).toHaveBeenCalledWith(
       "SIGTERM",
@@ -114,7 +104,9 @@ describe("Now Playing HLS service", () => {
   });
 
   test("supersedes an initializing session and keeps only one FFmpeg process", async () => {
-    const cacheRoot = fs.mkdtempSync(path.join(os.tmpdir(), "now-playing-hls-"));
+    const cacheRoot = fs.mkdtempSync(
+      path.join(os.tmpdir(), "now-playing-hls-"),
+    );
     let spawnCount = 0;
     const children = [];
     const spawnProcess = jest.fn((_binary, args) => {
@@ -158,9 +150,7 @@ describe("Now Playing HLS service", () => {
     });
     await expect(second).resolves.toMatchObject({ kind: "hls" });
     expect(children[0].kill).toHaveBeenCalledWith("SIGTERM");
-    expect(
-      children.filter((child) => child.exitCode === null),
-    ).toHaveLength(1);
+    expect(children.filter((child) => child.exitCode === null)).toHaveLength(1);
     expect(service.sessions).toHaveProperty("size", 1);
 
     await service.dispose();

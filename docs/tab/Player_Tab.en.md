@@ -127,6 +127,24 @@ HLS playback uses the packaged `hls.js` dependency. Chromium-compatible local
 files use direct playback. AVI, MPEG, and MPG are routed through FFmpeg/HLS
 because Chromium container and codec support is not reliable for them.
 
+## Native Audio Track Selection
+
+The main `BrowserWindow` enables Blink's `AudioVideoTracks` feature.
+Compatible local MP4, MKV, and other directly playable containers switch audio
+through `HTMLMediaElement.audioTracks`. The source, media layer, playback
+session, position, and Play/Pause state do not change, and FFmpeg/HLS is not
+used for track selection.
+
+`ffprobe` returns at most 32 audio streams in their container order. Selection
+is enabled only when Chromium's native track count and ordering match the probe
+result. Automatic enables the probed default track or the first track. A
+native setter failure restores the previous `enabled` flags, and state v3 is
+updated only after success.
+
+AVI, MPEG, MPG, YouTube, network sources, a missing `AudioTrackList`, a single
+track, and any list mismatch are reported as unsupported. There is no slow
+FFmpeg fallback for audio switching.
+
 ## Formats and M3U
 
 Declared formats:
@@ -151,7 +169,7 @@ track, volume, mute, shuffle, repeat, and background-playback preferences.
 
 A v3 track contains `id`, `providerId`, `sourceRef`, `title`, `displayTitle`,
 `artist`, `album`, `duration`, `sizeBytes`, `kind`, `mimeType`, `artworkUrl`,
-`availability`, and `qualitySelection`. Providers are `local`, `youtube`, and
+`availability`, `qualitySelection`, and `selectedAudioTrackId`. Providers are `local`, `youtube`, and
 `network`. v1/v2 state is deterministically normalized to v3. Transient queue
 items, HLS tokens/session IDs, and expiring URLs are never persisted.
 
@@ -197,11 +215,11 @@ Channels are declared in `src/js/ipc/channels.js`, registered through
 `src/js/app/ipcHandlers.js`, and explicitly allowed by `src/js/preload.js`.
 Renderer code does not call `ipcRenderer` directly.
 
-| Direction               | Channels                                                                                                                                                                                                                                                                                                                                                                                              |
-| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Renderer → main, invoke | `now-playing:import-files`, `now-playing:import-folder`, `now-playing:import-paths`, `now-playing:analyze-youtube-video`, `now-playing:import-youtube-video`, `now-playing:resolve-youtube-track`, `now-playing:create-local-playback-session`, `now-playing:close-playback-session`, `now-playing:get-timeline-preview`, `now-playing:get-state`, `now-playing:set-state`, `now-playing:reveal-track`, `now-playing:open-track-location` |
-| Renderer → main, send   | `now-playing:cancel-timeline-preview`, `now-playing:open-files-ready`, `now-playing:media-state`                                                                                                                                                                                                                                                                                                      |
-| Main → renderer         | `now-playing:open-files`, `now-playing:media-command`                                                                                                                                                                                                                                                                                                                                                 |
+| Direction               | Channels                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Renderer → main, invoke | `now-playing:import-files`, `now-playing:import-folder`, `now-playing:import-paths`, `now-playing:analyze-youtube-video`, `now-playing:import-youtube-video`, `now-playing:resolve-youtube-track`, `now-playing:get-audio-tracks`, `now-playing:create-local-playback-session`, `now-playing:close-playback-session`, `now-playing:get-timeline-preview`, `now-playing:get-state`, `now-playing:set-state`, `now-playing:reveal-track`, `now-playing:open-track-location` |
+| Renderer → main, send   | `now-playing:cancel-timeline-preview`, `now-playing:open-files-ready`, `now-playing:media-state`                                                                                                                                                                                                                                                                                                                                                                          |
+| Main → renderer         | `now-playing:open-files`, `now-playing:media-command`                                                                                                                                                                                                                                                                                                                                                                                                                     |
 
 Operations return `{ success, data, error: { code, message } }`.
 

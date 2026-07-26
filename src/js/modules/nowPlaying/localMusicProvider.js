@@ -179,24 +179,46 @@ export class LocalMusicProvider {
     const playback = track?.playback || {};
     const extension = getExtension(normalized.sourceRef);
     if (
-      (HLS_FALLBACK_EXTENSIONS.has(extension) ||
-        normalized.selectedAudioTrackId) &&
+      HLS_FALLBACK_EXTENSIONS.has(extension) &&
       typeof this.api.createLocalPlaybackSession === "function"
     ) {
       return unwrapResult(
         await this.api.createLocalPlaybackSession({
           trackId: normalized.id,
-          audioTrackId: normalized.selectedAudioTrackId,
         }),
       );
     }
-    return {
+    const descriptor = {
       src: String(
         playback.src || track?.src || pathToFileUrl(track?.sourceRef),
       ),
       mimeType: String(playback.mimeType || track?.mimeType || ""),
       posterUrl: String(playback.posterUrl || track?.artworkUrl || ""),
     };
+    if (
+      normalized.selectedAudioTrackId &&
+      typeof this.api.getAudioTracks === "function"
+    ) {
+      try {
+        const payload = unwrapResult(
+          await this.api.getAudioTracks({ trackId: normalized.id }),
+        );
+        const audioTracks = Array.isArray(payload.tracks) ? payload.tracks : [];
+        if (
+          audioTracks.some(
+            (audioTrack) => audioTrack.id === normalized.selectedAudioTrackId,
+          )
+        ) {
+          descriptor.nativeAudioTrackSelection = {
+            selectedAudioTrackId: normalized.selectedAudioTrackId,
+            tracks: audioTracks,
+          };
+        }
+      } catch {
+        // Playback must remain available when native track metadata is absent.
+      }
+    }
+    return descriptor;
   }
 
   releasePlayback(playback = {}) {

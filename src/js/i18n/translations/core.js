@@ -141,21 +141,25 @@ export const coreTranslations = {
     "nowPlaying.audioTracks.empty": "Аудиодорожки не найдены",
     "nowPlaying.audioTracks.localOnly":
       "Выбор аудиодорожки доступен только для локальных файлов",
+    "nowPlaying.audioTracks.nativeUnavailable":
+      "Chromium не предоставляет аудиодорожки для этого файла",
+    "nowPlaying.audioTracks.nativeMismatch":
+      "Дорожки файла не совпадают с дорожками, доступными плееру",
+    "nowPlaying.audioTracks.fallbackUnsupported":
+      "Выбор дорожки недоступен для форматов с совместимым воспроизведением",
+    "nowPlaying.audioTracks.single":
+      "В файле доступна только одна аудиодорожка",
     "nowPlaying.audioTracks.loadError":
       "Не удалось получить список аудиодорожек",
-    "nowPlaying.audioTracks.switchError":
-      "Не удалось переключить аудиодорожку",
+    "nowPlaying.audioTracks.switchError": "Не удалось переключить аудиодорожку",
     "nowPlaying.audioTracks.mono": "Моно",
     "nowPlaying.audioTracks.stereo": "Стерео",
     "nowPlaying.audioTracks.channels": "{count} каналов",
-    "nowPlaying.unavailable.miniPlayer":
-      "Отдельный мини-плеер пока недоступен",
-    "nowPlaying.unavailable.picture":
-      "Настройки изображения пока недоступны",
+    "nowPlaying.unavailable.miniPlayer": "Отдельный мини-плеер пока недоступен",
+    "nowPlaying.unavailable.picture": "Настройки изображения пока недоступны",
     "nowPlaying.unavailable.settings":
       "Дополнительные настройки воспроизведения пока недоступны",
-    "nowPlaying.unavailable.download":
-      "Загрузка из Плеера пока недоступна",
+    "nowPlaying.unavailable.download": "Загрузка из Плеера пока недоступна",
     "nowPlaying.addFiles": "Добавить файлы",
     "nowPlaying.addFolder": "Добавить папку",
     "nowPlaying.clear": "Очистить очередь",
@@ -534,6 +538,14 @@ export const coreTranslations = {
     "nowPlaying.audioTracks.empty": "No audio tracks found",
     "nowPlaying.audioTracks.localOnly":
       "Audio track selection is available for local files only",
+    "nowPlaying.audioTracks.nativeUnavailable":
+      "Chromium does not expose audio tracks for this file",
+    "nowPlaying.audioTracks.nativeMismatch":
+      "File tracks do not match the tracks exposed by the player",
+    "nowPlaying.audioTracks.fallbackUnsupported":
+      "Track selection is unavailable for compatibility playback formats",
+    "nowPlaying.audioTracks.single":
+      "This file has only one available audio track",
     "nowPlaying.audioTracks.loadError": "Could not load audio tracks",
     "nowPlaying.audioTracks.switchError": "Could not switch audio track",
     "nowPlaying.audioTracks.mono": "Mono",
@@ -541,8 +553,7 @@ export const coreTranslations = {
     "nowPlaying.audioTracks.channels": "{count} channels",
     "nowPlaying.unavailable.miniPlayer":
       "The standalone mini player is not available yet",
-    "nowPlaying.unavailable.picture":
-      "Picture settings are not available yet",
+    "nowPlaying.unavailable.picture": "Picture settings are not available yet",
     "nowPlaying.unavailable.settings":
       "Advanced playback settings are not available yet",
     "nowPlaying.unavailable.download":

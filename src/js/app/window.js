@@ -23,7 +23,9 @@ let appMenu = null;
 let dockMediaState = null;
 
 function setDockMediaState(snapshot) {
-  const title = String(snapshot?.track?.title || "").trim().slice(0, 1024);
+  const title = String(snapshot?.track?.title || "")
+    .trim()
+    .slice(0, 1024);
   dockMediaState = title
     ? {
         track: { title },
@@ -324,6 +326,7 @@ function createWindow(
       nodeIntegration: false,
       sandbox: true,
       devTools: isDev,
+      enableBlinkFeatures: "AudioVideoTracks",
     },
   });
 
@@ -481,7 +484,10 @@ function createWindow(
     app.on("thunder-load:dock-player-refresh", refreshPlayerDockMenu);
     mainWindow.once("closed", () => {
       ipcMain.removeListener("download-finished", refreshDockMenu);
-      app.removeListener("thunder-load:dock-player-refresh", refreshPlayerDockMenu);
+      app.removeListener(
+        "thunder-load:dock-player-refresh",
+        refreshPlayerDockMenu,
+      );
       dockMediaState = null;
     });
   }

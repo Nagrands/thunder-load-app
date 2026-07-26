@@ -169,6 +169,24 @@ HLS воспроизводится через локальную зависим�
 локальные файлы открываются напрямую. AVI, MPEG и MPG направляются через
 FFmpeg/HLS, поскольку их контейнеры и кодеки ненадёжно поддерживаются Chromium.
 
+## Нативный выбор аудиодорожки
+
+Для главного `BrowserWindow` включена Blink-функция `AudioVideoTracks`.
+Совместимые локальные MP4, MKV и другие напрямую воспроизводимые контейнеры
+переключают звук через `HTMLMediaElement.audioTracks`: источник, media layer,
+playback-сессия, позиция и Play/Pause при этом не меняются. FFmpeg и HLS в
+сценарии выбора дорожки не используются.
+
+`ffprobe` возвращает не более 32 аудиопотоков и их порядок. Выбор разрешается,
+только если количество и порядок нативных дорожек Chromium совпадают с
+результатом анализа. «Автоматически» включает помеченную default-дорожку или
+первую. При ошибке setter восстанавливаются прежние флаги `enabled`, а состояние
+v3 обновляется только после успеха.
+
+AVI, MPEG, MPG, YouTube, сетевые источники, отсутствующий `AudioTrackList`,
+единственная дорожка и любое несовпадение списка показываются как
+неподдерживаемые. Медленный FFmpeg fallback для переключения отсутствует.
+
 ## Форматы и M3U
 
 Поддерживаемые расширения:
@@ -201,7 +219,7 @@ Track v3 включает:
 - `id`, `providerId`, `sourceRef`;
 - `title`, `displayTitle`, `artist`, `album`;
 - `duration`, `sizeBytes`, `kind`, `mimeType`;
-- `artworkUrl`, `availability`, `qualitySelection`.
+- `artworkUrl`, `availability`, `qualitySelection`, `selectedAudioTrackId`.
 
 Поддерживаются провайдеры `local`, `youtube` и `network`. Состояния v1/v2
 детерминированно нормализуются в v3. Временная очередь, HLS token, session ID и
@@ -254,11 +272,11 @@ Renderer не вызывает `ipcRenderer` напрямую.
 
 Каналы Плеера:
 
-| Направление             | Каналы                                                                                                                                                                                                                                                                                                                                                                                                |
-| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Renderer → main, invoke | `now-playing:import-files`, `now-playing:import-folder`, `now-playing:import-paths`, `now-playing:analyze-youtube-video`, `now-playing:import-youtube-video`, `now-playing:resolve-youtube-track`, `now-playing:create-local-playback-session`, `now-playing:close-playback-session`, `now-playing:get-timeline-preview`, `now-playing:get-state`, `now-playing:set-state`, `now-playing:reveal-track`, `now-playing:open-track-location` |
-| Renderer → main, send   | `now-playing:cancel-timeline-preview`, `now-playing:open-files-ready`, `now-playing:media-state`                                                                                                                                                                                                                                                                                                      |
-| Main → renderer         | `now-playing:open-files`, `now-playing:media-command`                                                                                                                                                                                                                                                                                                                                                 |
+| Направление             | Каналы                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Renderer → main, invoke | `now-playing:import-files`, `now-playing:import-folder`, `now-playing:import-paths`, `now-playing:analyze-youtube-video`, `now-playing:import-youtube-video`, `now-playing:resolve-youtube-track`, `now-playing:get-audio-tracks`, `now-playing:create-local-playback-session`, `now-playing:close-playback-session`, `now-playing:get-timeline-preview`, `now-playing:get-state`, `now-playing:set-state`, `now-playing:reveal-track`, `now-playing:open-track-location` |
+| Renderer → main, send   | `now-playing:cancel-timeline-preview`, `now-playing:open-files-ready`, `now-playing:media-state`                                                                                                                                                                                                                                                                                                                                                                          |
+| Main → renderer         | `now-playing:open-files`, `now-playing:media-command`                                                                                                                                                                                                                                                                                                                                                                                                                     |
 
 Ошибки возвращаются в форме `{ success, data, error: { code, message } }`.
 

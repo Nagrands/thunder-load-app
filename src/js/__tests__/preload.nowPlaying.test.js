@@ -38,7 +38,6 @@ describe("preload Now Playing API", () => {
     );
     await api.nowPlaying.createLocalPlaybackSession({
       trackId: "archive",
-      audioTrackId: "audio-2",
     });
     await api.nowPlaying.getAudioTracks({ trackId: "archive" });
     await api.nowPlaying.getTimelinePreview({
@@ -64,10 +63,7 @@ describe("preload Now Playing API", () => {
         "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
         {},
       ],
-      [
-        "now-playing:create-local-playback-session",
-        { trackId: "archive", audioTrackId: "audio-2" },
-      ],
+      ["now-playing:create-local-playback-session", { trackId: "archive" }],
       ["now-playing:get-audio-tracks", { trackId: "archive" }],
       [
         "now-playing:get-timeline-preview",

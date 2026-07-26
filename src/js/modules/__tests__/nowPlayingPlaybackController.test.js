@@ -13,6 +13,17 @@ function createMedia() {
   return media;
 }
 
+function exposeAudioTracks(media, count = 2, enabledOrder = 0) {
+  const audioTracks = Array.from({ length: count }, (_, index) => ({
+    enabled: index === enabledOrder,
+  }));
+  Object.defineProperty(media, "audioTracks", {
+    configurable: true,
+    value: audioTracks,
+  });
+  return audioTracks;
+}
+
 function createController(random = () => 0, { hlsLoader = undefined } = {}) {
   const mediaLayers = [createMedia(), createMedia()];
   const providers = {
@@ -105,6 +116,188 @@ describe("Now Playing playback controller", () => {
     expect(mediaLayers[0].muted).toBe(true);
   });
 
+  test("switches native audio without loading, seeking or restarting playback", async () => {
+    const { controller, mediaLayers, providers } = createController();
+    const nativeTracks = exposeAudioTracks(mediaLayers[1]);
+    controller.setQueue(tracks);
+    await controller.selectTrack("one");
+    mediaLayers[1].currentTime = 38.5;
+    mediaLayers[1].load.mockClear();
+    mediaLayers[1].play.mockClear();
+    const selectionVersion = controller.selectionVersion;
+
+    const result = controller.selectNativeAudioTrack({
+      audioTrackId: "audio-4",
+      tracks: [
+        { id: "audio-2", order: 0, isDefault: true },
+        { id: "audio-4", order: 1, isDefault: false },
+      ],
+    });
+
+    expect(result).toEqual({
+      success: true,
+      audioTrackId: "audio-4",
+      order: 1,
+    });
+    expect(nativeTracks.map((track) => track.enabled)).toEqual([false, true]);
+    expect(mediaLayers[1].currentTime).toBe(38.5);
+    expect(mediaLayers[1].duration).toBe(120);
+    expect(mediaLayers[1].load).not.toHaveBeenCalled();
+    expect(mediaLayers[1].play).not.toHaveBeenCalled();
+    expect(providers.resolveTrack).toHaveBeenCalledTimes(1);
+    expect(controller.selectionVersion).toBe(selectionVersion);
+    expect(controller.currentTrack.selectedAudioTrackId).toBe("audio-4");
+  });
+
+  test("returns to the probed default native audio track", async () => {
+    const { controller, mediaLayers } = createController();
+    const nativeTracks = exposeAudioTracks(mediaLayers[1], 3, 2);
+    controller.setQueue(tracks);
+    await controller.selectTrack("one", { autoplay: false });
+
+    const result = controller.selectNativeAudioTrack({
+      audioTrackId: null,
+      tracks: [
+        { id: "audio-1", order: 0 },
+        { id: "audio-3", order: 1, isDefault: true },
+        { id: "audio-4", order: 2 },
+      ],
+    });
+
+    expect(result.success).toBe(true);
+    expect(nativeTracks.map((track) => track.enabled)).toEqual([
+      false,
+      true,
+      false,
+    ]);
+    expect(controller.currentTrack.selectedAudioTrackId).toBeNull();
+    expect(mediaLayers[1].play).not.toHaveBeenCalled();
+  });
+
+  test("applies rapid native selections synchronously with the last one active", async () => {
+    const { controller, mediaLayers, providers } = createController();
+    const nativeTracks = exposeAudioTracks(mediaLayers[1], 3);
+    controller.setQueue(tracks);
+    await controller.selectTrack("one");
+    mediaLayers[1].currentTime = 18;
+    mediaLayers[1].load.mockClear();
+    mediaLayers[1].play.mockClear();
+    const trackMetadata = [
+      { id: "audio-1", order: 0, isDefault: true },
+      { id: "audio-2", order: 1 },
+      { id: "audio-3", order: 2 },
+    ];
+    const startedAt = performance.now();
+
+    controller.selectNativeAudioTrack({
+      audioTrackId: "audio-2",
+      tracks: trackMetadata,
+    });
+    const result = controller.selectNativeAudioTrack({
+      audioTrackId: "audio-3",
+      tracks: trackMetadata,
+    });
+
+    expect(performance.now() - startedAt).toBeLessThan(250);
+    expect(result.success).toBe(true);
+    expect(nativeTracks.map((track) => track.enabled)).toEqual([
+      false,
+      false,
+      true,
+    ]);
+    expect(mediaLayers[1].currentTime).toBe(18);
+    expect(mediaLayers[1].load).not.toHaveBeenCalled();
+    expect(mediaLayers[1].play).not.toHaveBeenCalled();
+    expect(providers.resolveTrack).toHaveBeenCalledTimes(1);
+  });
+
+  test("blocks mismatched and compatibility audio track lists", async () => {
+    const { controller, mediaLayers } = createController();
+    exposeAudioTracks(mediaLayers[1], 2);
+    controller.setQueue(tracks);
+    await controller.selectTrack("one", { autoplay: false });
+
+    expect(
+      controller.selectNativeAudioTrack({
+        audioTrackId: "audio-1",
+        tracks: [{ id: "audio-1", order: 0 }],
+      }),
+    ).toMatchObject({
+      success: false,
+      code: "AUDIO_TRACKS_NATIVE_MISMATCH",
+    });
+
+    controller.hlsInstances[controller.activeLayerIndex] = {};
+    expect(controller.getNativeAudioTrackState()).toMatchObject({
+      supported: false,
+      code: "AUDIO_TRACKS_FALLBACK_UNSUPPORTED",
+    });
+  });
+
+  test("rolls back native flags when an audio track setter fails", async () => {
+    const { controller, mediaLayers } = createController();
+    const first = { enabled: true };
+    let secondEnabled = false;
+    const second = {};
+    Object.defineProperty(second, "enabled", {
+      configurable: true,
+      get: () => secondEnabled,
+      set: () => {
+        throw new Error("native setter failed");
+      },
+    });
+    Object.defineProperty(mediaLayers[1], "audioTracks", {
+      configurable: true,
+      value: [first, second],
+    });
+    controller.setQueue(tracks);
+    await controller.selectTrack("one", { autoplay: false });
+
+    expect(
+      controller.selectNativeAudioTrack({
+        audioTrackId: "audio-2",
+        tracks: [
+          { id: "audio-1", order: 0, isDefault: true },
+          { id: "audio-2", order: 1 },
+        ],
+      }),
+    ).toMatchObject({
+      success: false,
+      code: "AUDIO_TRACK_SWITCH_FAILED",
+    });
+    expect(first.enabled).toBe(true);
+    expect(secondEnabled).toBe(false);
+    expect(controller.currentTrack.selectedAudioTrackId).toBeUndefined();
+  });
+
+  test("applies a persisted native audio track before initial autoplay", async () => {
+    const { controller, mediaLayers, providers } = createController();
+    const nativeTracks = exposeAudioTracks(mediaLayers[1]);
+    providers.resolveTrack.mockResolvedValue({
+      src: "file:///one.mkv",
+      nativeAudioTrackSelection: {
+        selectedAudioTrackId: "audio-7",
+        tracks: [
+          { id: "audio-2", order: 0, isDefault: true },
+          { id: "audio-7", order: 1 },
+        ],
+      },
+    });
+    mediaLayers[1].play.mockImplementation(async () => {
+      expect(nativeTracks[1].enabled).toBe(true);
+    });
+    controller.setQueue([{ ...tracks[0], selectedAudioTrackId: "audio-7" }]);
+
+    const selection = controller.selectTrack("one");
+    await flushPlaybackCleanup();
+    expect(mediaLayers[1].play).not.toHaveBeenCalled();
+    mediaLayers[1].dispatchEvent(new Event("loadedmetadata"));
+    await selection;
+
+    expect(nativeTracks.map((track) => track.enabled)).toEqual([false, true]);
+    expect(mediaLayers[1].play).toHaveBeenCalledTimes(1);
+  });
+
   test("waits for HLS metadata without requiring media.src", async () => {
     const operationOrder = [];
     class DeferredHls {
@@ -154,10 +347,9 @@ describe("Now Playing playback controller", () => {
       destroy() {}
     }
 
-    const { controller, mediaLayers, providers } = createController(
-      () => 0,
-      { hlsLoader: async () => DeferredHls },
-    );
+    const { controller, mediaLayers, providers } = createController(() => 0, {
+      hlsLoader: async () => DeferredHls,
+    });
     providers.resolveTrack.mockResolvedValue({
       kind: "hls",
       src: "http://127.0.0.1/playback/master.m3u8",
@@ -747,7 +939,9 @@ describe("Now Playing playback controller", () => {
       stalePlayback,
     );
     expect(controller.currentTrack.id).toBe("two");
-    expect(mediaLayers[controller.activeLayerIndex].play).toHaveBeenCalledTimes(1);
+    expect(mediaLayers[controller.activeLayerIndex].play).toHaveBeenCalledTimes(
+      1,
+    );
     expect(
       mediaLayers.reduce(
         (count, media) => count + (media.dataset.trackId === "two" ? 1 : 0),

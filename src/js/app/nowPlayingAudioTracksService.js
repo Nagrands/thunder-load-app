@@ -33,7 +33,10 @@ function normalizeAudioTracks(probe = {}) {
         title: cleanText(stream?.tags?.title, 128),
         language: cleanText(stream?.tags?.language, 32).toLowerCase(),
         codec: cleanText(stream?.codec_name, 64).toLowerCase(),
-        channels: Math.min(32, Math.max(0, Math.trunc(Number(stream?.channels) || 0))),
+        channels: Math.min(
+          32,
+          Math.max(0, Math.trunc(Number(stream?.channels) || 0)),
+        ),
         channelLayout: cleanText(stream?.channel_layout, 64).toLowerCase(),
         isDefault: Number(stream?.disposition?.default) === 1,
       };
@@ -117,24 +120,6 @@ class NowPlayingAudioTracksService {
       this.cache.delete(this.cache.keys().next().value);
     }
     return tracks.map((item) => ({ ...item }));
-  }
-
-  async resolveStreamIndex(track, audioTrackId) {
-    if (audioTrackId === null || audioTrackId === undefined || audioTrackId === "") {
-      return null;
-    }
-    if (
-      typeof audioTrackId !== "string" ||
-      !/^audio-(?:0|[1-9]\d{0,2})$/.test(audioTrackId)
-    ) {
-      throw createError("AUDIO_TRACK_NOT_FOUND", "Unknown audio track");
-    }
-    const tracks = await this.getTracks(track);
-    const selected = tracks.find((item) => item.id === audioTrackId);
-    if (!selected) {
-      throw createError("AUDIO_TRACK_NOT_FOUND", "Unknown audio track");
-    }
-    return selected.index;
   }
 
   dispose() {

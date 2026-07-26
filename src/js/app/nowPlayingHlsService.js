@@ -33,14 +33,15 @@ function isHttpUrl(value) {
 
 function validateInputs(inputs, { allowLocal = false } = {}) {
   if (!Array.isArray(inputs) || inputs.length < 1 || inputs.length > 2) {
-    throw createError("INVALID_HLS_INPUT", "One or two media inputs are required");
+    throw createError(
+      "INVALID_HLS_INPUT",
+      "One or two media inputs are required",
+    );
   }
   const sanitized = inputs.map((input) => String(input || ""));
   const isAllowed = (input) =>
     isHttpUrl(input) ||
-    (allowLocal &&
-      !input.includes("\u0000") &&
-      path.isAbsolute(input));
+    (allowLocal && !input.includes("\u0000") && path.isAbsolute(input));
   if (sanitized.some((input) => !isAllowed(input))) {
     throw createError(
       "INVALID_HLS_INPUT",
@@ -53,7 +54,6 @@ function validateInputs(inputs, { allowLocal = false } = {}) {
 }
 
 function buildFfmpegArgs({
-  audioStreamIndex = null,
   inputs,
   copyCodecs,
   outputPath,
@@ -66,8 +66,6 @@ function buildFfmpegArgs({
   });
   if (inputs.length === 2) {
     args.push("-map", "0:v:0", "-map", "1:a:0");
-  } else if (audioStreamIndex !== null) {
-    args.push("-map", "0:v:0?", "-map", `0:${audioStreamIndex}`);
   }
   if (copyCodecs) {
     args.push("-c", "copy");
@@ -139,7 +137,10 @@ function waitForManifest(
     const onAbort = () =>
       settle(
         reject,
-        createError("PLAYBACK_SESSION_CANCELLED", "Playback session was superseded"),
+        createError(
+          "PLAYBACK_SESSION_CANCELLED",
+          "Playback session was superseded",
+        ),
       );
     child.stderr?.on("data", onStderr);
     child.once?.("error", onError);
@@ -279,9 +280,13 @@ class NowPlayingHlsService {
       const stat = await fsPromises.stat(filePath);
       response.writeHead(200, {
         "Access-Control-Allow-Origin": "*",
-        "Cache-Control": fileName.endsWith(".m3u8") ? "no-store" : "private, max-age=60",
+        "Cache-Control": fileName.endsWith(".m3u8")
+          ? "no-store"
+          : "private, max-age=60",
         "Content-Length": stat.size,
-        "Content-Type": HLS_CONTENT_TYPES[path.extname(fileName)] || "application/octet-stream",
+        "Content-Type":
+          HLS_CONTENT_TYPES[path.extname(fileName)] ||
+          "application/octet-stream",
       });
       fs.createReadStream(filePath).pipe(response);
     } catch {
@@ -289,18 +294,15 @@ class NowPlayingHlsService {
     }
   }
 
-  async createSession({
-    inputs,
-    copyCodecs = false,
-    allowLocal = false,
-    audioStreamIndex = null,
-  }) {
+  async createSession({ inputs, copyCodecs = false, allowLocal = false }) {
     const generation = ++this.creationGeneration;
     this.activeCreation?.abort();
     const creation = new AbortController();
     this.activeCreation = creation;
     this.trace("initialization-started", { generation });
-    await Promise.all([...this.sessions.keys()].map((id) => this.closeSession(id)));
+    await Promise.all(
+      [...this.sessions.keys()].map((id) => this.closeSession(id)),
+    );
     if (generation !== this.creationGeneration || creation.signal.aborted) {
       throw createError(
         "PLAYBACK_SESSION_CANCELLED",
@@ -308,22 +310,12 @@ class NowPlayingHlsService {
       );
     }
     const safeInputs = validateInputs(inputs, { allowLocal });
-    if (
-      audioStreamIndex !== null &&
-      (!Number.isInteger(audioStreamIndex) ||
-        audioStreamIndex < 0 ||
-        audioStreamIndex > 255 ||
-        safeInputs.length !== 1 ||
-        !allowLocal)
-    ) {
-      throw createError(
-        "INVALID_AUDIO_TRACK",
-        "A validated local audio stream index is required",
-      );
-    }
     const ffmpegPath = String(this.ffmpegPathResolver?.() || "");
     if (!ffmpegPath || ffmpegPath.includes("\u0000")) {
-      throw createError("FFMPEG_UNAVAILABLE", "FFmpeg is required for this playback format");
+      throw createError(
+        "FFMPEG_UNAVAILABLE",
+        "FFmpeg is required for this playback format",
+      );
     }
     await this.ensureServer();
     await this.cleanupExpired();
@@ -336,7 +328,6 @@ class NowPlayingHlsService {
       this.spawnProcess(
         ffmpegPath,
         buildFfmpegArgs({
-          audioStreamIndex,
           inputs: safeInputs,
           copyCodecs,
           outputPath: manifestPath,
@@ -423,12 +414,16 @@ class NowPlayingHlsService {
   }
 
   async cleanupExpired() {
-    const ordered = [...this.sessions.values()].sort((a, b) => a.createdAt - b.createdAt);
-    const expired = new Set(ordered.filter(
-      (session, index) =>
-        this.now() - session.createdAt > SESSION_TTL_MS ||
-        index < Math.max(0, ordered.length - MAX_SESSIONS),
-    ));
+    const ordered = [...this.sessions.values()].sort(
+      (a, b) => a.createdAt - b.createdAt,
+    );
+    const expired = new Set(
+      ordered.filter(
+        (session, index) =>
+          this.now() - session.createdAt > SESSION_TTL_MS ||
+          index < Math.max(0, ordered.length - MAX_SESSIONS),
+      ),
+    );
     let totalBytes = 0;
     const sizes = [];
     for (const session of ordered) {
@@ -441,12 +436,16 @@ class NowPlayingHlsService {
       expired.add(session);
       totalBytes -= size;
     }
-    await Promise.all([...expired].map((session) => this.closeSession(session.id)));
+    await Promise.all(
+      [...expired].map((session) => this.closeSession(session.id)),
+    );
   }
 
   async getDirectorySize(directory) {
     try {
-      const entries = await fsPromises.readdir(directory, { withFileTypes: true });
+      const entries = await fsPromises.readdir(directory, {
+        withFileTypes: true,
+      });
       const sizes = await Promise.all(
         entries.map(async (entry) => {
           if (!entry.isFile()) return 0;
@@ -465,7 +464,9 @@ class NowPlayingHlsService {
     this.activeCreation = null;
     if (this.cleanupTimer) clearInterval(this.cleanupTimer);
     this.cleanupTimer = null;
-    await Promise.all([...this.sessions.keys()].map((id) => this.closeSession(id)));
+    await Promise.all(
+      [...this.sessions.keys()].map((id) => this.closeSession(id)),
+    );
     if (!this.server) return;
     await new Promise((resolve) => this.server.close(resolve));
     this.server = null;

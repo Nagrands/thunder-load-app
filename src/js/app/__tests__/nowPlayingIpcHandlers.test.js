@@ -65,7 +65,6 @@ describe("nowPlayingIpcHandlers", () => {
           isDefault: true,
         },
       ]),
-      resolveStreamIndex: jest.fn().mockResolvedValue(2),
     };
     timelinePreviewService = {
       cancel: jest.fn(),
@@ -157,13 +156,12 @@ describe("nowPlayingIpcHandlers", () => {
       selectedTrackId: "movie",
     };
 
-    const listed = await handlers[CHANNELS.NOW_PLAYING_GET_AUDIO_TRACKS](
-      null,
-      { trackId: "movie" },
-    );
+    const listed = await handlers[CHANNELS.NOW_PLAYING_GET_AUDIO_TRACKS](null, {
+      trackId: "movie",
+    });
     const playback = await handlers[
       CHANNELS.NOW_PLAYING_CREATE_LOCAL_PLAYBACK_SESSION
-    ](null, { trackId: "movie", audioTrackId: "audio-2" });
+    ](null, { trackId: "movie" });
 
     expect(listed).toMatchObject({
       success: true,
@@ -176,17 +174,23 @@ describe("nowPlayingIpcHandlers", () => {
     expect(audioTracksService.getTracks).toHaveBeenCalledWith(
       expect.objectContaining({ id: "movie", sourceRef: mediaPath }),
     );
-    expect(audioTracksService.resolveStreamIndex).toHaveBeenCalledWith(
-      expect.objectContaining({ id: "movie" }),
-      "audio-2",
-    );
     expect(hlsService.createSession).toHaveBeenCalledWith({
       inputs: [mediaPath],
       copyCodecs: false,
       allowLocal: true,
-      audioStreamIndex: 2,
     });
     expect(playback.success).toBe(true);
+  });
+
+  test("rejects audio selection fields in fallback playback requests", async () => {
+    const { CHANNELS } = register();
+    await expect(
+      handlers[CHANNELS.NOW_PLAYING_CREATE_LOCAL_PLAYBACK_SESSION](null, {
+        trackId: "movie",
+        audioTrackId: "audio-2",
+      }),
+    ).resolves.toMatchObject({ success: false });
+    expect(hlsService.createSession).not.toHaveBeenCalled();
   });
 
   test.each([
@@ -766,9 +770,10 @@ describe("nowPlayingIpcHandlers", () => {
       ],
     });
 
-    const analysis = await handlers[
-      CHANNELS.NOW_PLAYING_ANALYZE_YOUTUBE_VIDEO
-    ](null, "https://youtu.be/dQw4w9WgXcQ");
+    const analysis = await handlers[CHANNELS.NOW_PLAYING_ANALYZE_YOUTUBE_VIDEO](
+      null,
+      "https://youtu.be/dQw4w9WgXcQ",
+    );
     const quality = analysis.data.qualities.find(
       (item) => item.selector.videoFormatId === "137",
     );
@@ -790,10 +795,7 @@ describe("nowPlayingIpcHandlers", () => {
       { qualitySelection: quality.selector },
     );
     expect(hlsService.createSession).toHaveBeenCalledWith({
-      inputs: [
-        "https://video.example/1080",
-        "https://video.example/audio",
-      ],
+      inputs: ["https://video.example/1080", "https://video.example/audio"],
       copyCodecs: true,
     });
     expect(getVideoInfo).toHaveBeenCalledTimes(1);

@@ -153,6 +153,14 @@ describe("tray runtime behavior", () => {
       "",
       () => true,
     );
+    expect(require("electron").BrowserWindow).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        webPreferences: expect.objectContaining({
+          enableBlinkFeatures: "AudioVideoTracks",
+        }),
+      }),
+    );
 
     const tray = Tray.mock.results[0].value;
     mainWindow.isVisible.mockReturnValue(false);

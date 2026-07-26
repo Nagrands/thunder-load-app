@@ -13,18 +13,21 @@ const localTrack = {
 
 describe("Now Playing audio tracks service", () => {
   test("normalizes safe audio metadata and limits the result", () => {
-    const streams = Array.from({ length: MAX_AUDIO_TRACKS + 4 }, (_, index) => ({
-      index,
-      codec_type: "audio",
-      codec_name: index === 0 ? "AAC" : "ac3",
-      channels: index === 0 ? 2 : 6,
-      channel_layout: index === 0 ? "stereo" : "5.1(side)",
-      disposition: { default: index === 0 ? 1 : 0 },
-      tags: {
-        language: index === 0 ? "ENG" : "rus",
-        title: index === 0 ? "Original\u0000" : `Dub ${index}`,
-      },
-    }));
+    const streams = Array.from(
+      { length: MAX_AUDIO_TRACKS + 4 },
+      (_, index) => ({
+        index,
+        codec_type: "audio",
+        codec_name: index === 0 ? "AAC" : "ac3",
+        channels: index === 0 ? 2 : 6,
+        channel_layout: index === 0 ? "stereo" : "5.1(side)",
+        disposition: { default: index === 0 ? 1 : 0 },
+        tags: {
+          language: index === 0 ? "ENG" : "rus",
+          title: index === 0 ? "Original\u0000" : `Dub ${index}`,
+        },
+      }),
+    );
     streams.unshift({ index: 100, codec_type: "video" });
 
     const tracks = normalizeAudioTracks({ streams });
@@ -81,33 +84,6 @@ describe("Now Playing audio tracks service", () => {
     );
   });
 
-  test("validates a selected audio id against probed streams", async () => {
-    const service = new NowPlayingAudioTracksService({
-      ffprobePathResolver: () => "/tools/ffprobe",
-      execFileProcess: jest.fn().mockResolvedValue({
-        stdout: JSON.stringify({
-          streams: [{ index: 4, codec_type: "audio" }],
-        }),
-      }),
-      statFile: jest.fn(async () => ({
-        isFile: () => true,
-        size: 42,
-        mtimeMs: 1,
-      })),
-    });
-
-    await expect(
-      service.resolveStreamIndex(localTrack, "audio-4"),
-    ).resolves.toBe(4);
-    await expect(service.resolveStreamIndex(localTrack, null)).resolves.toBeNull();
-    await expect(
-      service.resolveStreamIndex(localTrack, "audio-3"),
-    ).rejects.toMatchObject({ code: "AUDIO_TRACK_NOT_FOUND" });
-    await expect(
-      service.resolveStreamIndex(localTrack, "0:a:1"),
-    ).rejects.toMatchObject({ code: "AUDIO_TRACK_NOT_FOUND" });
-  });
-
   test("reports missing tools, files and probe timeouts safely", async () => {
     const missingTool = new NowPlayingAudioTracksService({
       ffprobePathResolver: () => "",
@@ -131,9 +107,11 @@ describe("Now Playing audio tracks service", () => {
 
     const timeout = new NowPlayingAudioTracksService({
       ffprobePathResolver: () => "/tools/ffprobe",
-      execFileProcess: jest.fn().mockRejectedValue(
-        Object.assign(new Error("timeout"), { killed: true }),
-      ),
+      execFileProcess: jest
+        .fn()
+        .mockRejectedValue(
+          Object.assign(new Error("timeout"), { killed: true }),
+        ),
       statFile: jest.fn(async () => ({
         isFile: () => true,
         size: 1,

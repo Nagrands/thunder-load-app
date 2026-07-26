@@ -8,9 +8,7 @@ const HLS_START_TIMEOUT_MS = 15_000;
 let hlsModulePromise = null;
 
 async function loadHlsConstructor() {
-  hlsModulePromise ||= import(
-    "../../../../node_modules/hls.js/dist/hls.mjs"
-  );
+  hlsModulePromise ||= import("../../../../node_modules/hls.js/dist/hls.mjs");
   const hlsModule = await hlsModulePromise;
   return hlsModule.default;
 }
@@ -32,6 +30,16 @@ function isInterruptedPlayError(error) {
     error?.name === "AbortError" &&
     /interrupted by a new load request/i.test(String(error?.message || ""))
   );
+}
+
+function getAudioTrackList(media) {
+  try {
+    const list = media?.audioTracks;
+    const length = Number(list?.length);
+    return Number.isInteger(length) && length >= 0 ? list : null;
+  } catch {
+    return null;
+  }
 }
 
 export class PlaybackController {
@@ -109,7 +117,8 @@ export class PlaybackController {
     let bufferedEnd = 0;
     try {
       if (media?.buffered?.length) {
-        bufferedEnd = Number(media.buffered.end(media.buffered.length - 1)) || 0;
+        bufferedEnd =
+          Number(media.buffered.end(media.buffered.length - 1)) || 0;
       }
     } catch {
       bufferedEnd = 0;
@@ -365,9 +374,231 @@ export class PlaybackController {
     } else {
       nextMedia.src = playback.src;
       safeMediaCall(nextMedia, "load");
+      if (playback.nativeAudioTrackSelection) {
+        await this.waitForMediaMetadata(nextMedia, session);
+        if (!this.isCurrentSession(session)) {
+          await this.releaseLayer(nextLayerIndex);
+          return false;
+        }
+        const nativeResult = this.applyNativeAudioTrackSelection({
+          audioTrackId: playback.nativeAudioTrackSelection.selectedAudioTrackId,
+          media: nextMedia,
+          tracks: playback.nativeAudioTrackSelection.tracks,
+        });
+        if (!nativeResult.success) {
+          this.trace("native-audio-restore-skipped", {
+            code: nativeResult.code,
+            trackId: track.id,
+          });
+        }
+      }
     }
     this.activeLayerIndex = nextLayerIndex;
     this.applyVolume();
+    this.emit();
+    return true;
+  }
+
+  waitForMediaMetadata(media, session) {
+    if (Number(media.readyState) >= 1) return Promise.resolve();
+    return new Promise((resolve, reject) => {
+      let settled = false;
+      const signal = session.controller.signal;
+      const finish = (error = null) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timeout);
+        media.removeEventListener("loadedmetadata", handleLoadedMetadata);
+        media.removeEventListener("error", handleError);
+        signal.removeEventListener("abort", handleAbort);
+        if (error) reject(error);
+        else resolve();
+      };
+      const createError = (code, message) =>
+        Object.assign(new Error(message), { code });
+      const handleLoadedMetadata = () => finish();
+      const handleError = () =>
+        finish(
+          createError(
+            "MEDIA_LOAD_FAILED",
+            "Unable to load native audio tracks",
+          ),
+        );
+      const handleAbort = () =>
+        finish(
+          createError(
+            "PLAYBACK_SESSION_CANCELLED",
+            "Playback session was cancelled",
+          ),
+        );
+      const timeout = setTimeout(
+        () =>
+          finish(
+            createError(
+              "MEDIA_LOAD_TIMEOUT",
+              "Timed out loading native audio tracks",
+            ),
+          ),
+        HLS_START_TIMEOUT_MS,
+      );
+      media.addEventListener("loadedmetadata", handleLoadedMetadata, {
+        once: true,
+      });
+      media.addEventListener("error", handleError, { once: true });
+      signal.addEventListener("abort", handleAbort, { once: true });
+    });
+  }
+
+  getNativeAudioTrackState() {
+    const media = this.activeMedia;
+    const record = this.layerPlaybacks[this.activeLayerIndex];
+    if (
+      !this.currentTrack ||
+      this.currentTrack.providerId !== "local" ||
+      this.currentTrack.availability === "missing"
+    ) {
+      return { supported: false, code: "AUDIO_TRACKS_LOCAL_ONLY", count: 0 };
+    }
+    if (
+      !record?.playback ||
+      record.track?.id !== this.currentTrack.id ||
+      media?.dataset.trackId !== this.currentTrack.id
+    ) {
+      return { supported: false, code: "AUDIO_TRACKS_NOT_READY", count: 0 };
+    }
+    if (
+      record.playback.kind === "hls" ||
+      this.hlsInstances[this.activeLayerIndex]
+    ) {
+      return {
+        supported: false,
+        code: "AUDIO_TRACKS_FALLBACK_UNSUPPORTED",
+        count: 0,
+      };
+    }
+    const list = getAudioTrackList(media);
+    if (!list) {
+      return {
+        supported: false,
+        code: "AUDIO_TRACKS_NATIVE_UNAVAILABLE",
+        count: 0,
+      };
+    }
+    const enabledOrders = [];
+    for (let index = 0; index < list.length; index += 1) {
+      if (list[index]?.enabled === true) enabledOrders.push(index);
+    }
+    return {
+      supported: list.length > 0,
+      code: list.length > 0 ? null : "AUDIO_TRACKS_NATIVE_UNAVAILABLE",
+      count: list.length,
+      enabledOrder: enabledOrders[0] ?? null,
+    };
+  }
+
+  applyNativeAudioTrackSelection({
+    audioTrackId = null,
+    media = this.activeMedia,
+    tracks = [],
+  } = {}) {
+    const list = getAudioTrackList(media);
+    if (!list || list.length === 0) {
+      return {
+        success: false,
+        code: "AUDIO_TRACKS_NATIVE_UNAVAILABLE",
+      };
+    }
+    const normalizedTracks = Array.isArray(tracks) ? tracks : [];
+    if (
+      normalizedTracks.length !== list.length ||
+      normalizedTracks.some(
+        (track, index) =>
+          !Number.isInteger(track?.order) || track.order !== index,
+      )
+    ) {
+      return { success: false, code: "AUDIO_TRACKS_NATIVE_MISMATCH" };
+    }
+    const selectedTrack = audioTrackId
+      ? normalizedTracks.find((track) => track.id === audioTrackId)
+      : normalizedTracks.find((track) => track.isDefault) ||
+        normalizedTracks[0];
+    if (!selectedTrack) {
+      return { success: false, code: "AUDIO_TRACK_NOT_FOUND" };
+    }
+    const targetOrder = selectedTrack.order;
+    const previousEnabled = [];
+    for (let index = 0; index < list.length; index += 1) {
+      previousEnabled.push(list[index]?.enabled === true);
+    }
+    try {
+      list[targetOrder].enabled = true;
+      for (let index = 0; index < list.length; index += 1) {
+        if (index !== targetOrder) list[index].enabled = false;
+      }
+      if (list[targetOrder]?.enabled !== true) {
+        throw new Error("Native audio track was not enabled");
+      }
+    } catch {
+      try {
+        const previousOrder = previousEnabled.findIndex(Boolean);
+        if (previousOrder >= 0) list[previousOrder].enabled = true;
+        for (let index = 0; index < list.length; index += 1) {
+          if (index !== previousOrder) {
+            list[index].enabled = previousEnabled[index];
+          }
+        }
+      } catch {
+        // Best-effort rollback: the original media source remains untouched.
+      }
+      return { success: false, code: "AUDIO_TRACK_SWITCH_FAILED" };
+    }
+    return {
+      success: true,
+      audioTrackId,
+      order: targetOrder,
+    };
+  }
+
+  selectNativeAudioTrack({ audioTrackId = null, tracks = [] } = {}) {
+    const state = this.getNativeAudioTrackState();
+    if (!state.supported) {
+      return { success: false, code: state.code };
+    }
+    const result = this.applyNativeAudioTrackSelection({
+      audioTrackId,
+      tracks,
+    });
+    if (!result.success) return result;
+    this.setCurrentTrackAudioSelection(audioTrackId);
+    this.trace("native-audio-selected", {
+      audioTrackId,
+      order: result.order,
+      trackId: this.currentTrack?.id,
+    });
+    return result;
+  }
+
+  setCurrentTrackAudioSelection(audioTrackId) {
+    const track = this.currentTrack;
+    if (
+      !track ||
+      track.providerId !== "local" ||
+      (audioTrackId !== null &&
+        !/^audio-(?:0|[1-9]\d{0,2})$/.test(audioTrackId))
+    ) {
+      return false;
+    }
+    const updatedTrack = { ...track, selectedAudioTrackId: audioTrackId };
+    this.queue[this.currentIndex] = updatedTrack;
+    this.queueSnapshot = this.queue.map((item) => ({ ...item }));
+    const layerRecord = this.layerPlaybacks[this.activeLayerIndex];
+    if (layerRecord?.track?.id === track.id) {
+      layerRecord.track = updatedTrack;
+    }
+    const catalogTrack = this.libraryState?.catalog?.tracks?.find(
+      (item) => item.id === track.id,
+    );
+    if (catalogTrack) catalogTrack.selectedAudioTrackId = audioTrackId;
     this.emit();
     return true;
   }
@@ -509,8 +740,7 @@ export class PlaybackController {
     if (
       this.disposed ||
       !this.currentTrack ||
-      (selectionVersion !== null &&
-        selectionVersion !== this.selectionVersion)
+      (selectionVersion !== null && selectionVersion !== this.selectionVersion)
     ) {
       return false;
     }
@@ -750,7 +980,9 @@ export class PlaybackController {
       }
     }
     if ("repeat" in settings) {
-      const repeat = REPEAT_MODES.has(settings.repeat) ? settings.repeat : "off";
+      const repeat = REPEAT_MODES.has(settings.repeat)
+        ? settings.repeat
+        : "off";
       if (repeat !== this.repeat) {
         this.repeat = repeat;
         changed = true;
@@ -936,17 +1168,17 @@ export class PlaybackController {
           if (media === this.activeMedia) void this.next({ fromEnded: true });
         },
         error: () => {
-        if (media !== this.activeMedia) return;
-        this.isPlaying = false;
-        this.isStopped = true;
-        this.isLoading = false;
-        this.loadingTrackId = null;
-        this.stopProgressFrames();
-        this.error = {
-          code: "MEDIA_LOAD_FAILED",
-          message: "Unable to play this media file",
-        };
-        this.emit();
+          if (media !== this.activeMedia) return;
+          this.isPlaying = false;
+          this.isStopped = true;
+          this.isLoading = false;
+          this.loadingTrackId = null;
+          this.stopProgressFrames();
+          this.error = {
+            code: "MEDIA_LOAD_FAILED",
+            message: "Unable to play this media file",
+          };
+          this.emit();
         },
       };
       Object.entries(handlers).forEach(([eventName, handler]) =>

@@ -2,7 +2,7 @@
 
 - Автосборка списка: `npm run test-check:sync-tests`
 - Найдено файлов: 137
-- Найдено тест-кейсов (test/it): 1187
+- Найдено тест-кейсов (test/it): 1192
 
 <!-- AUTO-JEST-TESTS:START -->
 
@@ -204,23 +204,22 @@
 - [ ] expands window on download complete when toggle is enabled
 - [ ] does not expand window on download complete when toggle is disabled
 
-### `src/js/app/__tests__/nowPlayingAudioTracksService.test.js` (4)
+### `src/js/app/__tests__/nowPlayingAudioTracksService.test.js` (3)
 - [ ] normalizes safe audio metadata and limits the result
 - [ ] uses a stat-keyed LRU cache and re-probes a changed file
-- [ ] validates a selected audio id against probed streams
 - [ ] reports missing tools, files and probe timeouts safely
 
-### `src/js/app/__tests__/nowPlayingHlsService.test.js` (6)
+### `src/js/app/__tests__/nowPlayingHlsService.test.js` (5)
 - [ ] accepts only one or two resolved HTTP inputs
 - [ ] maps adaptive video and audio and uses copy for compatible codecs
-- [ ] maps only a validated local audio stream with optional video
-- [ ] rejects unvalidated audio stream mapping before starting FFmpeg
+- [ ] does not map a selected stream for local compatibility playback
 - [ ] serves tokenized manifests on loopback and cleans the session
 - [ ] supersedes an initializing session and keeps only one FFmpeg process
 
-### `src/js/app/__tests__/nowPlayingIpcHandlers.test.js` (21)
+### `src/js/app/__tests__/nowPlayingIpcHandlers.test.js` (22)
 - [ ] registers all Player channels
 - [ ] lists and selects audio streams only for stored local tracks
+- [ ] rejects audio selection fields in fallback playback requests
 - [ ] updates only Player preferences in the persisted v3 state
 - [ ] normalizes zero volume to muted in the atomic patch
 - [ ] routes timeline preview requests and cancellation
@@ -811,9 +810,15 @@
 - [ ] accepts credential-free HTTP(S) URLs
 - [ ] marks HLS manifests for the HLS playback adapter
 
-### `src/js/modules/__tests__/nowPlayingPlaybackController.test.js` (28)
+### `src/js/modules/__tests__/nowPlayingPlaybackController.test.js` (34)
 - [ ] reports the buffered range without mutating playback position
 - [ ] selects a track, swaps the reusable media layer and starts playback
+- [ ] switches native audio without loading, seeking or restarting playback
+- [ ] returns to the probed default native audio track
+- [ ] applies rapid native selections synchronously with the last one active
+- [ ] blocks mismatched and compatibility audio track lists
+- [ ] rolls back native flags when an audio track setter fails
+- [ ] applies a persisted native audio track before initial autoplay
 - [ ] waits for HLS metadata without requiring media.src
 - [ ] retries an interrupted play once after media becomes ready
 - [ ] returns a sanitized terminal error when the play retry fails
@@ -853,7 +858,7 @@
 - [ ] merges structured import results without replacing the queue
 - [ ] resolves local files into playback DTOs and rejects missing tracks
 - [ ] routes AVI/MPEG through the protected local HLS session
-- [ ] routes an exact selected audio track through local HLS
+- [ ] keeps exact selected audio tracks on the direct local source
 - [ ] registry validates and routes provider calls
 - [ ] canonicalizes and imports a single YouTube video
 - [ ] rejects YouTube playlist URLs and invalid hosts
@@ -885,7 +890,7 @@
 - [ ] restores and persists background playback and sidebar pin preferences
 - [ ] applies Settings changes and publishes Player changes without a loop
 - [ ] lists local audio tracks and persists an exact selection
-- [ ] rolls back an audio selection when FFmpeg playback preparation fails
+- [ ] blocks audio selection when native and probed track counts differ
 - [ ] keeps audio track selection unavailable for YouTube media
 - [ ] hands artwork and metadata off together after the new cover loads
 - [ ] keeps a neutral fallback for missing artwork and hides unknown metadata
