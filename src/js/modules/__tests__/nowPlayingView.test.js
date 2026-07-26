@@ -1227,7 +1227,39 @@ describe("Now Playing view", () => {
       library
         .querySelector('[data-ui="library-search-clear"] [data-lucide]')
         .dataset.lucide,
-    ).toBe("circle-x");
+    ).toBe("x");
+    const headerActions = library.querySelector(
+      ".player-library__header-actions",
+    );
+    expect(headerActions.querySelectorAll("span")).toHaveLength(0);
+    expect(
+      [...headerActions.querySelectorAll("button")].map((button) => ({
+        label: button.getAttribute("aria-label"),
+        title: button.getAttribute("title"),
+        tooltip: button.dataset.bsToggle,
+      })),
+    ).toEqual([
+      {
+        label: "nowPlaying.addFiles",
+        title: "nowPlaying.addFiles",
+        tooltip: "tooltip",
+      },
+      {
+        label: "nowPlaying.addFolder",
+        title: "nowPlaying.addFolder",
+        tooltip: "tooltip",
+      },
+      {
+        label: "nowPlaying.youtube.add",
+        title: "nowPlaying.youtube.add",
+        tooltip: "tooltip",
+      },
+      {
+        label: "nowPlaying.playlists.create",
+        title: "nowPlaying.playlists.create",
+        tooltip: "tooltip",
+      },
+    ]);
     expect(
       [...library.querySelectorAll(".player-library__filters [data-lucide]")].map(
         (icon) => icon.dataset.lucide,
@@ -1312,6 +1344,39 @@ describe("Now Playing view", () => {
     const libraryTrackPlay = libraryTrack.querySelector(
       '[data-action="select-library-track"]',
     );
+    libraryTrack
+      .querySelector('[data-action="open-track-context-menu"]')
+      .click();
+    view.element
+      .querySelector('[data-context-action="queue"]')
+      .click();
+    expect(
+      [
+        ...library.querySelectorAll(
+          '[data-ui="transient-queue"] .player-library__queued-actions button',
+        ),
+      ].map((button) => ({
+        icon: button.querySelector("[data-lucide]")?.dataset.lucide,
+        title: button.getAttribute("title"),
+        tooltip: button.dataset.bsToggle,
+      })),
+    ).toEqual([
+      {
+        icon: "arrow-up",
+        title: "nowPlaying.playlists.moveUp",
+        tooltip: "tooltip",
+      },
+      {
+        icon: "arrow-down",
+        title: "nowPlaying.playlists.moveDown",
+        tooltip: "tooltip",
+      },
+      {
+        icon: "x",
+        title: "nowPlaying.queue.remove",
+        tooltip: "tooltip",
+      },
+    ]);
     expect(libraryTrackPlay.getAttribute("aria-label")).toBe(
       "nowPlaying.play Demo track",
     );

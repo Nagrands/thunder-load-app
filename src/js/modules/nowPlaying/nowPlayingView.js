@@ -13,6 +13,7 @@ import {
 import createMediaLibraryView from "./mediaLibraryView.js";
 import createMediaSessionManager from "./mediaSessionManager.js";
 import createPlaybackControlsView from "./playbackControlsView.js";
+import { refreshPlayerIcons } from "./playerIcons.js";
 import createPlayerPresentationView from "./playerPresentationView.js";
 import createPlayerContextMenu from "./playerContextMenu.js";
 import createPlaylistRenderer from "./playlistRenderer.js";
@@ -205,6 +206,7 @@ export function createNowPlayingView({
           button.setAttribute("aria-label", t(labelKey));
           button.setAttribute("title", t(labelKey));
           button.setAttribute("data-bs-toggle", "tooltip");
+          button.setAttribute("data-bs-placement", "top");
           button.innerHTML = `<i data-lucide="${icon}" aria-hidden="true"></i>`;
           actions.appendChild(button);
         });
@@ -212,6 +214,7 @@ export function createNowPlayingView({
         return row;
       }),
     );
+    refreshPlayerIcons(queue);
     initTooltips(queue);
   }
 

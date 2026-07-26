@@ -68,6 +68,24 @@ function libraryActionButton(action, icon, labelKey, extraClass = "") {
   `;
 }
 
+function libraryIconButton(action, icon, labelKey, extraClass = "") {
+  return `
+    <button
+      type="button"
+      class="player-library__action player-library__action--icon ${extraClass}"
+      data-action="${action}"
+      data-i18n-aria="${labelKey}"
+      data-i18n-title="${labelKey}"
+      data-bs-toggle="tooltip"
+      data-bs-placement="bottom"
+      aria-label="${t(labelKey)}"
+      title="${t(labelKey)}"
+    >
+      <i data-lucide="${lucideIcon(icon)}" aria-hidden="true"></i>
+    </button>
+  `;
+}
+
 function metadataSlot(index) {
   return `
     <div class="now-playing__metadata-slot" data-metadata-slot="${index}">
@@ -346,7 +364,7 @@ export function buildNowPlayingMarkup() {
             title="${t("nowPlaying.library.clearSearch")}"
             hidden
           >
-            <i data-lucide="circle-x" aria-hidden="true"></i>
+            <i data-lucide="x" aria-hidden="true"></i>
           </button>
         </div>
         <div class="player-library__filters" role="group" aria-label="${t("nowPlaying.library.filters")}">
@@ -368,10 +386,10 @@ export function buildNowPlayingMarkup() {
           </button>
         </div>
         <div class="player-library__header-actions" aria-label="${t("nowPlaying.library.actions")}">
-          ${libraryActionButton("add-files", "fa-solid fa-file-audio", "nowPlaying.addFiles")}
-          ${libraryActionButton("add-folder", "fa-solid fa-folder-plus", "nowPlaying.addFolder")}
-          ${libraryActionButton("open-youtube-dialog", "fa-brands fa-youtube", "nowPlaying.youtube.add")}
-          ${libraryActionButton("open-create-playlist-dialog", "fa-solid fa-plus", "nowPlaying.playlists.create", "player-library__action--primary")}
+          ${libraryIconButton("add-files", "fa-solid fa-file-audio", "nowPlaying.addFiles")}
+          ${libraryIconButton("add-folder", "fa-solid fa-folder-plus", "nowPlaying.addFolder")}
+          ${libraryIconButton("open-youtube-dialog", "fa-brands fa-youtube", "nowPlaying.youtube.add")}
+          ${libraryIconButton("open-create-playlist-dialog", "fa-solid fa-plus", "nowPlaying.playlists.create", "player-library__action--primary")}
         </div>
       </div>
       <div

@@ -472,6 +472,7 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
   function renderSearchControls() {
     searchInput.value = searchQuery;
     searchClear.hidden = !searchQuery;
+    if (searchQuery) setPlayerIcon(searchClear, "x");
     filterButtons.forEach((button) => {
       const pressed = button.dataset.filter === activeFilter;
       button.classList.toggle("is-active", pressed);

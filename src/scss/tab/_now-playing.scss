@@ -1592,6 +1592,20 @@ body.is-now-playing-active:has(
 
 .player-library__header-actions {
   margin-left: auto;
+
+  .player-library__action--icon {
+    width: 38px;
+    min-width: 38px;
+    padding: 0;
+
+    > svg,
+    > i {
+      width: 17px;
+      height: 17px;
+      flex: 0 0 17px;
+      stroke-width: 1.8;
+    }
+  }
 }
 
 .player-library__action,

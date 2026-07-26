@@ -38804,6 +38804,18 @@ body.is-now-playing-active:has(.now-playing:is(.is-topbar-visible, .is-library-v
 .player-library__header-actions {
   margin-left: auto;
 }
+.player-library__header-actions .player-library__action--icon {
+  width: 38px;
+  min-width: 38px;
+  padding: 0;
+}
+.player-library__header-actions .player-library__action--icon > svg,
+.player-library__header-actions .player-library__action--icon > i {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 17px;
+  stroke-width: 1.8;
+}
 
 .player-library__action,
 .player-library__close {
