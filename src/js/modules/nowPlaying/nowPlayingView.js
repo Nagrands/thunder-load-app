@@ -608,6 +608,10 @@ export function createNowPlayingView({
     if (action === "retry") return controller.retry();
     if (action === "show-library") return libraryView.show();
     if (action === "show-player") return libraryView.hide();
+    if (action === "clear-library-search") return libraryView.clearSearch();
+    if (action === "set-library-filter") {
+      return libraryView.setFilter(target.dataset.filter);
+    }
     if (action === "open-create-playlist-dialog")
       return libraryView.openDialog("create");
     if (action === "open-rename-playlist-dialog")
@@ -819,6 +823,10 @@ export function createNowPlayingView({
   }
 
   function onInput(event) {
+    if (event.target.matches('[data-action="filter-library"]')) {
+      libraryView.setSearchQuery(event.target.value);
+      return;
+    }
     if (event.target.matches('[data-action="seek"]')) {
       controller.seek(event.target.value);
     }

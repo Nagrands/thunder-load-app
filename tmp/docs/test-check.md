@@ -2,7 +2,7 @@
 
 - Автосборка списка: `npm run test-check:sync-tests`
 - Найдено файлов: 135
-- Найдено тест-кейсов (test/it): 1148
+- Найдено тест-кейсов (test/it): 1149
 
 <!-- AUTO-JEST-TESTS:START -->
 
@@ -847,7 +847,7 @@
 - [ ] keeps insertion order and supports reorder, removal and filtering
 - [ ] never exposes mutable internal items
 
-### `src/js/modules/__tests__/nowPlayingView.test.js` (23)
+### `src/js/modules/__tests__/nowPlayingView.test.js` (24)
 - [ ] renders an accessible player and restores selectedTrackId
 - [ ] opens structured track information with the current poster
 - [ ] opens a non-blocking media library empty state
@@ -868,6 +868,7 @@
 - [ ] autohides controls only while playing and locks them on interaction
 - [ ] supports row keyboard selection, removal and queue clearing
 - [ ] renders the V2 media library, playlists and persistent mini-player
+- [ ] searches the active playlist, composes filters, and renders no-results
 - [ ] switches playlists from the library and sidebar without autoplay
 - [ ] creates a playlist with the accessible library dialog
 - [ ] imports a single YouTube video from the library dialog

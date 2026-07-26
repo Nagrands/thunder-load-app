@@ -1048,6 +1048,16 @@ describe("Now Playing view", () => {
     const library = view.element.querySelector('[data-ui="library-view"]');
     expect(library.hidden).toBe(false);
     expect(view.element.classList.contains("is-library-view")).toBe(true);
+    expect(library.querySelector(".player-library__command-bar")).not.toBeNull();
+    expect(library.querySelector(".player-library__column-header")).not.toBeNull();
+    expect(
+      library.querySelector('[data-ui="playlist-management-actions"]').hidden,
+    ).toBe(true);
+    expect(
+      [...library.querySelectorAll(".player-library__track-badges span")].map(
+        (badge) => badge.textContent,
+      ),
+    ).toEqual(["1080p", "H.264", "AAC"]);
     expect(
       library.querySelectorAll(".player-library__playlist-card"),
     ).toHaveLength(2);
@@ -1134,6 +1144,109 @@ describe("Now Playing view", () => {
     library.querySelector('[data-action="show-player"]').click();
     expect(library.hidden).toBe(true);
     expect(view.element.classList.contains("is-library-view")).toBe(false);
+    view.dispose();
+  });
+
+  test("searches the active playlist, composes filters, and renders no-results", async () => {
+    const videoTrack = {
+      ...sampleTrack,
+      id: "video",
+      sourceRef: "/video/episode.mkv",
+      title: "Royal episode",
+      displayTitle: "Royal episode",
+      artist: "Studio",
+      album: "Season one",
+      kind: "video",
+    };
+    const missingTrack = {
+      ...sampleTrack,
+      id: "missing",
+      sourceRef: "/music/lost.flac",
+      title: "Lost recording",
+      displayTitle: "Lost recording",
+      artist: "Archive",
+      album: "Rare",
+      artworkUrl: "",
+      availability: "missing",
+    };
+    const api = {
+      getState: jest.fn().mockResolvedValue({
+        data: {
+          version: 3,
+          catalog: { tracks: [sampleTrack, videoTrack, missingTrack] },
+          playlists: [
+            {
+              id: "video-only",
+              title: "Video only",
+              trackIds: ["video"],
+            },
+          ],
+          activePlaylistId: "media-library",
+          selectedTrackId: "demo",
+        },
+      }),
+      setState: jest.fn().mockResolvedValue({ success: true }),
+      importFiles: jest.fn(),
+      importFolder: jest.fn(),
+    };
+    const view = createNowPlayingView({ api });
+    document.body.appendChild(view.element);
+    await view.ready;
+    view.element.querySelector('[data-action="show-library"]').click();
+    const library = view.element.querySelector('[data-ui="library-view"]');
+    const search = library.querySelector('[data-ui="library-search"]');
+
+    search.value = "season one";
+    search.dispatchEvent(new Event("input", { bubbles: true }));
+    expect(library.querySelectorAll(".player-library__track")).toHaveLength(1);
+    expect(
+      library.querySelector(".player-library__track").dataset.trackId,
+    ).toBe("video");
+
+    library
+      .querySelector('[data-action="set-library-filter"][data-filter="audio"]')
+      .click();
+    expect(library.querySelector('[data-ui="library-tracks"]').hidden).toBe(true);
+    expect(library.querySelector('[data-ui="library-no-results"]').hidden).toBe(
+      false,
+    );
+
+    library.querySelector('[data-action="clear-library-search"]').click();
+    expect(search.value).toBe("");
+    expect(
+      library
+        .querySelector('[data-filter="all"]')
+        .getAttribute("aria-pressed"),
+    ).toBe("true");
+    expect(library.querySelectorAll(".player-library__track")).toHaveLength(3);
+
+    library
+      .querySelector('[data-action="set-library-filter"][data-filter="missing"]')
+      .click();
+    expect(library.querySelectorAll(".player-library__track")).toHaveLength(1);
+    expect(
+      library.querySelector(".player-library__track").classList,
+    ).toContain("is-missing");
+    expect(
+      library.querySelector('[data-ui="mini-title"]').textContent,
+    ).toBe("Demo track");
+
+    search.value = "royal";
+    search.dispatchEvent(new Event("input", { bubbles: true }));
+    library
+      .querySelector(
+        '.player-library__playlist-card[data-playlist-id="video-only"]',
+      )
+      .click();
+    expect(search.value).toBe("royal");
+    expect(
+      library
+        .querySelector('[data-filter="missing"]')
+        .getAttribute("aria-pressed"),
+    ).toBe("true");
+    expect(library.querySelector('[data-ui="library-no-results"]').hidden).toBe(
+      false,
+    );
     view.dispose();
   });
 

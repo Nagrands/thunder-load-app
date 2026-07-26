@@ -5,13 +5,19 @@ import {
   refreshPlayerIcons,
   setPlayerIcon,
 } from "./playerIcons.js";
-import { formatPlaybackTime } from "./viewUtils.js";
+import {
+  formatMediaCodec,
+  formatMediaResolution,
+  formatMediaSize,
+  formatPlaybackTime,
+} from "./viewUtils.js";
 
 const SYSTEM_PLAYLIST_IDS = new Set([
   "library",
   "media-library",
   "local-library",
 ]);
+const LIBRARY_FILTERS = new Set(["all", "video", "audio", "missing"]);
 
 function getCatalogTracks(state = {}) {
   if (Array.isArray(state.catalog?.tracks)) return state.catalog.tracks;
@@ -85,16 +91,20 @@ function createIconButton(action, icon, label, dataset = {}) {
   return button;
 }
 
-function formatFileSize(value) {
-  const bytes = Number(value);
-  if (!Number.isFinite(bytes) || bytes <= 0) return "—";
-  const units = ["B", "KB", "MB", "GB"];
-  const exponent = Math.min(
-    units.length - 1,
-    Math.floor(Math.log(bytes) / Math.log(1024)),
-  );
-  const amount = bytes / 1024 ** exponent;
-  return `${amount >= 10 || exponent === 0 ? Math.round(amount) : amount.toFixed(1)} ${units[exponent]}`;
+function normalizeSearchText(value) {
+  return String(value || "").trim().toLocaleLowerCase();
+}
+
+function matchesSearch(track, query) {
+  if (!query) return true;
+  return [track.displayTitle, track.title, track.artist, track.album]
+    .some((value) => normalizeSearchText(value).includes(query));
+}
+
+function matchesFilter(track, filter) {
+  if (filter === "missing") return track.availability === "missing";
+  if (filter === "video" || filter === "audio") return track.kind === filter;
+  return true;
 }
 
 function createPlaylistCard(playlist, tracks, active) {
@@ -142,22 +152,33 @@ function createPlaylistCard(playlist, tracks, active) {
 function createTrackRow(track, index, playlist, snapshot) {
   const row = document.createElement("div");
   const current = track.id === snapshot?.currentTrack?.id;
+  const loading = track.id === snapshot?.loadingTrackId;
+  const missing = track.availability === "missing";
   row.className = "player-library__track";
   row.dataset.trackId = track.id;
   row.setAttribute("role", "option");
-  row.setAttribute("tabindex", track.availability === "missing" ? "-1" : "0");
+  row.setAttribute("tabindex", missing ? "-1" : "0");
   row.setAttribute("aria-selected", String(current));
+  row.setAttribute("aria-busy", String(loading));
   row.classList.toggle("is-current", current);
+  row.classList.toggle("is-loading", loading);
+  row.classList.toggle("is-missing", missing);
   if (current) row.setAttribute("aria-current", "true");
 
   const play = createIconButton(
     "select-library-track",
-    current && snapshot?.isPlaying
-      ? "fa-solid fa-volume-high"
-      : "fa-solid fa-play",
+    loading
+      ? "loader-circle"
+      : current && snapshot?.isPlaying
+        ? "fa-solid fa-volume-high"
+        : "fa-solid fa-play",
     `${t("nowPlaying.play")} ${track.displayTitle || track.title}`,
     { trackId: track.id },
   );
+  play.disabled = missing || loading;
+  if (loading) {
+    play.querySelector("[data-player-icon]")?.classList.add("is-spinning");
+  }
   play.classList.add("player-library__track-play");
 
   const artwork = document.createElement("span");
@@ -179,10 +200,28 @@ function createTrackRow(track, index, playlist, snapshot) {
   metadata.className = "player-library__track-copy";
   const title = document.createElement("strong");
   title.textContent = track.displayTitle || track.title;
-  const artist = document.createElement("span");
-  artist.textContent =
-    track.artist || track.album || t("nowPlaying.unknownArtist");
-  metadata.append(title, artist);
+  const secondary = document.createElement("span");
+  secondary.className = "player-library__track-secondary";
+  secondary.textContent = [track.artist, track.album].filter(Boolean).join(" · ");
+  secondary.hidden = !secondary.textContent;
+  const badges = document.createElement("span");
+  badges.className = "player-library__track-badges";
+  [
+    formatMediaResolution(track.mediaInfo),
+    formatMediaCodec(track.mediaInfo?.videoCodec),
+    formatMediaCodec(track.mediaInfo?.audioCodec),
+  ]
+    .filter(Boolean)
+    .forEach((label) => {
+      const badge = document.createElement("span");
+      badge.textContent = label;
+      badges.appendChild(badge);
+    });
+  badges.hidden = badges.childElementCount === 0;
+  const details = document.createElement("span");
+  details.className = "player-library__track-details";
+  details.append(secondary, badges);
+  metadata.append(title, details);
 
   const duration = document.createElement("span");
   duration.className = "player-library__track-time";
@@ -190,7 +229,8 @@ function createTrackRow(track, index, playlist, snapshot) {
 
   const size = document.createElement("span");
   size.className = "player-library__track-size";
-  size.textContent = formatFileSize(track.sizeBytes);
+  size.textContent = formatMediaSize(track.sizeBytes);
+  size.hidden = !size.textContent;
 
   const state = document.createElement("span");
   state.className = "player-library__track-status";
@@ -236,10 +276,22 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
   const operationStatus = root.querySelector(
     '[data-ui="library-operation-status"]',
   );
+  const searchInput = root.querySelector('[data-ui="library-search"]');
+  const searchClear = root.querySelector('[data-ui="library-search-clear"]');
+  const filterButtons = [
+    ...root.querySelectorAll('[data-action="set-library-filter"]'),
+  ];
+  const resultsCount = root.querySelector(
+    '[data-ui="library-results-count"]',
+  );
+  const noResults = root.querySelector('[data-ui="library-no-results"]');
   let trackRowsById = new Map();
   let previousPlaybackTrackId = null;
   let previousLoadingTrackId = null;
   let latestState = {};
+  let latestSnapshot = {};
+  let searchQuery = "";
+  let activeFilter = "all";
   let playerDialog = null;
   let miniCurrentSecond = -1;
   let miniDurationSecond = -1;
@@ -256,6 +308,7 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
 
   function render(state, snapshot) {
     latestState = state || {};
+    latestSnapshot = snapshot || {};
     const playlists = getPlaylists(latestState);
     const activePlaylist = getActivePlaylist(latestState);
     const activeTracks = getPlaylistTracks(latestState, activePlaylist);
@@ -279,17 +332,8 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
       }),
     );
     sidebarPlaylistSwitcher.value = activePlaylist?.id || "media-library";
-    trackList.replaceChildren(
-      ...activeTracks.map((track, index) =>
-        createTrackRow(track, index, activePlaylist, snapshot),
-      ),
-    );
-    trackRowsById = new Map(
-      [...trackList.querySelectorAll(".player-library__track")].map((row) => [
-        row.dataset.trackId,
-        row,
-      ]),
-    );
+    renderTrackList(activeTracks, activePlaylist, latestSnapshot);
+    renderSearchControls();
     previousPlaybackTrackId = null;
     previousLoadingTrackId = null;
     playlistCount.textContent = String(playlists.length);
@@ -305,13 +349,86 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
       count: activeTracks.length,
     });
     managementActions.hidden = isSystemPlaylist(activePlaylist);
-    empty.hidden = activeTracks.length > 0;
-    trackList.hidden = activeTracks.length === 0;
-    renderPlayback(snapshot);
+    renderPlayback(latestSnapshot);
     refreshPlayerIcons(element);
   }
 
+  function getVisibleTracks(tracks) {
+    return tracks
+      .map((track, index) => ({ track, index }))
+      .filter(({ track }) => matchesSearch(track, searchQuery))
+      .filter(({ track }) => matchesFilter(track, activeFilter));
+  }
+
+  function renderTrackList(activeTracks, activePlaylist, snapshot) {
+    const visibleTracks = getVisibleTracks(activeTracks);
+    trackList.replaceChildren(
+      ...visibleTracks.map(({ track, index }) =>
+        createTrackRow(track, index, activePlaylist, snapshot),
+      ),
+    );
+    trackRowsById = new Map(
+      [...trackList.querySelectorAll(".player-library__track")].map((row) => [
+        row.dataset.trackId,
+        row,
+      ]),
+    );
+    const hasTracks = activeTracks.length > 0;
+    const hasResults = visibleTracks.length > 0;
+    empty.hidden = hasTracks;
+    noResults.hidden = !hasTracks || hasResults;
+    trackList.hidden = !hasResults;
+    root
+      .querySelector(".player-library__column-header")
+      ?.toggleAttribute("hidden", !hasResults);
+    resultsCount.textContent = t("nowPlaying.library.results", {
+      visible: visibleTracks.length,
+      total: activeTracks.length,
+    });
+  }
+
+  function renderSearchControls() {
+    searchInput.value = searchQuery;
+    searchClear.hidden = !searchQuery;
+    filterButtons.forEach((button) => {
+      const pressed = button.dataset.filter === activeFilter;
+      button.classList.toggle("is-active", pressed);
+      button.setAttribute("aria-pressed", String(pressed));
+    });
+  }
+
+  function rerenderTrackList() {
+    const activePlaylist = getActivePlaylist(latestState);
+    const activeTracks = getPlaylistTracks(latestState, activePlaylist);
+    renderTrackList(activeTracks, activePlaylist, latestSnapshot);
+    renderSearchControls();
+    refreshPlayerIcons(element);
+  }
+
+  function setSearchQuery(value) {
+    const nextQuery = normalizeSearchText(value);
+    if (nextQuery === searchQuery) return;
+    searchQuery = nextQuery;
+    rerenderTrackList();
+  }
+
+  function setFilter(value) {
+    const nextFilter = LIBRARY_FILTERS.has(value) ? value : "all";
+    if (nextFilter === activeFilter) return;
+    activeFilter = nextFilter;
+    rerenderTrackList();
+  }
+
+  function clearSearch() {
+    if (!searchQuery && activeFilter === "all") return;
+    searchQuery = "";
+    activeFilter = "all";
+    rerenderTrackList();
+    searchInput.focus();
+  }
+
   function renderPlayback(snapshot = {}) {
+    latestSnapshot = snapshot;
     renderMiniPlayer(snapshot);
     const affectedIds = new Set([
       previousPlaybackTrackId,
@@ -521,7 +638,10 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
     openDialog,
     render,
     renderPlayback,
+    clearSearch,
+    setFilter,
     setOperationStatus,
+    setSearchQuery,
     showYouTubeQualities(payload) {
       return getPlayerDialog().showYouTubeQualities(payload);
     },

@@ -22,14 +22,27 @@ library state migration to version 3.
 
 ## Media Library
 
-The media library remains fully usable when it contains no files. Its empty
-state is part of the content area and never blocks navigation, playlist CRUD,
-or import controls.
+The media library is a dense desktop media hub. A compact command bar combines
+import and playlist creation, a narrow rail holds playlists and the separate
+transient queue, and the main catalog stays list-first for long filenames. It
+remains usable with no files: the empty state stays inside the content area and
+never blocks navigation or import controls.
 
 Users can add files, folders, a YouTube link, or a new playlist from the empty
-state. A media row contains artwork, display title and artist, duration, size,
-availability, and a context-menu button. Rename changes only `displayTitle`;
-remove never renames or deletes the physical file.
+state. Local search matches title, artist, and album in the active playlist.
+All, Video, Audio, and Unavailable filters compose with the query, last only
+for the renderer session, and never change state v3. A separate no-results
+state appears when the playlist has items but none match.
+
+A media row contains artwork or fallback, display title, artist and album,
+available resolution and codec badges, duration, size, availability, and a
+context-menu button. Unknown technical metadata is omitted. Rename changes
+only `displayTitle`; remove never renames or deletes the physical file.
+
+The bottom mini-player is a centered glass dock with three balanced zones:
+media identity, Previous/Play/Next plus timeline, and volume plus the return to
+full Player. Compact layouts hide secondary metadata and volume before the
+essential transport commands.
 
 The context menu opens with the row button, right click, `ContextMenu`, or
 `Shift+F10`. Arrow keys, `Home`, `End`, `Escape`, and focus restoration are

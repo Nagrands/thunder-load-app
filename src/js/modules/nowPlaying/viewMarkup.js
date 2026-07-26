@@ -283,27 +283,60 @@ export function buildNowPlayingMarkup() {
       hidden
     >
       <header class="player-library__header">
-        <div>
+        <div class="player-library__heading">
           <span class="player-library__eyebrow" data-i18n="tabs.nowPlaying">${t("tabs.nowPlaying")}</span>
           <h1 id="player-library-title" tabindex="-1" data-i18n="nowPlaying.library.title">${t("nowPlaying.library.title")}</h1>
           <p data-i18n="nowPlaying.library.subtitle">${t("nowPlaying.library.subtitle")}</p>
+        </div>
+        <button
+          class="player-library__close"
+          type="button"
+          data-action="show-player"
+          data-i18n-aria="nowPlaying.library.close"
+          aria-label="${t("nowPlaying.library.close")}"
+        >
+          <i data-lucide="panel-top-open" aria-hidden="true"></i>
+          <span data-i18n="nowPlaying.library.close">${t("nowPlaying.library.close")}</span>
+        </button>
+      </header>
+      <div class="player-library__command-bar">
+        <div class="player-library__search">
+          <i data-lucide="search" aria-hidden="true"></i>
+          <input
+            type="search"
+            data-ui="library-search"
+            data-action="filter-library"
+            data-i18n-aria="nowPlaying.library.search"
+            aria-label="${t("nowPlaying.library.search")}"
+            autocomplete="off"
+            spellcheck="false"
+            data-i18n-placeholder="nowPlaying.library.searchPlaceholder"
+            placeholder="${t("nowPlaying.library.searchPlaceholder")}"
+          />
+          <button
+            type="button"
+            data-action="clear-library-search"
+            data-ui="library-search-clear"
+            data-i18n-aria="nowPlaying.library.clearSearch"
+            aria-label="${t("nowPlaying.library.clearSearch")}"
+            hidden
+          >
+            <i data-lucide="x" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div class="player-library__filters" role="group" aria-label="${t("nowPlaying.library.filters")}">
+          <button type="button" data-action="set-library-filter" data-filter="all" aria-pressed="true" data-i18n="nowPlaying.library.filter.all">${t("nowPlaying.library.filter.all")}</button>
+          <button type="button" data-action="set-library-filter" data-filter="video" aria-pressed="false" data-i18n="nowPlaying.library.filter.video">${t("nowPlaying.library.filter.video")}</button>
+          <button type="button" data-action="set-library-filter" data-filter="audio" aria-pressed="false" data-i18n="nowPlaying.library.filter.audio">${t("nowPlaying.library.filter.audio")}</button>
+          <button type="button" data-action="set-library-filter" data-filter="missing" aria-pressed="false" data-i18n="nowPlaying.library.filter.missing">${t("nowPlaying.library.filter.missing")}</button>
         </div>
         <div class="player-library__header-actions" aria-label="${t("nowPlaying.library.actions")}">
           ${libraryActionButton("add-files", "fa-solid fa-file-audio", "nowPlaying.addFiles")}
           ${libraryActionButton("add-folder", "fa-solid fa-folder-plus", "nowPlaying.addFolder")}
           ${libraryActionButton("open-youtube-dialog", "fa-brands fa-youtube", "nowPlaying.youtube.add")}
           ${libraryActionButton("open-create-playlist-dialog", "fa-solid fa-plus", "nowPlaying.playlists.create", "player-library__action--primary")}
-          <button
-            class="player-library__close"
-            type="button"
-            data-action="show-player"
-            data-i18n-aria="nowPlaying.library.close"
-            aria-label="${t("nowPlaying.library.close")}"
-          >
-            <i data-lucide="x" aria-hidden="true"></i>
-          </button>
         </div>
-      </header>
+      </div>
       <div
         class="player-library__operation-status"
         data-ui="library-operation-status"
@@ -339,12 +372,24 @@ export function buildNowPlayingMarkup() {
             <div>
               <span class="player-library__collection-kicker" data-ui="active-playlist-type"></span>
               <h2 id="player-collection-title" data-ui="active-playlist-title"></h2>
-              <p data-ui="active-playlist-summary"></p>
             </div>
             <div class="player-library__collection-actions" data-ui="playlist-management-actions">
               ${libraryActionButton("open-rename-playlist-dialog", "fa-solid fa-pen", "nowPlaying.playlists.rename")}
               ${libraryActionButton("delete-playlist", "fa-solid fa-trash", "nowPlaying.playlists.delete")}
             </div>
+          </div>
+          <div class="player-library__results-bar">
+            <span data-ui="active-playlist-summary"></span>
+            <span data-ui="library-results-count" role="status" aria-live="polite"></span>
+          </div>
+          <div class="player-library__column-header" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span data-i18n="nowPlaying.library.columns.media">${t("nowPlaying.library.columns.media")}</span>
+            <span data-i18n="nowPlaying.library.columns.duration">${t("nowPlaying.library.columns.duration")}</span>
+            <span data-i18n="nowPlaying.library.columns.size">${t("nowPlaying.library.columns.size")}</span>
+            <span data-i18n="nowPlaying.library.columns.status">${t("nowPlaying.library.columns.status")}</span>
+            <span></span>
           </div>
           <div
             class="player-library__tracks"
@@ -368,6 +413,12 @@ export function buildNowPlayingMarkup() {
               ${libraryActionButton("open-youtube-dialog", "fa-brands fa-youtube", "nowPlaying.youtube.add")}
               ${libraryActionButton("open-create-playlist-dialog", "fa-solid fa-plus", "nowPlaying.playlists.create")}
             </div>
+          </div>
+          <div class="player-library__empty player-library__no-results" data-ui="library-no-results" hidden>
+            <i data-lucide="search-x" aria-hidden="true"></i>
+            <h3 data-i18n="nowPlaying.library.noResults.title">${t("nowPlaying.library.noResults.title")}</h3>
+            <p data-i18n="nowPlaying.library.noResults.hint">${t("nowPlaying.library.noResults.hint")}</p>
+            ${libraryActionButton("clear-library-search", "fa-solid fa-xmark", "nowPlaying.library.noResults.clear")}
           </div>
         </section>
       </div>
