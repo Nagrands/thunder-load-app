@@ -152,8 +152,10 @@ export function createNowPlayingView({
   const timelinePreview = createTimelinePreviewController({
     api,
     controller,
-    onPreviewImage: (trackId, dataUrl) =>
-      presentation.useGeneratedPoster(trackId, dataUrl),
+    onPreviewImage: (trackId, dataUrl) => {
+      presentation.useGeneratedPoster(trackId, dataUrl);
+      libraryView.useGeneratedPoster(trackId, dataUrl);
+    },
     progress,
     root,
   });
@@ -304,6 +306,7 @@ export function createNowPlayingView({
     visualTransitions.update(snapshot);
     updateControls(snapshot);
     presentation.update(snapshot);
+    timelinePreview.update(snapshot);
     if (playlistIconsChanged) presentation.refreshIcons();
     const nextControlTooltipKey = `${snapshot.isPlaying}:${snapshot.isLoading}:${snapshot.muted}:${snapshot.repeat}`;
     if (nextControlTooltipKey !== controlTooltipKey) {
@@ -313,7 +316,8 @@ export function createNowPlayingView({
     count.textContent = String(snapshot.queue.length);
     root.classList.toggle("is-empty", snapshot.queue.length === 0);
     playlist.hidden = snapshot.queue.length === 0;
-    errorPanel.hidden = !snapshot.error;
+    errorPanel.hidden =
+      !snapshot.error || root.classList.contains("is-library-view");
     errorPanel.classList.toggle("is-visible", !!snapshot.error);
     root.querySelector('[data-ui="error-message"]').textContent =
       snapshot.error?.message || "";
@@ -554,10 +558,34 @@ export function createNowPlayingView({
     return removeFromActivePlaylist(trackId);
   }
 
-  function clearQueue() {
-    controller.pause();
-    const state = libraryModel.getState();
+  function showLibrary() {
+    libraryView.show();
+    errorPanel.hidden = true;
+    return true;
+  }
+
+  function showPlayer() {
+    libraryView.hide();
+    errorPanel.hidden = !latestSnapshot?.error;
+    return true;
+  }
+
+  async function clearQueue() {
     const activePlaylist = libraryView.getActivePlaylist();
+    if (!activePlaylist) return false;
+    const state = libraryModel.getState();
+    if (activePlaylist.id === MEDIA_LIBRARY_ID) {
+      if (!state.catalog.tracks.length) return false;
+      const confirmed = await showConfirmationDialog({
+        title: t("nowPlaying.library.clearQueueTitle"),
+        message: t("nowPlaying.library.clearQueueConfirm", {
+          count: state.catalog.tracks.length,
+        }),
+        confirmText: t("nowPlaying.library.clearQueueAction"),
+      });
+      if (!confirmed) return false;
+    }
+    controller.pause();
     if (activePlaylist?.id === MEDIA_LIBRARY_ID) {
       state.catalog.tracks.forEach((track) =>
         libraryModel.deleteFromCatalog(track.id),
@@ -570,6 +598,7 @@ export function createNowPlayingView({
       );
     }
     syncLibraryQueue();
+    return true;
   }
 
   async function handleAction(action, target) {
@@ -595,6 +624,13 @@ export function createNowPlayingView({
     if (action === "add-files") return importSource("files");
     if (action === "add-folder") return importSource("folder");
     if (action === "clear") return clearQueue();
+    if (action === "clear-media-library") return clearQueue();
+    if (action === "close-playback") {
+      playerMenu.hidden = true;
+      const closed = controller.closeCurrent();
+      if (closed) showLibrary();
+      return closed;
+    }
     if (action === "play-pause") return controller.togglePlayback();
     if (action === "previous") return controller.previous();
     if (action === "next") return playNextTrack();
@@ -606,8 +642,8 @@ export function createNowPlayingView({
     }
     if (action === "fullscreen") return fullscreen.toggle();
     if (action === "retry") return controller.retry();
-    if (action === "show-library") return libraryView.show();
-    if (action === "show-player") return libraryView.hide();
+    if (action === "show-library") return showLibrary();
+    if (action === "show-player") return showPlayer();
     if (action === "clear-library-search") return libraryView.clearSearch();
     if (action === "set-library-filter") {
       return libraryView.setFilter(target.dataset.filter);

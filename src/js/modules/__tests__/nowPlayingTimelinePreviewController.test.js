@@ -119,4 +119,59 @@ describe("timelinePreviewController", () => {
     );
     previewController.dispose();
   });
+
+  test("requests the first video frame immediately when the active track changes", async () => {
+    const root = document.querySelector("section");
+    const progress = root.querySelector("input");
+    const onPreviewImage = jest.fn();
+    const api = {
+      cancelTimelinePreview: jest.fn(),
+      getTimelinePreview: jest.fn().mockResolvedValue({
+        success: true,
+        data: {
+          dataUrl: "data:image/jpeg;base64,eager-frame",
+          timestamp: 2,
+        },
+      }),
+    };
+    const previewController = createTimelinePreviewController({
+      api,
+      controller: {
+        getPreviewContext: () => ({ sessionId: "active-session" }),
+      },
+      onPreviewImage,
+      progress,
+      root,
+    });
+    const snapshot = {
+      currentTrack: {
+        id: "video",
+        kind: "video",
+        duration: 80,
+      },
+      duration: 80,
+    };
+
+    previewController.update(snapshot);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(api.getTimelinePreview).toHaveBeenCalledTimes(1);
+    expect(api.getTimelinePreview).toHaveBeenCalledWith(
+      expect.objectContaining({
+        requestId: expect.stringMatching(/^timeline-/),
+        sessionId: "active-session",
+        timestamp: 2,
+        trackId: "video",
+      }),
+    );
+    expect(onPreviewImage).toHaveBeenCalledWith(
+      "video",
+      "data:image/jpeg;base64,eager-frame",
+    );
+
+    previewController.update(snapshot);
+    expect(api.getTimelinePreview).toHaveBeenCalledTimes(1);
+    previewController.dispose();
+  });
 });

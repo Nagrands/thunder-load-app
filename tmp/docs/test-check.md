@@ -2,7 +2,7 @@
 
 - Автосборка списка: `npm run test-check:sync-tests`
 - Найдено файлов: 135
-- Найдено тест-кейсов (test/it): 1149
+- Найдено тест-кейсов (test/it): 1156
 
 <!-- AUTO-JEST-TESTS:START -->
 
@@ -799,7 +799,7 @@
 - [ ] accepts credential-free HTTP(S) URLs
 - [ ] marks HLS manifests for the HLS playback adapter
 
-### `src/js/modules/__tests__/nowPlayingPlaybackController.test.js` (20)
+### `src/js/modules/__tests__/nowPlayingPlaybackController.test.js` (22)
 - [ ] reports the buffered range without mutating playback position
 - [ ] selects a track, swaps the reusable media layer and starts playback
 - [ ] supports previous, next, shuffle and repeat modes
@@ -809,7 +809,9 @@
 - [ ] pauses while hidden and resumes only when it was playing
 - [ ] does not auto-resume after an explicit pause while suspended
 - [ ] keeps the media session active on pause and reactivates it on play
+- [ ] restores active media audio after pause without moving the volume control
 - [ ] stops playback, resets progress and cancels a pending track load
+- [ ] closes the current playback without clearing the queue
 - [ ] marks explicit seeks for immediate external position updates
 - [ ] ends the session at the natural end of the final track
 - [ ] ends the session for an empty queue and active media errors
@@ -839,18 +841,20 @@
 - [ ] restores canonical YouTube tracks and resolves fresh playback URLs
 - [ ] surfaces structured YouTube resolve errors
 
-### `src/js/modules/__tests__/nowPlayingTimelinePreviewController.test.js` (2)
+### `src/js/modules/__tests__/nowPlayingTimelinePreviewController.test.js` (3)
 - [ ] debounces frame requests and does not seek active playback
 - [ ] cancels a pending request when pointer leaves
+- [ ] requests the first video frame immediately when the active track changes
 
 ### `src/js/modules/__tests__/nowPlayingTransientQueue.test.js` (2)
 - [ ] keeps insertion order and supports reorder, removal and filtering
 - [ ] never exposes mutable internal items
 
-### `src/js/modules/__tests__/nowPlayingView.test.js` (24)
+### `src/js/modules/__tests__/nowPlayingView.test.js` (28)
 - [ ] renders an accessible player and restores selectedTrackId
 - [ ] opens structured track information with the current poster
 - [ ] opens a non-blocking media library empty state
+- [ ] keeps the library and another playlist track available after an unavailable track error
 - [ ] updates the brand label from playback state
 - [ ] adjusts volume with the mouse wheel and shows the percentage
 - [ ] syncs fullscreen controls, Escape and tab hide with preload state
@@ -867,7 +871,10 @@
 - [ ] imports files, selects the first new track and persists the queue
 - [ ] autohides controls only while playing and locks them on interaction
 - [ ] supports row keyboard selection, removal and queue clearing
+- [ ] clears every item from the system Media Library after confirmation
+- [ ] closes current playback from the mini-player without removing media
 - [ ] renders the V2 media library, playlists and persistent mini-player
+- [ ] loads a video poster eagerly for the current card and library mini-player
 - [ ] searches the active playlist, composes filters, and renders no-results
 - [ ] switches playlists from the library and sidebar without autoplay
 - [ ] creates a playlist with the accessible library dialog

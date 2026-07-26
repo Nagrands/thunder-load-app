@@ -359,6 +359,7 @@ export class PlaybackController {
     const media = this.activeMedia;
     const playVersion = this.selectionVersion;
     try {
+      this.applyVolume();
       const result = safeMediaCall(media, "play");
       if (result && typeof result.catch === "function") await result;
       if (
@@ -429,6 +430,28 @@ export class PlaybackController {
     this.resumeOnShow = false;
     this.stopProgressFrames();
     this.emit();
+  }
+
+  closeCurrent() {
+    if (!this.currentTrack && !this.isLoading) return false;
+    this.trace("playback-closing", {
+      sessionId: this.selectionVersion,
+      trackId: this.currentTrack?.id || null,
+    });
+    this.cancelPlaybackSession();
+    this.quiesceMediaLayers({ resetPosition: true });
+    void this.releaseAllLayers();
+    this.currentIndex = -1;
+    if (this.libraryState) this.libraryState.selectedTrackId = null;
+    this.isPlaying = false;
+    this.isStopped = true;
+    this.isLoading = false;
+    this.loadingTrackId = null;
+    this.resumeOnShow = false;
+    this.error = null;
+    this.stopProgressFrames();
+    this.emit();
+    return true;
   }
 
   async togglePlayback() {

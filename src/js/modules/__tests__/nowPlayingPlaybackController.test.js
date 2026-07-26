@@ -259,6 +259,35 @@ describe("Now Playing playback controller", () => {
     });
   });
 
+  test("restores active media audio after pause without moving the volume control", async () => {
+    const { controller } = createController();
+    controller.setQueue(tracks);
+    controller.setVolume(0.35);
+    await controller.selectTrack("one");
+
+    expect(controller.activeMedia).toMatchObject({
+      muted: false,
+      volume: 0.35,
+    });
+
+    controller.pause();
+    expect(controller.activeMedia).toMatchObject({
+      muted: true,
+      volume: 0,
+    });
+
+    await controller.play();
+    expect(controller.activeMedia).toMatchObject({
+      muted: false,
+      volume: 0.35,
+    });
+    expect(controller.getSnapshot()).toMatchObject({
+      isPlaying: true,
+      muted: false,
+      volume: 0.35,
+    });
+  });
+
   test("stops playback, resets progress and cancels a pending track load", async () => {
     const { controller, mediaLayers, providers } = createController();
     controller.setQueue(tracks);
@@ -304,6 +333,31 @@ describe("Now Playing playback controller", () => {
       isPlaying: true,
       isStopped: false,
     });
+  });
+
+  test("closes the current playback without clearing the queue", async () => {
+    const { controller, mediaLayers } = createController();
+    controller.setQueue(tracks, { selectedTrackId: "two" });
+    await controller.selectTrack("two");
+    controller.activeMedia.currentTime = 36;
+
+    expect(controller.closeCurrent()).toBe(true);
+
+    expect(controller.queue.map((track) => track.id)).toEqual([
+      "one",
+      "two",
+      "three",
+    ]);
+    expect(controller.currentTrack).toBeNull();
+    expect(controller.getSnapshot()).toMatchObject({
+      currentTrack: null,
+      currentIndex: -1,
+      isPlaying: false,
+      isStopped: true,
+      currentTime: 0,
+    });
+    expect(mediaLayers[1].pause).toHaveBeenCalled();
+    expect(controller.closeCurrent()).toBe(false);
   });
 
   test("marks explicit seeks for immediate external position updates", () => {

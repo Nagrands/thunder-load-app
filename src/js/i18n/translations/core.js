@@ -141,6 +141,7 @@ export const coreTranslations = {
     "nowPlaying.addFiles": "Добавить файлы",
     "nowPlaying.addFolder": "Добавить папку",
     "nowPlaying.clear": "Очистить очередь",
+    "nowPlaying.closePlayback": "Закрыть воспроизведение",
     "nowPlaying.remove": "Удалить",
     "nowPlaying.play": "Воспроизвести",
     "nowPlaying.pause": "Пауза",
@@ -199,6 +200,11 @@ export const coreTranslations = {
     "nowPlaying.library.deleteConfirm":
       "Удалить «{title}» из медиатеки и всех плейлистов?",
     "nowPlaying.library.deleteAction": "Удалить",
+    "nowPlaying.library.clearQueue": "Очистить очередь",
+    "nowPlaying.library.clearQueueTitle": "Очистить Медиатеку",
+    "nowPlaying.library.clearQueueConfirm":
+      "Удалить все элементы ({count}) из Медиатеки и пользовательских плейлистов?",
+    "nowPlaying.library.clearQueueAction": "Удалить всё",
     "nowPlaying.library.unknownItem": "Медиафайл",
     "nowPlaying.library.empty.title": "Здесь пока ничего нет",
     "nowPlaying.library.empty.hint":
@@ -511,6 +517,7 @@ export const coreTranslations = {
     "nowPlaying.addFiles": "Add files",
     "nowPlaying.addFolder": "Add folder",
     "nowPlaying.clear": "Clear queue",
+    "nowPlaying.closePlayback": "Close playback",
     "nowPlaying.remove": "Remove",
     "nowPlaying.play": "Play",
     "nowPlaying.pause": "Pause",
@@ -569,6 +576,11 @@ export const coreTranslations = {
     "nowPlaying.library.deleteConfirm":
       "Delete “{title}” from the media library and every playlist?",
     "nowPlaying.library.deleteAction": "Delete",
+    "nowPlaying.library.clearQueue": "Clear queue",
+    "nowPlaying.library.clearQueueTitle": "Clear Media Library",
+    "nowPlaying.library.clearQueueConfirm":
+      "Delete all items ({count}) from the Media Library and user playlists?",
+    "nowPlaying.library.clearQueueAction": "Delete all",
     "nowPlaying.library.unknownItem": "Media item",
     "nowPlaying.library.empty.title": "Nothing here yet",
     "nowPlaying.library.empty.hint":

@@ -25,6 +25,7 @@ export function createTimelinePreviewController({
   let activeRequestId = "";
   let timer = null;
   let visibleTrackId = "";
+  let eagerTrackId = "";
   let disposed = false;
 
   function cancelPending() {
@@ -113,6 +114,21 @@ export function createTimelinePreviewController({
     showAt(bounds.left + (max ? value / max : 0) * bounds.width);
   }
 
+  function update(snapshot = {}) {
+    const track = snapshot.currentTrack;
+    const nextTrackId = String(track?.id || "");
+    if (nextTrackId === eagerTrackId) return;
+    eagerTrackId = nextTrackId;
+    cancelPending();
+    visibleTrackId = nextTrackId;
+    if (track?.kind !== "video" || !nextTrackId) return;
+    const duration = Math.max(
+      0,
+      Number(snapshot.duration) || Number(track.duration) || 0,
+    );
+    void requestPreview(track, Math.min(2, duration));
+  }
+
   progress?.addEventListener("pointermove", onPointerMove);
   progress?.addEventListener("pointerleave", hide);
   progress?.addEventListener("blur", hide);
@@ -127,6 +143,7 @@ export function createTimelinePreviewController({
       progress?.removeEventListener("blur", hide);
       progress?.removeEventListener("input", onInput);
     },
+    update,
   };
 }
 

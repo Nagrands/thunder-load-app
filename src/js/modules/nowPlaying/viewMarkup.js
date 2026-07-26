@@ -272,6 +272,10 @@ export function buildNowPlayingMarkup() {
           <i data-lucide="info" aria-hidden="true"></i>
           <span data-i18n="nowPlaying.trackInfo">${t("nowPlaying.trackInfo")}</span>
         </button>
+        <button type="button" data-action="close-playback">
+          <i data-lucide="square-x" aria-hidden="true"></i>
+          <span data-i18n="nowPlaying.closePlayback">${t("nowPlaying.closePlayback")}</span>
+        </button>
         <button type="button" data-action="add-folder">
           <i data-lucide="folder-plus" aria-hidden="true"></i>
           <span data-i18n="nowPlaying.addFolder">${t("nowPlaying.addFolder")}</span>
@@ -288,6 +292,7 @@ export function buildNowPlayingMarkup() {
       <p data-ui="error-message"></p>
       <div class="now-playing__error-actions">
         <button class="now-playing__retry" type="button" data-action="retry" data-i18n="nowPlaying.retry">${t("nowPlaying.retry")}</button>
+        <button class="now-playing__retry now-playing__error-library" type="button" data-action="show-library" data-i18n="nowPlaying.library.open">${t("nowPlaying.library.open")}</button>
       </div>
     </section>
 
@@ -406,6 +411,7 @@ export function buildNowPlayingMarkup() {
               <h2 id="player-collection-title" data-ui="active-playlist-title"></h2>
             </div>
             <div class="player-library__collection-actions" data-ui="playlist-management-actions">
+              ${libraryActionButton("clear-media-library", "fa-solid fa-trash", "nowPlaying.library.clearQueue", "player-library__action--danger")}
               ${libraryActionButton("open-rename-playlist-dialog", "fa-solid fa-pen", "nowPlaying.playlists.rename")}
               ${libraryActionButton("delete-playlist", "fa-solid fa-trash", "nowPlaying.playlists.delete")}
             </div>
@@ -502,6 +508,7 @@ export function buildNowPlayingMarkup() {
             data-i18n-aria="nowPlaying.volume"
             aria-label="${t("nowPlaying.volume")}"
           />
+          ${iconButton("close-playback", "square-x", "nowPlaying.closePlayback", "player-library__mini-control player-library__mini-close")}
           ${iconButton("show-player", "fa-solid fa-up-right-and-down-left-from-center", "nowPlaying.library.openFullPlayer", "player-library__mini-control player-library__mini-open")}
         </div>
       </section>

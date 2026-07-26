@@ -333,6 +333,14 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
   const managementActions = root.querySelector(
     '[data-ui="playlist-management-actions"]',
   );
+  const clearMediaLibraryAction = managementActions.querySelector(
+    '[data-action="clear-media-library"]',
+  );
+  const userPlaylistActions = [
+    ...managementActions.querySelectorAll(
+      '[data-action="open-rename-playlist-dialog"], [data-action="delete-playlist"]',
+    ),
+  ];
   const miniPlayer = root.querySelector('[data-ui="mini-player"]');
   const operationStatus = root.querySelector(
     '[data-ui="library-operation-status"]',
@@ -357,6 +365,8 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
   let miniCurrentSecond = -1;
   let miniDurationSecond = -1;
   let miniTrackId = null;
+  let transientPosterTrackId = "";
+  let transientPosterUrl = "";
 
   function getPlayerDialog() {
     if (playerDialog) return playerDialog;
@@ -413,7 +423,14 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
     activeSummary.textContent = t("nowPlaying.library.itemsCount", {
       count: activeTracks.length,
     });
-    managementActions.hidden = isSystemPlaylist(activePlaylist);
+    const systemPlaylistActive = isSystemPlaylist(activePlaylist);
+    managementActions.hidden = false;
+    clearMediaLibraryAction.hidden = !systemPlaylistActive;
+    clearMediaLibraryAction.disabled =
+      !systemPlaylistActive || activeTracks.length === 0;
+    userPlaylistActions.forEach((button) => {
+      button.hidden = systemPlaylistActive;
+    });
     renderPlayback(latestSnapshot);
     refreshPlayerIcons(element);
   }
@@ -602,17 +619,17 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
       miniTrackId = track.id;
       miniCurrentSecond = -1;
       miniDurationSecond = -1;
+      if (transientPosterTrackId !== track.id) {
+        transientPosterTrackId = "";
+        transientPosterUrl = "";
+      }
     }
     root.querySelector('[data-ui="mini-title"]').textContent =
       track.displayTitle || track.title;
     root.querySelector('[data-ui="mini-artist"]').textContent =
       track.artist || t("nowPlaying.unknownArtist");
     root.querySelector('[data-ui="mini-album"]').textContent = track.album || "";
-    const image = root.querySelector('[data-ui="mini-artwork"]');
-    const artwork = image.closest(".player-library__mini-artwork");
-    image.src = track.artworkUrl || "";
-    image.hidden = !track.artworkUrl;
-    artwork.classList.toggle("has-artwork", Boolean(track.artworkUrl));
+    renderMiniArtwork(track);
 
     const playButton = miniPlayer.querySelector('[data-action="play-pause"]');
     setPlayerIcon(
@@ -691,6 +708,43 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
     );
   }
 
+  function renderMiniArtwork(track) {
+    const image = root.querySelector('[data-ui="mini-artwork"]');
+    const artwork = image.closest(".player-library__mini-artwork");
+    const source =
+      track?.artworkUrl ||
+      (track?.id === transientPosterTrackId ? transientPosterUrl : "");
+    image.src = source;
+    image.hidden = !source;
+    artwork.classList.toggle("has-artwork", Boolean(source));
+  }
+
+  function useGeneratedPoster(trackId, dataUrl) {
+    if (!trackId || !dataUrl) return;
+    transientPosterTrackId = String(trackId);
+    transientPosterUrl = dataUrl;
+    if (miniTrackId === transientPosterTrackId) {
+      renderMiniArtwork(
+        latestSnapshot.currentTrack || { id: transientPosterTrackId },
+      );
+    }
+  }
+
+  function clearGeneratedPoster(trackId) {
+    if (
+      trackId &&
+      transientPosterTrackId &&
+      String(trackId) !== transientPosterTrackId
+    ) {
+      return;
+    }
+    transientPosterTrackId = "";
+    transientPosterUrl = "";
+    if (latestSnapshot.currentTrack) {
+      renderMiniArtwork(latestSnapshot.currentTrack);
+    }
+  }
+
   function show() {
     element.hidden = false;
     root.classList.add("is-library-view");
@@ -752,6 +806,7 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
     render,
     renderPlayback,
     clearSearch,
+    clearGeneratedPoster,
     setFilter,
     setOperationStatus,
     setSearchQuery,
@@ -762,6 +817,7 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
     showDialogError,
     toggleSidebarPlaylistMenu,
     moveSidebarPlaylistFocus,
+    useGeneratedPoster,
   };
 }
 

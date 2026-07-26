@@ -23,11 +23,13 @@ export function createControlsVisibility({
     timer = setTimeout(() => {
       timer = null;
       root.classList.remove("is-controls-visible");
+      root.classList.add("is-cursor-hidden");
     }, delay);
   }
 
   function show({ schedule = true } = {}) {
     root.classList.add("is-controls-visible");
+    root.classList.remove("is-cursor-hidden");
     if (schedule) scheduleHide();
     else clearTimer();
   }
@@ -88,13 +90,18 @@ export function createControlsVisibility({
       active = false;
       locked = false;
       clearTimer();
-      root.classList.remove("is-controls-visible", "is-controls-locked");
+      root.classList.remove(
+        "is-controls-visible",
+        "is-controls-locked",
+        "is-cursor-hidden",
+      );
     },
     show: onInteraction,
     dispose() {
       if (disposed) return;
       disposed = true;
       clearTimer();
+      root.classList.remove("is-cursor-hidden");
       root.removeEventListener("mousemove", onInteraction);
       root.removeEventListener("keydown", onInteraction);
       root.removeEventListener("focusin", onFocusIn);
