@@ -97,6 +97,11 @@ export function normalizeLocalTrack(track = {}, index = 0) {
       Number.isFinite(sizeBytes) && sizeBytes >= 0 ? Math.trunc(sizeBytes) : 0,
     mediaInfo: normalizeMediaInfo(track.mediaInfo),
     qualitySelection: null,
+    selectedAudioTrackId: /^audio-(?:0|[1-9]\d{0,2})$/.test(
+      track.selectedAudioTrackId,
+    )
+      ? track.selectedAudioTrackId
+      : null,
     playback: track.playback || null,
   };
 }
@@ -174,11 +179,15 @@ export class LocalMusicProvider {
     const playback = track?.playback || {};
     const extension = getExtension(normalized.sourceRef);
     if (
-      HLS_FALLBACK_EXTENSIONS.has(extension) &&
+      (HLS_FALLBACK_EXTENSIONS.has(extension) ||
+        normalized.selectedAudioTrackId) &&
       typeof this.api.createLocalPlaybackSession === "function"
     ) {
       return unwrapResult(
-        await this.api.createLocalPlaybackSession(normalized.sourceRef),
+        await this.api.createLocalPlaybackSession({
+          trackId: normalized.id,
+          audioTrackId: normalized.selectedAudioTrackId,
+        }),
       );
     }
     return {

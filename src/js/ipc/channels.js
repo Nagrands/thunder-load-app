@@ -52,6 +52,7 @@ const CHANNELS = Object.freeze({
   NOW_PLAYING_RESOLVE_YOUTUBE_TRACK: "now-playing:resolve-youtube-track",
   NOW_PLAYING_CREATE_LOCAL_PLAYBACK_SESSION:
     "now-playing:create-local-playback-session",
+  NOW_PLAYING_GET_AUDIO_TRACKS: "now-playing:get-audio-tracks",
   NOW_PLAYING_CLOSE_PLAYBACK_SESSION: "now-playing:close-playback-session",
   NOW_PLAYING_GET_TIMELINE_PREVIEW: "now-playing:get-timeline-preview",
   NOW_PLAYING_CANCEL_TIMELINE_PREVIEW: "now-playing:cancel-timeline-preview",

@@ -83,6 +83,7 @@ try {
     "now-playing:analyze-youtube-video",
     "now-playing:resolve-youtube-track",
     "now-playing:create-local-playback-session",
+    "now-playing:get-audio-tracks",
     "now-playing:close-playback-session",
     "now-playing:get-timeline-preview",
     "now-playing:cancel-timeline-preview",
@@ -491,8 +492,10 @@ try {
         safeInvoke("now-playing:import-youtube-video", url, qualitySelection),
       resolveYouTubeTrack: (sourceRef, options = {}) =>
         safeInvoke("now-playing:resolve-youtube-track", sourceRef, options),
-      createLocalPlaybackSession: (sourceRef) =>
-        safeInvoke("now-playing:create-local-playback-session", sourceRef),
+      createLocalPlaybackSession: (request) =>
+        safeInvoke("now-playing:create-local-playback-session", request),
+      getAudioTracks: (request) =>
+        safeInvoke("now-playing:get-audio-tracks", request),
       closePlaybackSession: (sessionId) =>
         safeInvoke("now-playing:close-playback-session", sessionId),
       getTimelinePreview: (request) =>

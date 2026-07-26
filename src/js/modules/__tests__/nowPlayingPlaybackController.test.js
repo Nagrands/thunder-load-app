@@ -104,6 +104,27 @@ describe("Now Playing playback controller", () => {
     expect(mediaLayers[0].muted).toBe(true);
   });
 
+  test("restores playback position while preserving a paused state", async () => {
+    const { controller } = createController();
+    controller.setQueue(tracks);
+
+    await controller.selectTrack("one", {
+      autoplay: false,
+      forceRefresh: true,
+      startTime: 42,
+    });
+
+    expect(controller.activeMedia.currentTime).toBe(42);
+    expect(controller.getSnapshot()).toMatchObject({
+      currentTime: 42,
+      isPlaying: false,
+      isLoading: false,
+    });
+    controller.activeMedia.currentTime = 0;
+    controller.activeMedia.dispatchEvent(new Event("loadedmetadata"));
+    expect(controller.activeMedia.currentTime).toBe(42);
+  });
+
   test("supports previous, next, shuffle and repeat modes", async () => {
     const { controller } = createController(() => 0);
     controller.setQueue(tracks, { selectedTrackId: "two" });

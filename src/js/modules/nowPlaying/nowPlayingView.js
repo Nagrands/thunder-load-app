@@ -26,6 +26,7 @@ import buildNowPlayingMarkup from "./viewMarkup.js";
 import { unwrapNowPlayingState } from "./viewUtils.js";
 import createTransientQueue from "./transientQueue.js";
 import createTimelinePreviewController from "./timelinePreviewController.js";
+import createAudioTracksController from "./audioTracksController.js";
 import {
   onPlayerSettingsApply,
   publishPlayerSettings,
@@ -107,6 +108,7 @@ export function createNowPlayingView({
   let persistenceRequested = false;
   let volumeFeedbackTimer = null;
   let operationFeedbackTimer = null;
+  let audioSwitchGeneration = 0;
   let draggedTrackId = "";
   let libraryModel = null;
   const renderPlaylist = createPlaylistRenderer(playlist);
@@ -172,6 +174,16 @@ export function createNowPlayingView({
   const libraryView = createMediaLibraryView({
     root,
     onDialogSubmit: handleLibraryDialogSubmit,
+  });
+  const audioTracks = createAudioTracksController({
+    root,
+    api,
+    getCurrentTrack: () => controller.currentTrack,
+    onOpenChange: (open) =>
+      controlsVisibility.setLocked(
+        open || dock.contains(document.activeElement),
+      ),
+    onSelect: switchAudioTrack,
   });
   const transientQueue = createTransientQueue({
     onChange: renderTransientQueue,
@@ -318,6 +330,7 @@ export function createNowPlayingView({
     visualTransitions.update(snapshot);
     updateControls(snapshot);
     presentation.update(snapshot);
+    audioTracks?.sync(snapshot);
     timelinePreview.update(snapshot);
     if (playlistIconsChanged) presentation.refreshIcons();
     const nextControlTooltipKey = `${snapshot.isPlaying}:${snapshot.isLoading}:${snapshot.muted}:${snapshot.repeat}`;
@@ -407,6 +420,40 @@ export function createNowPlayingView({
     renderTransientQueue();
     initTooltips(root);
     presentation.refreshIcons();
+    audioTracks?.refreshI18n();
+  }
+
+  async function switchAudioTrack(nextAudioTrackId) {
+    const track = controller.currentTrack;
+    if (!track || track.providerId !== "local" || !libraryModel) return false;
+    const previousAudioTrackId = track.selectedAudioTrackId || null;
+    if (previousAudioTrackId === nextAudioTrackId) return true;
+    const startTime = Number(controller.activeMedia?.currentTime) || 0;
+    const wasPlaying = controller.isPlaying;
+    const generation = ++audioSwitchGeneration;
+    if (!libraryModel.setTrackAudioSelection(track.id, nextAudioTrackId)) {
+      return false;
+    }
+    syncLibraryQueue({ selectedTrackId: track.id });
+    const switched = await controller.selectTrack(track.id, {
+      autoplay: wasPlaying,
+      forceRefresh: true,
+      startTime,
+    });
+    if (generation !== audioSwitchGeneration) return false;
+    if (switched) return true;
+
+    const switchError =
+      controller.getSnapshot().error?.message ||
+      t("nowPlaying.audioTracks.switchError");
+    libraryModel.setTrackAudioSelection(track.id, previousAudioTrackId);
+    syncLibraryQueue({ selectedTrackId: track.id });
+    await controller.selectTrack(track.id, {
+      autoplay: wasPlaying,
+      forceRefresh: true,
+      startTime,
+    });
+    throw new Error(switchError);
   }
 
   async function importSource(source) {
@@ -660,6 +707,16 @@ export function createNowPlayingView({
 
   async function handleAction(action, target) {
     if (action?.startsWith("placeholder-")) return false;
+    const audioAction = audioTracks?.handleAction(action, target);
+    if (audioAction !== undefined) {
+      if (action === "toggle-audio-tracks") {
+        playerMenu.hidden = true;
+        root
+          .querySelector('[data-action="toggle-player-menu"]')
+          ?.setAttribute("aria-expanded", "false");
+      }
+      return audioAction;
+    }
     if (action === "toggle-player-menu") {
       playerMenu.hidden = !playerMenu.hidden;
       target.setAttribute("aria-expanded", String(!playerMenu.hidden));
@@ -863,6 +920,7 @@ export function createNowPlayingView({
 
   function onClick(event) {
     const actionTarget = event.target.closest("[data-action]");
+    audioTracks?.handleOutsideClick(event.target);
     if (!event.target.closest(".now-playing__playlist-select-shell")) {
       libraryView.closeSidebarPlaylistMenu();
     }
@@ -878,6 +936,7 @@ export function createNowPlayingView({
   }
 
   function onKeydown(event) {
+    if (audioTracks?.handleKeydown(event)) return;
     const playlistTrigger = event.target.closest(
       '[data-action="toggle-sidebar-playlist-menu"]',
     );
@@ -1243,6 +1302,7 @@ export function createNowPlayingView({
       mediaSession.dispose();
       controller.dispose();
       providers.dispose();
+      audioTracks?.dispose();
       controlsVisibility.dispose();
       overlayVisibility.dispose();
       fullscreen.dispose();

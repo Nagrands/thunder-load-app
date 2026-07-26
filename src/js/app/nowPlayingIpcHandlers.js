@@ -22,6 +22,9 @@ const { NowPlayingHlsService } = require("./nowPlayingHlsService");
 const {
   NowPlayingTimelinePreviewService,
 } = require("./nowPlayingTimelinePreviewService");
+const {
+  NowPlayingAudioTracksService,
+} = require("./nowPlayingAudioTracksService");
 
 const STATE_KEY = "nowPlaying.state";
 const MAX_STATE_BYTES = 2 * 1024 * 1024;
@@ -192,6 +195,7 @@ function registerNowPlayingIpcHandlers({
   store,
   shell,
   hlsService: providedHlsService = null,
+  audioTracksService: providedAudioTracksService = null,
   timelinePreviewService: providedTimelinePreviewService = null,
 }) {
   const hlsService =
@@ -210,6 +214,11 @@ function registerNowPlayingIpcHandlers({
     readState(store).catalog.tracks.find(
       (track) => track.id === String(trackId || ""),
     ) || null;
+  const audioTracksService =
+    providedAudioTracksService ||
+    new NowPlayingAudioTracksService({
+      ffprobePathResolver: () => resolveToolPath(ffprobePathResolver, store),
+    });
   const timelinePreviewService =
     providedTimelinePreviewService ||
     new NowPlayingTimelinePreviewService({
@@ -221,6 +230,7 @@ function registerNowPlayingIpcHandlers({
   if (typeof app.once === "function") {
     app.once("before-quit", () => {
       timelinePreviewService.dispose();
+      audioTracksService.dispose?.();
       void hlsService.dispose();
     });
   }
@@ -511,16 +521,82 @@ function registerNowPlayingIpcHandlers({
   );
 
   ipcMain.handle(
-    CHANNELS.NOW_PLAYING_CREATE_LOCAL_PLAYBACK_SESSION,
-    async (_event, sourceRef) => {
-      const filePath = getStoredLocalPath(sourceRef);
-      if (!filePath) return failure("INVALID_PATH", "Unknown media file");
+    CHANNELS.NOW_PLAYING_GET_AUDIO_TRACKS,
+    async (_event, request) => {
+      if (
+        !request ||
+        typeof request !== "object" ||
+        Array.isArray(request) ||
+        Object.keys(request).some((key) => key !== "trackId") ||
+        typeof request.trackId !== "string"
+      ) {
+        return failure("INVALID_AUDIO_TRACK_REQUEST", "Invalid audio track request");
+      }
+      const track = getTrackById(request.trackId);
+      if (!track || track.providerId !== "local") {
+        return failure(
+          "AUDIO_TRACKS_UNSUPPORTED",
+          "Audio track selection is available for local media only",
+        );
+      }
       try {
+        const tracks = await audioTracksService.getTracks(track);
+        return success({
+          trackId: track.id,
+          tracks,
+          selectedAudioTrackId: tracks.some(
+            (item) => item.id === track.selectedAudioTrackId,
+          )
+            ? track.selectedAudioTrackId
+            : null,
+        });
+      } catch (error) {
+        return failure(error.code || "AUDIO_TRACKS_PROBE_FAILED", error.message);
+      }
+    },
+  );
+
+  ipcMain.handle(
+    CHANNELS.NOW_PLAYING_CREATE_LOCAL_PLAYBACK_SESSION,
+    async (_event, request) => {
+      if (
+        !request ||
+        typeof request !== "object" ||
+        Array.isArray(request) ||
+        Object.keys(request).some(
+          (key) => !["trackId", "audioTrackId"].includes(key),
+        ) ||
+        typeof request.trackId !== "string" ||
+        !(
+          request.audioTrackId === null ||
+          request.audioTrackId === undefined ||
+          typeof request.audioTrackId === "string"
+        )
+      ) {
+        return failure(
+          "INVALID_AUDIO_TRACK_REQUEST",
+          "Invalid local playback request",
+        );
+      }
+      const track = getTrackById(request.trackId);
+      if (!track || track.providerId !== "local") {
+        return failure("INVALID_PATH", "Unknown media file");
+      }
+      if (track.availability === "missing") {
+        return failure("TRACK_UNAVAILABLE", "Track file is unavailable");
+      }
+      try {
+        const audioStreamIndex =
+          await audioTracksService.resolveStreamIndex(
+            track,
+            request.audioTrackId,
+          );
         return success(
           await hlsService.createSession({
-            inputs: [filePath],
+            inputs: [track.sourceRef],
             copyCodecs: false,
             allowLocal: true,
+            audioStreamIndex,
           }),
         );
       } catch (error) {

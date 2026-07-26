@@ -120,9 +120,14 @@ describe("Now Playing media library model", () => {
     });
     expect(model.renameTrack("local-one", "Renamed track")).toBe(true);
     expect(model.renameTrack("missing", "Ignored")).toBe(false);
+    expect(model.setTrackAudioSelection("local-two", "audio-3")).toBe(true);
+    expect(model.setTrackAudioSelection("local-two", "0:a:1")).toBe(false);
     expect(
       model.getState().catalog.tracks.find((track) => track.id === "local-one"),
     ).toMatchObject({ title: "One", displayTitle: "Renamed track" });
+    expect(
+      model.getState().catalog.tracks.find((track) => track.id === "local-two"),
+    ).toMatchObject({ selectedAudioTrackId: "audio-3" });
 
     model.setActivePlaylist(playlist.id);
     expect(model.getActiveTracks().map((track) => track.id)).toEqual([

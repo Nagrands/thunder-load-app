@@ -36,7 +36,11 @@ describe("preload Now Playing API", () => {
     await api.nowPlaying.resolveYouTubeTrack(
       "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
     );
-    await api.nowPlaying.createLocalPlaybackSession("/media/archive.avi");
+    await api.nowPlaying.createLocalPlaybackSession({
+      trackId: "archive",
+      audioTrackId: "audio-2",
+    });
+    await api.nowPlaying.getAudioTracks({ trackId: "archive" });
     await api.nowPlaying.getTimelinePreview({
       requestId: "preview-1",
       trackId: "demo",
@@ -60,7 +64,11 @@ describe("preload Now Playing API", () => {
         "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
         {},
       ],
-      ["now-playing:create-local-playback-session", "/media/archive.avi"],
+      [
+        "now-playing:create-local-playback-session",
+        { trackId: "archive", audioTrackId: "audio-2" },
+      ],
+      ["now-playing:get-audio-tracks", { trackId: "archive" }],
       [
         "now-playing:get-timeline-preview",
         { requestId: "preview-1", trackId: "demo", timestamp: 12 },

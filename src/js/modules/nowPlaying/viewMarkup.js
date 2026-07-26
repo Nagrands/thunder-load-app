@@ -133,7 +133,7 @@ export function buildNowPlayingMarkup() {
         </button>
         <div class="now-playing__top-actions" aria-label="${t("nowPlaying.tools")}">
           ${iconButton("placeholder-subtitles", "captions", "nowPlaying.unavailable.subtitles", "now-playing__control--glass now-playing__placeholder-control")}
-          ${iconButton("placeholder-audio", "audio-lines", "nowPlaying.unavailable.audioTracks", "now-playing__control--glass now-playing__placeholder-control")}
+          ${iconButton("toggle-audio-tracks", "audio-lines", "nowPlaying.audioTracks.open", "now-playing__control--glass now-playing__audio-trigger")}
           ${iconButton("placeholder-mini-player", "music-2", "nowPlaying.unavailable.miniPlayer", "now-playing__control--glass now-playing__placeholder-control")}
           ${iconButton("placeholder-picture", "image", "nowPlaying.unavailable.picture", "now-playing__control--glass now-playing__placeholder-control")}
           ${iconButton("toggle-player-menu", "ellipsis-vertical", "nowPlaying.more", "now-playing__control--glass")}
@@ -278,6 +278,10 @@ export function buildNowPlayingMarkup() {
       </section>
 
       <div class="now-playing__player-menu" data-ui="player-menu" hidden>
+        <button type="button" data-action="toggle-audio-tracks">
+          <i data-lucide="audio-lines" aria-hidden="true"></i>
+          <span data-i18n="nowPlaying.audioTracks.open">${t("nowPlaying.audioTracks.open")}</span>
+        </button>
         <button type="button" data-action="background-playback">
           <i data-lucide="headphones" aria-hidden="true"></i>
           <span data-i18n="nowPlaying.backgroundPlayback">${t("nowPlaying.backgroundPlayback")}</span>
@@ -303,6 +307,32 @@ export function buildNowPlayingMarkup() {
           <span data-i18n="nowPlaying.clear">${t("nowPlaying.clear")}</span>
         </button>
       </div>
+      <section
+        class="now-playing__audio-menu"
+        data-ui="audio-track-menu"
+        aria-labelledby="now-playing-audio-title"
+        aria-busy="false"
+        hidden
+      >
+        <header>
+          <span data-i18n="nowPlaying.audioTracks.kicker">${t("nowPlaying.audioTracks.kicker")}</span>
+          <strong id="now-playing-audio-title" data-i18n="nowPlaying.audioTracks.title">${t("nowPlaying.audioTracks.title")}</strong>
+        </header>
+        <p
+          class="now-playing__audio-status"
+          data-ui="audio-track-status"
+          role="status"
+          aria-live="polite"
+          hidden
+        ></p>
+        <div
+          id="now-playing-audio-list"
+          class="now-playing__audio-list"
+          data-ui="audio-track-list"
+          role="listbox"
+          aria-labelledby="now-playing-audio-title"
+        ></div>
+      </section>
     </div>
 
     <section class="now-playing__scene-overlay now-playing__error" role="alert" hidden>

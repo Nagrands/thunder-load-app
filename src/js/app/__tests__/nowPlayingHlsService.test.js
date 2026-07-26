@@ -41,6 +41,36 @@ describe("Now Playing HLS service", () => {
     );
   });
 
+  test("maps only a validated local audio stream with optional video", () => {
+    const args = buildFfmpegArgs({
+      inputs: ["/media/movie.mkv"],
+      audioStreamIndex: 3,
+      copyCodecs: false,
+      outputPath: "/tmp/player/index.m3u8",
+    });
+
+    expect(args).toEqual(
+      expect.arrayContaining(["-map", "0:v:0?", "-map", "0:3"]),
+    );
+    expect(args.join(" ")).not.toContain("0:a:");
+  });
+
+  test("rejects unvalidated audio stream mapping before starting FFmpeg", async () => {
+    const service = new NowPlayingHlsService({
+      cacheRoot: "/tmp/unused-player-hls",
+      ffmpegPathResolver: () => "/tools/ffmpeg",
+      spawnProcess: jest.fn(),
+    });
+
+    await expect(
+      service.createSession({
+        inputs: ["/media/movie.mkv"],
+        allowLocal: true,
+        audioStreamIndex: "0:a:2",
+      }),
+    ).rejects.toMatchObject({ code: "INVALID_AUDIO_TRACK" });
+  });
+
   test("serves tokenized manifests on loopback and cleans the session", async () => {
     const cacheRoot = fs.mkdtempSync(path.join(os.tmpdir(), "now-playing-hls-"));
     const spawnProcess = jest.fn((_binary, args) => {

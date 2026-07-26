@@ -70,6 +70,11 @@ function normalizeGenericTrack(track = {}, index = 0) {
       track.providerId === "youtube"
         ? normalizeQualitySelection(track.qualitySelection)
         : null,
+    selectedAudioTrackId:
+      track.providerId === "local" &&
+      /^audio-(?:0|[1-9]\d{0,2})$/.test(track.selectedAudioTrackId)
+        ? track.selectedAudioTrackId
+        : null,
   };
 }
 
@@ -439,6 +444,21 @@ export class MediaLibraryModel {
     );
     if (!track) return false;
     track.displayTitle = cleanTitle(displayTitle, track.title);
+    return true;
+  }
+
+  setTrackAudioSelection(trackId, audioTrackId) {
+    const track = this.state.catalog.tracks.find(
+      (item) => item.id === trackId && item.providerId === "local",
+    );
+    if (!track) return false;
+    if (
+      audioTrackId !== null &&
+      !/^audio-(?:0|[1-9]\d{0,2})$/.test(audioTrackId)
+    ) {
+      return false;
+    }
+    track.selectedAudioTrackId = audioTrackId;
     return true;
   }
 

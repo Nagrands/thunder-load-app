@@ -1,8 +1,8 @@
 ## Автотесты (Jest)
 
 - Автосборка списка: `npm run test-check:sync-tests`
-- Найдено файлов: 136
-- Найдено тест-кейсов (test/it): 1170
+- Найдено файлов: 137
+- Найдено тест-кейсов (test/it): 1183
 
 <!-- AUTO-JEST-TESTS:START -->
 
@@ -204,14 +204,23 @@
 - [ ] expands window on download complete when toggle is enabled
 - [ ] does not expand window on download complete when toggle is disabled
 
-### `src/js/app/__tests__/nowPlayingHlsService.test.js` (4)
+### `src/js/app/__tests__/nowPlayingAudioTracksService.test.js` (4)
+- [ ] normalizes safe audio metadata and limits the result
+- [ ] uses a stat-keyed LRU cache and re-probes a changed file
+- [ ] validates a selected audio id against probed streams
+- [ ] reports missing tools, files and probe timeouts safely
+
+### `src/js/app/__tests__/nowPlayingHlsService.test.js` (6)
 - [ ] accepts only one or two resolved HTTP inputs
 - [ ] maps adaptive video and audio and uses copy for compatible codecs
+- [ ] maps only a validated local audio stream with optional video
+- [ ] rejects unvalidated audio stream mapping before starting FFmpeg
 - [ ] serves tokenized manifests on loopback and cleans the session
 - [ ] supersedes an initializing session and keeps only one FFmpeg process
 
-### `src/js/app/__tests__/nowPlayingIpcHandlers.test.js` (20)
+### `src/js/app/__tests__/nowPlayingIpcHandlers.test.js` (21)
 - [ ] registers all Player channels
+- [ ] lists and selects audio streams only for stored local tracks
 - [ ] updates only Player preferences in the persisted v3 state
 - [ ] normalizes zero volume to muted in the atomic patch
 - [ ] routes timeline preview requests and cancellation
@@ -243,8 +252,9 @@
 - [ ] normalizes equivalent source paths for deduplication
 - [ ] does not traverse a selected symlink directory
 
-### `src/js/app/__tests__/nowPlayingState.test.js` (3)
+### `src/js/app/__tests__/nowPlayingState.test.js` (4)
 - [ ] migrates V2 state to V3 while preserving playlist selection
+- [ ] drops unsafe or unsupported persisted audio track ids
 - [ ] migrates legacy V1 tracks into the media library
 - [ ] sanitizes YouTube quality selections and network tracks
 
@@ -801,9 +811,10 @@
 - [ ] accepts credential-free HTTP(S) URLs
 - [ ] marks HLS manifests for the HLS playback adapter
 
-### `src/js/modules/__tests__/nowPlayingPlaybackController.test.js` (23)
+### `src/js/modules/__tests__/nowPlayingPlaybackController.test.js` (24)
 - [ ] reports the buffered range without mutating playback position
 - [ ] selects a track, swaps the reusable media layer and starts playback
+- [ ] restores playback position while preserving a paused state
 - [ ] supports previous, next, shuffle and repeat modes
 - [ ] applies explicit playback preferences in one snapshot update
 - [ ] persists selectedTrackId and settings but not playback position
@@ -832,12 +843,13 @@
 - [ ] reports async errors and renders premium track information
 - [ ] omits unknown metadata and falls back for unavailable audio
 
-### `src/js/modules/__tests__/nowPlayingProviders.test.js` (10)
+### `src/js/modules/__tests__/nowPlayingProviders.test.js` (11)
 - [ ] normalizes metadata and deduplicates local paths
 - [ ] normalizes extended video formats and V3 metadata
 - [ ] merges structured import results without replacing the queue
 - [ ] resolves local files into playback DTOs and rejects missing tracks
 - [ ] routes AVI/MPEG through the protected local HLS session
+- [ ] routes an exact selected audio track through local HLS
 - [ ] registry validates and routes provider calls
 - [ ] canonicalizes and imports a single YouTube video
 - [ ] rejects YouTube playlist URLs and invalid hosts
@@ -853,7 +865,7 @@
 - [ ] keeps insertion order and supports reorder, removal and filtering
 - [ ] never exposes mutable internal items
 
-### `src/js/modules/__tests__/nowPlayingView.test.js` (29)
+### `src/js/modules/__tests__/nowPlayingView.test.js` (32)
 - [ ] renders an accessible player and restores selectedTrackId
 - [ ] opens structured track information with the current poster
 - [ ] opens a non-blocking media library empty state
@@ -868,6 +880,9 @@
 - [ ] syncs system media commands with playback while the view is active
 - [ ] restores and persists background playback and sidebar pin preferences
 - [ ] applies Settings changes and publishes Player changes without a loop
+- [ ] lists local audio tracks and persists an exact selection
+- [ ] rolls back an audio selection when FFmpeg playback preparation fails
+- [ ] keeps audio track selection unavailable for YouTube media
 - [ ] hands artwork and metadata off together after the new cover loads
 - [ ] keeps a neutral fallback for missing artwork and hides unknown metadata
 - [ ] hides broken artwork while preserving real album metadata

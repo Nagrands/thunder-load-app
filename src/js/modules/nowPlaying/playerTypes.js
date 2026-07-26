@@ -23,6 +23,7 @@
  * @property {string} mimeType
  * @property {{width?: number, height?: number, container?: string, videoCodec?: string, audioCodec?: string}=} mediaInfo
  * @property {QualitySelection|null} qualitySelection
+ * @property {string|null=} selectedAudioTrackId
  */
 
 /**

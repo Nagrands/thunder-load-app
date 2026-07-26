@@ -19,6 +19,7 @@ describe("nowPlayingState", () => {
             sourceRef,
             title: "Metadata title",
             displayTitle: "My title",
+            selectedAudioTrackId: "audio-3",
             sizeBytes: "42",
             mediaInfo: {
               width: "1920",
@@ -45,6 +46,7 @@ describe("nowPlayingState", () => {
       displayTitle: "My title",
       sizeBytes: 42,
       qualitySelection: null,
+      selectedAudioTrackId: "audio-3",
       mediaInfo: {
         width: 1920,
         height: 1080,
@@ -53,6 +55,23 @@ describe("nowPlayingState", () => {
         audioCodec: "aac",
       },
     });
+  });
+
+  test("drops unsafe or unsupported persisted audio track ids", () => {
+    const state = sanitizeState({
+      catalog: {
+        tracks: [
+          {
+            id: "unsafe-audio",
+            providerId: "local",
+            sourceRef: path.resolve("/media/unsafe.mkv"),
+            selectedAudioTrackId: "0:a:2",
+          },
+        ],
+      },
+    });
+
+    expect(state.catalog.tracks[0].selectedAudioTrackId).toBeNull();
   });
 
   test("migrates legacy V1 tracks into the media library", () => {

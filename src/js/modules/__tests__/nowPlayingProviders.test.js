@@ -124,11 +124,36 @@ describe("Now Playing providers", () => {
       availability: "available",
     });
     expect(api.createLocalPlaybackSession).toHaveBeenCalledWith(
-      "/media/archive.avi",
+      {
+        trackId: "local:/media/archive.avi",
+        audioTrackId: null,
+      },
     );
     expect(playback).toMatchObject({ kind: "hls", sessionId: "session" });
     await provider.releasePlayback(playback);
     expect(api.closePlaybackSession).toHaveBeenCalledWith("session");
+  });
+
+  test("routes an exact selected audio track through local HLS", async () => {
+    const api = {
+      createLocalPlaybackSession: jest.fn().mockResolvedValue({
+        success: true,
+        data: { kind: "hls", sessionId: "audio", src: "http://127.0.0.1/hls" },
+      }),
+    };
+    const provider = new LocalMusicProvider(api);
+
+    await provider.resolveTrack({
+      id: "movie",
+      sourceRef: "/media/movie.mp4",
+      availability: "available",
+      selectedAudioTrackId: "audio-3",
+    });
+
+    expect(api.createLocalPlaybackSession).toHaveBeenCalledWith({
+      trackId: "movie",
+      audioTrackId: "audio-3",
+    });
   });
 
   test("registry validates and routes provider calls", async () => {

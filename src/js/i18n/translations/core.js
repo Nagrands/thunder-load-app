@@ -128,8 +128,26 @@ export const coreTranslations = {
     "nowPlaying.playlist.count": "{count} элементов",
     "nowPlaying.unavailable.subtitles":
       "Выбор субтитров появится в следующем обновлении",
-    "nowPlaying.unavailable.audioTracks":
-      "Выбор аудиодорожки появится в следующем обновлении",
+    "nowPlaying.audioTracks.open": "Выбрать аудиодорожку",
+    "nowPlaying.audioTracks.title": "Аудиодорожки",
+    "nowPlaying.audioTracks.kicker": "Звук",
+    "nowPlaying.audioTracks.auto": "Автоматически",
+    "nowPlaying.audioTracks.autoHint":
+      "Использовать дорожку контейнера по умолчанию",
+    "nowPlaying.audioTracks.numbered": "Аудиодорожка {number}",
+    "nowPlaying.audioTracks.default": "По умолчанию",
+    "nowPlaying.audioTracks.loading": "Поиск аудиодорожек…",
+    "nowPlaying.audioTracks.switching": "Переключение аудиодорожки…",
+    "nowPlaying.audioTracks.empty": "Аудиодорожки не найдены",
+    "nowPlaying.audioTracks.localOnly":
+      "Выбор аудиодорожки доступен только для локальных файлов",
+    "nowPlaying.audioTracks.loadError":
+      "Не удалось получить список аудиодорожек",
+    "nowPlaying.audioTracks.switchError":
+      "Не удалось переключить аудиодорожку",
+    "nowPlaying.audioTracks.mono": "Моно",
+    "nowPlaying.audioTracks.stereo": "Стерео",
+    "nowPlaying.audioTracks.channels": "{count} каналов",
     "nowPlaying.unavailable.miniPlayer":
       "Отдельный мини-плеер пока недоступен",
     "nowPlaying.unavailable.picture":
@@ -504,8 +522,23 @@ export const coreTranslations = {
     "nowPlaying.playlist.count": "{count} items",
     "nowPlaying.unavailable.subtitles":
       "Subtitle selection is coming in a future update",
-    "nowPlaying.unavailable.audioTracks":
-      "Audio track selection is coming in a future update",
+    "nowPlaying.audioTracks.open": "Choose audio track",
+    "nowPlaying.audioTracks.title": "Audio tracks",
+    "nowPlaying.audioTracks.kicker": "Audio",
+    "nowPlaying.audioTracks.auto": "Automatic",
+    "nowPlaying.audioTracks.autoHint": "Use the container default track",
+    "nowPlaying.audioTracks.numbered": "Audio track {number}",
+    "nowPlaying.audioTracks.default": "Default",
+    "nowPlaying.audioTracks.loading": "Finding audio tracks…",
+    "nowPlaying.audioTracks.switching": "Switching audio track…",
+    "nowPlaying.audioTracks.empty": "No audio tracks found",
+    "nowPlaying.audioTracks.localOnly":
+      "Audio track selection is available for local files only",
+    "nowPlaying.audioTracks.loadError": "Could not load audio tracks",
+    "nowPlaying.audioTracks.switchError": "Could not switch audio track",
+    "nowPlaying.audioTracks.mono": "Mono",
+    "nowPlaying.audioTracks.stereo": "Stereo",
+    "nowPlaying.audioTracks.channels": "{count} channels",
     "nowPlaying.unavailable.miniPlayer":
       "The standalone mini player is not available yet",
     "nowPlaying.unavailable.picture":

@@ -67,6 +67,7 @@ export class PlaybackController {
     this.lastProgressEmitAt = 0;
     this.queueSnapshot = [];
     this.mediaEventHandlers = new Map();
+    this.pendingStartTimes = new WeakMap();
     this.layerPlaybacks = [null, null];
     this.hlsInstances = [null, null];
     this.pendingReleases = new Set();
@@ -219,7 +220,10 @@ export class PlaybackController {
     });
   }
 
-  async selectTrack(trackId, { autoplay = true, forceRefresh = false } = {}) {
+  async selectTrack(
+    trackId,
+    { autoplay = true, forceRefresh = false, startTime = 0 } = {},
+  ) {
     if (this.disposed) return false;
     const index = this.queue.findIndex((track) => track.id === trackId);
     if (index === -1) return false;
@@ -271,7 +275,7 @@ export class PlaybackController {
         await this.providers.releasePlayback?.(track, playback);
         return false;
       }
-      await this.loadPlayback(track, playback, session);
+      await this.loadPlayback(track, playback, session, { startTime });
       if (!this.isCurrentSession(session)) return false;
       this.trace("loading-completed", {
         sessionId: version,
@@ -300,7 +304,7 @@ export class PlaybackController {
     }
   }
 
-  async loadPlayback(track, playback, session) {
+  async loadPlayback(track, playback, session, { startTime = 0 } = {}) {
     const nextLayerIndex = this.activeLayerIndex === 0 ? 1 : 0;
     const nextMedia = this.mediaLayers[nextLayerIndex];
     const releasePending = this.releaseLayer(nextLayerIndex);
@@ -316,6 +320,14 @@ export class PlaybackController {
     nextMedia.poster = playback.posterUrl || track.artworkUrl || "";
     nextMedia.currentTime = 0;
     this.layerPlaybacks[nextLayerIndex] = { playback, track };
+    const normalizedStartTime = Math.max(0, Number(startTime) || 0);
+    if (normalizedStartTime > 0) {
+      this.pendingStartTimes.set(nextMedia, {
+        selectionVersion: session.id,
+        time: normalizedStartTime,
+      });
+      this.applyPendingStartTime(nextMedia, { retain: true });
+    }
     const Hls =
       playback.kind === "hls" ? await loadHlsConstructor() : null;
     if (!this.isCurrentSession(session)) {
@@ -568,6 +580,7 @@ export class PlaybackController {
     this.hlsInstances[index] = null;
     this.layerPlaybacks[index] = null;
     const media = this.mediaLayers[index];
+    this.pendingStartTimes.delete(media);
     safeMediaCall(media, "pause");
     media.muted = true;
     media.volume = 0;
@@ -700,6 +713,10 @@ export class PlaybackController {
   bindMediaEvents() {
     this.mediaLayers.forEach((media) => {
       const handlers = {
+        loadedmetadata: () => {
+          this.applyPendingStartTime(media);
+          if (media === this.activeMedia) this.emit();
+        },
         timeupdate: () => {
           if (media === this.activeMedia) this.emitProgress();
         },
@@ -728,6 +745,30 @@ export class PlaybackController {
       );
       this.mediaEventHandlers.set(media, handlers);
     });
+  }
+
+  applyPendingStartTime(media, { retain = false } = {}) {
+    const pending = this.pendingStartTimes.get(media);
+    if (
+      !pending ||
+      pending.selectionVersion !== this.selectionVersion ||
+      media.dataset.trackId !== this.currentTrack?.id
+    ) {
+      if (pending) this.pendingStartTimes.delete(media);
+      return false;
+    }
+    try {
+      const duration =
+        Number(media.duration) || Number(this.currentTrack?.duration) || 0;
+      media.currentTime = duration
+        ? Math.min(pending.time, Math.max(0, duration - 0.1))
+        : pending.time;
+      this.positionRevision += 1;
+      if (!retain) this.pendingStartTimes.delete(media);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   applyVolume() {

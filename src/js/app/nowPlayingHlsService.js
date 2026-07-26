@@ -53,6 +53,7 @@ function validateInputs(inputs, { allowLocal = false } = {}) {
 }
 
 function buildFfmpegArgs({
+  audioStreamIndex = null,
   inputs,
   copyCodecs,
   outputPath,
@@ -63,7 +64,11 @@ function buildFfmpegArgs({
     if (!copyCodecs && hardwareAcceleration) args.push("-hwaccel", "auto");
     args.push("-i", input);
   });
-  if (inputs.length === 2) args.push("-map", "0:v:0", "-map", "1:a:0");
+  if (inputs.length === 2) {
+    args.push("-map", "0:v:0", "-map", "1:a:0");
+  } else if (audioStreamIndex !== null) {
+    args.push("-map", "0:v:0?", "-map", `0:${audioStreamIndex}`);
+  }
   if (copyCodecs) {
     args.push("-c", "copy");
   } else {
@@ -284,7 +289,12 @@ class NowPlayingHlsService {
     }
   }
 
-  async createSession({ inputs, copyCodecs = false, allowLocal = false }) {
+  async createSession({
+    inputs,
+    copyCodecs = false,
+    allowLocal = false,
+    audioStreamIndex = null,
+  }) {
     const generation = ++this.creationGeneration;
     this.activeCreation?.abort();
     const creation = new AbortController();
@@ -298,6 +308,19 @@ class NowPlayingHlsService {
       );
     }
     const safeInputs = validateInputs(inputs, { allowLocal });
+    if (
+      audioStreamIndex !== null &&
+      (!Number.isInteger(audioStreamIndex) ||
+        audioStreamIndex < 0 ||
+        audioStreamIndex > 255 ||
+        safeInputs.length !== 1 ||
+        !allowLocal)
+    ) {
+      throw createError(
+        "INVALID_AUDIO_TRACK",
+        "A validated local audio stream index is required",
+      );
+    }
     const ffmpegPath = String(this.ffmpegPathResolver?.() || "");
     if (!ffmpegPath || ffmpegPath.includes("\u0000")) {
       throw createError("FFMPEG_UNAVAILABLE", "FFmpeg is required for this playback format");
@@ -313,6 +336,7 @@ class NowPlayingHlsService {
       this.spawnProcess(
         ffmpegPath,
         buildFfmpegArgs({
+          audioStreamIndex,
           inputs: safeInputs,
           copyCodecs,
           outputPath: manifestPath,

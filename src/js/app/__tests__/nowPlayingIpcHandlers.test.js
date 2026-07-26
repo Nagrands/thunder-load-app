@@ -18,6 +18,7 @@ describe("nowPlayingIpcHandlers", () => {
   let getVideoInfo;
   let getVideoPreview;
   let hlsService;
+  let audioTracksService;
   let timelinePreviewService;
 
   beforeEach(() => {
@@ -49,6 +50,23 @@ describe("nowPlayingIpcHandlers", () => {
       closeSession: jest.fn().mockResolvedValue(true),
       dispose: jest.fn().mockResolvedValue(undefined),
     };
+    audioTracksService = {
+      dispose: jest.fn(),
+      getTracks: jest.fn().mockResolvedValue([
+        {
+          id: "audio-2",
+          index: 2,
+          order: 0,
+          title: "Original",
+          language: "eng",
+          codec: "aac",
+          channels: 2,
+          channelLayout: "stereo",
+          isDefault: true,
+        },
+      ]),
+      resolveStreamIndex: jest.fn().mockResolvedValue(2),
+    };
     timelinePreviewService = {
       cancel: jest.fn(),
       dispose: jest.fn(),
@@ -79,6 +97,7 @@ describe("nowPlayingIpcHandlers", () => {
     };
     registerNowPlayingIpcHandlers({
       app: { getPath: jest.fn(() => root) },
+      audioTracksService,
       dialog,
       ffmpegPathResolver: jest.fn(() => ""),
       ffprobePathResolver: jest.fn(() => ""),
@@ -104,6 +123,7 @@ describe("nowPlayingIpcHandlers", () => {
       CHANNELS.NOW_PLAYING_RESOLVE_YOUTUBE_TRACK,
       CHANNELS.NOW_PLAYING_CLOSE_PLAYBACK_SESSION,
       CHANNELS.NOW_PLAYING_CREATE_LOCAL_PLAYBACK_SESSION,
+      CHANNELS.NOW_PLAYING_GET_AUDIO_TRACKS,
       CHANNELS.NOW_PLAYING_GET_TIMELINE_PREVIEW,
       CHANNELS.NOW_PLAYING_GET_STATE,
       CHANNELS.NOW_PLAYING_SET_STATE,
@@ -114,6 +134,71 @@ describe("nowPlayingIpcHandlers", () => {
         expect.any(Function),
       );
     });
+  });
+
+  test("lists and selects audio streams only for stored local tracks", async () => {
+    const { CHANNELS } = register();
+    const mediaPath = path.join(root, "movie.mkv");
+    fs.writeFileSync(mediaPath, "video");
+    storeValues["nowPlaying.state"] = {
+      version: 3,
+      catalog: {
+        tracks: [
+          {
+            id: "movie",
+            providerId: "local",
+            sourceRef: mediaPath,
+            title: "Movie",
+            kind: "video",
+            selectedAudioTrackId: "audio-2",
+          },
+        ],
+      },
+      selectedTrackId: "movie",
+    };
+
+    const listed = await handlers[CHANNELS.NOW_PLAYING_GET_AUDIO_TRACKS](
+      null,
+      { trackId: "movie" },
+    );
+    const playback = await handlers[
+      CHANNELS.NOW_PLAYING_CREATE_LOCAL_PLAYBACK_SESSION
+    ](null, { trackId: "movie", audioTrackId: "audio-2" });
+
+    expect(listed).toMatchObject({
+      success: true,
+      data: {
+        trackId: "movie",
+        selectedAudioTrackId: "audio-2",
+        tracks: [expect.objectContaining({ id: "audio-2" })],
+      },
+    });
+    expect(audioTracksService.getTracks).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "movie", sourceRef: mediaPath }),
+    );
+    expect(audioTracksService.resolveStreamIndex).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "movie" }),
+      "audio-2",
+    );
+    expect(hlsService.createSession).toHaveBeenCalledWith({
+      inputs: [mediaPath],
+      copyCodecs: false,
+      allowLocal: true,
+      audioStreamIndex: 2,
+    });
+    expect(playback.success).toBe(true);
+  });
+
+  test.each([
+    [null],
+    [{}],
+    [{ trackId: "missing", extra: true }],
+    [{ trackId: 3 }],
+  ])("rejects invalid audio track requests %#", async (request) => {
+    const { CHANNELS } = register();
+    await expect(
+      handlers[CHANNELS.NOW_PLAYING_GET_AUDIO_TRACKS](null, request),
+    ).resolves.toMatchObject({ success: false });
   });
 
   test("updates only Player preferences in the persisted v3 state", async () => {

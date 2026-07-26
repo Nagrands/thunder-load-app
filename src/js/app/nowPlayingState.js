@@ -132,6 +132,11 @@ function sanitizeLocalTrack(track) {
     sizeBytes: sanitizeSizeBytes(track.sizeBytes),
     mediaInfo: sanitizeMediaInfo(track.mediaInfo),
     qualitySelection: null,
+    selectedAudioTrackId: /^audio-(?:0|[1-9]\d{0,2})$/.test(
+      track.selectedAudioTrackId,
+    )
+      ? track.selectedAudioTrackId
+      : null,
   };
 }
 

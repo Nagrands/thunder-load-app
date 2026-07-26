@@ -76,6 +76,7 @@ export function createControlsVisibility({
   dock.addEventListener("mouseleave", onDockLeave);
 
   return {
+    setLocked,
     setPlaybackState(isPlaying) {
       const changed = playing !== isPlaying;
       playing = isPlaying;

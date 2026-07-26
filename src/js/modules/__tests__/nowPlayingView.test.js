@@ -859,6 +859,207 @@ describe("Now Playing view", () => {
     jest.useRealTimers();
   });
 
+  test("lists local audio tracks and persists an exact selection", async () => {
+    jest.useFakeTimers();
+    const api = {
+      getState: jest.fn().mockResolvedValue({
+        data: {
+          playlist: { tracks: [sampleTrack] },
+          selectedTrackId: "demo",
+        },
+      }),
+      setState: jest.fn().mockResolvedValue({ success: true }),
+      getAudioTracks: jest.fn().mockResolvedValue({
+        success: true,
+        data: {
+          trackId: "demo",
+          selectedAudioTrackId: null,
+          tracks: [
+            {
+              id: "audio-1",
+              title: "Original",
+              language: "eng",
+              codec: "aac",
+              channels: 2,
+              isDefault: true,
+            },
+            {
+              id: "audio-2",
+              title: "Дубляж",
+              language: "rus",
+              codec: "ac3",
+              channels: 6,
+              isDefault: false,
+            },
+          ],
+        },
+      }),
+      createLocalPlaybackSession: jest.fn().mockResolvedValue({
+        success: true,
+        data: {
+          src: "file:///music/demo-selected.mp3",
+          mimeType: "audio/mpeg",
+          sessionId: "selected-audio",
+        },
+      }),
+      closePlaybackSession: jest.fn().mockResolvedValue({ success: true }),
+      importFiles: jest.fn(),
+      importFolder: jest.fn(),
+    };
+    const view = createNowPlayingView({ api });
+    document.body.appendChild(view.element);
+    await view.ready;
+    api.setState.mockClear();
+
+    const trigger = view.element.querySelector(
+      '.now-playing__top-actions [data-action="toggle-audio-tracks"]',
+    );
+    trigger.click();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    const menu = view.element.querySelector('[data-ui="audio-track-menu"]');
+    const options = [
+      ...menu.querySelectorAll('[data-action="select-audio-track"]'),
+    ];
+    expect(api.getAudioTracks).toHaveBeenCalledWith({ trackId: "demo" });
+    expect(menu.hidden).toBe(false);
+    expect(options).toHaveLength(3);
+    expect(options[0].getAttribute("aria-selected")).toBe("true");
+    expect(options[2].textContent).toContain("Дубляж");
+
+    options[0].focus();
+    options[0].dispatchEvent(
+      new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }),
+    );
+    expect(document.activeElement).toBe(options[1]);
+
+    options[2].click();
+    for (let index = 0; index < 12; index += 1) {
+      await Promise.resolve();
+    }
+
+    expect(api.createLocalPlaybackSession).toHaveBeenCalledWith({
+      trackId: "demo",
+      audioTrackId: "audio-2",
+    });
+    expect(menu.hidden).toBe(true);
+    jest.advanceTimersByTime(250);
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(api.setState).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        catalog: {
+          tracks: [
+            expect.objectContaining({
+              id: "demo",
+              selectedAudioTrackId: "audio-2",
+            }),
+          ],
+        },
+      }),
+    );
+    view.dispose();
+    jest.useRealTimers();
+  });
+
+  test("rolls back an audio selection when FFmpeg playback preparation fails", async () => {
+    const api = {
+      getState: jest.fn().mockResolvedValue({
+        data: {
+          playlist: { tracks: [sampleTrack] },
+          selectedTrackId: "demo",
+        },
+      }),
+      setState: jest.fn().mockResolvedValue({ success: true }),
+      getAudioTracks: jest.fn().mockResolvedValue({
+        success: true,
+        data: {
+          trackId: "demo",
+          tracks: [
+            {
+              id: "audio-2",
+              title: "Dub",
+              codec: "ac3",
+              channels: 6,
+            },
+          ],
+        },
+      }),
+      createLocalPlaybackSession: jest.fn().mockResolvedValue({
+        success: false,
+        error: { code: "FFMPEG_UNAVAILABLE", message: "FFmpeg missing" },
+      }),
+      importFiles: jest.fn(),
+      importFolder: jest.fn(),
+    };
+    const view = createNowPlayingView({ api });
+    document.body.appendChild(view.element);
+    await view.ready;
+
+    view.element
+      .querySelector(
+        '.now-playing__top-actions [data-action="toggle-audio-tracks"]',
+      )
+      .click();
+    await Promise.resolve();
+    await Promise.resolve();
+    view.element
+      .querySelector('[data-audio-track-id="audio-2"]')
+      .click();
+    for (let index = 0; index < 16; index += 1) {
+      await Promise.resolve();
+    }
+
+    expect(
+      view.element.querySelector('[data-ui="audio-track-menu"]').hidden,
+    ).toBe(false);
+    expect(
+      view.element.querySelector('[data-ui="audio-track-status"]').textContent,
+    ).toBe("FFmpeg missing");
+    expect(
+      view.element
+        .querySelector('[data-action="select-audio-track"]')
+        .getAttribute("aria-selected"),
+    ).toBe("true");
+    view.dispose();
+  });
+
+  test("keeps audio track selection unavailable for YouTube media", async () => {
+    const youtubeTrack = {
+      ...sampleTrack,
+      id: "youtube:abcdefghijk",
+      providerId: "youtube",
+      sourceRef: "https://www.youtube.com/watch?v=abcdefghijk",
+    };
+    const api = {
+      getState: jest.fn().mockResolvedValue({
+        data: {
+          playlist: { tracks: [youtubeTrack] },
+          selectedTrackId: youtubeTrack.id,
+        },
+      }),
+      setState: jest.fn().mockResolvedValue({ success: true }),
+      getAudioTracks: jest.fn(),
+      importFiles: jest.fn(),
+      importFolder: jest.fn(),
+    };
+    const view = createNowPlayingView({ api });
+    document.body.appendChild(view.element);
+    await view.ready;
+    const trigger = view.element.querySelector(
+      '.now-playing__top-actions [data-action="toggle-audio-tracks"]',
+    );
+
+    expect(trigger.getAttribute("aria-disabled")).toBe("true");
+    trigger.click();
+    expect(api.getAudioTracks).not.toHaveBeenCalled();
+    expect(
+      view.element.querySelector('[data-ui="audio-track-menu"]').hidden,
+    ).toBe(true);
+    view.dispose();
+  });
+
   test("hands artwork and metadata off together after the new cover loads", async () => {
     const secondTrack = {
       ...sampleTrack,
