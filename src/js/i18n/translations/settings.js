@@ -2,6 +2,7 @@ export const settingsTranslations = {
   ru: {
     "settings.tabs.general": "Общие",
     "settings.tabs.downloader": "Загрузчик",
+    "settings.tabs.player": "Плеер",
     "settings.tabs.wg": "Инструменты",
     "settings.tabs.backup": "Инструмент Backup",
     "settings.tabs.appearance": "Внешний вид",
@@ -12,6 +13,33 @@ export const settingsTranslations = {
     "settings.sections.toggle": "Показать разделы настроек",
     "settings.tab.enabled": "Вкл",
     "settings.tab.disabled": "Выкл",
+    "settings.player.title": "Плеер",
+    "settings.player.hint":
+      "Настройте поведение панели и параметры воспроизведения.",
+    "settings.player.behavior": "Поведение",
+    "settings.player.behaviorHint":
+      "Управляйте доступностью панели и воспроизведением в фоне.",
+    "settings.player.sidebarPinned": "Закрепить боковую панель",
+    "settings.player.sidebarPinnedHint":
+      "Панель плейлиста всегда остаётся доступной.",
+    "settings.player.backgroundPlayback": "Фоновое воспроизведение",
+    "settings.player.backgroundPlaybackHint":
+      "Продолжать воспроизведение вне вкладки Player.",
+    "settings.player.playback": "Воспроизведение",
+    "settings.player.playbackHint":
+      "Настройте порядок, повтор и уровень громкости.",
+    "settings.player.shuffle": "Перемешивание",
+    "settings.player.shuffleHint":
+      "Воспроизводить элементы в случайном порядке.",
+    "settings.player.repeat": "Повтор",
+    "settings.player.repeatHint": "Выберите режим повтора очереди.",
+    "settings.player.repeat.off": "Выкл.",
+    "settings.player.repeat.one": "Один",
+    "settings.player.repeat.all": "Все",
+    "settings.player.volume": "Громкость",
+    "settings.player.volumeHint": "Установите уровень громкости Player.",
+    "settings.player.loadError": "Не удалось загрузить настройки Player.",
+    "settings.player.saveError": "Не удалось сохранить настройки Player.",
     "settings.startup.title": "Настройки запуска",
     "settings.startup.hint":
       "Настройте параметры запуска для удобного использования.",
@@ -306,6 +334,7 @@ export const settingsTranslations = {
   en: {
     "settings.tabs.general": "General",
     "settings.tabs.downloader": "Downloader",
+    "settings.tabs.player": "Player",
     "settings.tabs.wg": "Tools",
     "settings.tabs.backup": "Backup tool",
     "settings.tabs.appearance": "Appearance",
@@ -316,6 +345,32 @@ export const settingsTranslations = {
     "settings.sections.toggle": "Show settings sections",
     "settings.tab.enabled": "On",
     "settings.tab.disabled": "Off",
+    "settings.player.title": "Player",
+    "settings.player.hint":
+      "Configure panel behavior and playback preferences.",
+    "settings.player.behavior": "Behavior",
+    "settings.player.behaviorHint":
+      "Control panel availability and background playback.",
+    "settings.player.sidebarPinned": "Pin sidebar",
+    "settings.player.sidebarPinnedHint":
+      "Keep the playlist panel available at all times.",
+    "settings.player.backgroundPlayback": "Background playback",
+    "settings.player.backgroundPlaybackHint":
+      "Continue playback outside the Player tab.",
+    "settings.player.playback": "Playback",
+    "settings.player.playbackHint":
+      "Configure order, repeat, and volume.",
+    "settings.player.shuffle": "Shuffle",
+    "settings.player.shuffleHint": "Play items in random order.",
+    "settings.player.repeat": "Repeat",
+    "settings.player.repeatHint": "Choose a queue repeat mode.",
+    "settings.player.repeat.off": "Off",
+    "settings.player.repeat.one": "One",
+    "settings.player.repeat.all": "All",
+    "settings.player.volume": "Volume",
+    "settings.player.volumeHint": "Set the Player volume level.",
+    "settings.player.loadError": "Could not load Player settings.",
+    "settings.player.saveError": "Could not save Player settings.",
     "settings.startup.title": "Startup settings",
     "settings.startup.hint": "Configure startup behavior for convenience.",
     "settings.startup.autolaunch":

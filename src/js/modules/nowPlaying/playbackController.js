@@ -468,27 +468,77 @@ export class PlaybackController {
   }
 
   setVolume(value) {
-    this.volume = clamp(value, 0, 1);
-    this.muted = this.volume === 0;
-    this.applyVolume();
-    this.emit();
+    return this.applyPlaybackSettings({
+      volume: clamp(value, 0, 1),
+      muted: clamp(value, 0, 1) === 0,
+    });
   }
 
   toggleMute() {
-    this.muted = !this.muted;
-    this.applyVolume();
-    this.emit();
+    return this.setMuted(!this.muted);
+  }
+
+  setMuted(value) {
+    return this.applyPlaybackSettings({ muted: value === true });
   }
 
   toggleShuffle() {
-    this.shuffle = !this.shuffle;
-    this.emit();
+    return this.setShuffle(!this.shuffle);
+  }
+
+  setShuffle(value) {
+    return this.applyPlaybackSettings({ shuffle: value === true });
   }
 
   cycleRepeat() {
-    this.repeat =
-      this.repeat === "off" ? "one" : this.repeat === "one" ? "all" : "off";
+    return this.setRepeat(
+      this.repeat === "off" ? "one" : this.repeat === "one" ? "all" : "off",
+    );
+  }
+
+  setRepeat(value) {
+    return this.applyPlaybackSettings({
+      repeat: REPEAT_MODES.has(value) ? value : "off",
+    });
+  }
+
+  applyPlaybackSettings(settings = {}) {
+    let changed = false;
+    let volumeChanged = false;
+    if ("volume" in settings) {
+      const volume = clamp(settings.volume, 0, 1);
+      if (volume !== this.volume) {
+        this.volume = volume;
+        changed = true;
+        volumeChanged = true;
+      }
+    }
+    if ("muted" in settings) {
+      const muted = settings.muted === true;
+      if (muted !== this.muted) {
+        this.muted = muted;
+        changed = true;
+        volumeChanged = true;
+      }
+    }
+    if ("shuffle" in settings) {
+      const shuffle = settings.shuffle === true;
+      if (shuffle !== this.shuffle) {
+        this.shuffle = shuffle;
+        changed = true;
+      }
+    }
+    if ("repeat" in settings) {
+      const repeat = REPEAT_MODES.has(settings.repeat) ? settings.repeat : "off";
+      if (repeat !== this.repeat) {
+        this.repeat = repeat;
+        changed = true;
+      }
+    }
+    if (!changed) return false;
+    if (volumeChanged) this.applyVolume();
     this.emit();
+    return true;
   }
 
   getPlaybackKey(track) {

@@ -85,6 +85,19 @@
                   <span data-i18n="settings.tabs.downloader">Downloader</span>
                 </button>
                 <button
+                  id="settings-section-tab-player"
+                  class="tab-link"
+                  data-tab="player-settings"
+                  type="button"
+                  role="tab"
+                  aria-selected="false"
+                  aria-controls="player-settings"
+                  tabindex="-1"
+                >
+                  <i class="fa-solid fa-circle-play"></i>
+                  <span data-i18n="settings.tabs.player">Плеер</span>
+                </button>
+                <button
                   id="settings-section-tab-tools"
                   class="tab-link"
                   data-tab="wgunlock-settings"
@@ -851,6 +864,149 @@
                         </div>
                       </div>
                     </details>
+                  </section>
+                </div>
+              </div>
+
+              <div
+                id="player-settings"
+                class="tab-pane"
+                role="tabpanel"
+                aria-labelledby="settings-section-tab-player"
+                tabindex="0"
+                hidden
+              >
+                <div class="settings-pane-header">
+                  <div class="settings-pane-header__copy">
+                    <h2 data-i18n="settings.player.title">Плеер</h2>
+                    <p data-i18n="settings.player.hint">
+                      Настройте поведение панели и параметры воспроизведения.
+                    </p>
+                  </div>
+                </div>
+                <div class="settings-grid settings-player-grid">
+                  <section class="settings-card">
+                    <div class="settings-card__intro">
+                      <h3 class="settings-card__title" data-i18n="settings.player.behavior">
+                        Поведение
+                      </h3>
+                      <p class="settings-card__desc" data-i18n="settings.player.behaviorHint">
+                        Управляйте доступностью панели и воспроизведением в фоне.
+                      </p>
+                    </div>
+                    <div class="settings-card__body">
+                      <ul class="module settings-control-list">
+                        <li class="settings-control">
+                          <input type="checkbox" id="settings-player-sidebar-pinned" />
+                          <label for="settings-player-sidebar-pinned">
+                            <i class="fa-solid fa-thumbtack" aria-hidden="true"></i>
+                            <span class="settings-choice__meta">
+                              <strong data-i18n="settings.player.sidebarPinned">
+                                Закрепить боковую панель
+                              </strong>
+                              <small data-i18n="settings.player.sidebarPinnedHint">
+                                Панель плейлиста всегда остаётся доступной.
+                              </small>
+                            </span>
+                          </label>
+                        </li>
+                        <li class="settings-control">
+                          <input type="checkbox" id="settings-player-background-playback" />
+                          <label for="settings-player-background-playback">
+                            <i class="fa-solid fa-headphones" aria-hidden="true"></i>
+                            <span class="settings-choice__meta">
+                              <strong data-i18n="settings.player.backgroundPlayback">
+                                Фоновое воспроизведение
+                              </strong>
+                              <small data-i18n="settings.player.backgroundPlaybackHint">
+                                Продолжать воспроизведение вне вкладки Player.
+                              </small>
+                            </span>
+                          </label>
+                        </li>
+                      </ul>
+                    </div>
+                  </section>
+
+                  <section class="settings-card">
+                    <div class="settings-card__intro">
+                      <h3 class="settings-card__title" data-i18n="settings.player.playback">
+                        Воспроизведение
+                      </h3>
+                      <p class="settings-card__desc" data-i18n="settings.player.playbackHint">
+                        Настройте порядок, повтор и уровень громкости.
+                      </p>
+                    </div>
+                    <div class="settings-card__body">
+                      <ul class="module settings-control-list settings-player-controls">
+                        <li class="settings-control">
+                          <input type="checkbox" id="settings-player-shuffle" />
+                          <label for="settings-player-shuffle">
+                            <i class="fa-solid fa-shuffle" aria-hidden="true"></i>
+                            <span class="settings-choice__meta">
+                              <strong data-i18n="settings.player.shuffle">
+                                Перемешивание
+                              </strong>
+                              <small data-i18n="settings.player.shuffleHint">
+                                Воспроизводить элементы в случайном порядке.
+                              </small>
+                            </span>
+                          </label>
+                        </li>
+                        <li class="settings-control settings-player-repeat-row">
+                          <div class="settings-player-control-copy">
+                            <i class="fa-solid fa-repeat" aria-hidden="true"></i>
+                            <span>
+                              <strong data-i18n="settings.player.repeat">Повтор</strong>
+                              <small data-i18n="settings.player.repeatHint">
+                                Выберите режим повтора очереди.
+                              </small>
+                            </span>
+                          </div>
+                          <div
+                            class="settings-player-segment"
+                            role="radiogroup"
+                            data-i18n-aria="settings.player.repeat"
+                            aria-label="Повтор"
+                          >
+                            <button type="button" role="radio" aria-checked="true" data-player-repeat="off" data-i18n="settings.player.repeat.off">
+                              Выкл.
+                            </button>
+                            <button type="button" role="radio" aria-checked="false" data-player-repeat="one" data-i18n="settings.player.repeat.one">
+                              Один
+                            </button>
+                            <button type="button" role="radio" aria-checked="false" data-player-repeat="all" data-i18n="settings.player.repeat.all">
+                              Все
+                            </button>
+                          </div>
+                        </li>
+                        <li class="settings-control settings-player-volume-row">
+                          <label class="settings-player-volume-label" for="settings-player-volume">
+                            <i class="fa-solid fa-volume-high" aria-hidden="true"></i>
+                            <span>
+                              <strong data-i18n="settings.player.volume">Громкость</strong>
+                              <small data-i18n="settings.player.volumeHint">
+                                Установите уровень громкости Player.
+                              </small>
+                            </span>
+                          </label>
+                          <div class="settings-player-volume-control">
+                            <input
+                              id="settings-player-volume"
+                              type="range"
+                              min="0"
+                              max="100"
+                              step="1"
+                              value="100"
+                              data-i18n-aria="settings.player.volume"
+                              aria-label="Громкость"
+                              aria-valuetext="100%"
+                            />
+                            <output id="settings-player-volume-value" for="settings-player-volume">100%</output>
+                          </div>
+                        </li>
+                      </ul>
+                    </div>
                   </section>
                 </div>
               </div>

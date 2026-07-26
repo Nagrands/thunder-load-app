@@ -53,6 +53,23 @@ export function createNowPlayingPreferences({
       }
       return false;
     },
+    apply(nextState = {}, { notify = true } = {}) {
+      let changed = false;
+      ["backgroundPlayback", "sidebarPinned"].forEach((key) => {
+        if (
+          typeof nextState[key] !== "boolean" ||
+          state[key] === nextState[key]
+        ) {
+          return;
+        }
+        state[key] = nextState[key];
+        changed = true;
+      });
+      if (!changed) return false;
+      render();
+      if (notify) onChange({ ...state });
+      return true;
+    },
     getState() {
       return { ...state };
     },

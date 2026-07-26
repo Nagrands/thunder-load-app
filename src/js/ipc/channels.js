@@ -57,6 +57,7 @@ const CHANNELS = Object.freeze({
   NOW_PLAYING_CANCEL_TIMELINE_PREVIEW: "now-playing:cancel-timeline-preview",
   NOW_PLAYING_GET_STATE: "now-playing:get-state",
   NOW_PLAYING_SET_STATE: "now-playing:set-state",
+  NOW_PLAYING_UPDATE_SETTINGS: "now-playing:update-settings",
   NOW_PLAYING_REVEAL_TRACK: "now-playing:reveal-track",
   NOW_PLAYING_OPEN_TRACK_LOCATION: "now-playing:open-track-location",
   NOW_PLAYING_OPEN_FILES: "now-playing:open-files",

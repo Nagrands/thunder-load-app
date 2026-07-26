@@ -107,11 +107,102 @@ describe("nowPlayingIpcHandlers", () => {
       CHANNELS.NOW_PLAYING_GET_TIMELINE_PREVIEW,
       CHANNELS.NOW_PLAYING_GET_STATE,
       CHANNELS.NOW_PLAYING_SET_STATE,
+      CHANNELS.NOW_PLAYING_UPDATE_SETTINGS,
     ].forEach((channel) => {
       expect(ipcMain.handle).toHaveBeenCalledWith(
         channel,
         expect.any(Function),
       );
+    });
+  });
+
+  test("updates only Player preferences in the persisted v3 state", async () => {
+    const { CHANNELS } = register();
+    storeValues["nowPlaying.state"] = {
+      version: 3,
+      catalog: { tracks: [] },
+      playlists: [
+        {
+          id: "favorites",
+          title: "Favorites",
+          trackIds: [],
+          createdAt: "1",
+          updatedAt: "1",
+        },
+      ],
+      activePlaylistId: "favorites",
+      selectedTrackId: null,
+      sidebarPinned: false,
+      backgroundPlayback: true,
+      shuffle: false,
+      repeat: "off",
+      volume: 1,
+      muted: false,
+    };
+
+    const result = await handlers[CHANNELS.NOW_PLAYING_UPDATE_SETTINGS](null, {
+      sidebarPinned: true,
+      shuffle: true,
+      repeat: "all",
+      volume: 0.35,
+    });
+
+    expect(result).toMatchObject({
+      success: true,
+      data: {
+        version: 3,
+        activePlaylistId: "favorites",
+        selectedTrackId: null,
+        sidebarPinned: true,
+        backgroundPlayback: true,
+        shuffle: true,
+        repeat: "all",
+        volume: 0.35,
+        muted: false,
+      },
+    });
+    expect(result.data.catalog).toEqual({ tracks: [] });
+    expect(result.data.playlists).toEqual([
+      expect.objectContaining({
+        id: "favorites",
+        title: "Favorites",
+        trackIds: [],
+      }),
+    ]);
+  });
+
+  test.each([
+    [null],
+    [{}],
+    [{ unknown: true }],
+    [{ sidebarPinned: "yes" }],
+    [{ repeat: "queue" }],
+    [{ volume: "0.5" }],
+    [{ volume: -0.1 }],
+    [{ volume: 1.1 }],
+  ])("rejects invalid Player settings patch %#", async (patch) => {
+    const { CHANNELS } = register();
+
+    await expect(
+      handlers[CHANNELS.NOW_PLAYING_UPDATE_SETTINGS](null, patch),
+    ).resolves.toMatchObject({
+      success: false,
+      error: { code: "INVALID_SETTINGS" },
+    });
+    expect(store.set).not.toHaveBeenCalled();
+  });
+
+  test("normalizes zero volume to muted in the atomic patch", async () => {
+    const { CHANNELS } = register();
+
+    await expect(
+      handlers[CHANNELS.NOW_PLAYING_UPDATE_SETTINGS](null, {
+        volume: 0,
+        muted: false,
+      }),
+    ).resolves.toMatchObject({
+      success: true,
+      data: { volume: 0, muted: true },
     });
   });
 

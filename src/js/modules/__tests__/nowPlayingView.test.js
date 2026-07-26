@@ -771,6 +771,94 @@ describe("Now Playing view", () => {
     jest.useRealTimers();
   });
 
+  test("applies Settings changes and publishes Player changes without a loop", async () => {
+    jest.useFakeTimers();
+    const api = {
+      getState: jest.fn().mockResolvedValue({
+        data: {
+          playlist: { tracks: [sampleTrack] },
+          selectedTrackId: "demo",
+          backgroundPlayback: true,
+          sidebarPinned: false,
+          shuffle: false,
+          repeat: "off",
+          volume: 1,
+          muted: false,
+        },
+      }),
+      setState: jest.fn().mockResolvedValue({ success: true }),
+      importFiles: jest.fn(),
+      importFolder: jest.fn(),
+    };
+    const settingsState = jest.fn();
+    window.addEventListener("now-playing:settings-state", settingsState);
+    const view = createNowPlayingView({ api });
+    document.body.appendChild(view.element);
+    await view.ready;
+    api.setState.mockClear();
+    settingsState.mockClear();
+
+    window.dispatchEvent(
+      new CustomEvent("now-playing:settings-apply", {
+        detail: {
+          sidebarPinned: true,
+          backgroundPlayback: false,
+          shuffle: true,
+          repeat: "all",
+          volume: 0.3,
+          muted: true,
+        },
+      }),
+    );
+
+    expect(
+      view.element
+        .querySelector('[data-action="pin-sidebar"]')
+        .getAttribute("aria-pressed"),
+    ).toBe("true");
+    expect(
+      view.element
+        .querySelector('[data-action="background-playback"]')
+        .getAttribute("aria-pressed"),
+    ).toBe("false");
+    expect(
+      view.element
+        .querySelector('[data-action="shuffle"]')
+        .getAttribute("aria-pressed"),
+    ).toBe("true");
+    expect(
+      view.element.querySelector('[data-action="repeat"]').dataset.mode,
+    ).toBe("all");
+    expect(view.element.querySelector('[data-action="volume"]').value).toBe("0");
+    expect(settingsState).toHaveBeenCalledTimes(1);
+
+    jest.advanceTimersByTime(250);
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(api.setState).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        sidebarPinned: true,
+        backgroundPlayback: false,
+        shuffle: true,
+        repeat: "all",
+        volume: 0.3,
+        muted: true,
+      }),
+    );
+
+    settingsState.mockClear();
+    view.element.querySelector('[data-action="shuffle"]').click();
+    expect(settingsState).toHaveBeenCalledWith(
+      expect.objectContaining({
+        detail: expect.objectContaining({ shuffle: false }),
+      }),
+    );
+
+    window.removeEventListener("now-playing:settings-state", settingsState);
+    view.dispose();
+    jest.useRealTimers();
+  });
+
   test("hands artwork and metadata off together after the new cover loads", async () => {
     const secondTrack = {
       ...sampleTrack,
@@ -1769,6 +1857,7 @@ describe("Now Playing view", () => {
   });
 
   test("imports a single YouTube video from the library dialog", async () => {
+    jest.useFakeTimers();
     const dialog = installPlayerDialogFixture();
     const youtubeTrack = {
       ...sampleTrack,
@@ -1847,6 +1936,19 @@ describe("Now Playing view", () => {
       view.element.querySelector('[data-ui="library-operation-status"]')
         .textContent,
     ).toContain("nowPlaying.youtube.added");
+    expect(view.element.querySelector(".now-playing__status").textContent).toBe(
+      "nowPlaying.youtube.added",
+    );
+
+    jest.advanceTimersByTime(4000);
+
+    expect(
+      view.element.querySelector('[data-ui="library-operation-status"]').hidden,
+    ).toBe(true);
+    expect(view.element.querySelector(".now-playing__status").textContent).toBe(
+      "",
+    );
     view.dispose();
+    jest.useRealTimers();
   });
 });

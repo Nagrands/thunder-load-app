@@ -124,6 +124,56 @@ describe("settings template backup placement", () => {
     expect(html).toContain('role="option"');
   });
 
+  test("includes the accessible Player preferences section after Downloader", () => {
+    const indexPath = path.resolve(process.cwd(), "src/index.html");
+    const html = fs.readFileSync(indexPath, "utf8");
+    const downloaderTab = html.indexOf('id="settings-section-tab-downloader"');
+    const playerTab = html.indexOf('id="settings-section-tab-player"');
+    const toolsTab = html.indexOf('id="settings-section-tab-tools"');
+
+    expect(downloaderTab).toBeLessThan(playerTab);
+    expect(playerTab).toBeLessThan(toolsTab);
+    expect(html).toContain('data-tab="player-settings"');
+    expect(html).toContain('id="player-settings"');
+    expect(html).toContain('aria-labelledby="settings-section-tab-player"');
+    [
+      "settings-player-sidebar-pinned",
+      "settings-player-background-playback",
+      "settings-player-shuffle",
+      "settings-player-volume",
+      "settings-player-volume-value",
+    ].forEach((id) => expect(html).toContain(`id="${id}"`));
+    expect(html).toContain('role="radiogroup"');
+    expect(html).toContain('data-player-repeat="off"');
+    expect(html).toContain('data-player-repeat="one"');
+    expect(html).toContain('data-player-repeat="all"');
+  });
+
+  test("localizes Player preferences in Russian and English", () => {
+    const keys = [
+      "settings.tabs.player",
+      "settings.player.title",
+      "settings.player.behavior",
+      "settings.player.sidebarPinned",
+      "settings.player.backgroundPlayback",
+      "settings.player.playback",
+      "settings.player.shuffle",
+      "settings.player.repeat",
+      "settings.player.repeat.off",
+      "settings.player.repeat.one",
+      "settings.player.repeat.all",
+      "settings.player.volume",
+      "settings.player.loadError",
+      "settings.player.saveError",
+    ];
+
+    ["ru", "en"].forEach((locale) => {
+      keys.forEach((key) => {
+        expect(settingsTranslations[locale][key]).toBeTruthy();
+      });
+    });
+  });
+
   test("embeds the shortcut editor in Settings and removes its legacy modal", () => {
     const indexPath = path.resolve(process.cwd(), "src/index.html");
     const html = fs.readFileSync(indexPath, "utf8");

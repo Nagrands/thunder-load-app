@@ -1,5 +1,13 @@
 export const QUALITY_PROFILE_KEY = "downloadQualityProfile";
 export const QUALITY_PROFILE_DEFAULT = "remember"; // remember | best | audio
+export const DEFAULT_PLAYER_SETTINGS = Object.freeze({
+  sidebarPinned: false,
+  backgroundPlayback: true,
+  shuffle: false,
+  repeat: "off",
+  volume: 1,
+  muted: false,
+});
 
 export const DEFAULT_CONFIG = {
   general: {
@@ -24,6 +32,7 @@ export const DEFAULT_CONFIG = {
     fontSize: "16",
     lowEffects: false,
   },
+  player: { ...DEFAULT_PLAYER_SETTINGS },
   shortcuts: {
     disableGlobalShortcuts: false,
     assignments: null,

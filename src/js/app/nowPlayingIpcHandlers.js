@@ -60,6 +60,66 @@ function writeState(store, state) {
   return sanitized;
 }
 
+function normalizeSettingsPatch(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw Object.assign(new Error("Player settings patch must be an object"), {
+      code: "INVALID_SETTINGS",
+    });
+  }
+  const allowed = new Set([
+    "sidebarPinned",
+    "backgroundPlayback",
+    "shuffle",
+    "repeat",
+    "volume",
+    "muted",
+  ]);
+  const keys = Object.keys(value);
+  if (!keys.length || keys.some((key) => !allowed.has(key))) {
+    throw Object.assign(new Error("Player settings patch contains invalid fields"), {
+      code: "INVALID_SETTINGS",
+    });
+  }
+  const patch = {};
+  ["sidebarPinned", "backgroundPlayback", "shuffle", "muted"].forEach((key) => {
+    if (!(key in value)) return;
+    if (typeof value[key] !== "boolean") {
+      throw Object.assign(new Error(`${key} must be a boolean`), {
+        code: "INVALID_SETTINGS",
+      });
+    }
+    patch[key] = value[key];
+  });
+  if ("repeat" in value) {
+    if (!["off", "one", "all"].includes(value.repeat)) {
+      throw Object.assign(new Error("repeat must be off, one, or all"), {
+        code: "INVALID_SETTINGS",
+      });
+    }
+    patch.repeat = value.repeat;
+  }
+  if ("volume" in value) {
+    const volume = value.volume;
+    if (
+      typeof volume !== "number" ||
+      !Number.isFinite(volume) ||
+      volume < 0 ||
+      volume > 1
+    ) {
+      throw Object.assign(new Error("volume must be between 0 and 1"), {
+        code: "INVALID_SETTINGS",
+      });
+    }
+    patch.volume = volume;
+    if (volume === 0) {
+      patch.muted = true;
+    } else if (!("muted" in patch)) {
+      patch.muted = false;
+    }
+  }
+  return patch;
+}
+
 async function hydrateState(state) {
   const tracks = await Promise.all(
     state.catalog.tracks.map((track) =>
@@ -493,6 +553,22 @@ function registerNowPlayingIpcHandlers({
       return failure(error.code || "INVALID_STATE", error.message);
     }
   });
+
+  ipcMain.handle(
+    CHANNELS.NOW_PLAYING_UPDATE_SETTINGS,
+    async (_event, settings) => {
+      try {
+        const patch = normalizeSettingsPatch(settings);
+        const state = readState(store);
+        return success(writeState(store, { ...state, ...patch }));
+      } catch (error) {
+        return failure(
+          error?.code || "INVALID_SETTINGS",
+          error?.message || "Unable to update Player settings",
+        );
+      }
+    },
+  );
 }
 
 module.exports = {

@@ -126,6 +126,34 @@ describe("Now Playing playback controller", () => {
     expect(controller.currentTrack.id).toBe("two");
   });
 
+  test("applies explicit playback preferences in one snapshot update", () => {
+    const { controller, mediaLayers } = createController();
+    const listener = jest.fn();
+    controller.subscribe(listener);
+    listener.mockClear();
+
+    expect(
+      controller.applyPlaybackSettings({
+        shuffle: true,
+        repeat: "all",
+        volume: 0.42,
+        muted: false,
+      }),
+    ).toBe(true);
+
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect(controller.getSnapshot()).toMatchObject({
+      shuffle: true,
+      repeat: "all",
+      volume: 0.42,
+      muted: false,
+    });
+    expect(mediaLayers[0].volume).toBe(0.42);
+    expect(controller.setShuffle(false)).toBe(true);
+    expect(controller.setRepeat("one")).toBe(true);
+    expect(controller.setMuted(true)).toBe(true);
+  });
+
   test("persists selectedTrackId and settings but not playback position", () => {
     const { controller } = createController();
     controller.restoreState({

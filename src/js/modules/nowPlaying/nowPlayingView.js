@@ -26,6 +26,10 @@ import buildNowPlayingMarkup from "./viewMarkup.js";
 import { unwrapNowPlayingState } from "./viewUtils.js";
 import createTransientQueue from "./transientQueue.js";
 import createTimelinePreviewController from "./timelinePreviewController.js";
+import {
+  onPlayerSettingsApply,
+  publishPlayerSettings,
+} from "./settingsEvents.js";
 import YouTubeProvider from "./youtubeProvider.js";
 export function createNowPlayingView({
   api = window.electron?.nowPlaying,
@@ -97,10 +101,12 @@ export function createNowPlayingView({
   let playbackPersistenceKey = "";
   let controlTooltipKey = "";
   let systemMediaStateKey = "";
+  let playerSettingsStateKey = "";
   let persistenceTimer = null;
   let persistenceInFlight = null;
   let persistenceRequested = false;
   let volumeFeedbackTimer = null;
+  let operationFeedbackTimer = null;
   let draggedTrackId = "";
   let libraryModel = null;
   const renderPlaylist = createPlaylistRenderer(playlist);
@@ -133,7 +139,10 @@ export function createNowPlayingView({
     backgroundButton: root.querySelector('[data-action="background-playback"]'),
     pinButton: root.querySelector('[data-action="pin-sidebar"]'),
     overlayVisibility,
-    onChange: queuePersistence,
+    onChange: () => {
+      queuePersistence();
+      publishSettingsState();
+    },
   });
   const updateControls = createPlaybackControlsView({
     root,
@@ -354,6 +363,35 @@ export function createNowPlayingView({
       playbackPersistenceKey = nextPlaybackPersistenceKey;
       queuePersistence();
     }
+    publishSettingsState(snapshot);
+  }
+
+  function getPlayerSettings(
+    snapshot = latestSnapshot || controller.getSnapshot(),
+  ) {
+    return {
+      ...preferences.getState(),
+      shuffle: snapshot.shuffle === true,
+      repeat: snapshot.repeat,
+      volume: snapshot.volume,
+      muted: snapshot.muted === true,
+    };
+  }
+
+  function publishSettingsState(snapshot) {
+    const settings = getPlayerSettings(snapshot);
+    const key = JSON.stringify(settings);
+    if (key === playerSettingsStateKey) return;
+    playerSettingsStateKey = key;
+    publishPlayerSettings(settings);
+  }
+
+  function onSettingsApply(event) {
+    const settings = event.detail || {};
+    preferences.apply(settings, { notify: false });
+    controller.applyPlaybackSettings(settings);
+    queuePersistence();
+    publishSettingsState();
   }
 
   function onI18nChanged() {
@@ -431,6 +469,10 @@ export function createNowPlayingView({
   }
 
   async function importYouTube(url, qualitySelection) {
+    if (operationFeedbackTimer !== null) {
+      clearTimeout(operationFeedbackTimer);
+      operationFeedbackTimer = null;
+    }
     const loadingMessage = t("nowPlaying.youtube.fetching");
     status.textContent = loadingMessage;
     libraryView.setOperationStatus(loadingMessage, { loading: true });
@@ -443,6 +485,18 @@ export function createNowPlayingView({
       const addedMessage = t("nowPlaying.youtube.added");
       status.textContent = addedMessage;
       libraryView.setOperationStatus(addedMessage);
+      operationFeedbackTimer = window.setTimeout(() => {
+        operationFeedbackTimer = null;
+        if (status.textContent === addedMessage) status.textContent = "";
+        const libraryStatus = root.querySelector(
+          '[data-ui="library-operation-status"]',
+        );
+        if (
+          libraryStatus?.querySelector("span")?.textContent === addedMessage
+        ) {
+          libraryView.setOperationStatus("");
+        }
+      }, 4000);
       return true;
     } catch (error) {
       const message = error?.message || t("nowPlaying.error");
@@ -1094,6 +1148,7 @@ export function createNowPlayingView({
   window.addEventListener("i18n:changed", onI18nChanged);
   document.addEventListener("visibilitychange", onVisibilityChange);
   const unsubscribe = controller.subscribe(render);
+  const unsubscribePlayerSettings = onPlayerSettingsApply(onSettingsApply);
   const unsubscribeMediaCommand = api?.onMediaCommand?.(onSystemMediaCommand);
 
   const ready = (async () => {
@@ -1177,6 +1232,7 @@ export function createNowPlayingView({
       void flushPersistence();
       disposed = true;
       unsubscribe();
+      unsubscribePlayerSettings();
       unsubscribeMediaCommand?.();
       api?.publishMediaState?.({
         track: null,
@@ -1195,6 +1251,9 @@ export function createNowPlayingView({
       libraryView.dispose();
       contextMenu.dispose();
       if (volumeFeedbackTimer !== null) clearTimeout(volumeFeedbackTimer);
+      if (operationFeedbackTimer !== null) {
+        clearTimeout(operationFeedbackTimer);
+      }
       if (persistenceTimer !== null) clearTimeout(persistenceTimer);
       root.removeEventListener("click", onClick);
       root.removeEventListener("keydown", onKeydown);

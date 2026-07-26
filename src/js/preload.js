@@ -88,6 +88,7 @@ try {
     "now-playing:cancel-timeline-preview",
     "now-playing:get-state",
     "now-playing:set-state",
+    "now-playing:update-settings",
     "now-playing:reveal-track",
     "now-playing:open-track-location",
     "now-playing:open-files",
@@ -500,6 +501,8 @@ try {
         safeSend("now-playing:cancel-timeline-preview", requestId),
       getState: () => safeInvoke("now-playing:get-state"),
       setState: (state) => safeInvoke("now-playing:set-state", state),
+      updateSettings: (settings) =>
+        safeInvoke("now-playing:update-settings", settings),
       revealTrack: (sourceRef) =>
         safeInvoke("now-playing:reveal-track", sourceRef),
       openTrackLocation: (sourceRef) =>

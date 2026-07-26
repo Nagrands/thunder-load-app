@@ -1,8 +1,8 @@
 ## Автотесты (Jest)
 
 - Автосборка списка: `npm run test-check:sync-tests`
-- Найдено файлов: 135
-- Найдено тест-кейсов (test/it): 1156
+- Найдено файлов: 136
+- Найдено тест-кейсов (test/it): 1170
 
 <!-- AUTO-JEST-TESTS:START -->
 
@@ -210,8 +210,10 @@
 - [ ] serves tokenized manifests on loopback and cleans the session
 - [ ] supersedes an initializing session and keeps only one FFmpeg process
 
-### `src/js/app/__tests__/nowPlayingIpcHandlers.test.js` (18)
+### `src/js/app/__tests__/nowPlayingIpcHandlers.test.js` (20)
 - [ ] registers all Player channels
+- [ ] updates only Player preferences in the persisted v3 state
+- [ ] normalizes zero volume to muted in the atomic patch
 - [ ] routes timeline preview requests and cancellation
 - [ ] imports files, removes duplicates, and persists the queue
 - [ ] adds imported media to the active custom playlist
@@ -799,10 +801,11 @@
 - [ ] accepts credential-free HTTP(S) URLs
 - [ ] marks HLS manifests for the HLS playback adapter
 
-### `src/js/modules/__tests__/nowPlayingPlaybackController.test.js` (22)
+### `src/js/modules/__tests__/nowPlayingPlaybackController.test.js` (23)
 - [ ] reports the buffered range without mutating playback position
 - [ ] selects a track, swaps the reusable media layer and starts playback
 - [ ] supports previous, next, shuffle and repeat modes
+- [ ] applies explicit playback preferences in one snapshot update
 - [ ] persists selectedTrackId and settings but not playback position
 - [ ] restores a V2 active playlist without taking ownership of library CRUD
 - [ ] updates its queue from a library model state
@@ -850,7 +853,7 @@
 - [ ] keeps insertion order and supports reorder, removal and filtering
 - [ ] never exposes mutable internal items
 
-### `src/js/modules/__tests__/nowPlayingView.test.js` (28)
+### `src/js/modules/__tests__/nowPlayingView.test.js` (29)
 - [ ] renders an accessible player and restores selectedTrackId
 - [ ] opens structured track information with the current poster
 - [ ] opens a non-blocking media library empty state
@@ -864,6 +867,7 @@
 - [ ] loads restored media silently and attempts playback on first show
 - [ ] syncs system media commands with playback while the view is active
 - [ ] restores and persists background playback and sidebar pin preferences
+- [ ] applies Settings changes and publishes Player changes without a loop
 - [ ] hands artwork and metadata off together after the new cover loads
 - [ ] keeps a neutral fallback for missing artwork and hides unknown metadata
 - [ ] hides broken artwork while preserving real album metadata
@@ -884,6 +888,13 @@
 - [ ] defaults to downloader mode and reacts to tab changes
 - [ ] switches to backup mode for the backup tool view and returns to tools
 - [ ] tracks settings modal mode without losing current page mode
+
+### `src/js/modules/__tests__/playerSettings.test.js` (5)
+- [ ] loads and normalizes current Player state when Settings opens
+- [ ] saves changes immediately and publishes an apply event
+- [ ] maps zero volume to mute and unmutes above zero
+- [ ] updates from an open Player without saving back or creating a loop
+- [ ] restores the previous value when atomic saving fails
 
 ### `src/js/modules/__tests__/powerShortcuts.test.js` (3)
 - [ ] defines complete action config for every power shortcut
@@ -1006,7 +1017,7 @@
 - [ ] keeps document overflow lock while a lock owner is still active
 - [ ] clears all scroll locks when tools view is hidden
 
-### `src/js/modules/__tests__/settings.template.test.js` (16)
+### `src/js/modules/__tests__/settings.template.test.js` (18)
 - [ ] includes Thunder Spark brand lockup in the footer
 - [ ] keeps queue filters in the queue header pills
 - [ ] keeps preview live player trigger on the thumbnail
@@ -1014,6 +1025,8 @@
 - [ ] includes the emerald theme in settings and first-run templates
 - [ ] uses compact appearance panel and preserves control ids
 - [ ] uses accessible tabs and appearance listboxes
+- [ ] includes the accessible Player preferences section after Downloader
+- [ ] localizes Player preferences in Russian and English
 - [ ] embeds the shortcut editor in Settings and removes its legacy modal
 - [ ] localizes every shortcut catalog action in Russian and English
 - [ ] moves downloader tools block out of downloader settings
@@ -1024,7 +1037,7 @@
 - [ ] includes localized web control settings
 - [ ] builds the standalone notifications lab page
 
-### `src/js/modules/__tests__/settings.test.js` (37)
+### `src/js/modules/__tests__/settings.test.js` (40)
 - [ ] shows badge and marks button disabled when disabled = true
 - [ ] hides badge and removes disabled class when disabled = false
 - [ ] sets accessibility attrs for wg sidebar badge
@@ -1056,9 +1069,12 @@
 - [ ] does not export the removed Downloader developer preference
 - [ ] exports yt-dlp cookies settings
 - [ ] exports effective shortcut assignments
+- [ ] exports normalized Player preferences
 - [ ] applyConfig clears legacy topbarNetworkStatusVisible key
 - [ ] ignores legacy Downloader config and removes its storage key
 - [ ] applies yt-dlp cookies settings
+- [ ] atomically applies imported Player preferences
+- [ ] uses Player defaults for a legacy imported configuration
 - [ ] replaces shortcut assignments from a current config
 - [ ] resets shortcuts when importing a legacy config without assignments
 - [ ] disables global shortcuts before applying assignments

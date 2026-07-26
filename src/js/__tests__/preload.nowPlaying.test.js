@@ -45,6 +45,7 @@ describe("preload Now Playing API", () => {
     api.nowPlaying.cancelTimelinePreview("preview-1");
     await api.nowPlaying.getState();
     await api.nowPlaying.setState(state);
+    await api.nowPlaying.updateSettings({ repeat: "all", volume: 0.5 });
 
     expect(mockInvoke.mock.calls).toEqual([
       ["now-playing:import-files"],
@@ -66,6 +67,7 @@ describe("preload Now Playing API", () => {
       ],
       ["now-playing:get-state"],
       ["now-playing:set-state", state],
+      ["now-playing:update-settings", { repeat: "all", volume: 0.5 }],
     ]);
     expect(mockSend).toHaveBeenCalledWith(
       "now-playing:cancel-timeline-preview",

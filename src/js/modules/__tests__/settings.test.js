@@ -1198,6 +1198,33 @@ describe("network status setting removal", () => {
     });
   });
 
+  it("exports normalized Player preferences", async () => {
+    window.electron.nowPlaying = {
+      getState: jest.fn().mockResolvedValue({
+        success: true,
+        data: {
+          sidebarPinned: true,
+          backgroundPlayback: false,
+          shuffle: true,
+          repeat: "all",
+          volume: 0.45,
+          muted: true,
+        },
+      }),
+    };
+    const mod = require("../settings");
+    const config = await mod.__test_collectCurrentConfig();
+
+    expect(config.player).toEqual({
+      sidebarPinned: true,
+      backgroundPlayback: false,
+      shuffle: true,
+      repeat: "all",
+      volume: 0.45,
+      muted: true,
+    });
+  });
+
   it("applyConfig clears legacy topbarNetworkStatusVisible key", async () => {
     localStorage.setItem("topbarNetworkStatusVisible", "true");
     const mod = require("../settings");
@@ -1245,6 +1272,75 @@ describe("network status setting removal", () => {
         filePath: "",
       },
     );
+  });
+
+  it("atomically applies imported Player preferences", async () => {
+    window.electron.nowPlaying = {
+      updateSettings: jest.fn().mockResolvedValue({
+        success: true,
+        data: {
+          sidebarPinned: true,
+          backgroundPlayback: false,
+          shuffle: true,
+          repeat: "one",
+          volume: 0.2,
+          muted: false,
+        },
+      }),
+    };
+    const applied = jest.fn();
+    window.addEventListener("now-playing:settings-apply", applied);
+    const mod = require("../settings");
+
+    await mod.__test_applyConfig({
+      player: {
+        sidebarPinned: true,
+        backgroundPlayback: false,
+        shuffle: true,
+        repeat: "one",
+        volume: 0.2,
+        muted: false,
+      },
+    });
+
+    expect(window.electron.nowPlaying.updateSettings).toHaveBeenCalledWith({
+      sidebarPinned: true,
+      backgroundPlayback: false,
+      shuffle: true,
+      repeat: "one",
+      volume: 0.2,
+      muted: false,
+    });
+    expect(applied).toHaveBeenCalledWith(
+      expect.objectContaining({
+        detail: expect.objectContaining({
+          sidebarPinned: true,
+          repeat: "one",
+          volume: 0.2,
+        }),
+      }),
+    );
+    window.removeEventListener("now-playing:settings-apply", applied);
+  });
+
+  it("uses Player defaults for a legacy imported configuration", async () => {
+    window.electron.nowPlaying = {
+      updateSettings: jest.fn().mockResolvedValue({ success: true }),
+    };
+    const mod = require("../settings");
+
+    await mod.__test_applyConfig({
+      appearance: { theme: "system", fontSize: "16" },
+    });
+
+    expect(window.electron.nowPlaying.updateSettings).toHaveBeenCalledWith({
+      sidebarPinned: false,
+      backgroundPlayback: true,
+      shuffle: false,
+      repeat: "off",
+      volume: 1,
+      muted: false,
+    });
   });
 
   it("replaces shortcut assignments from a current config", async () => {

@@ -21719,6 +21719,100 @@ body.low-effects .player-form-modal__hero, body.low-effects .player-form-modal__
 .settings-modal .settings-control input[type=range] {
   width: 100%;
 }
+.settings-modal .settings-player-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.settings-modal .settings-player-controls {
+  gap: 10px;
+}
+.settings-modal .settings-player-repeat-row,
+.settings-modal .settings-player-volume-row {
+  display: grid;
+  gap: 12px;
+}
+.settings-modal .settings-player-control-copy,
+.settings-modal .settings-player-volume-label {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+}
+.settings-modal .settings-player-control-copy > i,
+.settings-modal .settings-player-volume-label > i {
+  width: 20px;
+  color: var(--color-accent);
+  text-align: center;
+}
+.settings-modal .settings-player-control-copy > span,
+.settings-modal .settings-player-volume-label > span {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+.settings-modal .settings-player-control-copy small,
+.settings-modal .settings-player-volume-label small {
+  color: rgba(208, 217, 232, 0.66);
+  font-size: 11px;
+  line-height: 1.35;
+}
+.settings-modal .settings-player-segment {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 3px;
+  gap: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.035);
+}
+.settings-modal .settings-player-segment button {
+  min-height: 32px;
+  border: 0;
+  border-radius: 7px;
+  color: rgba(224, 232, 244, 0.68);
+  background: transparent;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: color 180ms ease, background 180ms ease, box-shadow 180ms ease;
+}
+.settings-modal .settings-player-segment button:hover, .settings-modal .settings-player-segment button:focus-visible {
+  color: var(--color-text-main);
+}
+.settings-modal .settings-player-segment button:focus-visible {
+  outline: 2px solid rgba(var(--color-accent-rgb), 0.7);
+  outline-offset: 1px;
+}
+.settings-modal .settings-player-segment button.is-active {
+  color: #fff;
+  background: rgba(var(--color-accent-rgb), 0.22);
+  box-shadow: inset 0 0 0 1px rgba(var(--color-accent-rgb), 0.35);
+}
+.settings-modal .settings-player-volume-control {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) 48px;
+  align-items: center;
+  gap: 12px;
+}
+.settings-modal .settings-player-volume-control input {
+  accent-color: var(--color-accent);
+}
+.settings-modal .settings-player-volume-control output {
+  color: var(--color-text-main);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 900px) {
+  .settings-modal .settings-player-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .settings-modal .settings-player-segment button {
+    transition: none;
+  }
+}
 .settings-modal .settings-control:focus-within {
   border-color: rgba(var(--color-accent-rgb), 0.5);
 }
