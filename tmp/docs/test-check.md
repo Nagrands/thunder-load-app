@@ -1,8 +1,8 @@
 ## Автотесты (Jest)
 
 - Автосборка списка: `npm run test-check:sync-tests`
-- Найдено файлов: 131
-- Найдено тест-кейсов (test/it): 1125
+- Найдено файлов: 132
+- Найдено тест-кейсов (test/it): 1128
 
 <!-- AUTO-JEST-TESTS:START -->
 
@@ -806,6 +806,11 @@
 - [ ] keeps unavailable tracks selected and exposes a recoverable error
 - [ ] shows a distinct loading state and pauses the old track while resolving
 - [ ] requests a forced refresh only when retrying playback
+
+### `src/js/modules/__tests__/nowPlayingPlayerDialog.test.js` (3)
+- [ ] supports aliases, traps focus and restores the invoking control
+- [ ] keeps the modal busy during submit and advances YouTube to quality
+- [ ] reports async errors and renders track information without a field
 
 ### `src/js/modules/__tests__/nowPlayingProviders.test.js` (10)
 - [ ] normalizes metadata and deduplicates local paths

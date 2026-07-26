@@ -63,6 +63,80 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
+.player-form-modal {
+  .modal-content {
+    width: min(92vw, 500px);
+  }
+
+  .modal-header > div {
+    min-width: 0;
+  }
+
+  .modal-header p {
+    margin: 0 0 4px;
+    color: var(--thunder-electric);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .modal-header h2 {
+    margin: 0;
+    font-size: 22px;
+  }
+
+  .modal-body > p {
+    margin: 0 0 16px;
+    color: rgba(220, 234, 248, 0.66);
+    line-height: 1.5;
+  }
+
+  .modal-body label {
+    display: grid;
+    gap: 7px;
+    color: rgba(226, 239, 253, 0.78);
+    font-size: 12px;
+  }
+
+  .modal-body input,
+  .modal-body select {
+    width: 100%;
+    min-height: 42px;
+    padding: 0 12px;
+    border: 1px solid rgba(150, 199, 244, 0.2);
+    border-radius: 10px;
+    outline: 0;
+    color: var(--color-highlight);
+    background: rgba(1, 8, 18, 0.78);
+
+    &:focus-visible {
+      border-color: rgba(var(--thunder-electric-rgb), 0.7);
+      box-shadow: 0 0 0 3px rgba(var(--thunder-electric-rgb), 0.1);
+    }
+
+    &[hidden] {
+      display: none;
+    }
+  }
+
+  [data-ui="player-form-modal-error"] {
+    margin-top: 9px;
+    color: #ff9aa8;
+    font-size: 12px;
+  }
+
+  [aria-busy="true"] {
+    cursor: progress;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+    transform: none;
+  }
+}
+
 .first-run-modal {
   .first-run-modal-content {
     max-width: 960px;

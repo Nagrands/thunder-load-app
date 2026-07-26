@@ -135,6 +135,7 @@ function registerNowPlayingIpcHandlers({
     new NowPlayingHlsService({
       cacheRoot: path.join(app.getPath("userData"), "now-playing-hls"),
       ffmpegPathResolver: () => resolveToolPath(ffmpegPathResolver, store),
+      debugLog: app.isPackaged ? null : (...args) => log.debug(...args),
     });
   const youtube = createYouTubeHandlers({
     getVideoInfo,

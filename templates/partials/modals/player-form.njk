@@ -1,0 +1,60 @@
+<div
+  id="player-form-modal"
+  class="modal-overlay player-form-modal"
+  data-ui="player-form-modal"
+  role="dialog"
+  aria-modal="true"
+  aria-hidden="true"
+  aria-labelledby="player-form-modal-title"
+  aria-describedby="player-form-modal-hint"
+>
+  <form class="modal-content" data-ui="player-form-modal-form" novalidate>
+    <div class="modal-header">
+      <div>
+        <p data-ui="player-form-modal-eyebrow" data-i18n="tabs.nowPlaying">Плеер</p>
+        <h2 id="player-form-modal-title" data-ui="player-form-modal-title"></h2>
+      </div>
+      <button
+        type="button"
+        class="close-modal"
+        data-ui="player-form-modal-close"
+        data-i18n-aria="modal.close"
+        aria-label="Закрыть"
+      >&times;</button>
+    </div>
+
+    <div class="modal-body">
+      <p id="player-form-modal-hint" data-ui="player-form-modal-hint"></p>
+      <label data-ui="player-form-modal-field">
+        <span data-ui="player-form-modal-label"></span>
+        <input
+          type="text"
+          maxlength="2048"
+          autocomplete="off"
+          data-ui="player-form-modal-input"
+        />
+        <select data-ui="player-form-modal-select" hidden></select>
+      </label>
+      <div
+        data-ui="player-form-modal-error"
+        role="alert"
+        aria-live="assertive"
+        hidden
+      ></div>
+    </div>
+
+    <div class="modal-footer">
+      <button
+        type="button"
+        class="cancel-button"
+        data-ui="player-form-modal-cancel"
+        data-i18n="modal.confirm.cancel"
+      >Отмена</button>
+      <button
+        type="submit"
+        class="confirm-button"
+        data-ui="player-form-modal-submit"
+      ></button>
+    </div>
+  </form>
+</div>

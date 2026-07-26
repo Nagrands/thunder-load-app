@@ -1,4 +1,5 @@
 import { applyI18n, t } from "../i18n.js";
+import { readDeveloperModeEnabled } from "../developerMode.js";
 import { showConfirmationDialog } from "../modals.js";
 import { initTooltips } from "../tooltipInitializer.js";
 import createControlsVisibility from "./controlsVisibility.js";
@@ -41,7 +42,13 @@ export function createNowPlayingView({
   providers.register(provider);
   providers.register(youtubeProvider);
   providers.register(networkProvider);
-  const controller = new PlaybackController({ providers, mediaLayers });
+  const controller = new PlaybackController({
+    providers,
+    mediaLayers,
+    lifecycleLog: (...args) => {
+      if (readDeveloperModeEnabled()) console.debug(...args);
+    },
+  });
   const mediaSession = createMediaSessionManager({ controller });
   const playlist = root.querySelector(".now-playing__playlist");
   const errorPanel = root.querySelector(".now-playing__error");

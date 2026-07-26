@@ -9,9 +9,10 @@ const { spawn } = require("child_process");
 
 const START_TIMEOUT_MS = 12_000;
 const SESSION_TTL_MS = 30 * 60 * 1000;
-const MAX_SESSIONS = 8;
+const MAX_SESSIONS = 1;
 const MAX_CACHE_BYTES = 2 * 1024 * 1024 * 1024;
 const CLEANUP_INTERVAL_MS = 30_000;
+const FORCE_KILL_TIMEOUT_MS = 1_500;
 const HLS_CONTENT_TYPES = Object.freeze({
   ".m3u8": "application/vnd.apple.mpegurl",
   ".ts": "video/mp2t",
@@ -95,42 +96,66 @@ function buildFfmpegArgs({
   return args;
 }
 
-function waitForManifest(manifestPath, child, timeoutMs = START_TIMEOUT_MS) {
+function waitForManifest(
+  manifestPath,
+  child,
+  { signal = null, timeoutMs = START_TIMEOUT_MS } = {},
+) {
   return new Promise((resolve, reject) => {
     const startedAt = Date.now();
     let stderr = "";
+    let timer = null;
+    let settled = false;
     const onStderr = (chunk) => {
       stderr = `${stderr}${chunk}`.slice(-4096);
     };
     const cleanupListeners = () => {
+      if (timer) clearTimeout(timer);
+      timer = null;
       child.stderr?.off("data", onStderr);
       child.off?.("error", onError);
+      signal?.removeEventListener("abort", onAbort);
+    };
+    const settle = (callback, value) => {
+      if (settled) return;
+      settled = true;
+      cleanupListeners();
+      callback(value);
     };
     const onError = (error) => {
-      cleanupListeners();
-      reject(
+      settle(
+        reject,
         createError(
           "HLS_TRANSCODE_FAILED",
           error?.message || "Unable to start FFmpeg",
         ),
       );
     };
+    const onAbort = () =>
+      settle(
+        reject,
+        createError("PLAYBACK_SESSION_CANCELLED", "Playback session was superseded"),
+      );
     child.stderr?.on("data", onStderr);
     child.once?.("error", onError);
+    signal?.addEventListener("abort", onAbort, { once: true });
     const check = async () => {
+      if (signal?.aborted) {
+        onAbort();
+        return;
+      }
       try {
         const stat = await fsPromises.stat(manifestPath);
         if (stat.size > 0) {
-          cleanupListeners();
-          resolve();
+          settle(resolve);
           return;
         }
       } catch {
         // FFmpeg has not produced the manifest yet.
       }
       if (child.exitCode !== null) {
-        cleanupListeners();
-        reject(
+        settle(
+          reject,
           createError(
             "HLS_TRANSCODE_FAILED",
             stderr.trim() || "FFmpeg exited before HLS playback was ready",
@@ -139,13 +164,45 @@ function waitForManifest(manifestPath, child, timeoutMs = START_TIMEOUT_MS) {
         return;
       }
       if (Date.now() - startedAt >= timeoutMs) {
-        cleanupListeners();
-        reject(createError("HLS_START_TIMEOUT", "Timed out preparing HLS playback"));
+        settle(
+          reject,
+          createError("HLS_START_TIMEOUT", "Timed out preparing HLS playback"),
+        );
         return;
       }
-      setTimeout(check, 80);
+      timer = setTimeout(check, 80);
     };
     void check();
+  });
+}
+
+async function terminateChild(child) {
+  if (!child || child.exitCode !== null) return;
+  await new Promise((resolve) => {
+    let settled = false;
+    let forceTimer = null;
+    let finishTimer = null;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      if (forceTimer) clearTimeout(forceTimer);
+      if (finishTimer) clearTimeout(finishTimer);
+      child.off?.("exit", finish);
+      resolve();
+    };
+    child.once?.("exit", finish);
+    child.kill("SIGTERM");
+    if (child.exitCode !== null) {
+      finish();
+      return;
+    }
+    forceTimer = setTimeout(() => {
+      if (child.exitCode === null) child.kill("SIGKILL");
+      if (child.exitCode !== null) finish();
+    }, FORCE_KILL_TIMEOUT_MS);
+    forceTimer.unref?.();
+    finishTimer = setTimeout(finish, FORCE_KILL_TIMEOUT_MS + 500);
+    finishTimer.unref?.();
   });
 }
 
@@ -156,16 +213,24 @@ class NowPlayingHlsService {
     spawnProcess = spawn,
     serverFactory = http.createServer,
     now = Date.now,
+    debugLog = null,
   }) {
     this.cacheRoot = cacheRoot;
     this.ffmpegPathResolver = ffmpegPathResolver;
     this.spawnProcess = spawnProcess;
     this.serverFactory = serverFactory;
     this.now = now;
+    this.debugLog = typeof debugLog === "function" ? debugLog : null;
     this.server = null;
     this.port = 0;
     this.sessions = new Map();
     this.cleanupTimer = null;
+    this.creationGeneration = 0;
+    this.activeCreation = null;
+  }
+
+  trace(event, details = {}) {
+    this.debugLog?.(`[now-playing:hls] ${event}`, details);
   }
 
   async ensureServer() {
@@ -220,6 +285,18 @@ class NowPlayingHlsService {
   }
 
   async createSession({ inputs, copyCodecs = false, allowLocal = false }) {
+    const generation = ++this.creationGeneration;
+    this.activeCreation?.abort();
+    const creation = new AbortController();
+    this.activeCreation = creation;
+    this.trace("initialization-started", { generation });
+    await Promise.all([...this.sessions.keys()].map((id) => this.closeSession(id)));
+    if (generation !== this.creationGeneration || creation.signal.aborted) {
+      throw createError(
+        "PLAYBACK_SESSION_CANCELLED",
+        "Playback session was superseded",
+      );
+    }
     const safeInputs = validateInputs(inputs, { allowLocal });
     const ffmpegPath = String(this.ffmpegPathResolver?.() || "");
     if (!ffmpegPath || ffmpegPath.includes("\u0000")) {
@@ -246,9 +323,27 @@ class NowPlayingHlsService {
     let child = spawnFfmpeg(true);
     const session = { child, createdAt: this.now(), directory, id, token };
     this.sessions.set(id, session);
+    this.trace("instance-created", { generation, sessionId: id });
     try {
-      await waitForManifest(manifestPath, child);
+      await waitForManifest(manifestPath, child, { signal: creation.signal });
+      if (generation !== this.creationGeneration || creation.signal.aborted) {
+        throw createError(
+          "PLAYBACK_SESSION_CANCELLED",
+          "Playback session was superseded",
+        );
+      }
     } catch (error) {
+      if (
+        creation.signal.aborted ||
+        generation !== this.creationGeneration ||
+        error?.code === "PLAYBACK_SESSION_CANCELLED"
+      ) {
+        await this.closeSession(id);
+        throw createError(
+          "PLAYBACK_SESSION_CANCELLED",
+          "Playback session was superseded",
+        );
+      }
       if (copyCodecs) {
         await this.closeSession(id);
         throw error;
@@ -258,12 +353,20 @@ class NowPlayingHlsService {
       child = spawnFfmpeg(false);
       session.child = child;
       try {
-        await waitForManifest(manifestPath, child);
+        await waitForManifest(manifestPath, child, { signal: creation.signal });
+        if (generation !== this.creationGeneration || creation.signal.aborted) {
+          throw createError(
+            "PLAYBACK_SESSION_CANCELLED",
+            "Playback session was superseded",
+          );
+        }
       } catch (fallbackError) {
         await this.closeSession(id);
         throw fallbackError;
       }
     }
+    if (this.activeCreation === creation) this.activeCreation = null;
+    this.trace("loading-completed", { generation, sessionId: id });
     return {
       kind: "hls",
       sessionId: id,
@@ -276,8 +379,10 @@ class NowPlayingHlsService {
     const session = this.sessions.get(String(sessionId || ""));
     if (!session) return false;
     this.sessions.delete(session.id);
-    if (session.child.exitCode === null) session.child.kill("SIGTERM");
+    this.trace("stopping", { sessionId: session.id });
+    await terminateChild(session.child);
     await fsPromises.rm(session.directory, { recursive: true, force: true });
+    this.trace("resources-released", { sessionId: session.id });
     return true;
   }
 
@@ -286,7 +391,7 @@ class NowPlayingHlsService {
     const expired = new Set(ordered.filter(
       (session, index) =>
         this.now() - session.createdAt > SESSION_TTL_MS ||
-        index < Math.max(0, ordered.length - MAX_SESSIONS + 1),
+        index < Math.max(0, ordered.length - MAX_SESSIONS),
     ));
     let totalBytes = 0;
     const sizes = [];
@@ -319,6 +424,9 @@ class NowPlayingHlsService {
   }
 
   async dispose() {
+    this.creationGeneration += 1;
+    this.activeCreation?.abort();
+    this.activeCreation = null;
     if (this.cleanupTimer) clearInterval(this.cleanupTimer);
     this.cleanupTimer = null;
     await Promise.all([...this.sessions.keys()].map((id) => this.closeSession(id)));
@@ -326,6 +434,7 @@ class NowPlayingHlsService {
     await new Promise((resolve) => this.server.close(resolve));
     this.server = null;
     this.port = 0;
+    this.trace("service-destroyed");
   }
 }
 

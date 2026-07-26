@@ -286,57 +286,56 @@ export function buildNowPlayingMarkup() {
       </div>
 
       <section class="player-library__mini-player" data-ui="mini-player" aria-label="${t("nowPlaying.miniPlayer")}" hidden>
-        <div class="player-library__mini-artwork" aria-hidden="true">
-          <img data-ui="mini-artwork" alt="" />
-          <i class="fa-solid fa-circle-play"></i>
+        <div class="player-library__mini-identity">
+          <div class="player-library__mini-artwork" aria-hidden="true">
+            <img data-ui="mini-artwork" alt="" />
+            <i class="fa-solid fa-music"></i>
+          </div>
+          <div class="player-library__mini-metadata">
+            <strong data-ui="mini-title"></strong>
+            <span data-ui="mini-artist"></span>
+            <span class="player-library__mini-album" data-ui="mini-album"></span>
+          </div>
         </div>
-        <div class="player-library__mini-metadata">
-          <strong data-ui="mini-title"></strong>
-          <span data-ui="mini-artist"></span>
+        <div class="player-library__mini-center">
+          <div class="player-library__mini-controls">
+            ${iconButton("previous", "fa-solid fa-backward-step", "nowPlaying.previous", "player-library__mini-control")}
+            ${iconButton("play-pause", "fa-solid fa-play", "nowPlaying.play", "now-playing__control--primary player-library__mini-control player-library__mini-control--primary")}
+            ${iconButton("next", "fa-solid fa-forward-step", "nowPlaying.next", "player-library__mini-control")}
+          </div>
+          <div class="player-library__mini-timeline">
+            <span class="now-playing__time" data-ui="mini-current-time">0:00</span>
+            <input
+              class="now-playing__progress player-library__mini-progress"
+              data-action="seek"
+              type="range"
+              min="0"
+              max="0"
+              step="0.1"
+              value="0"
+              data-i18n-aria="nowPlaying.seek"
+              aria-label="${t("nowPlaying.seek")}"
+            />
+            <span class="now-playing__time" data-ui="mini-duration">0:00</span>
+          </div>
         </div>
-        <div class="player-library__mini-controls">
-          ${iconButton("previous", "fa-solid fa-backward-step", "nowPlaying.previous")}
-          ${iconButton("play-pause", "fa-solid fa-play", "nowPlaying.play", "now-playing__control--primary")}
-          ${iconButton("next", "fa-solid fa-forward-step", "nowPlaying.next")}
+        <div class="player-library__mini-actions">
+          ${iconButton("mute", "fa-solid fa-volume-high", "nowPlaying.mute", "player-library__mini-control")}
+          <input
+            class="now-playing__volume-range player-library__mini-volume"
+            data-action="volume"
+            type="range"
+            min="0"
+            max="1"
+            step="0.01"
+            value="1"
+            data-i18n-aria="nowPlaying.volume"
+            aria-label="${t("nowPlaying.volume")}"
+          />
+          ${iconButton("show-player", "fa-solid fa-up-right-and-down-left-from-center", "nowPlaying.library.openFullPlayer", "player-library__mini-control player-library__mini-open")}
         </div>
-        <button class="player-library__return" type="button" data-action="show-player">
-          <span data-i18n="nowPlaying.library.nowPlaying">${t("nowPlaying.library.nowPlaying")}</span>
-          <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
-        </button>
       </section>
     </section>
-
-    <dialog class="player-library-dialog" data-ui="library-dialog" aria-labelledby="player-library-dialog-title">
-      <form method="dialog" class="player-library-dialog__content" data-ui="library-dialog-form">
-        <button
-          class="player-library-dialog__close"
-          type="button"
-          data-action="close-library-dialog"
-          data-i18n-aria="modal.close"
-          aria-label="${t("modal.close")}"
-        >
-          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
-        </button>
-        <span class="player-library-dialog__eyebrow" data-ui="library-dialog-eyebrow"></span>
-        <h2 id="player-library-dialog-title" data-ui="library-dialog-title"></h2>
-        <p data-ui="library-dialog-hint"></p>
-        <label class="player-library-dialog__field">
-          <span data-ui="library-dialog-label"></span>
-          <input
-            type="text"
-            maxlength="2048"
-            autocomplete="off"
-            data-ui="library-dialog-input"
-          />
-          <select data-ui="library-dialog-select" hidden></select>
-        </label>
-        <div class="player-library-dialog__error" data-ui="library-dialog-error" role="alert" hidden></div>
-        <div class="player-library-dialog__actions">
-          <button type="button" class="player-library-dialog__secondary" data-action="close-library-dialog" data-i18n="modal.confirm.cancel">${t("modal.confirm.cancel")}</button>
-          <button type="submit" class="player-library-dialog__primary" data-ui="library-dialog-submit"></button>
-        </div>
-      </form>
-    </dialog>
     <div class="now-playing__status" role="status" aria-live="polite"></div>
   `;
 }

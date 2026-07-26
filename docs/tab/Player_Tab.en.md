@@ -49,6 +49,18 @@ active playlist, can be viewed, reordered, removed, or cleared, and are never
 written to state v3. When Finder or Explorer opens multiple files, the first is
 started and the remaining files enter this transient queue.
 
+### Player Dialogs
+
+Playlist creation and rename, YouTube URL entry, quality selection, add to
+playlist, display-title rename, and track information use the shared Thunder
+modal shell. Dialogs close through `Escape`, backdrop click, the close button,
+or Cancel, trap focus while open, and restore focus to the invoking control.
+
+The YouTube dialog remains open between URL analysis and quality selection. It
+shows a busy state during analysis and reports errors inline without losing the
+entered URL. Playlist and media-entry removal continue to use the shared
+confirmation modal.
+
 ## Playback Controls
 
 The dock and Now Playing label are visible during loading, playback, and pause.
@@ -61,6 +73,13 @@ a visible `1` marker. Volume percentage appears during input, wheel changes,
 mute, hover, or focus and fades after 1500 ms while the slider remains visible.
 Dock, mini-player, and row buttons use the shared tooltip initializer, including
 dynamic Play/Pause/Repeat labels and matching ARIA text.
+
+The media-library mini-player uses three zones: artwork and metadata, transport
+controls with a timeline, and volume plus a compact open-full-player action.
+The former text-based Now Playing button is replaced by a tooltip-enabled icon.
+At narrow widths the album and volume slider hide first, then the timeline moves
+to a second row; Previous, Play/Pause, Next, and open-full-player remain
+available.
 
 ## YouTube Quality Selection
 
@@ -134,7 +153,8 @@ IPC payload.
 
 - `nowPlayingView.js`: orchestration and public lifecycle;
 - `mediaLibraryModel.js`: v3 catalog and playlists;
-- `mediaLibraryView.js`: library, empty state, and dialogs;
+- `mediaLibraryView.js`: library, empty state, and mini-player;
+- `playerDialog.js`: shared Player dialog modes and lifecycle;
 - `playbackController.js`: two media layers and transport state;
 - local, YouTube, and network providers: source-specific resolution;
 - `providerRegistry.js`: unified resolution and release lifecycle;

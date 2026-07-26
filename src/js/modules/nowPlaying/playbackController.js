@@ -27,7 +27,12 @@ function safeMediaCall(media, method) {
 }
 
 export class PlaybackController {
-  constructor({ providers, mediaLayers, random = Math.random }) {
+  constructor({
+    providers,
+    mediaLayers,
+    random = Math.random,
+    lifecycleLog = null,
+  }) {
     if (!providers || !Array.isArray(mediaLayers) || mediaLayers.length !== 2) {
       throw new TypeError(
         "PlaybackController requires providers and two media layers",
@@ -36,6 +41,8 @@ export class PlaybackController {
     this.providers = providers;
     this.mediaLayers = mediaLayers;
     this.random = random;
+    this.lifecycleLog =
+      typeof lifecycleLog === "function" ? lifecycleLog : null;
     this.listeners = new Set();
     this.queue = [];
     this.currentIndex = -1;
@@ -54,14 +61,22 @@ export class PlaybackController {
     this.error = null;
     this.libraryState = null;
     this.selectionVersion = 0;
+    this.playbackSession = null;
+    this.disposed = false;
     this.animationFrame = null;
     this.lastProgressEmitAt = 0;
     this.queueSnapshot = [];
     this.mediaEventHandlers = new Map();
     this.layerPlaybacks = [null, null];
     this.hlsInstances = [null, null];
+    this.pendingReleases = new Set();
     this.bindMediaEvents();
     this.applyVolume();
+    this.trace("controller-created");
+  }
+
+  trace(event, details = {}) {
+    this.lifecycleLog?.(`[now-playing] ${event}`, details);
   }
 
   get currentTrack() {
@@ -119,8 +134,9 @@ export class PlaybackController {
       : -1;
     if (this.currentIndex < 0 && this.queue.length) this.currentIndex = 0;
     if (!this.queue.length) {
-      safeMediaCall(this.activeMedia, "pause");
-      if (this.activeMedia) this.activeMedia.currentTime = 0;
+      this.cancelPlaybackSession();
+      this.quiesceMediaLayers({ resetPosition: true });
+      void this.releaseAllLayers();
       this.isPlaying = false;
       this.isStopped = true;
       this.resumeOnShow = false;
@@ -187,6 +203,7 @@ export class PlaybackController {
   }
 
   async selectTrack(trackId, { autoplay = true, forceRefresh = false } = {}) {
+    if (this.disposed) return false;
     const index = this.queue.findIndex((track) => track.id === trackId);
     if (index === -1) return false;
     const track = this.queue[index];
@@ -200,9 +217,20 @@ export class PlaybackController {
       this.emit();
       return false;
     }
+    if (
+      !forceRefresh &&
+      !this.isLoading &&
+      this.currentTrack?.id === track.id &&
+      this.activeMedia?.dataset.trackId === track.id &&
+      this.layerPlaybacks[this.activeLayerIndex]?.playback
+    ) {
+      return autoplay && !this.isSuspended ? this.play() : true;
+    }
 
-    const version = ++this.selectionVersion;
-    safeMediaCall(this.activeMedia, "pause");
+    const session = this.createPlaybackSession();
+    const version = session.id;
+    this.trace("loading-started", { sessionId: version, trackId: track.id });
+    this.quiesceMediaLayers();
     this.stopProgressFrames();
     this.currentIndex = index;
     this.isPlaying = false;
@@ -211,23 +239,27 @@ export class PlaybackController {
     this.error = null;
     this.emit();
     try {
-      const reusableLayer = forceRefresh ? -1 : this.findReusableLayer(track);
-      if (reusableLayer !== -1) {
-        this.activateLayer(reusableLayer);
-        if (autoplay && !this.isSuspended) {
-          await this.play({ selectionVersion: version });
-        } else {
-          this.isLoading = false;
-          this.loadingTrackId = null;
-          this.emit();
-        }
-        return true;
-      }
+      const releasePending = this.releaseAllLayers();
+      if (releasePending) await releasePending;
+      if (!this.isCurrentSession(session)) return false;
       const playback = await this.providers.resolveTrack(track, {
         forceRefresh,
+        signal: session.controller.signal,
       });
-      if (version !== this.selectionVersion) return false;
-      await this.loadPlayback(track, playback);
+      if (!this.isCurrentSession(session)) {
+        this.trace("stale-playback-released", {
+          sessionId: version,
+          trackId: track.id,
+        });
+        await this.providers.releasePlayback?.(track, playback);
+        return false;
+      }
+      await this.loadPlayback(track, playback, session);
+      if (!this.isCurrentSession(session)) return false;
+      this.trace("loading-completed", {
+        sessionId: version,
+        trackId: track.id,
+      });
       if (autoplay && !this.isSuspended) {
         await this.play({ selectionVersion: version });
       } else {
@@ -237,7 +269,7 @@ export class PlaybackController {
       }
       return true;
     } catch (error) {
-      if (version !== this.selectionVersion) return false;
+      if (!this.isCurrentSession(session)) return false;
       this.error = {
         code: error?.code || "MEDIA_LOAD_FAILED",
         message: error?.message || "Unable to load track",
@@ -251,13 +283,15 @@ export class PlaybackController {
     }
   }
 
-  async loadPlayback(track, playback) {
-    const previousMedia = this.activeMedia;
+  async loadPlayback(track, playback, session) {
     const nextLayerIndex = this.activeLayerIndex === 0 ? 1 : 0;
     const nextMedia = this.mediaLayers[nextLayerIndex];
-    this.releaseLayer(nextLayerIndex);
-    safeMediaCall(previousMedia, "pause");
-    previousMedia.volume = 0;
+    const releasePending = this.releaseLayer(nextLayerIndex);
+    if (releasePending) await releasePending;
+    if (!this.isCurrentSession(session)) {
+      await this.providers.releasePlayback?.(track, playback);
+      return false;
+    }
     const playbackKey = this.getPlaybackKey(track);
     nextMedia.dataset.playbackKey = playbackKey;
     nextMedia.dataset.trackId = track.id;
@@ -267,6 +301,10 @@ export class PlaybackController {
     this.layerPlaybacks[nextLayerIndex] = { playback, track };
     const Hls =
       playback.kind === "hls" ? await loadHlsConstructor() : null;
+    if (!this.isCurrentSession(session)) {
+      await this.releaseLayer(nextLayerIndex);
+      return false;
+    }
     if (Hls?.isSupported()) {
       const hls = new Hls({
         backBufferLength: 30,
@@ -283,18 +321,27 @@ export class PlaybackController {
     this.activeLayerIndex = nextLayerIndex;
     this.applyVolume();
     this.emit();
+    return true;
   }
 
   async play({ selectionVersion = null } = {}) {
-    if (!this.currentTrack) return false;
+    if (
+      this.disposed ||
+      !this.currentTrack ||
+      (selectionVersion !== null &&
+        selectionVersion !== this.selectionVersion)
+    ) {
+      return false;
+    }
     if (
       !this.activeMedia?.src ||
       this.activeMedia.dataset.trackId !== this.currentTrack.id
     ) {
       return this.selectTrack(this.currentTrack.id, { autoplay: true });
     }
+    const media = this.activeMedia;
+    const playVersion = this.selectionVersion;
     try {
-      const media = this.activeMedia;
       const result = safeMediaCall(media, "play");
       if (result && typeof result.catch === "function") await result;
       if (
@@ -311,9 +358,21 @@ export class PlaybackController {
       this.loadingTrackId = null;
       this.error = null;
       this.startProgressFrames();
+      this.trace("playback-started", {
+        sessionId: this.selectionVersion,
+        trackId: this.currentTrack.id,
+      });
       this.emit();
       return true;
     } catch (error) {
+      if (
+        this.disposed ||
+        playVersion !== this.selectionVersion ||
+        media !== this.activeMedia
+      ) {
+        safeMediaCall(media, "pause");
+        return false;
+      }
       this.isPlaying = false;
       this.isStopped = true;
       this.isLoading = false;
@@ -328,8 +387,8 @@ export class PlaybackController {
   }
 
   pause({ preserveResumeOnShow = false } = {}) {
-    if (this.isLoading) this.selectionVersion += 1;
-    safeMediaCall(this.activeMedia, "pause");
+    if (this.isLoading) this.cancelPlaybackSession();
+    this.quiesceMediaLayers();
     this.isPlaying = false;
     this.isLoading = false;
     this.loadingTrackId = null;
@@ -339,9 +398,13 @@ export class PlaybackController {
   }
 
   stop() {
-    this.selectionVersion += 1;
-    safeMediaCall(this.activeMedia, "pause");
-    if (this.activeMedia) this.activeMedia.currentTime = 0;
+    this.trace("playback-stopping", {
+      sessionId: this.selectionVersion,
+      trackId: this.currentTrack?.id || null,
+    });
+    this.cancelPlaybackSession();
+    this.quiesceMediaLayers({ resetPosition: true });
+    void this.releaseAllLayers();
     this.isPlaying = false;
     this.isStopped = true;
     this.isLoading = false;
@@ -415,9 +478,78 @@ export class PlaybackController {
     this.hlsInstances[index] = null;
     this.layerPlaybacks[index] = null;
     const media = this.mediaLayers[index];
+    safeMediaCall(media, "pause");
+    media.muted = true;
+    media.volume = 0;
     media.removeAttribute("src");
+    safeMediaCall(media, "load");
     delete media.dataset.playbackKey;
-    if (record) void this.providers.releasePlayback?.(record.track, record.playback);
+    delete media.dataset.trackId;
+    delete media.dataset.kind;
+    if (record) {
+      const releaseResult = this.providers.releasePlayback?.(
+        record.track,
+        record.playback,
+      );
+      const onReleased = () => {
+        this.trace("resources-released", {
+          layerIndex: index,
+          trackId: record.track.id,
+        });
+      };
+      if (releaseResult && typeof releaseResult.then === "function") {
+        const pendingRelease = Promise.resolve(releaseResult)
+          .then(onReleased)
+          .finally(() => this.pendingReleases.delete(pendingRelease));
+        this.pendingReleases.add(pendingRelease);
+        return pendingRelease;
+      }
+      onReleased();
+    }
+    return null;
+  }
+
+  releaseAllLayers() {
+    const pending = this.mediaLayers
+      .map((_media, index) => this.releaseLayer(index))
+      .filter(Boolean);
+    this.pendingReleases.forEach((release) => pending.push(release));
+    const uniquePending = [...new Set(pending)];
+    return uniquePending.length ? Promise.all(uniquePending) : null;
+  }
+
+  quiesceMediaLayers({ resetPosition = false } = {}) {
+    this.mediaLayers.forEach((media) => {
+      safeMediaCall(media, "pause");
+      media.muted = true;
+      media.volume = 0;
+      if (resetPosition) media.currentTime = 0;
+    });
+  }
+
+  createPlaybackSession() {
+    this.playbackSession?.controller.abort();
+    const session = {
+      id: ++this.selectionVersion,
+      controller: new AbortController(),
+    };
+    this.playbackSession = session;
+    return session;
+  }
+
+  cancelPlaybackSession() {
+    this.selectionVersion += 1;
+    this.playbackSession?.controller.abort();
+    this.playbackSession = null;
+  }
+
+  isCurrentSession(session) {
+    return (
+      !this.disposed &&
+      this.playbackSession === session &&
+      !session.controller.signal.aborted &&
+      session.id === this.selectionVersion
+    );
   }
 
   async next({ fromEnded = false } = {}) {
@@ -541,7 +673,9 @@ export class PlaybackController {
   }
 
   dispose() {
-    this.selectionVersion += 1;
+    if (this.disposed) return;
+    this.cancelPlaybackSession();
+    this.disposed = true;
     this.isPlaying = false;
     this.isStopped = true;
     this.isLoading = false;
@@ -554,11 +688,11 @@ export class PlaybackController {
         media.removeEventListener(eventName, handler),
       );
       safeMediaCall(media, "pause");
-      this.releaseLayer(this.mediaLayers.indexOf(media));
-      safeMediaCall(media, "load");
     });
+    void this.releaseAllLayers();
     this.mediaEventHandlers.clear();
     this.listeners.clear();
+    this.trace("controller-destroyed");
   }
 }
 

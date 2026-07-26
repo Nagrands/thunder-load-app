@@ -78,4 +78,58 @@ describe("Now Playing HLS service", () => {
     await service.dispose();
     fs.rmSync(cacheRoot, { recursive: true, force: true });
   });
+
+  test("supersedes an initializing session and keeps only one FFmpeg process", async () => {
+    const cacheRoot = fs.mkdtempSync(path.join(os.tmpdir(), "now-playing-hls-"));
+    let spawnCount = 0;
+    const children = [];
+    const spawnProcess = jest.fn((_binary, args) => {
+      spawnCount += 1;
+      const child = new EventEmitter();
+      child.stderr = new EventEmitter();
+      child.exitCode = null;
+      child.kill = jest.fn(() => {
+        child.exitCode = 0;
+      });
+      children.push(child);
+      if (spawnCount === 2) {
+        const manifestPath = args.at(-1);
+        setTimeout(() => fs.writeFileSync(manifestPath, "#EXTM3U\n"), 1);
+      }
+      return child;
+    });
+    const server = new EventEmitter();
+    server.listen = jest.fn((_port, _host, callback) => callback());
+    server.address = jest.fn(() => ({ port: 43124 }));
+    server.close = jest.fn((callback) => callback());
+    const service = new NowPlayingHlsService({
+      cacheRoot,
+      ffmpegPathResolver: () => "/tools/ffmpeg",
+      spawnProcess,
+      serverFactory: () => server,
+    });
+
+    const first = service.createSession({
+      inputs: ["https://media.example/first"],
+      copyCodecs: true,
+    });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const second = service.createSession({
+      inputs: ["https://media.example/second"],
+      copyCodecs: true,
+    });
+
+    await expect(first).rejects.toMatchObject({
+      code: "PLAYBACK_SESSION_CANCELLED",
+    });
+    await expect(second).resolves.toMatchObject({ kind: "hls" });
+    expect(children[0].kill).toHaveBeenCalledWith("SIGTERM");
+    expect(
+      children.filter((child) => child.exitCode === null),
+    ).toHaveLength(1);
+    expect(service.sessions).toHaveProperty("size", 1);
+
+    await service.dispose();
+    fs.rmSync(cacheRoot, { recursive: true, force: true });
+  });
 });

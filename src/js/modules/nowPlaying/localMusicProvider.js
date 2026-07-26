@@ -178,13 +178,14 @@ export class LocalMusicProvider {
     };
   }
 
-  async releasePlayback(playback = {}) {
+  releasePlayback(playback = {}) {
     if (
       playback.sessionId &&
       typeof this.api.closePlaybackSession === "function"
     ) {
-      await this.api.closePlaybackSession(playback.sessionId);
+      return this.api.closePlaybackSession(playback.sessionId);
     }
+    return undefined;
   }
 
   dedupeTracks(tracks) {

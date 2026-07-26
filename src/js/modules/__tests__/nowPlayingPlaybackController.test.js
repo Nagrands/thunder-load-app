@@ -21,6 +21,7 @@ function createController(random = () => 0) {
       mimeType: "audio/mpeg",
       posterUrl: "",
     })),
+    releasePlayback: jest.fn(async () => {}),
   };
   const controller = new PlaybackController({
     providers,
@@ -54,6 +55,14 @@ const tracks = [
   },
 ];
 
+async function flushPlaybackCleanup() {
+  await Promise.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
+  await new Promise((resolve) => setTimeout(resolve, 0));
+}
+
 describe("Now Playing playback controller", () => {
   beforeEach(() => {
     jest.spyOn(window, "requestAnimationFrame").mockImplementation(() => 1);
@@ -66,9 +75,13 @@ describe("Now Playing playback controller", () => {
 
     await controller.selectTrack("two");
 
-    expect(providers.resolveTrack).toHaveBeenCalledWith(tracks[1], {
-      forceRefresh: false,
-    });
+    expect(providers.resolveTrack).toHaveBeenCalledWith(
+      tracks[1],
+      expect.objectContaining({
+        forceRefresh: false,
+        signal: expect.any(AbortSignal),
+      }),
+    );
     expect(controller.currentTrack.id).toBe("two");
     expect(controller.activeLayerIndex).toBe(1);
     expect(mediaLayers[1].src).toContain("/two.mp3");
@@ -244,6 +257,7 @@ describe("Now Playing playback controller", () => {
     );
 
     const selection = controller.selectTrack("two");
+    await flushPlaybackCleanup();
     controller.activeMedia.currentTime = 48;
     controller.stop();
 
@@ -377,6 +391,7 @@ describe("Now Playing playback controller", () => {
     );
 
     const selection = controller.selectTrack("two");
+    await flushPlaybackCleanup();
 
     expect(controller.getSnapshot()).toMatchObject({
       currentTrack: { id: "two" },
@@ -409,8 +424,104 @@ describe("Now Playing playback controller", () => {
 
     await controller.retry();
 
-    expect(providers.resolveTrack).toHaveBeenCalledWith(tracks[0], {
-      forceRefresh: true,
+    expect(providers.resolveTrack).toHaveBeenCalledWith(
+      tracks[0],
+      expect.objectContaining({
+        forceRefresh: true,
+        signal: expect.any(AbortSignal),
+      }),
+    );
+  });
+
+  test("releases a superseded playback descriptor and starts only the latest track", async () => {
+    const { controller, mediaLayers, providers } = createController();
+    controller.setQueue(tracks);
+    let resolveFirst;
+    providers.resolveTrack
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveFirst = resolve;
+          }),
+      )
+      .mockImplementationOnce(async () => ({
+        src: "file:///two.mp3",
+        mimeType: "audio/mpeg",
+      }));
+
+    const firstSelection = controller.selectTrack("one");
+    await flushPlaybackCleanup();
+    expect(resolveFirst).toEqual(expect.any(Function));
+    const secondSelection = controller.selectTrack("two");
+    await secondSelection;
+    const stalePlayback = {
+      src: "http://127.0.0.1/stale/index.m3u8",
+      kind: "hls",
+      sessionId: "stale-session",
+    };
+    resolveFirst(stalePlayback);
+
+    await expect(firstSelection).resolves.toBe(false);
+    expect(providers.releasePlayback).toHaveBeenCalledWith(
+      tracks[0],
+      stalePlayback,
+    );
+    expect(controller.currentTrack.id).toBe("two");
+    expect(mediaLayers[controller.activeLayerIndex].play).toHaveBeenCalledTimes(1);
+    expect(
+      mediaLayers.reduce(
+        (count, media) => count + (media.dataset.trackId === "two" ? 1 : 0),
+        0,
+      ),
+    ).toBe(1);
+  });
+
+  test("waits for resource release before resolving the next track", async () => {
+    const { controller, providers } = createController();
+    controller.setQueue(tracks);
+    await controller.selectTrack("one", { autoplay: false });
+    let finishRelease;
+    providers.releasePlayback.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          finishRelease = resolve;
+        }),
+    );
+    providers.resolveTrack.mockClear();
+
+    const selection = controller.selectTrack("two");
+    await flushPlaybackCleanup();
+    expect(providers.resolveTrack).not.toHaveBeenCalled();
+
+    finishRelease();
+    await selection;
+    expect(providers.resolveTrack).toHaveBeenCalledWith(
+      tracks[1],
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+  });
+
+  test("does not let a rejected stale play promise overwrite the latest state", async () => {
+    const { controller, mediaLayers } = createController();
+    controller.setQueue(tracks);
+    await controller.selectTrack("one", { autoplay: false });
+    let rejectOldPlay;
+    mediaLayers[controller.activeLayerIndex].play.mockImplementationOnce(
+      () =>
+        new Promise((_resolve, reject) => {
+          rejectOldPlay = reject;
+        }),
+    );
+
+    const oldPlay = controller.play();
+    await controller.selectTrack("two");
+    rejectOldPlay(new Error("stale play failure"));
+
+    await expect(oldPlay).resolves.toBe(false);
+    expect(controller.getSnapshot()).toMatchObject({
+      currentTrack: { id: "two" },
+      isPlaying: true,
+      error: null,
     });
   });
 });

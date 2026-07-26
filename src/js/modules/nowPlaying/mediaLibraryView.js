@@ -1,9 +1,5 @@
 import { t } from "../i18n.js";
-import {
-  closeRegisteredModal,
-  openRegisteredModal,
-  registerModal,
-} from "../modalManager.js";
+import createPlayerDialog from "./playerDialog.js";
 import { formatPlaybackTime } from "./viewUtils.js";
 
 const SYSTEM_PLAYLIST_IDS = new Set([
@@ -231,76 +227,19 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
   let trackRowsById = new Map();
   let previousPlaybackTrackId = null;
   let previousLoadingTrackId = null;
-  const dialog = root.querySelector('[data-ui="library-dialog"]');
-  const dialogForm = root.querySelector('[data-ui="library-dialog-form"]');
-  const dialogTitle = root.querySelector('[data-ui="library-dialog-title"]');
-  const dialogEyebrow = root.querySelector(
-    '[data-ui="library-dialog-eyebrow"]',
-  );
-  const dialogHint = root.querySelector('[data-ui="library-dialog-hint"]');
-  const dialogLabel = root.querySelector('[data-ui="library-dialog-label"]');
-  const dialogField = dialogLabel.closest("label");
-  const dialogInput = root.querySelector('[data-ui="library-dialog-input"]');
-  const dialogSelect = root.querySelector('[data-ui="library-dialog-select"]');
-  const dialogSubmit = root.querySelector('[data-ui="library-dialog-submit"]');
-  const dialogError = root.querySelector('[data-ui="library-dialog-error"]');
-  const unregisterModal = registerModal(dialog);
-  let mode = "";
-  let dialogContext = {};
   let latestState = {};
-  let submitting = false;
+  let playerDialog = null;
+  let miniCurrentSecond = -1;
+  let miniDurationSecond = -1;
+  let miniTrackId = null;
 
-  function formatQualityOption(option = {}) {
-    const specialLabel = {
-      auto: t("nowPlaying.youtube.quality.auto"),
-      best: t("nowPlaying.youtube.quality.best"),
-      audio: t("nowPlaying.youtube.quality.audio"),
-    }[option.id];
-    const details = [
-      option.height ? `${option.height}p` : "",
-      option.fps ? `${option.fps} FPS` : "",
-      option.videoCodec || option.audioCodec || "",
-      option.container || "",
-      option.bitrateKbps ? `${Math.round(option.bitrateKbps)} kbps` : "",
-      option.sizeBytes ? formatFileSize(option.sizeBytes) : "",
-    ].filter(Boolean);
-    return [specialLabel || option.label || option.id, ...details].join(" · ");
-  }
-
-  function showYouTubeQualities({ analysis, url }) {
-    const qualities = Array.isArray(analysis?.qualities)
-      ? analysis.qualities
-      : [];
-    mode = "youtubeQuality";
-    dialogContext = { qualities, url };
-    dialogTitle.textContent = t("nowPlaying.youtube.quality.title");
-    dialogHint.textContent =
-      analysis?.track?.title || t("nowPlaying.youtube.quality.hint");
-    dialogLabel.textContent = t("nowPlaying.youtube.quality.label");
-    dialogSubmit.textContent = t("nowPlaying.youtube.addAction");
-    dialogField.hidden = false;
-    dialogInput.hidden = true;
-    dialogSelect.hidden = false;
-    dialogSelect.replaceChildren(
-      ...qualities.map((quality) => {
-        const option = document.createElement("option");
-        option.value = quality.id;
-        option.textContent = formatQualityOption(quality);
-        return option;
-      }),
-    );
-    const defaultId = qualities.find(
-      (quality) =>
-        JSON.stringify(quality.selector) ===
-        JSON.stringify(analysis?.defaultSelection),
-    )?.id;
-    dialogSelect.value = defaultId || qualities[0]?.id || "";
-    dialogError.hidden = qualities.length > 0;
-    dialogError.textContent = qualities.length
-      ? ""
-      : t("nowPlaying.youtube.quality.empty");
-    dialogSubmit.disabled = qualities.length === 0;
-    queueMicrotask(() => dialogSelect.focus());
+  function getPlayerDialog() {
+    if (playerDialog) return playerDialog;
+    playerDialog = createPlayerDialog({
+      element: document.querySelector('[data-ui="player-form-modal"]'),
+      onSubmit: onDialogSubmit,
+    });
+    return playerDialog;
   }
 
   function render(state, snapshot) {
@@ -408,41 +347,101 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
   function renderMiniPlayer(snapshot = {}) {
     const track = snapshot.currentTrack;
     miniPlayer.hidden = !track;
-    if (!track) return;
+    if (!track) {
+      miniTrackId = null;
+      miniCurrentSecond = -1;
+      miniDurationSecond = -1;
+      return;
+    }
+    if (miniTrackId !== track.id) {
+      miniTrackId = track.id;
+      miniCurrentSecond = -1;
+      miniDurationSecond = -1;
+    }
     root.querySelector('[data-ui="mini-title"]').textContent =
       track.displayTitle || track.title;
     root.querySelector('[data-ui="mini-artist"]').textContent =
-      track.artist || track.album || t("nowPlaying.unknownArtist");
+      track.artist || t("nowPlaying.unknownArtist");
+    root.querySelector('[data-ui="mini-album"]').textContent = track.album || "";
     const image = root.querySelector('[data-ui="mini-artwork"]');
+    const artwork = image.closest(".player-library__mini-artwork");
     image.src = track.artworkUrl || "";
     image.hidden = !track.artworkUrl;
-    const playIcons = miniPlayer.querySelectorAll(
-      '[data-action="play-pause"] i',
+    artwork.classList.toggle("has-artwork", Boolean(track.artworkUrl));
+
+    const playButton = miniPlayer.querySelector('[data-action="play-pause"]');
+    const playIcon = playButton.querySelector("i");
+    playIcon.className = snapshot.isLoading
+      ? "fa-solid fa-spinner fa-spin"
+      : snapshot.isPlaying
+        ? "fa-solid fa-pause"
+        : "fa-solid fa-play";
+    playButton.disabled = Boolean(snapshot.isLoading);
+    playButton.setAttribute("aria-busy", String(Boolean(snapshot.isLoading)));
+    const playLabel = t(
+      snapshot.isLoading
+        ? "nowPlaying.playback.preparing"
+        : snapshot.isPlaying
+          ? "nowPlaying.pause"
+          : "nowPlaying.play",
     );
-    playIcons.forEach((icon) => {
-      icon.classList.toggle(
-        "fa-play",
-        !snapshot.isPlaying && !snapshot.isLoading,
-      );
-      icon.classList.toggle("fa-pause", snapshot.isPlaying);
-      icon.classList.toggle("fa-spinner", snapshot.isLoading);
-      icon.classList.toggle("fa-spin", snapshot.isLoading);
-      const button = icon.closest("button");
-      if (button) {
-        button.disabled = snapshot.isLoading;
-        button.setAttribute("aria-busy", String(snapshot.isLoading));
-        const label = t(
-          snapshot.isLoading
-            ? "nowPlaying.playback.preparing"
-            : snapshot.isPlaying
-              ? "nowPlaying.pause"
-              : "nowPlaying.play",
-        );
-        button.setAttribute("aria-label", label);
-        button.setAttribute("title", label);
-        button.setAttribute("data-bs-original-title", label);
-      }
-    });
+    ["aria-label", "title", "data-bs-original-title"].forEach((attribute) =>
+      playButton.setAttribute(attribute, playLabel),
+    );
+
+    miniPlayer
+      .querySelectorAll('[data-action="previous"], [data-action="next"]')
+      .forEach((button) => {
+        button.disabled = Boolean(snapshot.isLoading || !snapshot.queue?.length);
+      });
+
+    const duration = Math.max(0, Number(snapshot.duration) || 0);
+    const currentTime = Math.min(
+      duration || Number.MAX_SAFE_INTEGER,
+      Math.max(0, Number(snapshot.currentTime) || 0),
+    );
+    const progress = miniPlayer.querySelector('[data-action="seek"]');
+    progress.max = String(duration);
+    progress.value = String(currentTime);
+    progress.disabled = !duration || Boolean(snapshot.isLoading);
+    progress.style.setProperty(
+      "--range-progress",
+      `${duration > 0 ? (currentTime / duration) * 100 : 0}%`,
+    );
+    progress.setAttribute(
+      "aria-valuetext",
+      `${formatPlaybackTime(currentTime)} / ${formatPlaybackTime(duration)}`,
+    );
+    const currentSecond = Math.floor(currentTime);
+    const durationSecond = Math.floor(duration);
+    if (currentSecond !== miniCurrentSecond) {
+      root.querySelector('[data-ui="mini-current-time"]').textContent =
+        formatPlaybackTime(currentTime);
+      miniCurrentSecond = currentSecond;
+    }
+    if (durationSecond !== miniDurationSecond) {
+      root.querySelector('[data-ui="mini-duration"]').textContent =
+        formatPlaybackTime(duration);
+      miniDurationSecond = durationSecond;
+    }
+
+    const muted = Boolean(snapshot.muted);
+    const volumeValue = muted ? 0 : Math.max(0, Number(snapshot.volume) || 0);
+    const volume = miniPlayer.querySelector('[data-action="volume"]');
+    volume.value = String(volumeValue);
+    volume.style.setProperty("--range-progress", `${volumeValue * 100}%`);
+    volume.setAttribute("aria-valuetext", `${Math.round(volumeValue * 100)}%`);
+    const muteButton = miniPlayer.querySelector('[data-action="mute"]');
+    const muteLabel = t(muted ? "nowPlaying.unmute" : "nowPlaying.mute");
+    muteButton.setAttribute("aria-pressed", String(muted));
+    ["aria-label", "title", "data-bs-original-title"].forEach((attribute) =>
+      muteButton.setAttribute(attribute, muteLabel),
+    );
+    muteButton.querySelector("i").className = muted
+      ? "fa-solid fa-volume-xmark"
+      : volumeValue < 0.5
+        ? "fa-solid fa-volume-low"
+        : "fa-solid fa-volume-high";
   }
 
   function show() {
@@ -458,124 +457,22 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
 
   function openDialog(nextMode, context = {}) {
     const activePlaylist = getActivePlaylist(latestState);
-    const config = {
-      create: {
-        title: "nowPlaying.playlists.create",
-        hint: "nowPlaying.playlists.createHint",
-        label: "nowPlaying.playlists.name",
-        submit: "nowPlaying.playlists.createAction",
-        value: "",
-        type: "text",
-        maxLength: 80,
-      },
-      rename: {
-        title: "nowPlaying.playlists.rename",
-        hint: "nowPlaying.playlists.renameHint",
-        label: "nowPlaying.playlists.name",
-        submit: "nowPlaying.playlists.save",
-        value: activePlaylist?.title || "",
-        type: "text",
-        maxLength: 80,
-      },
-      youtube: {
-        title: "nowPlaying.youtube.add",
-        hint: "nowPlaying.youtube.hint",
-        label: "nowPlaying.youtube.url",
-        submit: "nowPlaying.youtube.addAction",
-        value: "",
-        type: "url",
-        maxLength: 2048,
-      },
-      addTrack: {
-        title: "nowPlaying.playlists.addItem",
-        hint: "nowPlaying.playlists.addItemHint",
-        label: "nowPlaying.playlists.target",
-        submit: "nowPlaying.playlists.addItemAction",
-        value: "",
-        type: "select",
-      },
-      renameTrack: {
-        title: "nowPlaying.context.rename",
-        hint: "nowPlaying.context.renameHint",
-        label: "nowPlaying.context.displayTitle",
-        submit: "nowPlaying.playlists.save",
-        value: context.track?.displayTitle || context.track?.title || "",
-        type: "text",
-        maxLength: 160,
-      },
-      trackInfo: {
-        title: "nowPlaying.context.info",
-        hintText: [
-          context.track?.displayTitle || context.track?.title,
-          context.track?.artist,
-          context.track?.album,
-          formatPlaybackTime(context.track?.duration),
-          formatFileSize(context.track?.sizeBytes),
-          context.track?.providerId,
-        ]
-          .filter(Boolean)
-          .join(" · "),
-        label: "nowPlaying.context.info",
-        submit: "modal.close",
-        value: "",
-        type: "info",
-      },
-    }[nextMode];
-    if (!config) return;
-    mode = nextMode;
-    dialogContext = context;
-    dialogTitle.textContent = t(config.title);
-    dialogEyebrow.textContent = t("tabs.nowPlaying");
-    dialogHint.textContent = config.hintText || t(config.hint);
-    dialogLabel.textContent = t(config.label);
-    dialogSubmit.textContent = t(config.submit);
-    const isSelect = config.type === "select";
-    const isInfo = config.type === "info";
-    dialogField.hidden = isInfo;
-    dialogInput.hidden = isSelect;
-    dialogSelect.hidden = !isSelect;
-    if (isInfo) {
-      dialogInput.hidden = true;
-    } else if (isSelect && nextMode === "addTrack") {
-      const userPlaylists = getPlaylists(latestState).filter(
-        (playlist) => !isSystemPlaylist(playlist),
-      );
-      dialogSelect.replaceChildren(
-        ...userPlaylists.map((playlist) => {
-          const option = document.createElement("option");
-          option.value = playlist.id;
-          option.textContent = playlist.title;
-          return option;
-        }),
-      );
-    } else {
-      dialogInput.type = config.type;
-      dialogInput.maxLength = config.maxLength;
-      dialogInput.value = config.value;
-    }
-    dialogError.hidden = true;
-    dialogError.textContent = "";
-    openRegisteredModal(dialog, { blocking: false });
-    queueMicrotask(() => {
-      const field = isInfo ? dialogSubmit : isSelect ? dialogSelect : dialogInput;
-      field.focus();
-      if (!isSelect && !isInfo) field.select();
+    const userPlaylists = getPlaylists(latestState).filter(
+      (playlist) => !isSystemPlaylist(playlist),
+    );
+    return getPlayerDialog().open(nextMode, {
+      ...context,
+      activePlaylist,
+      userPlaylists,
     });
   }
 
   function closeDialog() {
-    closeRegisteredModal(dialog);
-    submitting = false;
-    dialogSubmit.disabled = false;
-    dialogForm.removeAttribute("aria-busy");
-    mode = "";
-    dialogContext = {};
+    return playerDialog?.close() ?? false;
   }
 
   function showDialogError(message) {
-    dialogError.textContent = message || t("nowPlaying.error");
-    dialogError.hidden = false;
-    if (dialog.open) dialogInput.focus();
+    getPlayerDialog().showError(message);
   }
 
   function setOperationStatus(
@@ -593,68 +490,12 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
     operationStatus.querySelector("span").textContent = message || "";
   }
 
-  async function handleSubmit(event) {
-    event.preventDefault();
-    if (submitting) return;
-    if (mode === "trackInfo") {
-      closeDialog();
-      return;
-    }
-    const value = ["addTrack", "youtubeQuality"].includes(mode)
-      ? dialogSelect.value
-      : dialogInput.value.trim();
-    if (!value) {
-      showDialogError(t("nowPlaying.library.required"));
-      return;
-    }
-    submitting = true;
-    const submitMode = mode;
-    const submitLabel = dialogSubmit.textContent;
-    dialogSubmit.disabled = true;
-    dialogForm.setAttribute("aria-busy", "true");
-    if (mode === "youtube") {
-      dialogSubmit.textContent = t("nowPlaying.youtube.fetching");
-    }
-    try {
-      const success = await onDialogSubmit?.(mode, value, dialogContext);
-      if (success?.step === "quality") {
-        submitting = false;
-        dialogForm.removeAttribute("aria-busy");
-        showYouTubeQualities(success);
-        return;
-      }
-      if (success === false) return;
-      closeDialog();
-    } catch (error) {
-      showDialogError(error?.message || t("nowPlaying.error"));
-    } finally {
-      if (dialog.open && mode === submitMode) {
-        submitting = false;
-        dialogSubmit.disabled = false;
-        dialogSubmit.textContent = submitLabel;
-        dialogForm.removeAttribute("aria-busy");
-      }
-    }
-  }
-
-  function onWindowKeydown(event) {
-    if (event.key !== "Escape" || !dialog.open) return;
-    event.preventDefault();
-    closeDialog();
-  }
-
-  dialogForm.addEventListener("submit", handleSubmit);
-  dialog.addEventListener("cancel", closeDialog);
-  window.addEventListener("keydown", onWindowKeydown);
-
   return {
     closeDialog,
     dispose() {
       closeDialog();
-      dialogForm.removeEventListener("submit", handleSubmit);
-      dialog.removeEventListener("cancel", closeDialog);
-      window.removeEventListener("keydown", onWindowKeydown);
-      unregisterModal();
+      playerDialog?.dispose();
+      playerDialog = null;
     },
     getActivePlaylist: () => getActivePlaylist(latestState),
     getTrackContext,
@@ -663,7 +504,9 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
     render,
     renderPlayback,
     setOperationStatus,
-    showYouTubeQualities,
+    showYouTubeQualities(payload) {
+      return getPlayerDialog().showYouTubeQualities(payload);
+    },
     show,
     showDialogError,
   };

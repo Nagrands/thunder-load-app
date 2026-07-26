@@ -192,13 +192,14 @@ export class YouTubeProvider {
     return result;
   }
 
-  async releasePlayback(playback = {}) {
+  releasePlayback(playback = {}) {
     if (
       playback.sessionId &&
       typeof this.api.closePlaybackSession === "function"
     ) {
-      await this.api.closePlaybackSession(playback.sessionId);
+      return this.api.closePlaybackSession(playback.sessionId);
     }
+    return undefined;
   }
 
   dispose() {

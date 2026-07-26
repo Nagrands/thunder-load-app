@@ -24,6 +24,28 @@ const sampleTrack = {
   availability: "available",
 };
 
+function installPlayerDialogFixture() {
+  const modal = document.createElement("div");
+  modal.dataset.ui = "player-form-modal";
+  modal.setAttribute("aria-hidden", "true");
+  modal.innerHTML = `
+    <form data-ui="player-form-modal-form">
+      <h2 data-ui="player-form-modal-title"></h2>
+      <p data-ui="player-form-modal-hint"></p>
+      <label data-ui="player-form-modal-field">
+        <span data-ui="player-form-modal-label"></span>
+        <input data-ui="player-form-modal-input" />
+        <select data-ui="player-form-modal-select" hidden></select>
+      </label>
+      <div data-ui="player-form-modal-error" hidden></div>
+      <button type="button" data-ui="player-form-modal-close"></button>
+      <button type="button" data-ui="player-form-modal-cancel"></button>
+      <button type="submit" data-ui="player-form-modal-submit"></button>
+    </form>`;
+  document.body.appendChild(modal);
+  return modal;
+}
+
 describe("Now Playing view", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -964,6 +986,31 @@ describe("Now Playing view", () => {
     expect(library.querySelector('[data-ui="mini-title"]').textContent).toBe(
       "Demo track",
     );
+    expect(library.querySelector('[data-ui="mini-artist"]').textContent).toBe(
+      "Thunder",
+    );
+    expect(library.querySelector('[data-ui="mini-album"]').textContent).toBe(
+      "Local",
+    );
+    expect(
+      library.querySelector('.player-library__return'),
+    ).toBeNull();
+    expect(
+      library
+        .querySelector('[data-ui="mini-player"] [data-action="show-player"]')
+        .getAttribute("aria-label"),
+    ).toBe("nowPlaying.library.openFullPlayer");
+    expect(
+      library.querySelector('[data-action="seek"]').max,
+    ).toBe("90");
+    expect(
+      library.querySelector('[data-ui="mini-duration"]').textContent,
+    ).toBe("1:30");
+    expect(
+      library.querySelector('[data-action="volume"]').getAttribute(
+        "aria-valuetext",
+      ),
+    ).toBe("100%");
     const sidebarSwitcher = view.element.querySelector(
       '[data-ui="sidebar-playlist-switcher"]',
     );
@@ -1114,6 +1161,7 @@ describe("Now Playing view", () => {
   });
 
   test("creates a playlist with the accessible library dialog", async () => {
+    const dialog = installPlayerDialogFixture();
     const api = {
       getState: jest.fn().mockResolvedValue({
         data: {
@@ -1135,12 +1183,11 @@ describe("Now Playing view", () => {
       .querySelector('[data-action="open-create-playlist-dialog"]')
       .click();
 
-    const dialog = view.element.querySelector('[data-ui="library-dialog"]');
-    const input = dialog.querySelector('[data-ui="library-dialog-input"]');
+    const input = dialog.querySelector('[data-ui="player-form-modal-input"]');
     expect(dialog.getAttribute("aria-hidden")).toBe("false");
     input.value = "Road trip";
     dialog
-      .querySelector('[data-ui="library-dialog-form"]')
+      .querySelector('[data-ui="player-form-modal-form"]')
       .dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
     await new Promise((resolve) => setTimeout(resolve, 260));
 
@@ -1163,6 +1210,7 @@ describe("Now Playing view", () => {
   });
 
   test("imports a single YouTube video from the library dialog", async () => {
+    const dialog = installPlayerDialogFixture();
     const youtubeTrack = {
       ...sampleTrack,
       id: "youtube:demo123",
@@ -1210,18 +1258,17 @@ describe("Now Playing view", () => {
     await view.ready;
     view.element.querySelector('[data-action="show-library"]').click();
     view.element.querySelector('[data-action="open-youtube-dialog"]').click();
-    const dialog = view.element.querySelector('[data-ui="library-dialog"]');
-    dialog.querySelector('[data-ui="library-dialog-input"]').value =
+    dialog.querySelector('[data-ui="player-form-modal-input"]').value =
       youtubeTrack.sourceRef;
     dialog
-      .querySelector('[data-ui="library-dialog-form"]')
+      .querySelector('[data-ui="player-form-modal-form"]')
       .dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
     await Promise.resolve();
     await Promise.resolve();
     await Promise.resolve();
 
     dialog
-      .querySelector('[data-ui="library-dialog-form"]')
+      .querySelector('[data-ui="player-form-modal-form"]')
       .dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
     await Promise.resolve();
     await Promise.resolve();
