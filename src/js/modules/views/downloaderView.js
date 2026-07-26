@@ -3,11 +3,8 @@
 import { t } from "../i18n.js";
 
 /**
- * Build a glassy layout for the Загрузчик tab using the existing
- * UI elements and IDs (so all current logic keeps working).
- *
- * It does not change IDs, only rearranges DOM into a structure
- * similar to WG Unlock / Backup views.
+ * Build the Downloader tab shell while preserving the existing interactive
+ * elements and IDs used by the renderer modules.
  *
  * @param {HTMLElement} wrapper The existing downloader wrapper (#downloader-view)
  * @returns {HTMLElement} The enhanced wrapper element
@@ -73,13 +70,24 @@ export default function renderDownloader(wrapper) {
     hdr.className = "downloader-shell-header";
     hdr.innerHTML = `
       <div class="downloader-shell-header__hero">
-        <div class="title">
-          <i class="fa-solid fa-download"></i>
-          <div class="title-content">
-            <h1 class="wg-text-gradient" data-i18n="downloader.title">${t("downloader.title")}</h1>
-            <p class="subtitle" data-i18n="downloader.subtitle">
-              ${t("downloader.subtitle")}
-            </p>
+        <div class="downloader-hero">
+          <div class="downloader-hero__content">
+            <span class="downloader-hero__icon" aria-hidden="true">
+              <i class="fa-solid fa-download"></i>
+            </span>
+            <div class="title-content">
+              <h1 class="wg-text-gradient" data-i18n="downloader.title">${t("downloader.title")}</h1>
+              <p class="subtitle" data-i18n="downloader.subtitle">
+                ${t("downloader.subtitle")}
+              </p>
+            </div>
+          </div>
+          <div class="downloader-hero__art" aria-hidden="true">
+            <img
+              src="../assets/img/downloader-hero.png"
+              alt=""
+              draggable="false"
+            />
           </div>
         </div>
       </div>

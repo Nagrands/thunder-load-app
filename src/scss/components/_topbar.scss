@@ -80,7 +80,7 @@
   --menu-item-height: 44px;
   --menu-item-padding: 0 14px;
   --menu-item-radius: var(--thunder-radius-md);
-  --menu-item-font-size: 15px;
+  --menu-item-font-size: 16px;
 
   .menu-item {
     -webkit-app-region: no-drag;
@@ -106,7 +106,7 @@
       position: absolute;
       inset: 0;
       border-radius: inherit;
-      background: var(--thunder-control-hover);
+      background: var(--color-hover);
       opacity: 0;
       transition: opacity 0.2s ease;
       z-index: 0;
@@ -191,7 +191,7 @@
     }
 
     &.active {
-      color: var(--thunder-electric);
+      color: var(--color-highlight);
       text-shadow: 0 0 18px rgba(var(--thunder-electric-rgb), 0.24);
 
       &::before {

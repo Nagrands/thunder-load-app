@@ -505,7 +505,7 @@ $transition-interactive:
     }
 
     &.active {
-      color: var(--thunder-electric);
+      color: var(--color-accent);
       border-color: rgba(var(--color-accent-rgb), 0.42);
       background: rgba(var(--color-accent-rgb), 0.14);
     }

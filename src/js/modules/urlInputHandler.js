@@ -1321,6 +1321,7 @@ function initUrlInputHandler() {
     });
   }
 
+  toggleButtons();
   setPreviewLoading(false);
   syncShellState();
   setHelperText("input.url.helper");

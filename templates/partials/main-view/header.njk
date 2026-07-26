@@ -3,7 +3,11 @@
   <!-- Input Container -->
   <div class="input-container">
     <div class="url-entry-shell">
-      <div class="url-input-wrapper">
+      <div class="url-input-wrapper url-input-wrapper--downloader">
+        <p class="url-input-heading" data-i18n="input.url.heading">
+          Ссылка на видео или аудио
+        </p>
+
         <div class="url-input-main">
           <div class="url-input-leading">
             <button
@@ -46,19 +50,21 @@
               type="button"
               class="paste-button hidden"
               aria-label="Вставить из буфера"
+              data-i18n-aria="input.paste"
               data-bs-toggle="tooltip"
               data-bs-placement="top"
               title="Вставить из буфера"
               data-i18n-title="input.paste"
             >
               <i class="fas fa-paste"></i>
-              <span data-i18n="input.url.action.paste">Вставить</span>
+              <span></span>
             </button>
             <button
               id="clear-url"
               type="button"
               class="clear-button hidden"
               aria-label="Очистить поле URL"
+              data-i18n-aria="input.clear"
               data-bs-toggle="tooltip"
               data-bs-placement="top"
               title="Очистить"
@@ -134,6 +140,18 @@
             </span>
           </div>
         </div>
+
+        <label class="url-drop-zone" for="url">
+          <span class="url-drop-zone__icon" aria-hidden="true">
+            <i class="fa-solid fa-cloud-arrow-down"></i>
+          </span>
+          <strong class="url-drop-zone__title" data-i18n="input.url.drop.title">
+            Перетащите ссылку сюда
+          </strong>
+          <span class="url-drop-zone__hint" data-i18n="input.url.drop.hint">
+            или вставьте её из буфера обмена
+          </span>
+        </label>
 
         <nav
           class="button-group downloader-action-row url-input-action-row"

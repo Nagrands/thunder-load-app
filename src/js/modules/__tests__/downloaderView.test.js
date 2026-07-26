@@ -36,18 +36,24 @@ describe("downloaderView hero", () => {
     localStorage.clear();
   });
 
-  test("builds full-width hero with separate meta row and preserved ids", () => {
+  test("builds illustrated hero with separate status row and preserved ids", () => {
     const { wrapper } = buildWrapper();
 
     renderDownloader(wrapper);
 
     const header = wrapper.querySelector(".downloader-shell-header");
     const hero = wrapper.querySelector(".downloader-shell-header__hero");
+    const heroArt = wrapper.querySelector(".downloader-hero__art img");
     const meta = wrapper.querySelector(".downloader-shell-header__meta");
     expect(header).not.toBeNull();
     expect(hero).not.toBeNull();
+    expect(hero?.querySelector(".downloader-hero__icon")).not.toBeNull();
     expect(meta).not.toBeNull();
     expect(hero?.querySelector(".title-content")).not.toBeNull();
+    expect(heroArt?.getAttribute("src")).toBe(
+      "../assets/img/downloader-hero.png",
+    );
+    expect(heroArt?.getAttribute("alt")).toBe("");
     expect(meta?.querySelector("#downloader-job-summary")).not.toBeNull();
     expect(meta?.querySelector("#dl-tools-status")).toBeNull();
     expect(

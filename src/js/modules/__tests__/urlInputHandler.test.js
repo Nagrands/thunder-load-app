@@ -268,6 +268,13 @@ describe("urlInputHandler", () => {
     jest.useRealTimers();
   });
 
+  test("shows the paste action in the initial empty state", () => {
+    const { pasteBtn, clearBtn } = getState();
+
+    expect(pasteBtn.classList.contains("hidden")).toBe(false);
+    expect(clearBtn.classList.contains("hidden")).toBe(true);
+  });
+
   test("does not show inline error while typing before blur/enter", () => {
     const { input, error, wrapper, actionRow } = getState();
     input.value = "http://";
