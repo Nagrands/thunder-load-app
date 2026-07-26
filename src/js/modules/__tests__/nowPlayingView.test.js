@@ -1108,6 +1108,29 @@ describe("Now Playing view", () => {
     const libraryTrack = library.querySelector(
       '.player-library__track[data-track-id="demo"]',
     );
+    const libraryTrackPlay = libraryTrack.querySelector(
+      '[data-action="select-library-track"]',
+    );
+    expect(libraryTrackPlay.getAttribute("aria-label")).toBe(
+      "nowPlaying.play Demo track",
+    );
+    expect(libraryTrackPlay.getAttribute("title")).toBe(
+      "nowPlaying.play Demo track",
+    );
+    libraryTrackPlay.click();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(libraryTrackPlay.getAttribute("aria-label")).toBe(
+      "nowPlaying.pause Demo track",
+    );
+    expect(libraryTrackPlay.getAttribute("data-bs-original-title")).toBe(
+      "nowPlaying.pause Demo track",
+    );
+    libraryTrackPlay.click();
+    await Promise.resolve();
+    expect(libraryTrackPlay.getAttribute("aria-label")).toBe(
+      "nowPlaying.play Demo track",
+    );
     view.element
       .querySelectorAll(".now-playing__video")
       .forEach((media) => media.dispatchEvent(new Event("timeupdate")));

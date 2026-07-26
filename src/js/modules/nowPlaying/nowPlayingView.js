@@ -645,6 +645,9 @@ export function createNowPlayingView({
       return selectPlaylist(target.dataset.playlistId);
     }
     if (action === "select-library-track") {
+      if (target.dataset.trackId === controller.currentTrack?.id) {
+        return controller.togglePlayback();
+      }
       return controller.selectTrack(target.dataset.trackId);
     }
     if (action === "remove-from-playlist") {

@@ -91,6 +91,23 @@ function createIconButton(action, icon, label, dataset = {}) {
   return button;
 }
 
+function setTrackPlaybackLabel(button, trackTitle, {
+  current = false,
+  loading = false,
+  playing = false,
+} = {}) {
+  const label = `${t(
+    loading
+      ? "nowPlaying.playback.preparing"
+      : current && playing
+        ? "nowPlaying.pause"
+        : "nowPlaying.play",
+  )} ${trackTitle}`;
+  ["aria-label", "title", "data-bs-original-title"].forEach((attribute) => {
+    button.setAttribute(attribute, label);
+  });
+}
+
 function normalizeSearchText(value) {
   return String(value || "").trim().toLocaleLowerCase();
 }
@@ -165,6 +182,7 @@ function createTrackRow(track, index, playlist, snapshot) {
   row.classList.toggle("is-missing", missing);
   if (current) row.setAttribute("aria-current", "true");
 
+  const trackTitle = track.displayTitle || track.title;
   const play = createIconButton(
     "select-library-track",
     loading
@@ -172,9 +190,14 @@ function createTrackRow(track, index, playlist, snapshot) {
       : current && snapshot?.isPlaying
         ? "fa-solid fa-volume-high"
         : "fa-solid fa-play",
-    `${t("nowPlaying.play")} ${track.displayTitle || track.title}`,
+    "",
     { trackId: track.id },
   );
+  setTrackPlaybackLabel(play, trackTitle, {
+    current,
+    loading,
+    playing: snapshot?.isPlaying,
+  });
   play.disabled = missing || loading;
   if (loading) {
     play.querySelector("[data-player-icon]")?.classList.add("is-spinning");
@@ -199,7 +222,7 @@ function createTrackRow(track, index, playlist, snapshot) {
   const metadata = document.createElement("span");
   metadata.className = "player-library__track-copy";
   const title = document.createElement("strong");
-  title.textContent = track.displayTitle || track.title;
+  title.textContent = trackTitle;
   const secondary = document.createElement("span");
   secondary.className = "player-library__track-secondary";
   secondary.textContent = [track.artist, track.album].filter(Boolean).join(" · ");
@@ -449,7 +472,17 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
       else row.removeAttribute("aria-current");
       const button = row.querySelector('[data-action="select-library-track"]');
       if (!button) return;
-      button.disabled = loading;
+      button.disabled = loading || row.classList.contains("is-missing");
+      setTrackPlaybackLabel(
+        button,
+        row.querySelector(".player-library__track-copy strong")?.textContent ||
+          "",
+        {
+          current,
+          loading,
+          playing: snapshot.isPlaying,
+        },
+      );
       setPlayerIcon(
         button,
         loading
