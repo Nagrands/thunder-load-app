@@ -26,10 +26,7 @@ const ICONS = Object.freeze({
 const SHORTCUT_ACTIONS = Object.freeze({
   shuffle: [PLAYER_COMMANDS.TOGGLE_SHUFFLE],
   previous: [PLAYER_COMMANDS.PREVIOUS],
-  "play-pause": [
-    PLAYER_COMMANDS.TOGGLE_PLAYBACK,
-    PLAYER_COMMANDS.STOP,
-  ],
+  "play-pause": [PLAYER_COMMANDS.TOGGLE_PLAYBACK, PLAYER_COMMANDS.STOP],
   next: [PLAYER_COMMANDS.NEXT],
   repeat: [PLAYER_COMMANDS.CYCLE_REPEAT],
   mute: [PLAYER_COMMANDS.TOGGLE_MUTE],
@@ -135,6 +132,15 @@ export function buildNowPlayingMarkup() {
       <div class="now-playing__media-layer" data-media-layer="1">
         <video class="now-playing__video" playsinline preload="metadata" tabindex="-1"></video>
         <div class="now-playing__ambient" data-ambient-layer="1"></div>
+      </div>
+      <div class="now-playing__visualizer" data-ui="audio-visualizer" hidden>
+        <canvas class="now-playing__visualizer-canvas" data-ui="visualizer-canvas"></canvas>
+        <p
+          class="now-playing__visualizer-status"
+          data-ui="visualizer-status"
+          data-i18n="nowPlaying.visualizer.staticFallback"
+          hidden
+        >${t("nowPlaying.visualizer.staticFallback")}</p>
       </div>
       <div class="now-playing__scrim"></div>
       <div class="now-playing__color-wash"></div>
@@ -251,6 +257,81 @@ export function buildNowPlayingMarkup() {
           ${iconButton("toggle-player-menu", "ellipsis", "nowPlaying.more", "now-playing__sidebar-tool")}
         </div>
       </aside>
+
+      <section
+        class="now-playing__visualizer-panel"
+        data-ui="visualizer-panel"
+        aria-label="${t("nowPlaying.visualizer.settings")}"
+        hidden
+      >
+        <button
+          type="button"
+          class="now-playing__visualizer-toggle"
+          data-action="toggle-visualizer-settings"
+          data-i18n-aria="nowPlaying.visualizer.settings"
+          aria-label="${t("nowPlaying.visualizer.settings")}"
+          aria-expanded="false"
+        >
+          <i data-lucide="audio-lines" aria-hidden="true"></i>
+          <span data-i18n="nowPlaying.visualizer.title">${t("nowPlaying.visualizer.title")}</span>
+          <i data-lucide="chevron-up" aria-hidden="true"></i>
+        </button>
+        <div class="now-playing__visualizer-summary">
+          <label>
+            <span data-i18n="nowPlaying.visualizer.type">${t("nowPlaying.visualizer.type")}</span>
+            <select data-visualizer-setting="type" disabled>
+              <option value="spectrum" data-i18n="nowPlaying.visualizer.type.spectrum">${t("nowPlaying.visualizer.type.spectrum")}</option>
+            </select>
+          </label>
+          <label>
+            <span data-i18n="nowPlaying.visualizer.color">${t("nowPlaying.visualizer.color")}</span>
+            <select data-visualizer-setting="colorScheme">
+              <option value="purple" data-i18n="nowPlaying.visualizer.color.purple">${t("nowPlaying.visualizer.color.purple")}</option>
+              <option value="blue" data-i18n="nowPlaying.visualizer.color.blue">${t("nowPlaying.visualizer.color.blue")}</option>
+              <option value="pink" data-i18n="nowPlaying.visualizer.color.pink">${t("nowPlaying.visualizer.color.pink")}</option>
+              <option value="gradient" data-i18n="nowPlaying.visualizer.color.gradient">${t("nowPlaying.visualizer.color.gradient")}</option>
+              <option value="accent" data-i18n="nowPlaying.visualizer.color.accent">${t("nowPlaying.visualizer.color.accent")}</option>
+            </select>
+          </label>
+          <label>
+            <span data-i18n="nowPlaying.visualizer.style">${t("nowPlaying.visualizer.style")}</span>
+            <select data-visualizer-setting="style">
+              <option value="normal" data-i18n="nowPlaying.visualizer.style.normal">${t("nowPlaying.visualizer.style.normal")}</option>
+              <option value="glow" data-i18n="nowPlaying.visualizer.style.glow">${t("nowPlaying.visualizer.style.glow")}</option>
+              <option value="minimal" data-i18n="nowPlaying.visualizer.style.minimal">${t("nowPlaying.visualizer.style.minimal")}</option>
+            </select>
+          </label>
+        </div>
+        <div class="now-playing__visualizer-details" data-ui="visualizer-details" hidden>
+          <label>
+            <span data-i18n="nowPlaying.visualizer.sensitivity">${t("nowPlaying.visualizer.sensitivity")}</span>
+            <input type="range" min="50" max="200" step="5" value="100" data-visualizer-setting="sensitivity" />
+            <output data-visualizer-output="sensitivity">100%</output>
+          </label>
+          <label>
+            <span data-i18n="nowPlaying.visualizer.smoothing">${t("nowPlaying.visualizer.smoothing")}</span>
+            <input type="range" min="0" max="95" step="5" value="80" data-visualizer-setting="smoothing" />
+            <output data-visualizer-output="smoothing">80%</output>
+          </label>
+          <label>
+            <span data-i18n="nowPlaying.visualizer.bars">${t("nowPlaying.visualizer.bars")}</span>
+            <input type="range" min="24" max="128" step="4" value="64" data-visualizer-setting="barCount" />
+            <output data-visualizer-output="barCount">64</output>
+          </label>
+          <label class="now-playing__visualizer-check">
+            <input type="checkbox" data-visualizer-setting="particles" checked />
+            <span data-i18n="nowPlaying.visualizer.particles">${t("nowPlaying.visualizer.particles")}</span>
+          </label>
+          <label class="now-playing__visualizer-check">
+            <input type="checkbox" data-visualizer-setting="reflection" checked />
+            <span data-i18n="nowPlaying.visualizer.reflection">${t("nowPlaying.visualizer.reflection")}</span>
+          </label>
+          <button type="button" data-action="reset-visualizer-settings">
+            <i data-lucide="rotate-ccw" aria-hidden="true"></i>
+            <span data-i18n="nowPlaying.visualizer.reset">${t("nowPlaying.visualizer.reset")}</span>
+          </button>
+        </div>
+      </section>
 
       <section class="now-playing__dock" aria-label="${t("nowPlaying.controls")}" aria-hidden="true" inert>
         <div class="now-playing__transport">

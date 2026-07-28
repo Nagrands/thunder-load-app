@@ -66,6 +66,9 @@
  * @property {number=} position
  * @property {boolean} canNext
  * @property {boolean} canPrevious
+ * @property {boolean=} mediaReady
+ * @property {boolean|null=} hasVideoTrack
+ * @property {boolean=} visualizerAnalysisAllowed
  */
 
 export {};

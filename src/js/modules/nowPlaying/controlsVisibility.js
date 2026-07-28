@@ -3,6 +3,7 @@ const AUTOHIDE_DELAY_MS = 2500;
 export function createControlsVisibility({
   root,
   dock,
+  lockRegions = [dock],
   delay = AUTOHIDE_DELAY_MS,
 }) {
   let active = false;
@@ -45,7 +46,7 @@ export function createControlsVisibility({
   }
 
   function onFocusIn(event) {
-    if (dock.contains(event.target)) {
+    if (lockRegions.some((region) => region?.contains(event.target))) {
       setLocked(true);
       return;
     }
@@ -53,18 +54,23 @@ export function createControlsVisibility({
   }
 
   function onFocusOut(event) {
-    if (!dock.contains(event.target)) return;
+    if (!lockRegions.some((region) => region?.contains(event.target))) return;
     queueMicrotask(() => {
-      if (disposed || dock.contains(document.activeElement)) return;
+      if (
+        disposed ||
+        lockRegions.some((region) => region?.contains(document.activeElement))
+      ) {
+        return;
+      }
       setLocked(false);
     });
   }
 
-  function onDockEnter() {
+  function onLockedRegionEnter() {
     setLocked(true);
   }
 
-  function onDockLeave() {
+  function onLockedRegionLeave() {
     setLocked(false);
   }
 
@@ -72,8 +78,10 @@ export function createControlsVisibility({
   root.addEventListener("keydown", onInteraction);
   root.addEventListener("focusin", onFocusIn);
   root.addEventListener("focusout", onFocusOut);
-  dock.addEventListener("mouseenter", onDockEnter);
-  dock.addEventListener("mouseleave", onDockLeave);
+  lockRegions.forEach((region) => {
+    region?.addEventListener("mouseenter", onLockedRegionEnter);
+    region?.addEventListener("mouseleave", onLockedRegionLeave);
+  });
 
   return {
     setLocked,
@@ -107,8 +115,10 @@ export function createControlsVisibility({
       root.removeEventListener("keydown", onInteraction);
       root.removeEventListener("focusin", onFocusIn);
       root.removeEventListener("focusout", onFocusOut);
-      dock.removeEventListener("mouseenter", onDockEnter);
-      dock.removeEventListener("mouseleave", onDockLeave);
+      lockRegions.forEach((region) => {
+        region?.removeEventListener("mouseenter", onLockedRegionEnter);
+        region?.removeEventListener("mouseleave", onLockedRegionLeave);
+      });
     },
   };
 }

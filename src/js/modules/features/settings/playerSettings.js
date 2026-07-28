@@ -4,9 +4,14 @@ import {
   applyPlayerSettings,
   onPlayerSettingsState,
 } from "../../nowPlaying/settingsEvents.js";
-import { DEFAULT_PLAYER_SETTINGS } from "./defaults.js";
+import {
+  DEFAULT_PLAYER_SETTINGS,
+  DEFAULT_VISUALIZER_SETTINGS,
+} from "./defaults.js";
+import { normalizeVisualizerSettings } from "../../nowPlaying/visualizerSettings.js";
 
-export { DEFAULT_PLAYER_SETTINGS };
+export { DEFAULT_PLAYER_SETTINGS, DEFAULT_VISUALIZER_SETTINGS };
+export { normalizeVisualizerSettings };
 
 export function normalizePlayerSettings(value = {}) {
   const rawVolume = Number(value.volume);
@@ -20,11 +25,10 @@ export function normalizePlayerSettings(value = {}) {
         ? value.backgroundPlayback
         : true,
     shuffle: value.shuffle === true,
-    repeat: ["off", "one", "all"].includes(value.repeat)
-      ? value.repeat
-      : "off",
+    repeat: ["off", "one", "all"].includes(value.repeat) ? value.repeat : "off",
     volume,
     muted: volume === 0 || value.muted === true,
+    visualizer: normalizeVisualizerSettings(value.visualizer),
   };
 }
 
@@ -44,9 +48,7 @@ export function createPlayerSettingsController({
     "settings-player-background-playback",
   );
   const shuffle = root.getElementById("settings-player-shuffle");
-  const repeat = [
-    ...root.querySelectorAll("[data-player-repeat]"),
-  ];
+  const repeat = [...root.querySelectorAll("[data-player-repeat]")];
   const volume = root.getElementById("settings-player-volume");
   const volumeValue = root.getElementById("settings-player-volume-value");
   if (
@@ -119,21 +121,27 @@ export function createPlayerSettingsController({
     }
   }
 
-  sidebarPinned.addEventListener("change", () =>
-    void update({ sidebarPinned: sidebarPinned.checked }),
+  sidebarPinned.addEventListener(
+    "change",
+    () => void update({ sidebarPinned: sidebarPinned.checked }),
   );
-  backgroundPlayback.addEventListener("change", () =>
-    void update({ backgroundPlayback: backgroundPlayback.checked }),
+  backgroundPlayback.addEventListener(
+    "change",
+    () => void update({ backgroundPlayback: backgroundPlayback.checked }),
   );
-  shuffle.addEventListener("change", () =>
-    void update({ shuffle: shuffle.checked }),
+  shuffle.addEventListener(
+    "change",
+    () => void update({ shuffle: shuffle.checked }),
   );
   repeat.forEach((button) => {
-    button.addEventListener("click", () =>
-      void update({ repeat: button.dataset.playerRepeat }),
+    button.addEventListener(
+      "click",
+      () => void update({ repeat: button.dataset.playerRepeat }),
     );
     button.addEventListener("keydown", (event) => {
-      if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) {
+      if (
+        !["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)
+      ) {
         return;
       }
       event.preventDefault();

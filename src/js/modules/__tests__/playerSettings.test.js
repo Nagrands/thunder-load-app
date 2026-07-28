@@ -50,9 +50,9 @@ describe("Player settings controller", () => {
       }),
       updateSettings: jest.fn(),
     };
-    const { createPlayerSettingsController } = require(
-      "../features/settings/playerSettings.js"
-    );
+    const {
+      createPlayerSettingsController,
+    } = require("../features/settings/playerSettings.js");
     const controller = createPlayerSettingsController({ api });
 
     window.dispatchEvent(new Event("settings:opened"));
@@ -60,19 +60,19 @@ describe("Player settings controller", () => {
     await Promise.resolve();
 
     expect(api.getState).toHaveBeenCalledTimes(1);
-    expect(document.getElementById("settings-player-sidebar-pinned").checked).toBe(
-      true,
-    );
     expect(
-      document.querySelector('[data-player-repeat="all"]').getAttribute(
-        "aria-checked",
-      ),
+      document.getElementById("settings-player-sidebar-pinned").checked,
+    ).toBe(true);
+    expect(
+      document
+        .querySelector('[data-player-repeat="all"]')
+        .getAttribute("aria-checked"),
     ).toBe("true");
     expect(document.getElementById("settings-player-volume").value).toBe("64");
     expect(
-      document.getElementById("settings-player-volume").getAttribute(
-        "aria-valuetext",
-      ),
+      document
+        .getElementById("settings-player-volume")
+        .getAttribute("aria-valuetext"),
     ).toBe("64%");
     controller.dispose();
   });
@@ -85,9 +85,9 @@ describe("Player settings controller", () => {
         data: completeState(patch),
       })),
     };
-    const { createPlayerSettingsController } = require(
-      "../features/settings/playerSettings.js"
-    );
+    const {
+      createPlayerSettingsController,
+    } = require("../features/settings/playerSettings.js");
     const applied = jest.fn();
     window.addEventListener("now-playing:settings-apply", applied);
     const controller = createPlayerSettingsController({ api });
@@ -117,9 +117,9 @@ describe("Player settings controller", () => {
         return { success: true, data: saved };
       }),
     };
-    const { createPlayerSettingsController } = require(
-      "../features/settings/playerSettings.js"
-    );
+    const {
+      createPlayerSettingsController,
+    } = require("../features/settings/playerSettings.js");
     const controller = createPlayerSettingsController({ api });
     const volume = document.getElementById("settings-player-volume");
 
@@ -151,9 +151,9 @@ describe("Player settings controller", () => {
       getState: jest.fn(),
       updateSettings: jest.fn(),
     };
-    const { createPlayerSettingsController } = require(
-      "../features/settings/playerSettings.js"
-    );
+    const {
+      createPlayerSettingsController,
+    } = require("../features/settings/playerSettings.js");
     const controller = createPlayerSettingsController({ api });
 
     window.dispatchEvent(
@@ -175,9 +175,9 @@ describe("Player settings controller", () => {
       true,
     );
     expect(
-      document.querySelector('[data-player-repeat="one"]').getAttribute(
-        "aria-checked",
-      ),
+      document
+        .querySelector('[data-player-repeat="one"]')
+        .getAttribute("aria-checked"),
     ).toBe("true");
     expect(document.getElementById("settings-player-volume").value).toBe("0");
     expect(api.updateSettings).not.toHaveBeenCalled();
@@ -192,9 +192,9 @@ describe("Player settings controller", () => {
         error: { message: "Save failed" },
       }),
     };
-    const { createPlayerSettingsController } = require(
-      "../features/settings/playerSettings.js"
-    );
+    const {
+      createPlayerSettingsController,
+    } = require("../features/settings/playerSettings.js");
     const controller = createPlayerSettingsController({ api });
     const pin = document.getElementById("settings-player-sidebar-pinned");
 
@@ -206,5 +206,35 @@ describe("Player settings controller", () => {
     expect(pin.checked).toBe(false);
     expect(mockShowToast).toHaveBeenCalledWith("Save failed", "error");
     controller.dispose();
+  });
+
+  test("normalizes visualizer settings for persistence and import", () => {
+    const {
+      normalizePlayerSettings,
+    } = require("../features/settings/playerSettings.js");
+
+    expect(
+      normalizePlayerSettings({
+        visualizer: {
+          type: "wave",
+          colorScheme: "pink",
+          style: "minimal",
+          sensitivity: 4,
+          smoothing: -1,
+          barCount: 47.8,
+          particles: false,
+          reflection: false,
+        },
+      }).visualizer,
+    ).toEqual({
+      type: "spectrum",
+      colorScheme: "pink",
+      style: "minimal",
+      sensitivity: 2,
+      smoothing: 0,
+      barCount: 48,
+      particles: false,
+      reflection: false,
+    });
   });
 });

@@ -234,6 +234,15 @@ describe("nowPlayingIpcHandlers", () => {
       shuffle: true,
       repeat: "all",
       volume: 0.35,
+      visualizer: {
+        colorScheme: "blue",
+        style: "minimal",
+        sensitivity: 5,
+        smoothing: 0.55,
+        barCount: 75.6,
+        particles: false,
+        reflection: false,
+      },
     });
 
     expect(result).toMatchObject({
@@ -248,6 +257,16 @@ describe("nowPlayingIpcHandlers", () => {
         repeat: "all",
         volume: 0.35,
         muted: false,
+        visualizer: {
+          type: "spectrum",
+          colorScheme: "blue",
+          style: "minimal",
+          sensitivity: 2,
+          smoothing: 0.55,
+          barCount: 76,
+          particles: false,
+          reflection: false,
+        },
       },
     });
     expect(result.data.catalog).toEqual({ tracks: [] });
@@ -269,6 +288,8 @@ describe("nowPlayingIpcHandlers", () => {
     [{ volume: "0.5" }],
     [{ volume: -0.1 }],
     [{ volume: 1.1 }],
+    [{ visualizer: null }],
+    [{ visualizer: "spectrum" }],
   ])("rejects invalid Player settings patch %#", async (patch) => {
     const { CHANNELS } = register();
 

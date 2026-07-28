@@ -114,6 +114,13 @@ export class PlaybackController {
 
   getSnapshot() {
     const media = this.activeMedia;
+    const activeRecord = this.layerPlaybacks[this.activeLayerIndex];
+    const activeRecordMatches = Boolean(
+      activeRecord &&
+        this.currentTrack &&
+        activeRecord.track?.id === this.currentTrack.id &&
+        media?.dataset.trackId === this.currentTrack?.id,
+    );
     let bufferedEnd = 0;
     try {
       if (media?.buffered?.length) {
@@ -142,6 +149,12 @@ export class PlaybackController {
       duration:
         Number(media?.duration) || Number(this.currentTrack?.duration) || 0,
       bufferedEnd,
+      mediaReady: activeRecordMatches && activeRecord.mediaReady === true,
+      hasVideoTrack: activeRecordMatches
+        ? (activeRecord.hasVideoTrack ?? null)
+        : null,
+      visualizerAnalysisAllowed:
+        !activeRecordMatches || activeRecord.analysisAllowed !== false,
       error: this.error,
     };
   }
@@ -338,7 +351,15 @@ export class PlaybackController {
     nextMedia.dataset.kind = track.kind;
     nextMedia.poster = playback.posterUrl || track.artworkUrl || "";
     nextMedia.currentTime = 0;
-    this.layerPlaybacks[nextLayerIndex] = { playback, track };
+    this.layerPlaybacks[nextLayerIndex] = {
+      playback,
+      track,
+      mediaReady: false,
+      hasVideoTrack: null,
+      analysisAllowed: !(
+        track.providerId === "network" && playback.kind !== "hls"
+      ),
+    };
     const normalizedStartTime = Math.max(0, Number(startTime) || 0);
     if (normalizedStartTime > 0) {
       this.pendingStartTimes.set(nextMedia, {
@@ -393,6 +414,7 @@ export class PlaybackController {
         }
       }
     }
+    this.updateMediaClassification(nextMedia);
     this.activeLayerIndex = nextLayerIndex;
     this.applyVolume();
     this.emit();
@@ -1156,6 +1178,7 @@ export class PlaybackController {
       const handlers = {
         loadedmetadata: () => {
           this.applyPendingStartTime(media);
+          this.updateMediaClassification(media);
           if (media === this.activeMedia) this.emit();
         },
         timeupdate: () => {
@@ -1186,6 +1209,16 @@ export class PlaybackController {
       );
       this.mediaEventHandlers.set(media, handlers);
     });
+  }
+
+  updateMediaClassification(media) {
+    const index = this.mediaLayers.indexOf(media);
+    const record = this.layerPlaybacks[index];
+    if (!record || Number(media?.readyState) < 1) return false;
+    record.mediaReady = true;
+    record.hasVideoTrack =
+      Number(media.videoWidth) > 0 || Number(media.videoHeight) > 0;
+    return true;
   }
 
   applyPendingStartTime(media, { retain = false } = {}) {

@@ -116,6 +116,62 @@ describe("Now Playing playback controller", () => {
     expect(mediaLayers[0].muted).toBe(true);
   });
 
+  test("classifies the loaded media by its actual video track", async () => {
+    const { controller, mediaLayers } = createController();
+    const audioOnlyMp4 = {
+      ...tracks[0],
+      kind: "video",
+      sourceRef: "/audio-only.mp4",
+      mediaInfo: { videoCodec: "", audioCodec: "aac" },
+    };
+    controller.setQueue([audioOnlyMp4]);
+    await controller.selectTrack(audioOnlyMp4.id, { autoplay: false });
+    const media = mediaLayers[controller.activeLayerIndex];
+    Object.defineProperties(media, {
+      readyState: { configurable: true, value: 1 },
+      videoHeight: { configurable: true, value: 0 },
+      videoWidth: { configurable: true, value: 0 },
+    });
+    media.dispatchEvent(new Event("loadedmetadata"));
+
+    expect(controller.getSnapshot()).toMatchObject({
+      mediaReady: true,
+      hasVideoTrack: false,
+      visualizerAnalysisAllowed: true,
+    });
+
+    Object.defineProperties(media, {
+      videoHeight: { configurable: true, value: 1080 },
+      videoWidth: { configurable: true, value: 1920 },
+    });
+    media.dispatchEvent(new Event("loadedmetadata"));
+    expect(controller.getSnapshot().hasVideoTrack).toBe(true);
+  });
+
+  test("marks direct network media as unsafe for Web Audio analysis", async () => {
+    const { controller, mediaLayers } = createController();
+    const networkTrack = {
+      ...tracks[0],
+      providerId: "network",
+      sourceRef: "https://media.example/song.mp3",
+    };
+    controller.setQueue([networkTrack]);
+    await controller.selectTrack(networkTrack.id, { autoplay: false });
+    const media = mediaLayers[controller.activeLayerIndex];
+    Object.defineProperties(media, {
+      readyState: { configurable: true, value: 1 },
+      videoHeight: { configurable: true, value: 0 },
+      videoWidth: { configurable: true, value: 0 },
+    });
+    media.dispatchEvent(new Event("loadedmetadata"));
+
+    expect(controller.getSnapshot()).toMatchObject({
+      mediaReady: true,
+      hasVideoTrack: false,
+      visualizerAnalysisAllowed: false,
+    });
+  });
+
   test("switches native audio without loading, seeking or restarting playback", async () => {
     const { controller, mediaLayers, providers } = createController();
     const nativeTracks = exposeAudioTracks(mediaLayers[1]);

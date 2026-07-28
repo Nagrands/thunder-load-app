@@ -85,6 +85,44 @@ describe("nowPlayingState", () => {
     expect(state.version).toBe(3);
     expect(state.activePlaylistId).toBe(LIBRARY_PLAYLIST_ID);
     expect(state.selectedTrackId).toBe("legacy");
+    expect(state.visualizer).toEqual({
+      type: "spectrum",
+      colorScheme: "gradient",
+      style: "glow",
+      sensitivity: 1,
+      smoothing: 0.8,
+      barCount: 64,
+      particles: true,
+      reflection: true,
+    });
+  });
+
+  test("sanitizes persisted visualizer settings without changing Player state", () => {
+    const state = sanitizeState({
+      volume: 0.4,
+      visualizer: {
+        type: "radial",
+        colorScheme: "pink",
+        style: "minimal",
+        sensitivity: 9,
+        smoothing: -1,
+        barCount: 53.6,
+        particles: false,
+        reflection: false,
+      },
+    });
+
+    expect(state.volume).toBe(0.4);
+    expect(state.visualizer).toEqual({
+      type: "spectrum",
+      colorScheme: "pink",
+      style: "minimal",
+      sensitivity: 2,
+      smoothing: 0,
+      barCount: 54,
+      particles: false,
+      reflection: false,
+    });
   });
 
   test("sanitizes YouTube quality selections and network tracks", () => {

@@ -28,6 +28,11 @@ import { unwrapNowPlayingState } from "./viewUtils.js";
 import createTransientQueue from "./transientQueue.js";
 import createTimelinePreviewController from "./timelinePreviewController.js";
 import createAudioTracksController from "./audioTracksController.js";
+import createAudioVisualizerController from "./audioVisualizerController.js";
+import {
+  DEFAULT_VISUALIZER_SETTINGS,
+  normalizeVisualizerSettings,
+} from "./visualizerSettings.js";
 import {
   PLAYER_COMMANDS,
   PLAYER_UI_ACTIONS,
@@ -68,6 +73,13 @@ export function createNowPlayingView({
   const playlist = root.querySelector(".now-playing__playlist");
   const errorPanel = root.querySelector(".now-playing__error");
   const dock = root.querySelector(".now-playing__dock");
+  const visualizerLayer = root.querySelector('[data-ui="audio-visualizer"]');
+  const visualizerCanvas = root.querySelector('[data-ui="visualizer-canvas"]');
+  const visualizerPanel = root.querySelector('[data-ui="visualizer-panel"]');
+  const visualizerDetails = root.querySelector(
+    '[data-ui="visualizer-details"]',
+  );
+  const visualizerStatus = root.querySelector('[data-ui="visualizer-status"]');
   const sidebar = root.querySelector(".now-playing__sidebar");
   const sidebarZone = root.querySelector(".now-playing__sidebar-reveal-zone");
   const topbarZone = root.querySelector(".now-playing__topbar-reveal-zone");
@@ -115,10 +127,23 @@ export function createNowPlayingView({
   let persistenceRequested = false;
   let volumeFeedbackTimer = null;
   let operationFeedbackTimer = null;
+  let visualizerSaveVersion = 0;
+  let visualizerConnectionVersion = 0;
+  let visualizerConnectionFailed = false;
+  let visualizerMedia = null;
+  let visualizerSettings = { ...DEFAULT_VISUALIZER_SETTINGS };
   let draggedTrackId = "";
   let libraryModel = null;
   const renderPlaylist = createPlaylistRenderer(playlist);
-  const controlsVisibility = createControlsVisibility({ root, dock });
+  const controlsVisibility = createControlsVisibility({
+    root,
+    dock,
+    lockRegions: [dock, visualizerPanel],
+  });
+  const visualizer = createAudioVisualizerController({
+    canvas: visualizerCanvas,
+    root,
+  });
   const visualTransitions = createVisualTransitionController({
     root,
     mediaLayers,
@@ -327,13 +352,126 @@ export function createNowPlayingView({
         muted: playbackState.muted,
         shuffle: playbackState.shuffle,
         repeat: playbackState.repeat,
+        visualizer: { ...visualizerSettings },
         ...preferences.getState(),
       };
     }
     return {
       ...playbackState,
       ...preferences.getState(),
+      visualizer: { ...visualizerSettings },
     };
+  }
+
+  function renderVisualizerSettings() {
+    root.querySelectorAll("[data-visualizer-setting]").forEach((control) => {
+      const key = control.dataset.visualizerSetting;
+      const value = visualizerSettings[key];
+      if (control.type === "checkbox") {
+        control.checked = value === true;
+      } else if (key === "sensitivity" || key === "smoothing") {
+        control.value = String(Math.round(Number(value) * 100));
+      } else {
+        control.value = String(value);
+      }
+    });
+    root.querySelectorAll("[data-visualizer-output]").forEach((output) => {
+      const key = output.dataset.visualizerOutput;
+      const value = visualizerSettings[key];
+      output.value =
+        key === "barCount"
+          ? String(value)
+          : `${Math.round(Number(value) * 100)}%`;
+      output.textContent = output.value;
+    });
+    visualizer.updateSettings(visualizerSettings);
+  }
+
+  async function saveVisualizerSettings(nextSettings) {
+    const previous = visualizerSettings;
+    const version = ++visualizerSaveVersion;
+    visualizerSettings = normalizeVisualizerSettings(nextSettings);
+    renderVisualizerSettings();
+    queuePersistence();
+    try {
+      const result = await api?.updateSettings?.({
+        visualizer: visualizerSettings,
+      });
+      if (result?.success === false) {
+        throw new Error(
+          result.error?.message || t("settings.player.saveError"),
+        );
+      }
+      if (version !== visualizerSaveVersion) return true;
+      const saved = result?.data?.visualizer;
+      if (saved) {
+        visualizerSettings = normalizeVisualizerSettings(saved);
+        renderVisualizerSettings();
+      }
+      publishSettingsState();
+      return true;
+    } catch (error) {
+      if (version === visualizerSaveVersion) {
+        visualizerSettings = previous;
+        renderVisualizerSettings();
+        status.textContent = error?.message || t("settings.player.saveError");
+      }
+      return false;
+    }
+  }
+
+  function syncVisualizer(snapshot) {
+    const eligible =
+      Boolean(snapshot.currentTrack) &&
+      snapshot.mediaReady === true &&
+      snapshot.hasVideoTrack === false &&
+      snapshot.isLoading !== true &&
+      !snapshot.error;
+    visualizerLayer.hidden = !eligible;
+    visualizerPanel.hidden = !eligible;
+    root.classList.toggle("has-audio-visualizer", eligible);
+    if (!eligible) {
+      visualizerConnectionVersion += 1;
+      visualizerConnectionFailed = false;
+      visualizerMedia = null;
+      visualizerStatus.hidden = true;
+      visualizer.clear();
+      return;
+    }
+    const media = mediaLayers[snapshot.activeLayerIndex];
+    if (media !== visualizerMedia) {
+      visualizerMedia = media;
+      visualizerConnectionFailed = false;
+      const version = ++visualizerConnectionVersion;
+      void visualizer
+        .connect(media, {
+          analysisAllowed: snapshot.visualizerAnalysisAllowed,
+        })
+        .then((connected) => {
+          if (version !== visualizerConnectionVersion) return;
+          visualizerConnectionFailed =
+            !connected && snapshot.visualizerAnalysisAllowed !== false;
+          visualizerStatus.textContent = t(
+            visualizerConnectionFailed
+              ? "nowPlaying.visualizer.unavailable"
+              : "nowPlaying.visualizer.staticFallback",
+          );
+          visualizerStatus.hidden = connected;
+        });
+    }
+    if (snapshot.visualizerAnalysisAllowed === false) {
+      visualizerStatus.textContent = t(
+        "nowPlaying.visualizer.staticFallback",
+      );
+      visualizerStatus.hidden = false;
+    } else if (visualizerConnectionFailed) {
+      visualizerStatus.textContent = t("nowPlaying.visualizer.unavailable");
+      visualizerStatus.hidden = false;
+    } else {
+      visualizerStatus.hidden = true;
+    }
+    if (snapshot.isPlaying) visualizer.start();
+    else visualizer.pause();
   }
 
   function getPlaybackErrorMessage(error) {
@@ -348,6 +486,7 @@ export function createNowPlayingView({
     mediaSession.sync(snapshot);
     const playlistIconsChanged = renderPlaylist(snapshot);
     visualTransitions.update(snapshot);
+    syncVisualizer(snapshot);
     updateControls(snapshot);
     presentation.update(snapshot);
     audioTracks?.sync(snapshot);
@@ -410,6 +549,7 @@ export function createNowPlayingView({
       repeat: snapshot.repeat,
       volume: snapshot.volume,
       muted: snapshot.muted === true,
+      visualizer: { ...visualizerSettings },
     };
   }
 
@@ -425,6 +565,10 @@ export function createNowPlayingView({
     const settings = event.detail || {};
     preferences.apply(settings, { notify: false });
     controller.applyPlaybackSettings(settings);
+    if (settings.visualizer) {
+      visualizerSettings = normalizeVisualizerSettings(settings.visualizer);
+      renderVisualizerSettings();
+    }
     queuePersistence();
     publishSettingsState();
   }
@@ -443,6 +587,7 @@ export function createNowPlayingView({
     initTooltips(root);
     presentation.refreshIcons();
     audioTracks?.refreshI18n();
+    renderVisualizerSettings();
   }
 
   async function switchAudioTrack({ audioTrackId: nextAudioTrackId, tracks }) {
@@ -833,6 +978,17 @@ export function createNowPlayingView({
       return executeCommand(playerCommand);
     }
     if (preferences.handleAction(action)) return true;
+    if (action === "toggle-visualizer-settings") {
+      const expanded = visualizerDetails.hidden;
+      visualizerDetails.hidden = !expanded;
+      target.setAttribute("aria-expanded", String(expanded));
+      root.classList.toggle("is-visualizer-settings-open", expanded);
+      controlsVisibility.setLocked(expanded);
+      return true;
+    }
+    if (action === "reset-visualizer-settings") {
+      return saveVisualizerSettings(DEFAULT_VISUALIZER_SETTINGS);
+    }
     if (action === "add-files") return importSource("files");
     if (action === "add-folder") return importSource("folder");
     if (action === "clear") return clearQueue();
@@ -1147,6 +1303,23 @@ export function createNowPlayingView({
   }
 
   function onInput(event) {
+    const visualizerControl = event.target.closest("[data-visualizer-setting]");
+    if (
+      visualizerControl &&
+      ["sensitivity", "smoothing", "barCount"].includes(
+        visualizerControl.dataset.visualizerSetting,
+      )
+    ) {
+      const key = visualizerControl.dataset.visualizerSetting;
+      const raw = Number(visualizerControl.value);
+      const value =
+        key === "barCount" ? raw : Math.min(2, Math.max(0, raw / 100));
+      void saveVisualizerSettings({
+        ...visualizerSettings,
+        [key]: value,
+      });
+      return;
+    }
     if (event.target.matches('[data-action="filter-library"]')) {
       libraryView.setSearchQuery(event.target.value);
       return;
@@ -1158,6 +1331,17 @@ export function createNowPlayingView({
       showVolumeFeedback();
       controller.setVolume(event.target.value);
     }
+  }
+
+  function onChange(event) {
+    const control = event.target.closest("[data-visualizer-setting]");
+    if (!control || !root.contains(control)) return;
+    const key = control.dataset.visualizerSetting;
+    if (["sensitivity", "smoothing", "barCount"].includes(key)) return;
+    void saveVisualizerSettings({
+      ...visualizerSettings,
+      [key]: control.type === "checkbox" ? control.checked : control.value,
+    });
   }
 
   function onWheel(event) {
@@ -1213,7 +1397,7 @@ export function createNowPlayingView({
       "button, input, select, textarea, a, [role='button'], [contenteditable='true']",
     );
     const overlayTarget = event.target.closest(
-      ".now-playing__sidebar, .now-playing__dock, .now-playing__player-topbar, .now-playing__player-menu",
+      ".now-playing__sidebar, .now-playing__dock, .now-playing__visualizer-panel, .now-playing__player-topbar, .now-playing__player-menu",
     );
     const playerStage = event.target.closest('[data-ui="player-stage"]');
     if (
@@ -1329,6 +1513,7 @@ export function createNowPlayingView({
   root.addEventListener("click", onClick);
   root.addEventListener("keydown", onKeydown);
   root.addEventListener("input", onInput);
+  root.addEventListener("change", onChange);
   root.addEventListener("wheel", onWheel, { passive: false });
   root.addEventListener("contextmenu", onContextMenu);
   root.addEventListener("dblclick", onDoubleClick);
@@ -1351,6 +1536,8 @@ export function createNowPlayingView({
     try {
       const state = unwrapNowPlayingState(await api.getState());
       preferences.restore(state);
+      visualizerSettings = normalizeVisualizerSettings(state.visualizer);
+      renderVisualizerSettings();
       libraryModel = createMediaLibraryModel(state);
       const libraryState = libraryModel.getState();
       provider.restore({
@@ -1448,6 +1635,7 @@ export function createNowPlayingView({
       overlayVisibility.dispose();
       fullscreen.dispose();
       visualTransitions.dispose();
+      visualizer.destroy();
       timelinePreview.dispose();
       libraryView.dispose();
       contextMenu.dispose();
@@ -1459,6 +1647,7 @@ export function createNowPlayingView({
       root.removeEventListener("click", onClick);
       root.removeEventListener("keydown", onKeydown);
       root.removeEventListener("input", onInput);
+      root.removeEventListener("change", onChange);
       root.removeEventListener("wheel", onWheel);
       root.removeEventListener("contextmenu", onContextMenu);
       root.removeEventListener("dblclick", onDoubleClick);

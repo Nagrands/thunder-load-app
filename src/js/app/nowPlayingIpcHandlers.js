@@ -16,6 +16,7 @@ const {
   defaultState,
   getTrackKey,
   sanitizeState,
+  sanitizeVisualizerSettings,
 } = require("./nowPlayingState");
 const { createYouTubeHandlers } = require("./nowPlayingYouTube");
 const { NowPlayingHlsService } = require("./nowPlayingHlsService");
@@ -41,7 +42,11 @@ function readState(store) {
   try {
     const stored = store.get(STATE_KEY, defaultState());
     const state = sanitizeState(stored);
-    if (stored?.version !== STATE_VERSION) {
+    if (
+      stored?.version !== STATE_VERSION ||
+      !stored?.visualizer ||
+      typeof stored.visualizer !== "object"
+    ) {
       store.set(STATE_KEY, state);
     }
     return state;
@@ -76,6 +81,7 @@ function normalizeSettingsPatch(value) {
     "repeat",
     "volume",
     "muted",
+    "visualizer",
   ]);
   const keys = Object.keys(value);
   if (!keys.length || keys.some((key) => !allowed.has(key))) {
@@ -122,6 +128,18 @@ function normalizeSettingsPatch(value) {
     } else if (!("muted" in patch)) {
       patch.muted = false;
     }
+  }
+  if ("visualizer" in value) {
+    if (
+      !value.visualizer ||
+      typeof value.visualizer !== "object" ||
+      Array.isArray(value.visualizer)
+    ) {
+      throw Object.assign(new Error("visualizer must be an object"), {
+        code: "INVALID_SETTINGS",
+      });
+    }
+    patch.visualizer = sanitizeVisualizerSettings(value.visualizer);
   }
   return patch;
 }

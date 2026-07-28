@@ -1,5 +1,8 @@
+import { DEFAULT_VISUALIZER_SETTINGS } from "../../nowPlaying/visualizerSettings.js";
+
 export const QUALITY_PROFILE_KEY = "downloadQualityProfile";
 export const QUALITY_PROFILE_DEFAULT = "remember"; // remember | best | audio
+export { DEFAULT_VISUALIZER_SETTINGS };
 export const DEFAULT_PLAYER_SETTINGS = Object.freeze({
   sidebarPinned: false,
   backgroundPlayback: true,
@@ -7,6 +10,7 @@ export const DEFAULT_PLAYER_SETTINGS = Object.freeze({
   repeat: "off",
   volume: 1,
   muted: false,
+  visualizer: { ...DEFAULT_VISUALIZER_SETTINGS },
 });
 
 export const DEFAULT_CONFIG = {

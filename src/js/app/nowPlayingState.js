@@ -11,6 +11,38 @@ const LIBRARY_PLAYLIST_ID = "media-library";
 const MAX_TRACKS = 5000;
 const MAX_PLAYLISTS = 500;
 const REPEAT_MODES = new Set(["off", "all", "one"]);
+const VISUALIZER_COLORS = new Set([
+  "purple",
+  "blue",
+  "pink",
+  "gradient",
+  "accent",
+]);
+const VISUALIZER_STYLES = new Set(["normal", "glow", "minimal"]);
+
+function clampNumber(value, min, max, fallback) {
+  const number = Number(value);
+  return Number.isFinite(number)
+    ? Math.min(max, Math.max(min, number))
+    : fallback;
+}
+
+function sanitizeVisualizerSettings(value = {}) {
+  const source = value && typeof value === "object" ? value : {};
+  return {
+    type: source.type === "spectrum" ? "spectrum" : "spectrum",
+    colorScheme: VISUALIZER_COLORS.has(source.colorScheme)
+      ? source.colorScheme
+      : "gradient",
+    style: VISUALIZER_STYLES.has(source.style) ? source.style : "glow",
+    sensitivity: clampNumber(source.sensitivity, 0.5, 2, 1),
+    smoothing: clampNumber(source.smoothing, 0, 0.95, 0.8),
+    barCount: Math.round(clampNumber(source.barCount, 24, 128, 64)),
+    particles: typeof source.particles === "boolean" ? source.particles : true,
+    reflection:
+      typeof source.reflection === "boolean" ? source.reflection : true,
+  };
+}
 
 function sanitizeText(value, maxLength = 512) {
   return typeof value === "string" ? value.slice(0, maxLength).trim() : "";
@@ -317,6 +349,7 @@ function defaultState() {
     repeat: "off",
     backgroundPlayback: true,
     sidebarPinned: false,
+    visualizer: sanitizeVisualizerSettings(),
   };
 }
 
@@ -363,6 +396,7 @@ function sanitizeState(value) {
         : true,
     sidebarPinned:
       typeof source.sidebarPinned === "boolean" ? source.sidebarPinned : false,
+    visualizer: sanitizeVisualizerSettings(source.visualizer),
   };
 }
 
@@ -375,4 +409,5 @@ module.exports = {
   getTrackKey,
   sanitizeState,
   sanitizeTrack,
+  sanitizeVisualizerSettings,
 };

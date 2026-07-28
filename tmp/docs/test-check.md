@@ -1,8 +1,8 @@
 ## Автотесты (Jest)
 
 - Автосборка списка: `npm run test-check:sync-tests`
-- Найдено файлов: 138
-- Найдено тест-кейсов (test/it): 1206
+- Найдено файлов: 139
+- Найдено тест-кейсов (test/it): 1219
 
 <!-- AUTO-JEST-TESTS:START -->
 
@@ -251,10 +251,11 @@
 - [ ] normalizes equivalent source paths for deduplication
 - [ ] does not traverse a selected symlink directory
 
-### `src/js/app/__tests__/nowPlayingState.test.js` (4)
+### `src/js/app/__tests__/nowPlayingState.test.js` (5)
 - [ ] migrates V2 state to V3 while preserving playlist selection
 - [ ] drops unsafe or unsupported persisted audio track ids
 - [ ] migrates legacy V1 tracks into the media library
+- [ ] sanitizes persisted visualizer settings without changing Player state
 - [ ] sanitizes YouTube quality selections and network tracks
 
 ### `src/js/app/__tests__/nowPlayingTimelinePreviewService.test.js` (5)
@@ -794,6 +795,16 @@
 - [ ] shows success toast on online event
 - [ ] does not require network indicator DOM nodes
 
+### `src/js/modules/__tests__/nowPlayingAudioVisualizerController.test.js` (8)
+- [ ] creates one context and one source for each reusable media element
+- [ ] keeps one animation frame and reuses the graph across pause and resume
+- [ ] does not rebind receiver-sensitive browser frame functions
+- [ ] lets only the latest media connect when AudioContext resume is pending
+- [ ] scales the backing store with devicePixelRatio and releases observers
+- [ ] stops rendering while hidden and resumes without a second graph
+- [ ] uses a static fallback without creating Web Audio for direct network media
+- [ ] disables particles and reflection for reduced motion
+
 ### `src/js/modules/__tests__/nowPlayingContextMenu.test.js` (3)
 - [ ] hides local-only actions for remote tracks and restores focus
 - [ ] dispatches the selected action with track context
@@ -818,9 +829,11 @@
 - [ ] accepts credential-free HTTP(S) URLs
 - [ ] marks HLS manifests for the HLS playback adapter
 
-### `src/js/modules/__tests__/nowPlayingPlaybackController.test.js` (34)
+### `src/js/modules/__tests__/nowPlayingPlaybackController.test.js` (36)
 - [ ] reports the buffered range without mutating playback position
 - [ ] selects a track, swaps the reusable media layer and starts playback
+- [ ] classifies the loaded media by its actual video track
+- [ ] marks direct network media as unsafe for Web Audio analysis
 - [ ] switches native audio without loading, seeking or restarting playback
 - [ ] returns to the probed default native audio track
 - [ ] applies rapid native selections synchronously with the last one active
@@ -882,7 +895,7 @@
 - [ ] keeps insertion order and supports reorder, removal and filtering
 - [ ] never exposes mutable internal items
 
-### `src/js/modules/__tests__/nowPlayingView.test.js` (35)
+### `src/js/modules/__tests__/nowPlayingView.test.js` (36)
 - [ ] renders an accessible player and restores selectedTrackId
 - [ ] opens structured track information with the current poster
 - [ ] opens a non-blocking media library empty state
@@ -894,6 +907,7 @@
 - [ ] toggles fullscreen on player-stage double click only while playing
 - [ ] refreshes dynamic playback and fullscreen labels after language changes
 - [ ] shows only the matching audio ambient or video layer
+- [ ] shows the visualizer for actual audio, persists its controls, and clears it for video
 - [ ] shows YouTube preparation without a false playing indicator
 - [ ] loads restored media silently and attempts playback on first show
 - [ ] syncs system media commands with playback while the view is active
@@ -924,12 +938,13 @@
 - [ ] switches to backup mode for the backup tool view and returns to tools
 - [ ] tracks settings modal mode without losing current page mode
 
-### `src/js/modules/__tests__/playerSettings.test.js` (5)
+### `src/js/modules/__tests__/playerSettings.test.js` (6)
 - [ ] loads and normalizes current Player state when Settings opens
 - [ ] saves changes immediately and publishes an apply event
 - [ ] maps zero volume to mute and unmutes above zero
 - [ ] updates from an open Player without saving back or creating a loop
 - [ ] restores the previous value when atomic saving fails
+- [ ] normalizes visualizer settings for persistence and import
 
 ### `src/js/modules/__tests__/powerShortcuts.test.js` (3)
 - [ ] defines complete action config for every power shortcut

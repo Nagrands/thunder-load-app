@@ -1209,6 +1209,16 @@ describe("network status setting removal", () => {
           repeat: "all",
           volume: 0.45,
           muted: true,
+          visualizer: {
+            type: "spectrum",
+            colorScheme: "accent",
+            style: "normal",
+            sensitivity: 1.3,
+            smoothing: 0.65,
+            barCount: 88,
+            particles: false,
+            reflection: true,
+          },
         },
       }),
     };
@@ -1222,6 +1232,16 @@ describe("network status setting removal", () => {
       repeat: "all",
       volume: 0.45,
       muted: true,
+      visualizer: {
+        type: "spectrum",
+        colorScheme: "accent",
+        style: "normal",
+        sensitivity: 1.3,
+        smoothing: 0.65,
+        barCount: 88,
+        particles: false,
+        reflection: true,
+      },
     });
   });
 
@@ -1285,6 +1305,16 @@ describe("network status setting removal", () => {
           repeat: "one",
           volume: 0.2,
           muted: false,
+          visualizer: {
+            type: "spectrum",
+            colorScheme: "pink",
+            style: "minimal",
+            sensitivity: 1.4,
+            smoothing: 0.6,
+            barCount: 80,
+            particles: false,
+            reflection: true,
+          },
         },
       }),
     };
@@ -1300,6 +1330,15 @@ describe("network status setting removal", () => {
         repeat: "one",
         volume: 0.2,
         muted: false,
+        visualizer: {
+          colorScheme: "pink",
+          style: "minimal",
+          sensitivity: 1.4,
+          smoothing: 0.6,
+          barCount: 80,
+          particles: false,
+          reflection: true,
+        },
       },
     });
 
@@ -1310,6 +1349,16 @@ describe("network status setting removal", () => {
       repeat: "one",
       volume: 0.2,
       muted: false,
+      visualizer: {
+        type: "spectrum",
+        colorScheme: "pink",
+        style: "minimal",
+        sensitivity: 1.4,
+        smoothing: 0.6,
+        barCount: 80,
+        particles: false,
+        reflection: true,
+      },
     });
     expect(applied).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -1340,6 +1389,16 @@ describe("network status setting removal", () => {
       repeat: "off",
       volume: 1,
       muted: false,
+      visualizer: {
+        type: "spectrum",
+        colorScheme: "gradient",
+        style: "glow",
+        sensitivity: 1,
+        smoothing: 0.8,
+        barCount: 64,
+        particles: true,
+        reflection: true,
+      },
     });
   });
 

@@ -172,9 +172,7 @@ describe("Now Playing view", () => {
         ",",
       ),
     );
-    expect(new Set(hintedCommands)).toEqual(
-      new Set(PLAYER_SHORTCUT_COMMANDS),
-    );
+    expect(new Set(hintedCommands)).toEqual(new Set(PLAYER_SHORTCUT_COMMANDS));
     expect(
       view.element.querySelector('[data-ui="brand-label"]').textContent,
     ).toBe("nowPlaying.label");
@@ -526,9 +524,9 @@ describe("Now Playing view", () => {
         .getAttribute("aria-pressed"),
     ).toBe("true");
     await view.executeCommand(PLAYER_COMMANDS.CYCLE_REPEAT);
-    expect(view.element.querySelector('[data-action="repeat"]').dataset.mode).toBe(
-      "all",
-    );
+    expect(
+      view.element.querySelector('[data-action="repeat"]').dataset.mode,
+    ).toBe("all");
     await view.executeCommand(PLAYER_COMMANDS.SHOW_CURRENT_MEDIA_INFO);
     expect(
       document.querySelector('[data-ui="player-form-modal"]').dataset.mode,
@@ -564,7 +562,8 @@ describe("Now Playing view", () => {
     await Promise.resolve();
     expect(window.electron.fullscreen.setState).toHaveBeenCalledWith(true);
 
-    const fullscreenCalls = window.electron.fullscreen.setState.mock.calls.length;
+    const fullscreenCalls =
+      window.electron.fullscreen.setState.mock.calls.length;
     playButton.dispatchEvent(new MouseEvent("dblclick", { bubbles: true }));
     await Promise.resolve();
     expect(window.electron.fullscreen.setState).toHaveBeenCalledTimes(
@@ -660,6 +659,160 @@ describe("Now Playing view", () => {
       view.element.querySelectorAll(".now-playing__video.is-visible"),
     ).toHaveLength(1);
     view.dispose();
+  });
+
+  test("shows the visualizer for actual audio, persists its controls, and clears it for video", async () => {
+    const gradient = { addColorStop: jest.fn() };
+    const canvasContext = {
+      arc: jest.fn(),
+      beginPath: jest.fn(),
+      clearRect: jest.fn(),
+      createLinearGradient: jest.fn(() => gradient),
+      fill: jest.fn(),
+      fillRect: jest.fn(),
+      restore: jest.fn(),
+      save: jest.fn(),
+      setTransform: jest.fn(),
+    };
+    jest
+      .spyOn(HTMLCanvasElement.prototype, "getContext")
+      .mockReturnValue(canvasContext);
+    jest
+      .spyOn(HTMLCanvasElement.prototype, "getBoundingClientRect")
+      .mockReturnValue({ width: 900, height: 600 });
+    const source = { connect: jest.fn(), disconnect: jest.fn() };
+    const analyser = {
+      connect: jest.fn(),
+      disconnect: jest.fn(),
+      getByteFrequencyData: jest.fn(),
+    };
+    class MockAudioContext {
+      constructor() {
+        this.destination = {};
+        this.state = "running";
+        this.createAnalyser = jest.fn(() => analyser);
+        this.createMediaElementSource = jest.fn(() => source);
+        this.close = jest.fn().mockResolvedValue(undefined);
+        this.resume = jest.fn().mockResolvedValue(undefined);
+      }
+    }
+    Object.defineProperty(window, "AudioContext", {
+      configurable: true,
+      value: MockAudioContext,
+    });
+    const videoTrack = {
+      ...sampleTrack,
+      id: "video-visualizer",
+      sourceRef: "/music/video-visualizer.mp4",
+      title: "Video",
+      kind: "video",
+    };
+    const api = {
+      getState: jest.fn().mockResolvedValue({
+        data: {
+          playlist: { tracks: [sampleTrack, videoTrack] },
+          selectedTrackId: sampleTrack.id,
+          visualizer: {
+            colorScheme: "blue",
+            style: "normal",
+            sensitivity: 1.2,
+            smoothing: 0.7,
+            barCount: 72,
+            particles: false,
+            reflection: true,
+          },
+        },
+      }),
+      setState: jest.fn().mockResolvedValue({ success: true }),
+      updateSettings: jest.fn(async ({ visualizer }) => ({
+        success: true,
+        data: { visualizer },
+      })),
+      importFiles: jest.fn(),
+      importFolder: jest.fn(),
+    };
+    const view = createNowPlayingView({ api });
+    document.body.appendChild(view.element);
+    await view.ready;
+    const activeAudio = view.element.querySelector(
+      '.now-playing__video[data-track-id="demo"]',
+    );
+    Object.defineProperties(activeAudio, {
+      readyState: { configurable: true, value: 1 },
+      videoHeight: { configurable: true, value: 0 },
+      videoWidth: { configurable: true, value: 0 },
+    });
+    activeAudio.dispatchEvent(new Event("loadedmetadata"));
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(
+      view.element.querySelector('[data-ui="audio-visualizer"]').hidden,
+    ).toBe(false);
+    expect(
+      view.element.querySelector('[data-ui="visualizer-panel"]').hidden,
+    ).toBe(false);
+    expect(
+      view.element.querySelector('[data-visualizer-setting="colorScheme"]')
+        .value,
+    ).toBe("blue");
+
+    const color = view.element.querySelector(
+      '[data-visualizer-setting="colorScheme"]',
+    );
+    color.value = "pink";
+    color.dispatchEvent(new Event("change", { bubbles: true }));
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(api.updateSettings).toHaveBeenLastCalledWith({
+      visualizer: expect.objectContaining({ colorScheme: "pink" }),
+    });
+    view.element
+      .querySelector('[data-action="reset-visualizer-settings"]')
+      .click();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(api.updateSettings).toHaveBeenLastCalledWith({
+      visualizer: expect.objectContaining({
+        colorScheme: "gradient",
+        style: "glow",
+        sensitivity: 1,
+        smoothing: 0.8,
+        barCount: 64,
+        particles: true,
+        reflection: true,
+      }),
+    });
+    api.updateSettings.mockResolvedValueOnce({
+      success: false,
+      error: { message: "Visualizer save failed" },
+    });
+    color.value = "blue";
+    color.dispatchEvent(new Event("change", { bubbles: true }));
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(color.value).toBe("gradient");
+
+    view.element
+      .querySelector('.now-playing__track[data-track-id="video-visualizer"]')
+      .dispatchEvent(new MouseEvent("dblclick", { bubbles: true }));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const activeVideo = view.element.querySelector(
+      '.now-playing__video[data-track-id="video-visualizer"]',
+    );
+    Object.defineProperties(activeVideo, {
+      readyState: { configurable: true, value: 1 },
+      videoHeight: { configurable: true, value: 1080 },
+      videoWidth: { configurable: true, value: 1920 },
+    });
+    activeVideo.dispatchEvent(new Event("loadedmetadata"));
+
+    expect(
+      view.element.querySelector('[data-ui="audio-visualizer"]').hidden,
+    ).toBe(true);
+    expect(canvasContext.clearRect).toHaveBeenCalled();
+    view.dispose();
+    expect(source.disconnect).toHaveBeenCalled();
   });
 
   test("shows YouTube preparation without a false playing indicator", async () => {
@@ -1733,9 +1886,7 @@ describe("Now Playing view", () => {
     ).toBe("nowPlaying.library.openFullPlayer");
     expect(
       library
-        .querySelector(
-          '[data-ui="mini-player"] [data-action="show-player"] i',
-        )
+        .querySelector('[data-ui="mini-player"] [data-action="show-player"] i')
         .getAttribute("data-lucide"),
     ).toBe("arrow-right");
     expect(library.querySelector('[data-action="seek"]').max).toBe("90");
@@ -1946,14 +2097,10 @@ describe("Now Playing view", () => {
       ),
     ).toBeNull();
     expect(
-      library.querySelector(
-        '.player-library__track[data-track-id="demo"]',
-      ),
+      library.querySelector('.player-library__track[data-track-id="demo"]'),
     ).toBeNull();
     expect(
-      library.querySelector(
-        '.player-library__track[data-track-id="second"]',
-      ),
+      library.querySelector('.player-library__track[data-track-id="second"]'),
     ).not.toBeNull();
 
     library
@@ -1962,13 +2109,9 @@ describe("Now Playing view", () => {
       )
       .click();
     expect(
-      library.querySelector(
-        '.player-library__track[data-track-id="demo"]',
-      ),
+      library.querySelector('.player-library__track[data-track-id="demo"]'),
     ).toBeNull();
-    expect(
-      library.querySelectorAll(".player-library__track"),
-    ).toHaveLength(1);
+    expect(library.querySelectorAll(".player-library__track")).toHaveLength(1);
     view.dispose();
   });
 
