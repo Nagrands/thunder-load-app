@@ -215,6 +215,13 @@ export const settingsTranslations = {
     "settings.shortcuts.global.hint":
       "Сочетания для перезагрузки и открытия сайтов будут отключены.",
     "settings.shortcuts.edit": "Изменить",
+    "settings.shortcuts.unassigned": "Не назначено",
+    "settings.shortcuts.reset.single": "Сбросить",
+    "settings.shortcuts.reset.player": "Сбросить горячие клавиши плеера",
+    "settings.shortcuts.resetSingleSuccess":
+      "Сочетание восстановлено по умолчанию",
+    "settings.shortcuts.resetPlayerSuccess":
+      "Горячие клавиши плеера восстановлены по умолчанию",
     "settings.shortcuts.recording": "Нажмите новую комбинацию клавиш…",
     "settings.shortcuts.scopeLocal": "В приложении",
     "settings.shortcuts.scopeGlobal": "Глобально",
@@ -237,6 +244,52 @@ export const settingsTranslations = {
     "shortcuts.categories.downloads": "Загрузки",
     "shortcuts.categories.system": "Система",
     "shortcuts.categories.sites": "Сайты",
+    "shortcuts.categories.player": "Плеер",
+    "shortcuts.actions.togglePlayback.title": "Воспроизведение / пауза",
+    "shortcuts.actions.togglePlayback.description":
+      "Запускает или приостанавливает текущий файл.",
+    "shortcuts.actions.stop.title": "Остановить воспроизведение",
+    "shortcuts.actions.stop.description":
+      "Останавливает воспроизведение и возвращает позицию в начало.",
+    "shortcuts.actions.previous.title": "Предыдущий файл",
+    "shortcuts.actions.previous.description":
+      "Переходит к предыдущему доступному файлу.",
+    "shortcuts.actions.next.title": "Следующий файл",
+    "shortcuts.actions.next.description":
+      "Переходит к следующему файлу или элементу очереди.",
+    "shortcuts.actions.seekBackward.title": "Перемотать назад",
+    "shortcuts.actions.seekBackward.description":
+      "Перематывает текущий файл назад на 10 секунд.",
+    "shortcuts.actions.seekForward.title": "Перемотать вперёд",
+    "shortcuts.actions.seekForward.description":
+      "Перематывает текущий файл вперёд на 10 секунд.",
+    "shortcuts.actions.toggleMute.title": "Включить / выключить звук",
+    "shortcuts.actions.toggleMute.description":
+      "Отключает звук или восстанавливает прежнюю громкость.",
+    "shortcuts.actions.volumeDown.title": "Уменьшить громкость",
+    "shortcuts.actions.volumeDown.description":
+      "Уменьшает громкость на 5 процентных пунктов.",
+    "shortcuts.actions.volumeUp.title": "Увеличить громкость",
+    "shortcuts.actions.volumeUp.description":
+      "Увеличивает громкость на 5 процентных пунктов.",
+    "shortcuts.actions.toggleFullscreen.title": "Полноэкранный режим",
+    "shortcuts.actions.toggleFullscreen.description":
+      "Открывает или закрывает полноэкранный режим плеера.",
+    "shortcuts.actions.open.title": "Открыть плеер",
+    "shortcuts.actions.open.description": "Переходит к полному плееру.",
+    "shortcuts.actions.openLibrary.title": "Открыть медиатеку",
+    "shortcuts.actions.openLibrary.description":
+      "Открывает медиатеку во вкладке плеера.",
+    "shortcuts.actions.toggleShuffle.title": "Перемешивание",
+    "shortcuts.actions.toggleShuffle.description":
+      "Включает или отключает случайный порядок воспроизведения.",
+    "shortcuts.actions.cycleRepeat.title": "Режим повтора",
+    "shortcuts.actions.cycleRepeat.description":
+      "Переключает повтор очереди, текущего файла и выключенный режим.",
+    "shortcuts.actions.showCurrentMediaInfo.title":
+      "Информация о текущем файле",
+    "shortcuts.actions.showCurrentMediaInfo.description":
+      "Показывает сведения о текущем медиафайле.",
     "shortcuts.actions.openShortcutSettings.title":
       "Открыть горячие клавиши",
     "shortcuts.actions.openShortcutSettings.description":
@@ -534,6 +587,13 @@ export const settingsTranslations = {
     "settings.shortcuts.global.hint":
       "Reload and website shortcut combinations will be disabled.",
     "settings.shortcuts.edit": "Change",
+    "settings.shortcuts.unassigned": "Not assigned",
+    "settings.shortcuts.reset.single": "Reset",
+    "settings.shortcuts.reset.player": "Reset player shortcuts",
+    "settings.shortcuts.resetSingleSuccess":
+      "Shortcut restored to its default",
+    "settings.shortcuts.resetPlayerSuccess":
+      "Player shortcuts restored to defaults",
     "settings.shortcuts.recording": "Press a new key combination…",
     "settings.shortcuts.scopeLocal": "In app",
     "settings.shortcuts.scopeGlobal": "Global",
@@ -555,6 +615,52 @@ export const settingsTranslations = {
     "shortcuts.categories.downloads": "Downloads",
     "shortcuts.categories.system": "System",
     "shortcuts.categories.sites": "Websites",
+    "shortcuts.categories.player": "Player",
+    "shortcuts.actions.togglePlayback.title": "Play / pause",
+    "shortcuts.actions.togglePlayback.description":
+      "Starts or pauses the current media file.",
+    "shortcuts.actions.stop.title": "Stop playback",
+    "shortcuts.actions.stop.description":
+      "Stops playback and returns to the beginning.",
+    "shortcuts.actions.previous.title": "Previous file",
+    "shortcuts.actions.previous.description":
+      "Moves to the previous available media file.",
+    "shortcuts.actions.next.title": "Next file",
+    "shortcuts.actions.next.description":
+      "Moves to the next file or queued item.",
+    "shortcuts.actions.seekBackward.title": "Seek backward",
+    "shortcuts.actions.seekBackward.description":
+      "Seeks backward by 10 seconds.",
+    "shortcuts.actions.seekForward.title": "Seek forward",
+    "shortcuts.actions.seekForward.description":
+      "Seeks forward by 10 seconds.",
+    "shortcuts.actions.toggleMute.title": "Mute / unmute",
+    "shortcuts.actions.toggleMute.description":
+      "Mutes audio or restores the previous volume.",
+    "shortcuts.actions.volumeDown.title": "Volume down",
+    "shortcuts.actions.volumeDown.description":
+      "Decreases volume by 5 percentage points.",
+    "shortcuts.actions.volumeUp.title": "Volume up",
+    "shortcuts.actions.volumeUp.description":
+      "Increases volume by 5 percentage points.",
+    "shortcuts.actions.toggleFullscreen.title": "Fullscreen",
+    "shortcuts.actions.toggleFullscreen.description":
+      "Enters or exits the player's fullscreen mode.",
+    "shortcuts.actions.open.title": "Open player",
+    "shortcuts.actions.open.description": "Switches to the full player.",
+    "shortcuts.actions.openLibrary.title": "Open media library",
+    "shortcuts.actions.openLibrary.description":
+      "Opens the media library in the Player tab.",
+    "shortcuts.actions.toggleShuffle.title": "Shuffle",
+    "shortcuts.actions.toggleShuffle.description":
+      "Enables or disables shuffled playback.",
+    "shortcuts.actions.cycleRepeat.title": "Repeat mode",
+    "shortcuts.actions.cycleRepeat.description":
+      "Cycles queue repeat, current-file repeat, and off.",
+    "shortcuts.actions.showCurrentMediaInfo.title":
+      "Current file information",
+    "shortcuts.actions.showCurrentMediaInfo.description":
+      "Shows information about the current media file.",
     "shortcuts.actions.openShortcutSettings.title": "Open shortcuts",
     "shortcuts.actions.openShortcutSettings.description":
       "Opens the Shortcuts section in Settings.",

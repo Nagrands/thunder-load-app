@@ -1,0 +1,176 @@
+// Shared themed hero used at the top of application tabs.
+
+.tab-hero {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  border-radius: 26px;
+  border: 1px solid rgba(var(--color-accent-rgb), 0.24);
+  background:
+    linear-gradient(
+      100deg,
+      rgba(6, 12, 24, 0.98) 0%,
+      rgba(7, 15, 30, 0.94) 48%,
+      rgba(6, 14, 30, 0.72) 100%
+    ),
+    var(--thunder-surface-strong);
+
+  &::before {
+    content: "";
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(
+        48% 100% at 82% 50%,
+        rgba(var(--color-accent-rgb), 0.18),
+        transparent 70%
+      ),
+      linear-gradient(
+        90deg,
+        rgba(5, 11, 23, 0.98) 0%,
+        rgba(5, 11, 23, 0.76) 43%,
+        rgba(5, 11, 23, 0.08) 76%
+      );
+  }
+
+  .title-content {
+    min-width: 0;
+  }
+
+  .title-content h1 {
+    margin: 0;
+    font-weight: 500;
+    line-height: 1.08;
+    letter-spacing: -0.025em;
+  }
+
+  .title-content .subtitle {
+    margin: 9px 0 0;
+    max-width: 440px;
+    color: rgba(214, 226, 243, 0.72);
+    font-size: 0.96rem;
+    font-style: normal;
+  }
+}
+
+.tab-hero__content {
+  position: relative;
+  z-index: 3;
+  width: min(62%, 610px);
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  padding: 24px 22px;
+}
+
+.tab-hero__icon {
+  flex: 0 0 88px;
+  width: 88px;
+  height: 88px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-accent);
+
+  i {
+    font-size: 2rem;
+    filter: drop-shadow(0 0 16px rgba(var(--color-accent-rgb), 0.42));
+  }
+}
+
+.tab-hero__art {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  pointer-events: none;
+
+  img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    object-position: 70% center;
+    opacity: 0.94;
+    user-select: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .tab-hero {
+    min-height: 166px;
+
+    &::before {
+      background:
+        linear-gradient(
+          90deg,
+          rgba(5, 11, 23, 0.98) 0%,
+          rgba(5, 11, 23, 0.88) 66%,
+          rgba(5, 11, 23, 0.3) 100%
+        ),
+        radial-gradient(
+          50% 100% at 88% 50%,
+          rgba(var(--color-accent-rgb), 0.12),
+          transparent 70%
+        );
+    }
+
+    .title-content h1 {
+      font-size: 1.6rem;
+    }
+
+    .title-content .subtitle {
+      font-size: 0.84rem;
+    }
+  }
+
+  .tab-hero__content {
+    width: 78%;
+    gap: 16px;
+    padding: 24px;
+  }
+
+  .tab-hero__icon {
+    flex-basis: 68px;
+    width: 68px;
+    height: 68px;
+
+    i {
+      font-size: 1.5rem;
+    }
+  }
+
+  .tab-hero__art img {
+    object-position: 76% center;
+    opacity: 0.72;
+  }
+}
+
+@media (max-width: 560px) {
+  .tab-hero {
+    min-height: 154px;
+
+    .title-content h1 {
+      font-size: 1.42rem;
+    }
+  }
+
+  .tab-hero__content {
+    width: 100%;
+    gap: 13px;
+    padding: 20px;
+  }
+
+  .tab-hero__icon {
+    flex-basis: 56px;
+    width: 56px;
+    height: 56px;
+  }
+
+  .tab-hero__art {
+    opacity: 0.3;
+  }
+}

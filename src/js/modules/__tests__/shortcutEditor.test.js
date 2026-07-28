@@ -28,6 +28,7 @@ const CATALOG = [
     titleKey: "action.download",
     descriptionKey: "action.download.description",
     categoryKey: "category.downloads",
+    defaultAccelerator: "CommandOrControl+D",
   },
   {
     id: "history.open",
@@ -35,6 +36,15 @@ const CATALOG = [
     titleKey: "action.history",
     descriptionKey: "action.history.description",
     categoryKey: "category.history",
+    defaultAccelerator: "CommandOrControl+H",
+  },
+  {
+    id: "player.togglePlayback",
+    scope: "local",
+    titleKey: "action.player",
+    descriptionKey: "action.player.description",
+    categoryKey: "shortcuts.categories.player",
+    defaultAccelerator: "Alt+P",
   },
 ];
 const flushAsyncEvents = () =>
@@ -73,6 +83,7 @@ describe("shortcutEditor", () => {
             assignments: {
               "downloads.start": "CommandOrControl+D",
               "history.open": "CommandOrControl+H",
+              "player.togglePlayback": "Alt+P",
             },
           };
         }
@@ -82,6 +93,7 @@ describe("shortcutEditor", () => {
             assignments: {
               "downloads.start": payload.accelerator,
               "history.open": "CommandOrControl+H",
+              "player.togglePlayback": "Alt+P",
             },
           };
         }
@@ -92,6 +104,7 @@ describe("shortcutEditor", () => {
             assignments: {
               "downloads.start": "CommandOrControl+D",
               "history.open": "CommandOrControl+H",
+              "player.togglePlayback": "Alt+P",
             },
           };
         }
@@ -104,7 +117,8 @@ describe("shortcutEditor", () => {
     const { initShortcutEditor } = require("../features/settings/shortcutEditor.js");
     await initShortcutEditor();
 
-    expect(document.querySelectorAll("[data-action-id]")).toHaveLength(2);
+    expect(document.querySelectorAll("[data-action-id]")).toHaveLength(3);
+    expect(document.querySelector('[data-shortcut-category="player"]')).not.toBeNull();
     expect(document.querySelector(".shortcut-editor__name").textContent).toBe(
       "action.download",
     );
@@ -163,6 +177,7 @@ describe("shortcutEditor", () => {
           assignments: {
             "downloads.start": "CommandOrControl+D",
             "history.open": "CommandOrControl+H",
+            "player.togglePlayback": "Alt+P",
           },
         };
       }
@@ -209,5 +224,36 @@ describe("shortcutEditor", () => {
     await flushAsyncEvents();
     expect(window.electron.invoke).toHaveBeenCalledWith("shortcuts:reset");
     expect(confirmation.hidden).toBe(true);
+  });
+
+  test("resets one assignment and the Player group through existing IPC", async () => {
+    const { initShortcutEditor } = require("../features/settings/shortcutEditor.js");
+    await initShortcutEditor();
+    listeners["shortcuts:changed"]({
+      assignments: {
+        "downloads.start": "CommandOrControl+D",
+        "history.open": "Alt+H",
+        "player.togglePlayback": "Alt+P",
+      },
+    });
+
+    const historyRow = document.querySelector('[data-action-id="history.open"]');
+    historyRow.querySelector("[data-shortcut-reset]").click();
+    await flushAsyncEvents();
+    expect(window.electron.invoke).toHaveBeenCalledWith("shortcuts:set", {
+      actionId: "history.open",
+      accelerator: "CommandOrControl+H",
+    });
+
+    document.querySelector("[data-shortcut-player-reset]").click();
+    await flushAsyncEvents();
+    expect(window.electron.invoke).toHaveBeenCalledWith(
+      "shortcuts:replace",
+      expect.objectContaining({
+        assignments: expect.objectContaining({
+          "player.togglePlayback": "Alt+P",
+        }),
+      }),
+    );
   });
 });

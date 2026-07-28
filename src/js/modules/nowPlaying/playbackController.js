@@ -943,7 +943,7 @@ export class PlaybackController {
 
   cycleRepeat() {
     return this.setRepeat(
-      this.repeat === "off" ? "one" : this.repeat === "one" ? "all" : "off",
+      this.repeat === "off" ? "all" : this.repeat === "all" ? "one" : "off",
     );
   }
 

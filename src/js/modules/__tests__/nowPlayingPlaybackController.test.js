@@ -487,14 +487,15 @@ describe("Now Playing playback controller", () => {
     await controller.next();
     expect(controller.currentTrack.id).toBe("three");
     controller.cycleRepeat();
+    expect(controller.repeat).toBe("all");
+    controller.cycleRepeat();
     expect(controller.repeat).toBe("one");
     controller.activeMedia.dispatchEvent(new Event("ended"));
     await Promise.resolve();
     expect(controller.currentTrack.id).toBe("three");
 
     controller.cycleRepeat();
-    expect(controller.repeat).toBe("all");
-    controller.cycleRepeat();
+    expect(controller.repeat).toBe("off");
     controller.toggleShuffle();
     await controller.selectTrack("one", { autoplay: false });
     await controller.next();

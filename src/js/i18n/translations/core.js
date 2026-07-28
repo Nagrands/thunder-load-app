@@ -200,7 +200,7 @@ export const coreTranslations = {
     "nowPlaying.library.open": "Открыть медиатеку",
     "nowPlaying.library.close": "Закрыть медиатеку",
     "nowPlaying.library.nowPlaying": "Сейчас играет",
-    "nowPlaying.library.openFullPlayer": "Открыть полный плеер",
+    "nowPlaying.library.openFullPlayer": "Перейти в плеер",
     "nowPlaying.library.actions": "Действия медиатеки",
     "nowPlaying.library.search": "Поиск по медиатеке",
     "nowPlaying.library.searchPlaceholder": "Название, исполнитель или альбом",
@@ -285,7 +285,14 @@ export const coreTranslations = {
     "nowPlaying.playlists.save": "Сохранить",
     "nowPlaying.playlists.delete": "Удалить плейлист",
     "nowPlaying.playlists.deleteConfirm":
-      "Удалить плейлист «{title}»? Файлы останутся в медиатеке.",
+      "Удалить плейлист «{title}»? Выберите, что сделать с его файлами.",
+    "nowPlaying.playlists.deleteOnly": "Удалить только плейлист",
+    "nowPlaying.playlists.deleteOnlyHint":
+      "Все файлы останутся в медиатеке.",
+    "nowPlaying.playlists.deleteWithMedia":
+      "Удалить также файлы из медиатеки",
+    "nowPlaying.playlists.deleteWithMediaHint":
+      "Они исчезнут из всех плейлистов и очереди. Файлы на диске останутся.",
     "nowPlaying.playlists.removeItem": "Удалить из плейлиста",
     "nowPlaying.playlists.addItem": "Добавить в плейлист",
     "nowPlaying.playlists.addItemHint":
@@ -600,7 +607,7 @@ export const coreTranslations = {
     "nowPlaying.library.open": "Open media library",
     "nowPlaying.library.close": "Close media library",
     "nowPlaying.library.nowPlaying": "Now Playing",
-    "nowPlaying.library.openFullPlayer": "Open full player",
+    "nowPlaying.library.openFullPlayer": "Go to player",
     "nowPlaying.library.actions": "Media library actions",
     "nowPlaying.library.search": "Search media library",
     "nowPlaying.library.searchPlaceholder": "Title, artist, or album",
@@ -685,7 +692,14 @@ export const coreTranslations = {
     "nowPlaying.playlists.save": "Save",
     "nowPlaying.playlists.delete": "Delete playlist",
     "nowPlaying.playlists.deleteConfirm":
-      "Delete “{title}”? Its files will remain in the media library.",
+      "Delete “{title}”? Choose what to do with its media files.",
+    "nowPlaying.playlists.deleteOnly": "Delete playlist only",
+    "nowPlaying.playlists.deleteOnlyHint":
+      "All files will remain in the media library.",
+    "nowPlaying.playlists.deleteWithMedia":
+      "Also remove files from the media library",
+    "nowPlaying.playlists.deleteWithMediaHint":
+      "They will disappear from every playlist and the queue. Files on disk will remain.",
     "nowPlaying.playlists.removeItem": "Remove from playlist",
     "nowPlaying.playlists.addItem": "Add to playlist",
     "nowPlaying.playlists.addItemHint":

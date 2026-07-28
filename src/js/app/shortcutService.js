@@ -10,6 +10,24 @@ const SITE_ACTIONS = Object.freeze([
   ["site.coub.open", "openCoub", "https://www.coub.com", "4"],
 ]);
 
+const PLAYER_ACTIONS = Object.freeze([
+  ["player.togglePlayback", "togglePlayback", "Alt+P"],
+  ["player.stop", "stop", "Alt+X"],
+  ["player.previous", "previous", "Alt+Shift+Left"],
+  ["player.next", "next", "Alt+Shift+Right"],
+  ["player.seekBackward", "seekBackward", "Alt+Left"],
+  ["player.seekForward", "seekForward", "Alt+Right"],
+  ["player.toggleMute", "toggleMute", "Alt+M"],
+  ["player.volumeDown", "volumeDown", "Alt+Down"],
+  ["player.volumeUp", "volumeUp", "Alt+Up"],
+  ["player.toggleFullscreen", "toggleFullscreen", "Alt+Enter"],
+  ["player.open", "open", "CommandOrControl+4"],
+  ["player.openLibrary", "openLibrary", "CommandOrControl+Alt+4"],
+  ["player.toggleShuffle", "toggleShuffle", "Alt+S"],
+  ["player.cycleRepeat", "cycleRepeat", "Alt+R"],
+  ["player.showCurrentMediaInfo", "showCurrentMediaInfo", "Alt+I"],
+]);
+
 function createAction({
   id,
   scope = "local",
@@ -113,6 +131,14 @@ function createShortcutCatalog(platform = process.platform) {
         defaultAccelerator: `${siteModifier}+${number}`,
       }),
     ),
+    ...PLAYER_ACTIONS.map(([id, key, defaultAccelerator]) =>
+      createAction({
+        id,
+        category: "player",
+        key,
+        defaultAccelerator,
+      }),
+    ),
   ]);
 }
 
@@ -132,6 +158,10 @@ const KEY_ALIASES = Object.freeze({
   RETURN: "Enter",
   ENTER: "Enter",
   SPACE: "Space",
+  LEFT: "Left",
+  RIGHT: "Right",
+  UP: "Up",
+  DOWN: "Down",
 });
 
 const MODIFIER_ORDER = Object.freeze([
@@ -221,6 +251,71 @@ function getDefaults(catalog) {
   );
 }
 
+function isUnassigned(value) {
+  return value === null;
+}
+
+function buildAssignments(
+  catalog,
+  source,
+  platform,
+  { rejectInvalid = false } = {},
+) {
+  const assignments = {};
+  const ownerByAccelerator = new Map();
+  const input =
+    source && typeof source === "object" && !Array.isArray(source) ? source : {};
+
+  for (const action of catalog) {
+    if (!Object.prototype.hasOwnProperty.call(input, action.id)) continue;
+    if (isUnassigned(input[action.id])) {
+      assignments[action.id] = null;
+      continue;
+    }
+    const validation = validateAccelerator(input[action.id], platform);
+    if (!validation.valid) {
+      if (rejectInvalid) {
+        return { success: false, error: validation.error, actionId: action.id };
+      }
+      continue;
+    }
+    const conflictingActionId = ownerByAccelerator.get(validation.accelerator);
+    if (conflictingActionId) {
+      if (rejectInvalid) {
+        return {
+          success: false,
+          error: "conflict",
+          actionId: action.id,
+          conflictingActionId,
+          accelerator: validation.accelerator,
+        };
+      }
+      assignments[action.id] = null;
+      continue;
+    }
+    assignments[action.id] = validation.accelerator;
+    ownerByAccelerator.set(validation.accelerator, action.id);
+  }
+
+  for (const action of catalog) {
+    if (Object.prototype.hasOwnProperty.call(assignments, action.id)) continue;
+    const validation = validateAccelerator(
+      action.defaultAccelerator,
+      platform,
+    );
+    if (
+      !validation.valid ||
+      ownerByAccelerator.has(validation.accelerator)
+    ) {
+      assignments[action.id] = null;
+      continue;
+    }
+    assignments[action.id] = validation.accelerator;
+    ownerByAccelerator.set(validation.accelerator, action.id);
+  }
+  return { success: true, assignments };
+}
+
 function migrateLegacyAssignments(store, defaults, platform) {
   const legacy = store.get(LEGACY_SHORTCUTS_KEY, null);
   if (!Array.isArray(legacy)) return defaults;
@@ -263,17 +358,10 @@ class ShortcutService {
       stored && typeof stored === "object" && !Array.isArray(stored)
         ? stored
         : migrateLegacyAssignments(this.store, defaults, this.platform);
-    const normalized = { ...defaults };
-    for (const action of this.catalog) {
-      const validation = validateAccelerator(source[action.id], this.platform);
-      if (validation.valid) normalized[action.id] = validation.accelerator;
-    }
-    if (!this.findDuplicate(normalized)) {
-      this.store.set(ASSIGNMENTS_KEY, normalized);
-      return normalized;
-    }
-    this.store.set(ASSIGNMENTS_KEY, defaults);
-    return defaults;
+    const result = buildAssignments(this.catalog, source, this.platform);
+    const assignments = result.success ? result.assignments : defaults;
+    this.store.set(ASSIGNMENTS_KEY, assignments);
+    return assignments;
   }
 
   getState() {
@@ -292,6 +380,7 @@ class ShortcutService {
     const ownerByAccelerator = new Map();
     for (const action of this.catalog) {
       const accelerator = assignments[action.id];
+      if (!accelerator) continue;
       if (ownerByAccelerator.has(accelerator)) {
         return {
           actionId: action.id,
@@ -308,25 +397,12 @@ class ShortcutService {
     if (!input || typeof input !== "object" || Array.isArray(input)) {
       return { success: false, error: "invalidAssignments" };
     }
-    const next = fillDefaults ? getDefaults(this.catalog) : { ...this.assignments };
-    for (const action of this.catalog) {
-      if (!Object.prototype.hasOwnProperty.call(input, action.id)) continue;
-      const validation = validateAccelerator(
-        input[action.id],
-        this.platform,
-      );
-      if (!validation.valid) {
-        return {
-          success: false,
-          error: validation.error,
-          actionId: action.id,
-        };
-      }
-      next[action.id] = validation.accelerator;
-    }
-    const conflict = this.findDuplicate(next);
-    if (conflict) return { success: false, error: "conflict", ...conflict };
-    return { success: true, assignments: next };
+    const source = fillDefaults
+      ? input
+      : { ...this.assignments, ...input };
+    return buildAssignments(this.catalog, source, this.platform, {
+      rejectInvalid: true,
+    });
   }
 
   setShortcut(actionId, accelerator, { strategy } = {}) {
@@ -429,6 +505,7 @@ class ShortcutService {
     const registered = new Set();
     for (const action of this.getGlobalActions()) {
       const accelerator = this.assignments[action.id];
+      if (!accelerator) continue;
       try {
         const success = this.globalShortcut.register(
           accelerator,

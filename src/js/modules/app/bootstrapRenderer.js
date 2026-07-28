@@ -73,7 +73,8 @@ async function runCriticalInitialization(mainView) {
   initPageBackgroundMode();
   initScrollLockRepair();
   initScrollbarVisibility();
-  const { tabs } = await registerTabs(mainView);
+  const tabsRuntime = await registerTabs(mainView);
+  const { tabs } = tabsRuntime;
 
   registerI18nListeners(tabs);
 
@@ -91,7 +92,7 @@ async function runCriticalInitialization(mainView) {
   registerStatusMessageListener();
 
   console.timeEnd("[Startup] Critical init");
-  return { tabs };
+  return { tabs, dispose: tabsRuntime.dispose };
 }
 
 async function runDeferredInitialization({ tabs }) {
@@ -185,6 +186,9 @@ export async function startRenderer() {
     if (!mainView) throw new Error("#main-view not found");
 
     const runtime = await runCriticalInitialization(mainView);
+    window.addEventListener("beforeunload", () => runtime.dispose?.(), {
+      once: true,
+    });
 
     document.body.classList.add("ready");
     document.getElementById("app-preloader")?.remove();

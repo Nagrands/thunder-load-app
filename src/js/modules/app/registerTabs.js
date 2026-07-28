@@ -5,6 +5,12 @@ import { initDownloaderLivePreview } from "../downloaderLivePreview.js";
 import { getDefaultTab } from "../features/settings/defaultTabStore.js";
 import { applyI18n, t } from "../i18n.js";
 import { requestToolsView } from "../toolsNavigation.js";
+import { registerLocalShortcutAction } from "../hotkeys.js";
+import {
+  PLAYER_COMMANDS,
+  PLAYER_SHORTCUT_COMMANDS,
+  REPEATING_PLAYER_COMMANDS,
+} from "../nowPlaying/playerCommands.js";
 
 const GLOBAL_SELECTOR = [
   "#nav-visibility-sentinel",
@@ -69,9 +75,11 @@ let downloaderToolsStatusModulePromise = null;
 let toolsViewModulePromise = null;
 let productFormatterViewModulePromise = null;
 let nowPlayingViewModulePromise = null;
+let nowPlayingViewReadyPromise = null;
 let nowPlayingViewInstance = null;
 let nowPlayingShouldBeActive = false;
 let toolsRenderVersion = 0;
+let removePlayerShortcutActions = [];
 let lazyModuleLoaders = {
   loadDownloaderToolsStatusModule: () => import("../downloaderToolsStatus.js"),
   loadToolsViewModule: () => import("../views/toolsView.js"),
@@ -163,18 +171,66 @@ async function renderProductsTab(productsWrapper) {
 async function renderNowPlayingTab(nowPlayingWrapper) {
   try {
     if (!nowPlayingViewInstance) {
-      const { createNowPlayingView } = await loadNowPlayingViewModule();
-      if (!nowPlayingWrapper.isConnected) return;
-      nowPlayingViewInstance = createNowPlayingView({
-        element: nowPlayingWrapper,
-      });
-      applyI18n(nowPlayingWrapper);
-      await nowPlayingViewInstance.ready;
+      nowPlayingViewReadyPromise ||= (async () => {
+        const { createNowPlayingView } = await loadNowPlayingViewModule();
+        if (!nowPlayingWrapper.isConnected) return null;
+        if (!nowPlayingViewInstance) {
+          nowPlayingViewInstance = createNowPlayingView({
+            element: nowPlayingWrapper,
+          });
+          applyI18n(nowPlayingWrapper);
+          await nowPlayingViewInstance.ready;
+        }
+        return nowPlayingViewInstance;
+      })();
+      await nowPlayingViewReadyPromise;
     }
-    if (nowPlayingShouldBeActive) nowPlayingViewInstance.onShow();
+    if (nowPlayingShouldBeActive) nowPlayingViewInstance?.onShow();
   } catch (error) {
     console.error("[Startup] Now Playing lazy render failed:", error);
   }
+}
+
+function unregisterPlayerShortcutActions() {
+  removePlayerShortcutActions.forEach((remove) => remove?.());
+  removePlayerShortcutActions = [];
+}
+
+function registerPlayerShortcutActions({ tabs, nowPlayingWrapper }) {
+  unregisterPlayerShortcutActions();
+  const commandsThatOpenPlayer = new Set([
+    PLAYER_COMMANDS.OPEN,
+    PLAYER_COMMANDS.OPEN_LIBRARY,
+    PLAYER_COMMANDS.TOGGLE_FULLSCREEN,
+    PLAYER_COMMANDS.SHOW_CURRENT_MEDIA_INFO,
+  ]);
+
+  const execute = async (commandId) => {
+    const alwaysAvailable = [
+      PLAYER_COMMANDS.OPEN,
+      PLAYER_COMMANDS.OPEN_LIBRARY,
+    ].includes(commandId);
+    if (
+      !alwaysAvailable &&
+      !nowPlayingViewInstance?.canUsePlayerShortcuts?.()
+    ) {
+      return false;
+    }
+    if (commandsThatOpenPlayer.has(commandId)) {
+      nowPlayingShouldBeActive = true;
+      tabs.activateTab("now-playing");
+      await renderNowPlayingTab(nowPlayingWrapper);
+    }
+    return nowPlayingViewInstance?.executeCommand?.(commandId) ?? false;
+  };
+
+  removePlayerShortcutActions = PLAYER_SHORTCUT_COMMANDS.map((commandId) =>
+    registerLocalShortcutAction(
+      commandId,
+      () => execute(commandId),
+      { allowRepeat: REPEATING_PLAYER_COMMANDS.has(commandId) },
+    ),
+  ).filter((remove) => typeof remove === "function");
 }
 
 async function ensureInitialTabReady(tabId, wrappers) {
@@ -211,6 +267,11 @@ export async function registerTabs(mainView) {
     },
     { onShow: () => showHistory(true), onHide: () => showHistory(false) },
   );
+
+  registerPlayerShortcutActions({
+    tabs,
+    nowPlayingWrapper: wrappers.nowPlayingWrapper,
+  });
 
   tabs.addTab(
     "wireguard",
@@ -293,14 +354,26 @@ export async function registerTabs(mainView) {
   });
   window.electron?.nowPlaying?.notifyOpenFilesReady?.();
 
-  return { tabs, wgConfig, wrappers };
+  return {
+    tabs,
+    wgConfig,
+    wrappers,
+    dispose() {
+      unregisterPlayerShortcutActions();
+      nowPlayingViewInstance?.dispose?.();
+      nowPlayingViewInstance = null;
+      nowPlayingViewReadyPromise = null;
+    },
+  };
 }
 
 export function __test_setLazyModuleLoaders(loaders = {}) {
+  unregisterPlayerShortcutActions();
   downloaderToolsStatusModulePromise = null;
   toolsViewModulePromise = null;
   productFormatterViewModulePromise = null;
   nowPlayingViewModulePromise = null;
+  nowPlayingViewReadyPromise = null;
   nowPlayingViewInstance?.dispose?.();
   nowPlayingViewInstance = null;
   nowPlayingShouldBeActive = false;

@@ -1343,49 +1343,6 @@ $wg-max-width: 1200px;
 
 .tools-shell-header {
   position: relative;
-
-  .title {
-    @include header-style;
-    gap: 20px;
-    align-items: center;
-    justify-content: flex-start;
-    margin-bottom: 0;
-    border-radius: 24px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    background:
-      linear-gradient(
-        135deg,
-        rgba(var(--color-accent-rgb), 0.12),
-        rgba(255, 255, 255, 0.02) 42%,
-        rgba(255, 255, 255, 0.008) 100%
-      ),
-      rgba(255, 255, 255, 0.014);
-  }
-
-  .title i {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2.3rem;
-    color: var(--color-accent);
-    transition: all 0.25s ease;
-  }
-
-  .title:hover i {
-    transform: scale(1.03);
-  }
-
-  .title-content h1 {
-    font-size: 1.35rem;
-  }
-
-  .title-content .subtitle {
-    margin: 0;
-    max-width: 680px;
-    color: var(--color-quality);
-    font-size: 0.9rem;
-    font-style: italic;
-  }
 }
 
 .tools-breadcrumbs {
@@ -5570,21 +5527,6 @@ $wg-max-width: 1200px;
 }
 
 @media (max-width: 768px) {
-  .tools-shell-header .title {
-    gap: 12px;
-
-    i {
-      width: 52px;
-      height: 46px;
-      font-size: 1.15rem;
-    }
-  }
-
-  .tools-shell-header .title-content h1 {
-    font-size: 1.55rem;
-    margin-bottom: 4px;
-  }
-
   .tools-breadcrumbs {
     flex: 1 1 220px;
     flex-wrap: wrap;

@@ -380,6 +380,7 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
   function render(state, snapshot) {
     latestState = state || {};
     latestSnapshot = snapshot || {};
+    syncFilterAvailability(getCatalogTracks(latestState));
     const playlists = getPlaylists(latestState);
     const activePlaylist = getActivePlaylist(latestState);
     const activeTracks = getPlaylistTracks(latestState, activePlaylist);
@@ -478,6 +479,24 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
       button.classList.toggle("is-active", pressed);
       button.setAttribute("aria-pressed", String(pressed));
     });
+  }
+
+  function syncFilterAvailability(tracks) {
+    const availableFilters = new Set(["all"]);
+    tracks.forEach((track) => {
+      if (track.kind === "video" || track.kind === "audio") {
+        availableFilters.add(track.kind);
+      }
+      if (track.availability === "missing") {
+        availableFilters.add("missing");
+      }
+    });
+    filterButtons.forEach((button) => {
+      button.hidden = !availableFilters.has(button.dataset.filter);
+    });
+    if (!availableFilters.has(activeFilter)) {
+      activeFilter = "all";
+    }
   }
 
   function rerenderTrackList() {

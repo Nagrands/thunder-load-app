@@ -1606,7 +1606,7 @@ body.is-now-playing-active:has(
   align-items: center;
   justify-content: center;
   gap: 8px;
-  border: 1px solid rgba(155, 196, 238, 0.15);
+  border: 1px solid var(--color-hover);
   border-radius: var(--border-radius);
   color: var(--color-highlight);
   background: rgba(7, 19, 35, 0.74);

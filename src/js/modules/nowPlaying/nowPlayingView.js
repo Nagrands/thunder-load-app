@@ -28,6 +28,11 @@ import createTransientQueue from "./transientQueue.js";
 import createTimelinePreviewController from "./timelinePreviewController.js";
 import createAudioTracksController from "./audioTracksController.js";
 import {
+  PLAYER_COMMANDS,
+  PLAYER_UI_ACTIONS,
+  SYSTEM_MEDIA_COMMANDS,
+} from "./playerCommands.js";
+import {
   onPlayerSettingsApply,
   publishPlayerSettings,
 } from "./settingsEvents.js";
@@ -691,6 +696,84 @@ export function createNowPlayingView({
     return true;
   }
 
+  async function executeCommand(commandId) {
+    const snapshot = latestSnapshot || controller.getSnapshot();
+    const hasTrack = Boolean(snapshot.currentTrack);
+    const hasQueue = snapshot.queue.length > 0;
+    const duration = Number(snapshot.duration) || 0;
+
+    if (commandId === PLAYER_COMMANDS.OPEN) {
+      return hasTrack ? showPlayer() : false;
+    }
+    if (commandId === PLAYER_COMMANDS.OPEN_LIBRARY) return showLibrary();
+    if (commandId === PLAYER_COMMANDS.SHOW_CURRENT_MEDIA_INFO) {
+      if (!hasTrack) return false;
+      return libraryView.openDialog("trackInfo", {
+        track: controller.currentTrack,
+        posterUrl: presentation.getPosterUrl(controller.currentTrack),
+      });
+    }
+    if (commandId === PLAYER_COMMANDS.TOGGLE_FULLSCREEN) {
+      return fullscreen.toggle();
+    }
+    if (commandId === PLAYER_COMMANDS.PLAY) {
+      return hasTrack ? controller.play() : false;
+    }
+    if (commandId === PLAYER_COMMANDS.PAUSE) {
+      if (!snapshot.isPlaying && !snapshot.isLoading) return false;
+      controller.pause();
+      return true;
+    }
+    if (commandId === PLAYER_COMMANDS.TOGGLE_PLAYBACK) {
+      return hasTrack ? controller.togglePlayback() : false;
+    }
+    if (commandId === PLAYER_COMMANDS.STOP) {
+      if (!hasTrack || snapshot.isStopped) return false;
+      controller.stop();
+      return true;
+    }
+    if (commandId === PLAYER_COMMANDS.PREVIOUS) {
+      return hasQueue ? controller.previous() : false;
+    }
+    if (commandId === PLAYER_COMMANDS.NEXT) {
+      return hasQueue || transientQueue.getItems().length
+        ? playNextTrack()
+        : false;
+    }
+    if (commandId === PLAYER_COMMANDS.SEEK_BACKWARD) {
+      if (!hasTrack || duration <= 0) return false;
+      controller.seek(snapshot.currentTime - 10);
+      return true;
+    }
+    if (commandId === PLAYER_COMMANDS.SEEK_FORWARD) {
+      if (!hasTrack || duration <= 0) return false;
+      controller.seek(snapshot.currentTime + 10);
+      return true;
+    }
+    if (commandId === PLAYER_COMMANDS.TOGGLE_MUTE) {
+      if (!hasTrack) return false;
+      showVolumeFeedback();
+      return controller.toggleMute();
+    }
+    if (commandId === PLAYER_COMMANDS.VOLUME_DOWN) {
+      if (!hasTrack) return false;
+      showVolumeFeedback();
+      return controller.setVolume(snapshot.volume - 0.05);
+    }
+    if (commandId === PLAYER_COMMANDS.VOLUME_UP) {
+      if (!hasTrack) return false;
+      showVolumeFeedback();
+      return controller.setVolume(snapshot.volume + 0.05);
+    }
+    if (commandId === PLAYER_COMMANDS.TOGGLE_SHUFFLE) {
+      return hasQueue ? controller.toggleShuffle() : false;
+    }
+    if (commandId === PLAYER_COMMANDS.CYCLE_REPEAT) {
+      return hasQueue ? controller.cycleRepeat() : false;
+    }
+    return false;
+  }
+
   async function clearQueue() {
     const activePlaylist = libraryView.getActivePlaylist();
     if (!activePlaylist) return false;
@@ -742,14 +825,10 @@ export function createNowPlayingView({
       }
       return true;
     }
-    if (action === "current-track-info") {
-      const track = controller.currentTrack;
-      if (!track) return false;
+    const playerCommand = PLAYER_UI_ACTIONS[action];
+    if (playerCommand) {
       playerMenu.hidden = true;
-      return libraryView.openDialog("trackInfo", {
-        track,
-        posterUrl: presentation.getPosterUrl(track),
-      });
+      return executeCommand(playerCommand);
     }
     if (preferences.handleAction(action)) return true;
     if (action === "add-files") return importSource("files");
@@ -762,19 +841,7 @@ export function createNowPlayingView({
       if (closed) showLibrary();
       return closed;
     }
-    if (action === "play-pause") return controller.togglePlayback();
-    if (action === "previous") return controller.previous();
-    if (action === "next") return playNextTrack();
-    if (action === "shuffle") return controller.toggleShuffle();
-    if (action === "repeat") return controller.cycleRepeat();
-    if (action === "mute") {
-      showVolumeFeedback();
-      return controller.toggleMute();
-    }
-    if (action === "fullscreen") return fullscreen.toggle();
     if (action === "retry") return controller.retry();
-    if (action === "show-library") return showLibrary();
-    if (action === "show-player") return showPlayer();
     if (action === "clear-library-search") return libraryView.clearSearch();
     if (action === "set-library-filter") {
       return libraryView.setFilter(target.dataset.filter);
@@ -849,16 +916,48 @@ export function createNowPlayingView({
       if (!activePlaylist || activePlaylist.id === MEDIA_LIBRARY_ID) {
         return false;
       }
-      const confirmed = await showConfirmationDialog({
+      const deleteMode = await showConfirmationDialog({
         title: t("nowPlaying.playlists.delete"),
         message: t("nowPlaying.playlists.deleteConfirm", {
           title: activePlaylist.title,
         }),
         confirmText: t("nowPlaying.playlists.delete"),
+        choices: [
+          {
+            value: "playlist-only",
+            label: t("nowPlaying.playlists.deleteOnly"),
+            description: t("nowPlaying.playlists.deleteOnlyHint"),
+          },
+          {
+            value: "playlist-and-library",
+            label: t("nowPlaying.playlists.deleteWithMedia"),
+            description: t("nowPlaying.playlists.deleteWithMediaHint"),
+          },
+        ],
+        defaultChoice: "playlist-only",
       });
-      if (!confirmed) return false;
+      if (!deleteMode) return false;
+      const removedTrackIds = [...activePlaylist.trackIds];
+      const removeFromLibrary = deleteMode === "playlist-and-library";
+      const currentTrackRemoved =
+        removeFromLibrary &&
+        removedTrackIds.includes(controller.currentTrack?.id);
+      const wasPlaying = controller.isPlaying;
+      if (currentTrackRemoved) controller.pause();
+      if (removeFromLibrary) {
+        removedTrackIds.forEach((trackId) => {
+          transientQueue.remove(trackId);
+          libraryModel.deleteFromCatalog(trackId);
+        });
+      }
       libraryModel.deletePlaylist(activePlaylist.id);
       syncLibraryQueue();
+      if (removeFromLibrary) renderTransientQueue();
+      if (currentTrackRemoved && controller.currentTrack) {
+        void controller.selectTrack(controller.currentTrack.id, {
+          autoplay: wasPlaying,
+        });
+      }
       return true;
     }
     const row = target.closest(".now-playing__track");
@@ -1096,15 +1195,37 @@ export function createNowPlayingView({
 
   function onDoubleClick(event) {
     const row = event.target.closest(".now-playing__track");
+    if (row) {
+      if (
+        event.target.closest("button") ||
+        !root.contains(row) ||
+        row.classList.contains("is-unavailable")
+      ) {
+        return;
+      }
+      void controller.selectTrack(row.dataset.trackId);
+      return;
+    }
+
+    const interactiveTarget = event.target.closest(
+      "button, input, select, textarea, a, [role='button'], [contenteditable='true']",
+    );
+    const overlayTarget = event.target.closest(
+      ".now-playing__sidebar, .now-playing__dock, .now-playing__player-topbar, .now-playing__player-menu",
+    );
+    const playerStage = event.target.closest('[data-ui="player-stage"]');
     if (
-      event.target.closest("button") ||
-      !row ||
-      !root.contains(row) ||
-      row.classList.contains("is-unavailable")
+      interactiveTarget ||
+      overlayTarget ||
+      !playerStage ||
+      !root.contains(playerStage) ||
+      root.classList.contains("is-library-view") ||
+      latestSnapshot?.isPlaying !== true ||
+      !latestSnapshot.currentTrack
     ) {
       return;
     }
-    void controller.selectTrack(row.dataset.trackId);
+    void fullscreen.toggle();
   }
 
   function onDragStart(event) {
@@ -1199,13 +1320,8 @@ export function createNowPlayingView({
   }
 
   function onSystemMediaCommand(payload = {}) {
-    const action = {
-      play: () => controller.play(),
-      pause: () => controller.pause(),
-      next: () => playNextTrack(),
-      previous: () => controller.previous(),
-    }[payload.command];
-    if (action) void action();
+    const commandId = SYSTEM_MEDIA_COMMANDS[payload.command];
+    if (commandId) void executeCommand(commandId);
   }
 
   root.addEventListener("click", onClick);
@@ -1279,6 +1395,10 @@ export function createNowPlayingView({
 
   return {
     element: root,
+    executeCommand,
+    canUsePlayerShortcuts() {
+      return active || latestSnapshot?.isPlaying === true;
+    },
     importPaths,
     ready,
     onShow() {

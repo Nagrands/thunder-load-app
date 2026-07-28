@@ -64,7 +64,7 @@ describe("hotkeys backup transfer", () => {
     consoleErrorSpy?.mockRestore();
   });
 
-  test("routes Ctrl+3 and Meta+3 to the Tools backup entry point", async () => {
+  test("routes Ctrl+3 but not Meta+3 on Windows/Linux", async () => {
     const tabs = {
       activateTab: jest.fn(),
     };
@@ -88,16 +88,13 @@ describe("hotkeys backup transfer", () => {
     );
     hotkeysModule.disableHotkeys();
 
-    expect(requestToolsView).toHaveBeenNthCalledWith(1, "backup");
-    expect(requestToolsView).toHaveBeenNthCalledWith(2, "backup");
-    expect(tabs.activateTab).toHaveBeenNthCalledWith(1, "wireguard");
-    expect(tabs.activateTab).toHaveBeenNthCalledWith(2, "wireguard");
+    expect(requestToolsView).toHaveBeenCalledTimes(1);
+    expect(requestToolsView).toHaveBeenCalledWith("backup");
+    expect(tabs.activateTab).toHaveBeenCalledTimes(1);
+    expect(tabs.activateTab).toHaveBeenCalledWith("wireguard");
   });
 
-  test.each([
-    ["Ctrl+,", { ctrlKey: true }],
-    ["Meta+,", { metaKey: true }],
-  ])("%s toggles settings through its lifecycle", async (_combo, modifiers) => {
+  test("Ctrl+, toggles settings through its lifecycle", async () => {
     const settingsModal = document.getElementById("settings-modal");
     const settingsLifecycle = require("../settingsModal.js");
     const modalManager = require("../modalManager.js");
@@ -111,7 +108,7 @@ describe("hotkeys backup transfer", () => {
     await Promise.resolve();
     settingsModal.style.display = "flex";
     document.dispatchEvent(
-      new KeyboardEvent("keydown", { key: ",", ...modifiers }),
+      new KeyboardEvent("keydown", { key: ",", ctrlKey: true }),
     );
 
     expect(settingsLifecycle.closeSettings).toHaveBeenCalledTimes(1);
@@ -120,7 +117,7 @@ describe("hotkeys backup transfer", () => {
 
     settingsModal.style.display = "none";
     document.dispatchEvent(
-      new KeyboardEvent("keydown", { key: ",", ...modifiers }),
+      new KeyboardEvent("keydown", { key: ",", ctrlKey: true }),
     );
     hotkeysModule.disableHotkeys();
 

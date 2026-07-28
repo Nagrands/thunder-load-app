@@ -43,10 +43,15 @@ describe("downloaderView hero", () => {
 
     const header = wrapper.querySelector(".downloader-shell-header");
     const hero = wrapper.querySelector(".downloader-shell-header__hero");
+    const heroPanel = hero?.querySelector(".downloader-hero");
     const heroArt = wrapper.querySelector(".downloader-hero__art img");
     const meta = wrapper.querySelector(".downloader-shell-header__meta");
     expect(header).not.toBeNull();
     expect(hero).not.toBeNull();
+    expect(heroPanel?.classList.contains("tab-hero")).toBe(true);
+    expect(heroPanel?.querySelector(".tab-hero__content")).not.toBeNull();
+    expect(heroPanel?.querySelector(".tab-hero__icon")).not.toBeNull();
+    expect(heroPanel?.querySelector(".tab-hero__art")).not.toBeNull();
     expect(hero?.querySelector(".downloader-hero__icon")).not.toBeNull();
     expect(meta).not.toBeNull();
     expect(hero?.querySelector(".title-content")).not.toBeNull();

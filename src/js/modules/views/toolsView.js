@@ -313,11 +313,24 @@ export default function renderToolsView() {
         class="tools-shell-header"
         data-ui="tools-entrance-header"
       >
-        <div class="title">
-          <i class="fa-solid fa-screwdriver-wrench"></i>
-          <div class="title-content">
-            <h1 class="wg-text-gradient" data-i18n="wg.title">${t("wg.title")}</h1>
-            <p class="subtitle" data-i18n="wg.subtitle">${t("wg.subtitle")}</p>
+        <div class="tab-hero tools-hero">
+          <div class="tab-hero__content tools-hero__content">
+            <span class="tab-hero__icon tools-hero__icon" aria-hidden="true">
+              <i class="fa-solid fa-screwdriver-wrench"></i>
+            </span>
+            <div class="title-content">
+              <h1 class="wg-text-gradient" data-i18n="wg.title">${t("wg.title")}</h1>
+              <p class="subtitle" data-i18n="wg.subtitle">${t("wg.subtitle")}</p>
+            </div>
+          </div>
+          <div class="tab-hero__art tools-hero__art" aria-hidden="true">
+            <img
+              src="../assets/img/tools-hero.png"
+              alt=""
+              draggable="false"
+              width="1717"
+              height="916"
+            />
           </div>
         </div>
       </header>

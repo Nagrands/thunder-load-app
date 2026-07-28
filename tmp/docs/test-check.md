@@ -1,8 +1,8 @@
 ## Автотесты (Jest)
 
 - Автосборка списка: `npm run test-check:sync-tests`
-- Найдено файлов: 137
-- Найдено тест-кейсов (test/it): 1192
+- Найдено файлов: 138
+- Найдено тест-кейсов (test/it): 1204
 
 <!-- AUTO-JEST-TESTS:START -->
 
@@ -275,10 +275,12 @@
 ### `src/js/app/__tests__/shortcutIpcHandlers.test.js` (1)
 - [ ] registers get, set, replace and reset and broadcasts successful changes
 
-### `src/js/app/__tests__/shortcutService.test.js` (9)
-- [ ] exposes 16 unique actions with platform defaults
+### `src/js/app/__tests__/shortcutService.test.js` (11)
+- [ ] exposes 31 unique actions with platform defaults
 - [ ] normalizes aliases and rejects unsafe combinations
 - [ ] fills new actions and migrates legacy site shortcuts once
+- [ ] preserves existing assignments and leaves conflicting new defaults unassigned
+- [ ] round-trips explicitly unassigned shortcuts on import
 - [ ] reports conflicts and swaps assignments atomically
 - [ ] replace ignores unknown ids, fills missing ids and reset restores defaults
 - [ ] rolls global registrations back if the OS rejects a new accelerator
@@ -517,7 +519,7 @@
 - [ ] settings visibility event hides container until re-enabled
 
 ### `src/js/modules/__tests__/downloaderView.test.js` (1)
-- [ ] builds full-width hero with separate meta row and preserved ids
+- [ ] builds illustrated hero with separate status row and preserved ids
 
 ### `src/js/modules/__tests__/downloadJobs.test.js` (2)
 - [ ] keeps legacy collections in sync with the job store
@@ -739,8 +741,13 @@
 - [ ] renders deleted badge and disables open actions for deleted entry
 - [ ] collapses and expands filters with persisted state
 
-### `src/js/modules/__tests__/hotkeys.backupTransfer.test.js` (1)
-- [ ] routes Ctrl+3 and Meta+3 to the Tools backup entry point
+### `src/js/modules/__tests__/hotkeys.backupTransfer.test.js` (2)
+- [ ] routes Ctrl+3 but not Meta+3 on Windows/Linux
+- [ ] Ctrl+, toggles settings through its lifecycle
+
+### `src/js/modules/__tests__/hotkeys.player.test.js` (2)
+- [ ] allows repeats only for continuous commands and blocks editable targets
+- [ ] distinguishes Command from Control on macOS
 
 ### `src/js/modules/__tests__/i18n.test.js` (2)
 - [ ] keeps translations accessible after split
@@ -752,7 +759,7 @@
 - [ ] restores the globe after programmatic clear actions
 
 ### `src/js/modules/__tests__/mainViewHeader.template.test.js` (1)
-- [ ] keeps downloader mode switch in the URL helper row
+- [ ] keeps the redesigned URL shell and existing downloader contracts
 
 ### `src/js/modules/__tests__/mediaSessionManager.test.js` (11)
 - [ ] publishes metadata, provider artwork and position state
@@ -874,7 +881,7 @@
 - [ ] keeps insertion order and supports reorder, removal and filtering
 - [ ] never exposes mutable internal items
 
-### `src/js/modules/__tests__/nowPlayingView.test.js` (32)
+### `src/js/modules/__tests__/nowPlayingView.test.js` (35)
 - [ ] renders an accessible player and restores selectedTrackId
 - [ ] opens structured track information with the current poster
 - [ ] opens a non-blocking media library empty state
@@ -882,6 +889,8 @@
 - [ ] updates the brand label from playback state
 - [ ] adjusts volume with the mouse wheel and shows the percentage
 - [ ] syncs fullscreen controls, Escape and tab hide with preload state
+- [ ] routes Player commands through one state-synchronized facade
+- [ ] toggles fullscreen on player-stage double click only while playing
 - [ ] refreshes dynamic playback and fullscreen labels after language changes
 - [ ] shows only the matching audio ambient or video layer
 - [ ] shows YouTube preparation without a false playing indicator
@@ -902,6 +911,7 @@
 - [ ] clears every item from the system Media Library after confirmation
 - [ ] closes current playback from the mini-player without removing media
 - [ ] renders the V2 media library, playlists and persistent mini-player
+- [ ] can remove playlist files from the media library when deleting it
 - [ ] loads a video poster eagerly for the current card and library mini-player
 - [ ] searches the active playlist, composes filters, and renders no-results
 - [ ] switches playlists from the library and sidebar without autoplay
@@ -1014,7 +1024,7 @@
 - [ ] matches the noisy clipboard fixture
 - [ ] applies new produce aliases and keeps size notes only in summary
 
-### `src/js/modules/__tests__/registerTabs.backupTransfer.test.js` (8)
+### `src/js/modules/__tests__/registerTabs.backupTransfer.test.js` (10)
 - [ ] registers Download, Tools, Products, and Now Playing tabs
 - [ ] redirects legacy backup default tab to Tools entry point
 - [ ] ignores the removed Downloader developer preference
@@ -1023,6 +1033,8 @@
 - [ ] loads Tools view only when Tools tab renderer runs
 - [ ] loads Products view only when Products tab renderer runs
 - [ ] keeps Now Playing mounted and forwards tab lifecycle hooks
+- [ ] opens the lazy Player and media library through registered commands
+- [ ] deduplicates concurrent lazy Player initialization
 
 ### `src/js/modules/__tests__/scrollbarVisibility.test.js` (1)
 - [ ] shows scrollbars during wheel activity and hides them after idle
@@ -1131,11 +1143,12 @@
 - [ ] propagates structured set-theme failures without changing local state
 - [ ] still applies the theme when Electron is unavailable
 
-### `src/js/modules/__tests__/shortcutEditor.test.js` (4)
+### `src/js/modules/__tests__/shortcutEditor.test.js` (5)
 - [ ] renders catalog metadata and filters actions
 - [ ] records a shortcut immediately and Escape cancels recording
 - [ ] offers an atomic swap after a conflict
 - [ ] requires inline confirmation before reset
+- [ ] resets one assignment and the Player group through existing IPC
 
 ### `src/js/modules/__tests__/state.test.js` (2)
 - [ ] keeps download actions disabled when downloader is unavailable
@@ -1339,7 +1352,8 @@
 - [ ] retries download from error state when update metadata is known
 - [ ] closes flyover on Escape
 
-### `src/js/modules/__tests__/urlInputHandler.test.js` (51)
+### `src/js/modules/__tests__/urlInputHandler.test.js` (52)
+- [ ] shows the paste action in the initial empty state
 - [ ] does not show inline error while typing before blur/enter
 - [ ] does not paste from clipboard when downloader is unavailable
 - [ ] hides action row when URL is empty and shows it after input

@@ -58,6 +58,10 @@ function formatAccelerator(accelerator) {
   return labels.join(isMac ? "" : " + ");
 }
 
+function isPlayerAction(action) {
+  return action?.categoryKey === "shortcuts.categories.player";
+}
+
 function announce(message) {
   const live = getElement(SELECTORS.live);
   if (!live) return;
@@ -161,7 +165,8 @@ function createRow(action) {
     "shortcut-editor__value",
     recordingActionId === actionId
       ? t("settings.shortcuts.recording")
-      : formatAccelerator(assignments[actionId]),
+      : formatAccelerator(assignments[actionId]) ||
+        t("settings.shortcuts.unassigned"),
   );
   value.dataset.shortcutValue = "";
   const edit = createText(
@@ -185,7 +190,20 @@ function createRow(action) {
     if (recordingActionId === actionId) stopRecording({ restoreFocus: true });
     else startRecording(actionId);
   });
-  controls.append(value, edit);
+  const reset = createText(
+    "button",
+    "shortcut-editor__reset",
+    t("settings.shortcuts.reset.single"),
+  );
+  reset.type = "button";
+  reset.dataset.shortcutReset = "";
+  reset.disabled = assignments[actionId] === action.defaultAccelerator;
+  reset.setAttribute(
+    "aria-label",
+    `${t("settings.shortcuts.reset.single")}: ${getActionText(action, "name")}`,
+  );
+  reset.addEventListener("click", () => void resetShortcut(actionId));
+  controls.append(value, edit, reset);
   row.append(copy, controls);
   if (pendingConflict?.actionId === actionId) {
     row.append(createConflictBlock(actionId));
@@ -214,9 +232,52 @@ function render() {
   const visibleActions = catalog.filter((action) =>
     matchesSearch(action, query),
   );
-  list.replaceChildren(...visibleActions.map(createRow));
+  const regularActions = visibleActions.filter((action) => !isPlayerAction(action));
+  const playerActions = visibleActions.filter(isPlayerAction);
+  const content = regularActions.map(createRow);
+  if (playerActions.length) {
+    const section = document.createElement("section");
+    section.className = "shortcut-editor__group shortcut-editor__group--player";
+    section.dataset.shortcutCategory = "player";
+    const header = document.createElement("header");
+    header.className = "shortcut-editor__group-header";
+    header.append(
+      createText(
+        "h3",
+        "shortcut-editor__group-title",
+        t("shortcuts.categories.player"),
+      ),
+    );
+    const reset = createText(
+      "button",
+      "shortcut-editor__group-reset",
+      t("settings.shortcuts.reset.player"),
+    );
+    reset.type = "button";
+    reset.dataset.shortcutPlayerReset = "";
+    reset.addEventListener("click", () => void resetPlayerShortcuts());
+    header.append(reset);
+    section.append(header, ...playerActions.map(createRow));
+    content.push(section);
+  }
+  list.replaceChildren(...content);
   const empty = getElement(SELECTORS.empty);
   if (empty) empty.hidden = visibleActions.length > 0;
+}
+
+function applyConflict(actionId, accelerator, conflictingActionId) {
+  recordingActionId = "";
+  pendingConflict = { actionId, accelerator, conflictingActionId };
+  render();
+  getRow(actionId)
+    ?.querySelector("[data-shortcut-swap]")
+    ?.focus();
+  const owner = actionById(conflictingActionId);
+  announce(
+    t("settings.shortcuts.conflict", {
+      action: owner ? getActionText(owner, "name") : conflictingActionId,
+    }),
+  );
 }
 
 function startRecording(actionId) {
@@ -315,24 +376,7 @@ async function captureShortcut(event) {
   const actionId = recordingActionId;
   const result = await setShortcut(actionId, accelerator);
   if (result.status === "conflict") {
-    recordingActionId = "";
-    pendingConflict = {
-      actionId,
-      accelerator,
-      conflictingActionId: result.conflictingActionId,
-    };
-    render();
-    getRow(actionId)
-      ?.querySelector("[data-shortcut-swap]")
-      ?.focus();
-    announce(
-      t("settings.shortcuts.conflict", {
-        action:
-          actionById(result.conflictingActionId)
-            ? getActionText(actionById(result.conflictingActionId), "name")
-            : result.conflictingActionId,
-      }),
-    );
+    applyConflict(actionId, accelerator, result.conflictingActionId);
     return;
   }
   if (result.status !== "ok") {
@@ -353,6 +397,61 @@ async function captureShortcut(event) {
   pendingConflict = null;
   applyPayload(result.payload);
   render();
+}
+
+async function resetShortcut(actionId) {
+  const action = actionById(actionId);
+  if (!action?.defaultAccelerator) return;
+  const result = await setShortcut(actionId, action.defaultAccelerator);
+  if (result.status === "conflict") {
+    applyConflict(
+      actionId,
+      action.defaultAccelerator,
+      result.conflictingActionId,
+    );
+    return;
+  }
+  if (result.status !== "ok") {
+    announce(t("settings.shortcuts.error"));
+    return;
+  }
+  pendingConflict = null;
+  applyPayload(result.payload);
+  render();
+  announce(t("settings.shortcuts.resetSingleSuccess"));
+}
+
+async function resetPlayerShortcuts() {
+  const next = { ...assignments };
+  catalog.filter(isPlayerAction).forEach((action) => {
+    next[getActionId(action)] = action.defaultAccelerator;
+  });
+  try {
+    const result = await window.electron.invoke("shortcuts:replace", {
+      assignments: next,
+    });
+    const normalized = normalizeSetResult(result);
+    if (normalized.status === "conflict") {
+      const owner = actionById(normalized.conflictingActionId);
+      announce(
+        t("settings.shortcuts.conflict", {
+          action: owner
+            ? getActionText(owner, "name")
+            : normalized.conflictingActionId,
+        }),
+      );
+      return;
+    }
+    if (normalized.status !== "ok") throw new Error(normalized.error);
+    pendingConflict = null;
+    applyPayload(result);
+    render();
+    announce(t("settings.shortcuts.resetPlayerSuccess"));
+    showToast(t("settings.shortcuts.resetPlayerSuccess"), "success");
+  } catch (error) {
+    console.error("[ShortcutEditor] Failed to reset player shortcuts:", error);
+    announce(t("settings.shortcuts.error"));
+  }
 }
 
 async function swapConflict(actionId) {

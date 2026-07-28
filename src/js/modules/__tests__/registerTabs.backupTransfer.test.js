@@ -15,6 +15,7 @@ describe("registerTabs backup transfer", () => {
   let applyI18nMock;
   let registerTabs;
   let setLazyModuleLoaders;
+  let shortcutActions;
 
   beforeEach(() => {
     jest.resetModules();
@@ -48,6 +49,9 @@ describe("registerTabs backup transfer", () => {
     initDownloaderBackgroundPreviewMock = jest.fn();
     initDownloaderLivePreviewMock = jest.fn();
     applyI18nMock = jest.fn();
+    shortcutActions = new Map();
+    nowPlayingViewInstance.executeCommand = jest.fn();
+    nowPlayingViewInstance.canUsePlayerShortcuts = jest.fn(() => true);
 
     window.electron = {
       ipcRenderer: {
@@ -95,6 +99,12 @@ describe("registerTabs backup transfer", () => {
     jest.doMock("../i18n.js", () => ({
       applyI18n: applyI18nMock,
       t: (key) => key,
+    }));
+    jest.doMock("../hotkeys.js", () => ({
+      registerLocalShortcutAction: jest.fn((actionId, handler) => {
+        shortcutActions.set(actionId, handler);
+        return () => shortcutActions.delete(actionId);
+      }),
     }));
 
     ({
@@ -239,6 +249,7 @@ describe("registerTabs backup transfer", () => {
     nowPlayingOptions.onShow();
     await Promise.resolve();
     await Promise.resolve();
+    await Promise.resolve();
 
     expect(wrapper.id).toBe("now-playing-view-wrapper");
     expect(createNowPlayingViewMock).toHaveBeenCalledWith({ element: wrapper });
@@ -247,5 +258,34 @@ describe("registerTabs backup transfer", () => {
     nowPlayingOptions.onHide();
     expect(nowPlayingViewInstance.onHide).toHaveBeenCalled();
     expect(wrapper.isConnected).toBe(true);
+  });
+
+  test("opens the lazy Player and media library through registered commands", async () => {
+    getDefaultTabMock.mockResolvedValueOnce("download");
+    await registerTabs(document.getElementById("main-view"));
+
+    await shortcutActions.get("player.open")();
+    expect(activateTabMock).toHaveBeenCalledWith("now-playing");
+    expect(createNowPlayingViewMock).toHaveBeenCalledTimes(1);
+    expect(nowPlayingViewInstance.executeCommand).toHaveBeenCalledWith(
+      "player.open",
+    );
+
+    await shortcutActions.get("player.openLibrary")();
+    expect(createNowPlayingViewMock).toHaveBeenCalledTimes(1);
+    expect(nowPlayingViewInstance.executeCommand).toHaveBeenLastCalledWith(
+      "player.openLibrary",
+    );
+  });
+
+  test("deduplicates concurrent lazy Player initialization", async () => {
+    getDefaultTabMock.mockResolvedValueOnce("download");
+    await registerTabs(document.getElementById("main-view"));
+    const [, , , nowPlayingFactory] = addTabMock.mock.calls[3];
+
+    nowPlayingFactory();
+    await shortcutActions.get("player.open")();
+
+    expect(createNowPlayingViewMock).toHaveBeenCalledTimes(1);
   });
 });

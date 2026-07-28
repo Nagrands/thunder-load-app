@@ -17,6 +17,7 @@ const ICONS = Object.freeze({
   "fa-solid fa-pen": "pencil",
   "fa-solid fa-xmark": "x",
   "fa-solid fa-music": "music-2",
+  "fa-solid fa-arrow-right": "arrow-right",
   "fa-solid fa-up-right-and-down-left-from-center": "maximize-2",
   "fa-brands fa-youtube": "youtube",
 });
@@ -118,7 +119,7 @@ export function buildNowPlayingMarkup() {
       aria-label="${t("nowPlaying.playlist")}"
     ></div>
 
-    <div class="now-playing__layout">
+    <div class="now-playing__layout" data-ui="player-stage">
       <header class="now-playing__player-topbar" data-ui="player-topbar">
         <button
           class="now-playing__floating-title"
@@ -557,7 +558,7 @@ export function buildNowPlayingMarkup() {
             aria-label="${t("nowPlaying.volume")}"
           />
           ${iconButton("close-playback", "square-x", "nowPlaying.closePlayback", "player-library__mini-control player-library__mini-close")}
-          ${iconButton("show-player", "fa-solid fa-up-right-and-down-left-from-center", "nowPlaying.library.openFullPlayer", "player-library__mini-control player-library__mini-open")}
+          ${iconButton("show-player", "fa-solid fa-arrow-right", "nowPlaying.library.openFullPlayer", "player-library__mini-control player-library__mini-open")}
         </div>
       </section>
     </section>

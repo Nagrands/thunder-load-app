@@ -70,9 +70,9 @@ export default function renderDownloader(wrapper) {
     hdr.className = "downloader-shell-header";
     hdr.innerHTML = `
       <div class="downloader-shell-header__hero">
-        <div class="downloader-hero">
-          <div class="downloader-hero__content">
-            <span class="downloader-hero__icon" aria-hidden="true">
+        <div class="tab-hero downloader-hero">
+          <div class="tab-hero__content downloader-hero__content">
+            <span class="tab-hero__icon downloader-hero__icon" aria-hidden="true">
               <i class="fa-solid fa-download"></i>
             </span>
             <div class="title-content">
@@ -82,11 +82,13 @@ export default function renderDownloader(wrapper) {
               </p>
             </div>
           </div>
-          <div class="downloader-hero__art" aria-hidden="true">
+          <div class="tab-hero__art downloader-hero__art" aria-hidden="true">
             <img
               src="../assets/img/downloader-hero.png"
               alt=""
               draggable="false"
+              width="1808"
+              height="870"
             />
           </div>
         </div>

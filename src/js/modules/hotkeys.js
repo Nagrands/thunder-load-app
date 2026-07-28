@@ -37,6 +37,7 @@ let catalog = [];
 let hotkeysEnabled = false;
 let tabSystemReference = null;
 let shortcutsChangedBound = false;
+let isMacPlatform = /Mac|iPhone|iPad/i.test(navigator.platform || "");
 
 const normalizeTheme = (value) =>
   value === "system" || !value || !THEME_ORDER.includes(value) ? "dark" : value;
@@ -96,30 +97,47 @@ const clickAfterClosingModals = (element) => {
   element?.click();
 };
 
+const createLocalAction = (handler, allowRepeat = false) => ({
+  handler,
+  allowRepeat,
+});
+
 const LOCAL_ACTIONS = new Map([
-  ["settings.shortcuts.open", () => openSettingsWithTab("shortcuts-settings")],
-  ["settings.open", toggleSettings],
-  ["theme.toggle", toggleTheme],
-  ["navigation.downloader", activateDownload],
-  ["navigation.tools", activateTools],
-  ["navigation.backup", activateBackup],
-  ["downloads.start", () => clickAfterClosingModals(downloadButton)],
+  [
+    "settings.shortcuts.open",
+    createLocalAction(() => openSettingsWithTab("shortcuts-settings")),
+  ],
+  ["settings.open", createLocalAction(toggleSettings)],
+  ["theme.toggle", createLocalAction(toggleTheme)],
+  ["navigation.downloader", createLocalAction(activateDownload)],
+  ["navigation.tools", createLocalAction(activateTools)],
+  ["navigation.backup", createLocalAction(activateBackup)],
+  [
+    "downloads.start",
+    createLocalAction(() => clickAfterClosingModals(downloadButton)),
+  ],
   [
     "downloads.folder.open",
-    () => {
+    createLocalAction(() => {
       clickAfterClosingModals(openFolderButton);
       showToast(t("hotkeys.openLastFolder"), "info");
-    },
+    }),
   ],
-  ["history.open", () => clickAfterClosingModals(openHistoryButton)],
+  [
+    "history.open",
+    createLocalAction(() => clickAfterClosingModals(openHistoryButton)),
+  ],
   [
     "downloads.last.open",
-    () => {
+    createLocalAction(() => {
       clickAfterClosingModals(openLastVideoButton);
       showToast(t("hotkeys.openLastVideo"), "info");
-    },
+    }),
   ],
-  ["history.clear", () => clickAfterClosingModals(clearHistoryButton)],
+  [
+    "history.clear",
+    createLocalAction(() => clickAfterClosingModals(clearHistoryButton)),
+  ],
 ]);
 
 function normalizeKeyName(key) {
@@ -137,10 +155,17 @@ function normalizeKeyName(key) {
   return key.length === 1 ? key.toUpperCase() : key;
 }
 
-export function acceleratorFromKeyboardEvent(event) {
+export function acceleratorFromKeyboardEvent(
+  event,
+  { isMac = isMacPlatform } = {},
+) {
   if (!event?.key || MODIFIER_KEYS.has(event.key)) return "";
   const parts = [];
-  if (event.ctrlKey || event.metaKey) parts.push("CommandOrControl");
+  if ((isMac && event.metaKey) || (!isMac && event.ctrlKey)) {
+    parts.push("CommandOrControl");
+  }
+  if (isMac && event.ctrlKey) parts.push("Control");
+  if (!isMac && event.metaKey) parts.push("Command");
   if (event.altKey) parts.push("Alt");
   if (event.shiftKey) parts.push("Shift");
   parts.push(normalizeKeyName(event.key));
@@ -148,8 +173,15 @@ export function acceleratorFromKeyboardEvent(event) {
 }
 
 function normalizeAccelerator(accelerator) {
-  return String(accelerator || "")
-    .replace(/\b(Ctrl|Control|Cmd|Command|Meta)\b/gi, "CommandOrControl")
+  let value = String(accelerator || "");
+  value = isMacPlatform
+    ? value
+        .replace(/\b(Cmd|Command|Meta)\b/gi, "CommandOrControl")
+        .replace(/\bCtrl\b/gi, "Control")
+    : value
+        .replace(/\b(Ctrl|Control)\b/gi, "CommandOrControl")
+        .replace(/\b(Cmd|Meta)\b/gi, "Command");
+  return value
     .replace(/\s*\+\s*/g, "+")
     .toLowerCase();
 }
@@ -219,38 +251,53 @@ function isEditableTarget(target) {
   return (
     target instanceof HTMLElement &&
     (["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName) ||
-      target.isContentEditable)
+      target.isContentEditable ||
+      Boolean(target.closest(".settings-shortcuts")))
   );
 }
 
 async function handleKeyDown(event) {
   try {
-    if (event.repeat || event.defaultPrevented || isEditableTarget(event.target)) {
+    if (event.defaultPrevented || isEditableTarget(event.target)) {
       return;
     }
     const accelerator = acceleratorFromKeyboardEvent(event);
     const actionId = findActionId(accelerator);
     const action = LOCAL_ACTIONS.get(actionId);
     if (!action) return;
+    if (event.repeat && !action.allowRepeat) return;
 
     event.preventDefault();
-    await action();
+    await action.handler();
   } catch (error) {
     console.error("[Hotkeys] Failed to execute shortcut:", error);
   }
 }
 
-export function registerLocalShortcutAction(actionId, handler) {
+export function registerLocalShortcutAction(
+  actionId,
+  handler,
+  { allowRepeat = false } = {},
+) {
   if (!actionId || typeof handler !== "function") return false;
-  LOCAL_ACTIONS.set(actionId, handler);
-  return true;
+  const action = createLocalAction(handler, allowRepeat === true);
+  LOCAL_ACTIONS.set(actionId, action);
+  return () => {
+    if (LOCAL_ACTIONS.get(actionId) === action) {
+      LOCAL_ACTIONS.delete(actionId);
+    }
+  };
 }
 
-export function initHotkeys(tabsInstance) {
+export async function initHotkeys(tabsInstance) {
   tabSystemReference = tabsInstance;
   bindShortcutsChanged();
   enableHotkeys();
   void loadShortcuts();
+  try {
+    const info = await window.electron?.getPlatformInfo?.();
+    isMacPlatform = Boolean(info?.isMac || info?.platform === "darwin");
+  } catch {}
 }
 
 export function enableHotkeys() {
