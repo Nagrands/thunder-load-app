@@ -134,6 +134,31 @@ describe("tooltipInitializer", () => {
     expect(btn.dataset.tooltipTitle).toBe("Alpha");
   });
 
+  test("renders and live-updates multiple shortcut hints", () => {
+    const { instances } = setupBootstrapMock();
+    document.body.innerHTML = `
+      <button
+        id="a"
+        data-bs-toggle="tooltip"
+        data-hotkey="Alt+Left / Alt+Right"
+        title="Seek"
+      ></button>`;
+    const btn = document.getElementById("a");
+
+    initTooltips(document);
+    expect(btn.getAttribute("title")).toContain(" / ");
+    expect(btn.dataset.tooltipHotkeyApplied).toContain("/");
+
+    const previousTitle = btn.getAttribute("title");
+    btn.removeAttribute("title");
+    btn.setAttribute("data-bs-original-title", previousTitle);
+    btn.dataset.hotkey = "Alt+Shift+Left / Alt+Shift+Right";
+    btn.dispatchEvent(new CustomEvent("hotkey:changed", { bubbles: true }));
+
+    expect(btn.getAttribute("title")).toMatch(/Shift|⇧/);
+    expect(instances.get(btn).setContent).toHaveBeenCalled();
+  });
+
   test("cleanup removes disconnected elements from active tooltip map", () => {
     const { instances } = setupBootstrapMock();
     document.body.innerHTML =

@@ -194,25 +194,37 @@ function resolveGetPayload(payload) {
   };
 }
 
-function updateStaticHotkeyLabels() {
-  document.querySelectorAll("[data-shortcut-action]").forEach((element) => {
-    const accelerator = assignments[element.dataset.shortcutAction];
-    if (!accelerator) return;
-    element.dataset.hotkey = accelerator;
-    element.dispatchEvent(
-      new CustomEvent("hotkey:changed", {
-        detail: { accelerator },
-        bubbles: true,
-      }),
-    );
-  });
+export function refreshShortcutLabels(root = document) {
+  const context =
+    root && typeof root.querySelectorAll === "function" ? root : document;
+  context
+    .querySelectorAll("[data-shortcut-action], [data-shortcut-actions]")
+    .forEach((element) => {
+      const actionIds = element.dataset.shortcutActions
+        ? element.dataset.shortcutActions.split(",")
+        : [element.dataset.shortcutAction];
+      const accelerators = actionIds
+        .map((actionId) => assignments[actionId])
+        .filter(Boolean);
+      if (accelerators.length) {
+        element.dataset.hotkey = accelerators.join(" / ");
+      } else {
+        delete element.dataset.hotkey;
+      }
+      element.dispatchEvent(
+        new CustomEvent("hotkey:changed", {
+          detail: { accelerators },
+          bubbles: true,
+        }),
+      );
+    });
 }
 
 function applyShortcutsState(payload) {
   const next = resolveGetPayload(payload);
   if (Object.keys(next.assignments).length) assignments = next.assignments;
   if (next.catalog.length) catalog = next.catalog;
-  updateStaticHotkeyLabels();
+  refreshShortcutLabels();
   window.dispatchEvent(
     new CustomEvent("shortcuts:updated", {
       detail: { assignments: { ...assignments }, catalog: [...catalog] },

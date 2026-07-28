@@ -1,4 +1,5 @@
 import { t } from "../i18n.js";
+import { PLAYER_COMMANDS } from "./playerCommands.js";
 
 const ICONS = Object.freeze({
   "fa-solid fa-headphones": "headphones",
@@ -22,6 +23,32 @@ const ICONS = Object.freeze({
   "fa-brands fa-youtube": "youtube",
 });
 
+const SHORTCUT_ACTIONS = Object.freeze({
+  shuffle: [PLAYER_COMMANDS.TOGGLE_SHUFFLE],
+  previous: [PLAYER_COMMANDS.PREVIOUS],
+  "play-pause": [
+    PLAYER_COMMANDS.TOGGLE_PLAYBACK,
+    PLAYER_COMMANDS.STOP,
+  ],
+  next: [PLAYER_COMMANDS.NEXT],
+  repeat: [PLAYER_COMMANDS.CYCLE_REPEAT],
+  mute: [PLAYER_COMMANDS.TOGGLE_MUTE],
+  fullscreen: [PLAYER_COMMANDS.TOGGLE_FULLSCREEN],
+  "show-library": [PLAYER_COMMANDS.OPEN_LIBRARY],
+  "show-player": [PLAYER_COMMANDS.OPEN],
+  "current-track-info": [PLAYER_COMMANDS.SHOW_CURRENT_MEDIA_INFO],
+});
+
+function shortcutAttributes(actionIds = []) {
+  if (actionIds.length === 1) {
+    return `data-shortcut-action="${actionIds[0]}"`;
+  }
+  if (actionIds.length > 1) {
+    return `data-shortcut-actions="${actionIds.join(",")}"`;
+  }
+  return "";
+}
+
 function lucideIcon(icon) {
   return ICONS[icon] || icon || "circle";
 }
@@ -37,6 +64,7 @@ function iconButton(action, icon, labelKey, extraClass = "") {
       data-bs-toggle="tooltip"
       data-bs-placement="top"
       data-i18n-title="${labelKey}"
+      ${shortcutAttributes(SHORTCUT_ACTIONS[action])}
       title="${t(labelKey)}"
       aria-label="${t(labelKey)}"
       ${placeholder ? 'aria-disabled="true"' : ""}
@@ -248,6 +276,14 @@ export function buildNowPlayingMarkup() {
               step="0.1"
               value="0"
               data-i18n-aria="nowPlaying.seek"
+              data-i18n-title="nowPlaying.seek"
+              data-bs-toggle="tooltip"
+              data-bs-placement="top"
+              ${shortcutAttributes([
+                PLAYER_COMMANDS.SEEK_BACKWARD,
+                PLAYER_COMMANDS.SEEK_FORWARD,
+              ])}
+              title="${t("nowPlaying.seek")}"
               aria-label="${t("nowPlaying.seek")}"
             />
           </span>
@@ -265,6 +301,14 @@ export function buildNowPlayingMarkup() {
             step="0.01"
             value="1"
             data-i18n-aria="nowPlaying.volume"
+            data-i18n-title="nowPlaying.volume"
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            ${shortcutAttributes([
+              PLAYER_COMMANDS.VOLUME_DOWN,
+              PLAYER_COMMANDS.VOLUME_UP,
+            ])}
+            title="${t("nowPlaying.volume")}"
             aria-label="${t("nowPlaying.volume")}"
           />
           <output
@@ -291,7 +335,15 @@ export function buildNowPlayingMarkup() {
           <i data-lucide="pin" aria-hidden="true"></i>
           <span data-i18n="nowPlaying.pinSidebar">${t("nowPlaying.pinSidebar")}</span>
         </button>
-        <button type="button" data-action="current-track-info">
+        <button
+          type="button"
+          data-action="current-track-info"
+          data-i18n-title="nowPlaying.trackInfo"
+          data-bs-toggle="tooltip"
+          data-bs-placement="left"
+          ${shortcutAttributes(SHORTCUT_ACTIONS["current-track-info"])}
+          title="${t("nowPlaying.trackInfo")}"
+        >
           <i data-lucide="info" aria-hidden="true"></i>
           <span data-i18n="nowPlaying.trackInfo">${t("nowPlaying.trackInfo")}</span>
         </button>

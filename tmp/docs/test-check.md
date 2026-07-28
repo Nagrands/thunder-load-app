@@ -2,7 +2,7 @@
 
 - Автосборка списка: `npm run test-check:sync-tests`
 - Найдено файлов: 138
-- Найдено тест-кейсов (test/it): 1204
+- Найдено тест-кейсов (test/it): 1206
 
 <!-- AUTO-JEST-TESTS:START -->
 
@@ -745,9 +745,10 @@
 - [ ] routes Ctrl+3 but not Meta+3 on Windows/Linux
 - [ ] Ctrl+, toggles settings through its lifecycle
 
-### `src/js/modules/__tests__/hotkeys.player.test.js` (2)
+### `src/js/modules/__tests__/hotkeys.player.test.js` (3)
 - [ ] allows repeats only for continuous commands and blocks editable targets
 - [ ] distinguishes Command from Control on macOS
+- [ ] applies current assignments to Player controls created lazily
 
 ### `src/js/modules/__tests__/i18n.test.js` (2)
 - [ ] keeps translations accessible after split
@@ -1312,11 +1313,12 @@
 - [ ] shows creating state and allows clearing last power status
 - [ ] create another clears current power status and returns focus to the last action
 
-### `src/js/modules/__tests__/tooltipInitializer.test.js` (6)
+### `src/js/modules/__tests__/tooltipInitializer.test.js` (7)
 - [ ] repeated initTooltips does not duplicate tooltip instances
 - [ ] updates tooltip content when title changes
 - [ ] fallback title update without setContent does not force dispose
 - [ ] keeps tooltip when Bootstrap stores text in data-bs-original-title
+- [ ] renders and live-updates multiple shortcut hints
 - [ ] cleanup removes disconnected elements from active tooltip map
 - [ ] body click hides shown tooltips
 

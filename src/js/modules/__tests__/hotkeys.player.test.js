@@ -111,4 +111,29 @@ describe("Player local hotkeys", () => {
     expect(open).toHaveBeenCalledTimes(1);
     hotkeys.disableHotkeys();
   });
+
+  test("applies current assignments to Player controls created lazily", async () => {
+    window.electron = {
+      getPlatformInfo: jest.fn(async () => ({ platform: "win32" })),
+      on: jest.fn(),
+      invoke: jest.fn(async () => ({
+        assignments: {
+          "player.seekBackward": "Alt+Left",
+          "player.seekForward": "Alt+Right",
+        },
+      })),
+    };
+    const hotkeys = require("../hotkeys.js");
+    await hotkeys.initHotkeys({ activateTab: jest.fn() });
+    await Promise.resolve();
+
+    const control = document.createElement("button");
+    control.dataset.shortcutActions =
+      "player.seekBackward,player.seekForward";
+    document.body.append(control);
+    hotkeys.refreshShortcutLabels(control.parentElement);
+
+    expect(control.dataset.hotkey).toBe("Alt+Left / Alt+Right");
+    hotkeys.disableHotkeys();
+  });
 });

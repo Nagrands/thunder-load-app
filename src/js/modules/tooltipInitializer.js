@@ -434,7 +434,11 @@ function initPopovers(root = document) {
 function applyHotkeyTitles(tooltipTriggerList, isMac) {
   tooltipTriggerList.forEach((el) => {
     const previousHotkeySuffix = el.dataset.tooltipHotkeyApplied || "";
-    let baseTitle = el.getAttribute("title") ?? "";
+    let baseTitle =
+      el.getAttribute("title") ||
+      el.getAttribute("data-bs-original-title") ||
+      el.dataset.tooltipTitle ||
+      "";
     if (
       previousHotkeySuffix &&
       baseTitle.endsWith(` (${previousHotkeySuffix})`)
@@ -447,8 +451,12 @@ function applyHotkeyTitles(tooltipTriggerList, isMac) {
       return;
     }
     if (hotkey) {
-      const cleaned = removeDuplicateModifiers(hotkey);
-      const updated = replaceModifiers(cleaned, isMac);
+      const updated = hotkey
+        .split(/\s*\/\s*/)
+        .map((value) =>
+          replaceModifiers(removeDuplicateModifiers(value), isMac),
+        )
+        .join(" / ");
       const nextTitle = `${baseTitle} (${updated})`;
       if (el.getAttribute("title") !== nextTitle) {
         el.setAttribute("title", nextTitle);

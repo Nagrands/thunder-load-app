@@ -8,7 +8,10 @@ jest.mock("../modals.js", () => ({
 
 import { showConfirmationDialog } from "../modals.js";
 import { createNowPlayingView } from "../nowPlaying/nowPlayingView.js";
-import { PLAYER_COMMANDS } from "../nowPlaying/playerCommands.js";
+import {
+  PLAYER_COMMANDS,
+  PLAYER_SHORTCUT_COMMANDS,
+} from "../nowPlaying/playerCommands.js";
 
 let fullscreenChangedHandler = null;
 
@@ -160,6 +163,18 @@ describe("Now Playing view", () => {
         ".now-playing__track.is-current .now-playing__waveform span",
       ),
     ).toHaveLength(4);
+    const hintedCommands = Array.from(
+      view.element.querySelectorAll(
+        "[data-shortcut-action], [data-shortcut-actions]",
+      ),
+    ).flatMap((element) =>
+      (element.dataset.shortcutActions || element.dataset.shortcutAction).split(
+        ",",
+      ),
+    );
+    expect(new Set(hintedCommands)).toEqual(
+      new Set(PLAYER_SHORTCUT_COMMANDS),
+    );
     expect(
       view.element.querySelector('[data-ui="brand-label"]').textContent,
     ).toBe("nowPlaying.label");

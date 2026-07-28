@@ -1,4 +1,5 @@
 import { applyI18n, t } from "../i18n.js";
+import { refreshShortcutLabels } from "../hotkeys.js";
 import { readDeveloperModeEnabled } from "../developerMode.js";
 import { showConfirmationDialog } from "../modals.js";
 import { initTooltips } from "../tooltipInitializer.js";
@@ -46,6 +47,7 @@ export function createNowPlayingView({
   root.setAttribute("role", "tabpanel");
   root.setAttribute("aria-label", t("tabs.nowPlaying"));
   root.innerHTML = buildNowPlayingMarkup();
+  refreshShortcutLabels(root);
 
   const mediaLayers = Array.from(root.querySelectorAll(".now-playing__video"));
   const provider = new LocalMusicProvider(api);
