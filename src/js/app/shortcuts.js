@@ -35,10 +35,6 @@ function setupGlobalShortcuts(mainWindow) {
   return service.registerGlobals();
 }
 
-function setReloadShortcutSuppressed(shouldSuppress) {
-  return getShortcutService().setReloadSuppressed(shouldSuppress);
-}
-
 function setGlobalShortcutsDisabled(disabled) {
   return getShortcutService().setGlobalShortcutsDisabled(disabled);
 }
@@ -47,6 +43,5 @@ module.exports = {
   configureShortcutService,
   getShortcutService,
   setupGlobalShortcuts,
-  setReloadShortcutSuppressed,
   setGlobalShortcutsDisabled,
 };

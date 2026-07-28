@@ -1,6 +1,7 @@
 describe("registerTabs backup transfer", () => {
   let addTabMock;
   let activateTabMock;
+  let mountNavigationProxyMock;
   let requestToolsViewMock;
   let renderBackupMock;
   let renderDownloaderViewMock;
@@ -28,6 +29,7 @@ describe("registerTabs backup transfer", () => {
 
     addTabMock = jest.fn();
     activateTabMock = jest.fn();
+    mountNavigationProxyMock = jest.fn(() => jest.fn());
     requestToolsViewMock = jest.fn();
     renderBackupMock = jest.fn(() => document.createElement("div"));
     renderDownloaderViewMock = jest.fn();
@@ -42,6 +44,8 @@ describe("registerTabs backup transfer", () => {
     };
     createNowPlayingViewMock = jest.fn(({ element }) => {
       nowPlayingViewInstance.element = element;
+      element.innerHTML =
+        '<nav data-ui="player-tab-menu" aria-label="Navigation"></nav>';
       return nowPlayingViewInstance;
     });
     getDefaultTabMock = jest.fn(async () => "backup");
@@ -68,6 +72,7 @@ describe("registerTabs backup transfer", () => {
       jest.fn().mockImplementation(() => ({
         addTab: addTabMock,
         activateTab: activateTabMock,
+        mountNavigationProxy: mountNavigationProxyMock,
       })),
     );
     jest.doMock("../views/toolsView.js", () => ({
@@ -253,6 +258,10 @@ describe("registerTabs backup transfer", () => {
 
     expect(wrapper.id).toBe("now-playing-view-wrapper");
     expect(createNowPlayingViewMock).toHaveBeenCalledWith({ element: wrapper });
+    expect(mountNavigationProxyMock).toHaveBeenCalledWith(
+      wrapper.querySelector('[data-ui="player-tab-menu"]'),
+      { excludeIds: ["now-playing"] },
+    );
     expect(nowPlayingViewInstance.onShow).toHaveBeenCalled();
 
     nowPlayingOptions.onHide();

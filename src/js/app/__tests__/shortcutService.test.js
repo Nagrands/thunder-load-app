@@ -47,7 +47,6 @@ function createService(options = {}) {
   const mainWindow = options.mainWindow || {
     isDestroyed: jest.fn(() => false),
     isMinimized: jest.fn(() => false),
-    reload: jest.fn(),
     focus: jest.fn(),
     webContents: { send: jest.fn() },
   };
@@ -65,12 +64,13 @@ function createService(options = {}) {
 }
 
 describe("shortcutService", () => {
-  test("exposes 31 unique actions with platform defaults", () => {
+  test("exposes 30 unique actions with platform defaults", () => {
     const mac = createShortcutCatalog("darwin");
     const windows = createShortcutCatalog("win32");
 
-    expect(mac).toHaveLength(31);
-    expect(new Set(mac.map(({ id }) => id)).size).toBe(31);
+    expect(mac).toHaveLength(30);
+    expect(new Set(mac.map(({ id }) => id)).size).toBe(30);
+    expect(mac.some(({ id }) => id === "app.reload")).toBe(false);
     expect(
       mac.find(({ id }) => id === "site.youtube.open").defaultAccelerator,
     ).toBe("Alt+1");
@@ -232,22 +232,16 @@ describe("shortcutService", () => {
     );
   });
 
-  test("registers owned callbacks and independently suppresses reload", () => {
+  test("registers owned site callbacks", () => {
     const { service, globalShortcut, mainWindow } = createService();
     service.registerGlobals();
 
-    globalShortcut.callbacks.get("CommandOrControl+R")();
     globalShortcut.callbacks.get("CommandOrControl+Shift+1")();
-    expect(mainWindow.reload).toHaveBeenCalledTimes(1);
     expect(mainWindow.webContents.send).toHaveBeenCalledWith(
       "open-site",
       "https://www.youtube.com",
     );
-
-    service.setReloadSuppressed(true);
-    expect(globalShortcut.callbacks.has("CommandOrControl+R")).toBe(false);
     expect(globalShortcut.callbacks.has("CommandOrControl+Shift+1")).toBe(true);
-    expect(globalShortcut.unregister).toHaveBeenCalled();
   });
 
   test("disable flag removes only service-owned shortcuts", () => {
@@ -266,7 +260,7 @@ describe("shortcutService", () => {
     const { service, globalShortcut, store } = createService();
     service.registerGlobals();
     service.setGlobalShortcutsDisabled(true);
-    globalShortcut.rejected.add("CommandOrControl+R");
+    globalShortcut.rejected.add("CommandOrControl+Shift+1");
 
     const result = service.setGlobalShortcutsDisabled(false);
 

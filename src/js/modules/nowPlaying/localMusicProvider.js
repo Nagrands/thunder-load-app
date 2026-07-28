@@ -191,7 +191,7 @@ export class LocalMusicProvider {
     };
   }
 
-  async resolveTrack(track) {
+  async resolveTrack(track, options = {}) {
     const normalized = normalizeLocalTrack(track);
     if (normalized.availability !== "available") {
       const error = new Error("Track file is unavailable");
@@ -200,6 +200,7 @@ export class LocalMusicProvider {
     }
     const playback = track?.playback || {};
     const extension = getExtension(normalized.sourceRef);
+    const requestedStartTime = Math.max(0, Number(options.startTime) || 0);
     let audioTracks = [];
     if (typeof this.api.getAudioTracks === "function") {
       try {
@@ -215,11 +216,13 @@ export class LocalMusicProvider {
       requiresMultiAudioFallback(audioTracks) &&
       typeof this.api.createLocalPlaybackSession === "function"
     ) {
+      const request = {
+        trackId: normalized.id,
+        includeAudioTracks: true,
+      };
+      if (requestedStartTime > 0) request.startTime = requestedStartTime;
       const descriptor = unwrapResult(
-        await this.api.createLocalPlaybackSession({
-          trackId: normalized.id,
-          includeAudioTracks: true,
-        }),
+        await this.api.createLocalPlaybackSession(request),
       );
       if (descriptor?.hlsAudioTrackSelection) {
         descriptor.hlsAudioTrackSelection.selectedAudioTrackId =
@@ -236,11 +239,9 @@ export class LocalMusicProvider {
       HLS_FALLBACK_EXTENSIONS.has(extension) &&
       typeof this.api.createLocalPlaybackSession === "function"
     ) {
-      return unwrapResult(
-        await this.api.createLocalPlaybackSession({
-          trackId: normalized.id,
-        }),
-      );
+      const request = { trackId: normalized.id };
+      if (requestedStartTime > 0) request.startTime = requestedStartTime;
+      return unwrapResult(await this.api.createLocalPlaybackSession(request));
     }
     const descriptor = {
       src: String(

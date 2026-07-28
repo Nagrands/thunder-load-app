@@ -46,6 +46,7 @@ describe("bootstrapRenderer", () => {
       initUpdateHandler: jest.fn(),
       initTopBarThemeToggle: jest.fn(),
       initTopBarResponsive: jest.fn(),
+      initWindowControls: jest.fn(() => jest.fn()),
       initFirstRunModal: jest.fn(),
       initializeTheme: jest.fn().mockResolvedValue(undefined),
       initializeFontSize: jest.fn().mockResolvedValue(undefined),
@@ -160,6 +161,9 @@ describe("bootstrapRenderer", () => {
       jest.doMock("../topBarResponsive.js", () => ({
         initTopBarResponsive: mocks.initTopBarResponsive,
       }));
+      jest.doMock("../windowControls.js", () => ({
+        initWindowControls: mocks.initWindowControls,
+      }));
       jest.doMock("../firstRunModal.js", () => ({
         initFirstRunModal: mocks.initFirstRunModal,
       }));
@@ -212,6 +216,7 @@ describe("bootstrapRenderer", () => {
     expect(mocks.initHistory).toHaveBeenCalled();
     expect(mocks.initHistoryState).not.toHaveBeenCalled();
     expect(mocks.initTopBarResponsive).toHaveBeenCalled();
+    expect(mocks.initWindowControls).toHaveBeenCalled();
     expect(mocks.initFirstRunModal).toHaveBeenCalled();
     expect(mocks.registerStatusMessageListener).toHaveBeenCalled();
     expect(document.body.classList.contains("ready")).toBe(true);

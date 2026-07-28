@@ -96,6 +96,32 @@ describe("Now Playing playback controller", () => {
     });
   });
 
+  test("reports absolute time and buffer for a restarted HLS timeline", () => {
+    const { controller, mediaLayers } = createController();
+    controller.setQueue([{ ...tracks[0], duration: 1200 }]);
+    const media = mediaLayers[0];
+    media.dataset.trackId = "one";
+    media.currentTime = 5;
+    Object.defineProperty(media, "buffered", {
+      configurable: true,
+      value: { length: 1, end: jest.fn(() => 20) },
+    });
+    controller.layerPlaybacks[0] = {
+      playback: {
+        kind: "hls",
+        sourceDuration: 1200,
+        timelineOffset: 600,
+      },
+      track: controller.currentTrack,
+    };
+
+    expect(controller.getSnapshot()).toMatchObject({
+      bufferedEnd: 620,
+      currentTime: 605,
+      duration: 1200,
+    });
+  });
+
   test("selects a track, swaps the reusable media layer and starts playback", async () => {
     const { controller, mediaLayers, providers } = createController();
     controller.setQueue(tracks);
@@ -975,6 +1001,121 @@ describe("Now Playing playback controller", () => {
       currentTime: 12,
       positionRevision: initialRevision + 1,
     });
+  });
+
+  test("seeks inside prepared HLS data and debounces a distant restart", async () => {
+    jest.useFakeTimers();
+    try {
+      const { controller, providers } = createController();
+      controller.setQueue([{ ...tracks[0], duration: 120 }]);
+      await controller.selectTrack("one");
+      const media = controller.activeMedia;
+      Object.defineProperty(media, "seekable", {
+        configurable: true,
+        value: {
+          length: 1,
+          start: jest.fn(() => 0),
+          end: jest.fn(() => 30),
+        },
+      });
+      controller.layerPlaybacks[controller.activeLayerIndex].playback = {
+        kind: "hls",
+        sourceDuration: 120,
+        timelineOffset: 0,
+        hlsAudioTrackSelection: {
+          selectedAudioTrackId: null,
+          tracks: [
+            { id: "audio-1", order: 0 },
+            { id: "audio-2", order: 1 },
+          ],
+        },
+      };
+
+      controller.seek(20);
+      expect(media.currentTime).toBe(20);
+      expect(providers.resolveTrack).toHaveBeenCalledTimes(1);
+
+      controller.seek(90);
+      controller.seek(100);
+      expect(controller.getSnapshot()).toMatchObject({
+        currentTime: 100,
+        positionRevision: 3,
+      });
+      await jest.advanceTimersByTimeAsync(179);
+      expect(providers.resolveTrack).toHaveBeenCalledTimes(1);
+      await jest.advanceTimersByTimeAsync(1);
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(providers.resolveTrack).toHaveBeenCalledTimes(2);
+      expect(providers.resolveTrack).toHaveBeenLastCalledWith(
+        expect.objectContaining({ id: "one" }),
+        expect.objectContaining({
+          forceRefresh: true,
+          startTime: 100,
+        }),
+      );
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  test("keeps a paused state while restarting HLS at a distant position", async () => {
+    jest.useFakeTimers();
+    try {
+      const { controller, mediaLayers, providers } = createController();
+      controller.setQueue([
+        {
+          ...tracks[0],
+          duration: 120,
+          selectedAudioTrackId: "audio-2",
+        },
+      ]);
+      await controller.selectTrack("one", { autoplay: false });
+      const activeIndex = controller.activeLayerIndex;
+      controller.layerPlaybacks[activeIndex].playback = {
+        kind: "hls",
+        sourceDuration: 120,
+        timelineOffset: 0,
+        hlsAudioTrackSelection: {
+          selectedAudioTrackId: "audio-2",
+          tracks: [
+            { id: "audio-1", order: 0 },
+            { id: "audio-2", order: 1 },
+          ],
+        },
+      };
+      Object.defineProperty(mediaLayers[activeIndex], "seekable", {
+        configurable: true,
+        value: { length: 0 },
+      });
+
+      controller.seek(80);
+      await jest.advanceTimersByTimeAsync(180);
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(providers.resolveTrack).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          id: "one",
+          selectedAudioTrackId: "audio-2",
+        }),
+        expect.objectContaining({
+          forceRefresh: true,
+          startTime: 80,
+        }),
+      );
+      expect(mediaLayers[0].play).not.toHaveBeenCalled();
+      expect(mediaLayers[1].play).not.toHaveBeenCalled();
+      expect(controller.getSnapshot()).toMatchObject({
+        currentTime: 80,
+        isPlaying: false,
+      });
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   test("ends the session at the natural end of the final track", async () => {

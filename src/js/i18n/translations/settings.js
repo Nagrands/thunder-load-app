@@ -325,9 +325,6 @@ export const settingsTranslations = {
     "shortcuts.actions.clearHistory.title": "Очистить историю",
     "shortcuts.actions.clearHistory.description":
       "Запрашивает очистку истории загрузок.",
-    "shortcuts.actions.reload.title": "Перезагрузить приложение",
-    "shortcuts.actions.reload.description":
-      "Перезагружает окно, когда нет активных операций.",
     "shortcuts.actions.openYoutube.title": "Открыть YouTube",
     "shortcuts.actions.openYoutube.description":
       "Открывает YouTube в браузере.",
@@ -693,9 +690,6 @@ export const settingsTranslations = {
     "shortcuts.actions.clearHistory.title": "Clear history",
     "shortcuts.actions.clearHistory.description":
       "Prompts to clear the download history.",
-    "shortcuts.actions.reload.title": "Reload app",
-    "shortcuts.actions.reload.description":
-      "Reloads the window when no operation is active.",
     "shortcuts.actions.openYoutube.title": "Open YouTube",
     "shortcuts.actions.openYoutube.description": "Opens YouTube in a browser.",
     "shortcuts.actions.openTwitch.title": "Open Twitch",

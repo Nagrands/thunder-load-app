@@ -214,7 +214,6 @@ describe("settings template backup placement", () => {
       "openHistory",
       "openLastVideo",
       "clearHistory",
-      "reload",
       "openYoutube",
       "openTwitch",
       "openVkVideo",

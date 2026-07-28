@@ -34,6 +34,7 @@ body.is-now-playing-active {
     opacity: 0;
     transform: translateY(calc(-100% - 8px));
     pointer-events: none;
+    visibility: hidden;
     transition:
       opacity $now-playing-motion,
       transform $now-playing-motion;
@@ -51,22 +52,6 @@ body.is-now-playing-active {
 .now-playing.is-cursor-hidden:not(.is-library-view),
 .now-playing.is-cursor-hidden:not(.is-library-view) * {
   cursor: none !important;
-}
-
-body.now-playing-immersive:has(
-    .now-playing:is(.is-topbar-visible, .is-library-view)
-  ),
-body.now-playing-active:has(
-    .now-playing:is(.is-topbar-visible, .is-library-view)
-  ),
-body.is-now-playing-active:has(
-    .now-playing:is(.is-topbar-visible, .is-library-view)
-  ) {
-  .top-bar {
-    opacity: 1;
-    transform: translateY(0);
-    pointer-events: auto;
-  }
 }
 
 #main-view.main-view--now-playing-active {
@@ -278,8 +263,7 @@ body.is-now-playing-active:has(
   }
 }
 
-.now-playing__sidebar-reveal-zone,
-.now-playing__topbar-reveal-zone {
+.now-playing__sidebar-reveal-zone {
   position: absolute;
   z-index: 7;
   display: block;
@@ -291,13 +275,6 @@ body.is-now-playing-active:has(
   bottom: 0;
   left: 0;
   width: $now-playing-reveal-zone;
-}
-
-.now-playing__topbar-reveal-zone {
-  top: 0;
-  right: 0;
-  left: 0;
-  height: $now-playing-reveal-zone;
 }
 
 .now-playing__brand-label {
@@ -3107,37 +3084,135 @@ body.is-now-playing-active:has(.now-playing.is-reduced-motion) {
 }
 
 .now-playing__player-topbar {
+  -webkit-app-region: drag;
   position: absolute;
   z-index: 6;
-  top: 20px;
-  right: 26px;
-  left: max(380px, 25vw);
+  top: 16px;
+  right: 20px;
+  left: 20px;
   display: grid;
-  // grid-template-columns: minmax(180px, 1fr) auto minmax(180px, 1fr);
+  grid-template-columns: auto minmax(160px, 1fr) auto;
   align-items: center;
+  gap: clamp(12px, 1.5vw, 24px);
   min-width: 0;
-  opacity: 0;
-  transform: translateY(-12px);
-  pointer-events: none;
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
   transition:
     opacity 220ms ease,
     transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
 
-  .now-playing.has-playback-session.is-controls-visible &,
-  .now-playing.has-playback-session.is-controls-locked &,
-  .now-playing.has-playback-session:not(.is-playing) & {
-    opacity: 1;
-    transform: translateY(0);
-    pointer-events: auto;
+  button {
+    -webkit-app-region: no-drag;
   }
 }
 
-.now-playing.is-topbar-visible .now-playing__player-topbar {
-  transform: translateY(58px);
+.now-playing.is-fullscreen .now-playing__player-topbar {
+  opacity: 0;
+  transform: translateY(-12px);
+  pointer-events: none;
+}
+
+.now-playing.is-fullscreen:is(
+    .is-controls-visible,
+    .is-controls-locked,
+    :not(.is-playing)
+  )
+  .now-playing__player-topbar {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.now-playing__header-leading {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+}
+
+.now-playing__header-title {
+  flex: 0 0 auto;
+  color: rgba(247, 251, 255, 0.96);
+  font-size: 18px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.now-playing__tab-menu {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 5px;
+}
+
+.now-playing__tab-link,
+.now-playing__window-action {
+  -webkit-app-region: no-drag;
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  flex: 0 0 38px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(151, 203, 250, 0.09);
+  border-radius: 11px;
+  color: rgba(235, 245, 255, 0.78);
+  background: rgba(5, 15, 29, 0.58);
+  cursor: pointer;
+  transition:
+    color 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease,
+    transform 180ms ease;
+
+  &:hover,
+  &:focus-visible {
+    color: #ffffff;
+    border-color: rgba(var(--thunder-electric-rgb), 0.34);
+    background: rgba(7, 19, 34, 0.78);
+    transform: translateY(-1px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid rgba(var(--thunder-electric-rgb), 0.65);
+    outline-offset: 2px;
+  }
+}
+
+.now-playing__window-action--close:hover,
+.now-playing__window-action--close:focus-visible {
+  border-color: transparent;
+  color: #ffffff;
+  background: #ff4b57;
+}
+
+body.is-mac {
+  .now-playing__header-title {
+    transform: translateY(6px);
+  }
+
+  .now-playing__window-action,
+  .now-playing__window-divider {
+    display: none;
+  }
+}
+
+.now-playing__window-divider {
+  width: 1px;
+  height: 28px;
+  margin-inline: 2px;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(255, 255, 255, 0.24),
+    transparent
+  );
 }
 
 .now-playing__floating-title {
   grid-column: 2;
+  justify-self: center;
   display: inline-grid;
   grid-template-columns: minmax(0, 1fr) auto;
   justify-items: start;
@@ -3648,7 +3723,7 @@ body.is-now-playing-active:has(.now-playing.is-reduced-motion) {
 
 .now-playing__volume {
   position: relative;
-  grid-template-columns: 34px minmax(72px, 84px) repeat(3, 34px);
+  grid-template-columns: 34px minmax(72px, 84px) 34px;
   width: 100%;
   justify-content: space-between;
   gap: 0;
@@ -3896,10 +3971,6 @@ body.low-effects {
 }
 
 @media (max-width: 1180px) {
-  .now-playing__player-topbar {
-    left: 330px;
-  }
-
   .now-playing__top-actions {
     gap: 5px;
   }
@@ -3911,7 +3982,7 @@ body.low-effects {
   }
 
   .now-playing__volume {
-    grid-template-columns: repeat(4, 34px);
+    grid-template-columns: repeat(2, 34px);
     justify-content: center;
     gap: 8px;
   }
@@ -3935,11 +4006,7 @@ body.low-effects {
   .now-playing__player-topbar {
     top: 14px;
     right: 16px;
-    left: 310px;
-  }
-
-  .now-playing__top-actions .now-playing__placeholder-control {
-    display: none;
+    left: 16px;
   }
 
   .now-playing__floating-title {
@@ -3968,8 +4035,7 @@ body.low-effects {
     transform: translateY(0);
   }
 
-  .now-playing__volume-percent,
-  .now-playing__volume .now-playing__placeholder-control {
+  .now-playing__volume-percent {
     display: none;
   }
 
@@ -3984,20 +4050,20 @@ body.low-effects {
     right: 16px;
   }
   .now-playing__player-topbar {
-    left: 16px;
     grid-template-columns: minmax(0, 1fr) auto;
   }
 
   .now-playing__floating-title {
-    grid-column: 1;
-    width: 100%;
+    display: none;
   }
 
   .now-playing__top-actions {
     grid-column: 2;
   }
 
-  .now-playing__top-actions .now-playing__control:not(:last-child) {
+  .now-playing__top-actions
+    .now-playing__control[data-action="toggle-audio-tracks"],
+  .now-playing__window-divider {
     display: none;
   }
 

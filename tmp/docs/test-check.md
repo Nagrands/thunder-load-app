@@ -2,7 +2,7 @@
 
 - Автосборка списка: `npm run test-check:sync-tests`
 - Найдено файлов: 139
-- Найдено тест-кейсов (test/it): 1226
+- Найдено тест-кейсов (test/it): 1234
 
 <!-- AUTO-JEST-TESTS:START -->
 
@@ -38,10 +38,9 @@
 - [ ] scheduleAutoUpdateCheck skips missing windows
 - [ ] disables setup and scheduled checks on macOS
 
-### `src/js/app/__tests__/backupIpcHandlers.test.js` (3)
+### `src/js/app/__tests__/backupIpcHandlers.test.js` (2)
 - [ ] registers backup channels without loading backupManager
 - [ ] loads backupManager only when a backup action runs
-- [ ] toggles reload blocking without loading backupManager
 
 ### `src/js/app/__tests__/backupManager.test.js` (2)
 - [ ] returns true for Compress-Archive module autoload failure
@@ -99,7 +98,7 @@
 - [ ] delete-history-preview removes only files inside preview cache
 - [ ] ensurePreviewCacheDir creates preview cache directory
 
-### `src/js/app/__tests__/ipcHandlers.toolsActions.test.js` (85)
+### `src/js/app/__tests__/ipcHandlers.toolsActions.test.js` (84)
 - [ ] set-open-on-copy-url-status toggles clipboard monitor and persists state
 - [ ] hashPickFile returns selected path
 - [ ] mediaInspectorPickFile returns selected path
@@ -171,7 +170,6 @@
 - [ ] keeps only safe subtitle fields and drops unsafe languages
 - [ ] tools:getAvailability returns fast tools status without version checks
 - [ ] allows two parallel DOWNLOAD_VIDEO and rejects third
-- [ ] DOWNLOAD_VIDEO blocks reload while a download is active and restores it afterwards
 - [ ] rejects second DOWNLOAD_VIDEO when parallel limit is set to 1
 - [ ] returns default yt-dlp cookies settings
 - [ ] normalizes and stores yt-dlp cookies settings
@@ -209,17 +207,23 @@
 - [ ] uses a stat-keyed LRU cache and re-probes a changed file
 - [ ] reports missing tools, files and probe timeouts safely
 
-### `src/js/app/__tests__/nowPlayingHlsService.test.js` (7)
+### `src/js/app/__tests__/nowPlayingHlsService.test.js` (12)
 - [ ] accepts only one or two resolved HTTP inputs
 - [ ] maps adaptive video and audio and uses copy for compatible codecs
 - [ ] does not map a selected stream for local compatibility playback
 - [ ] builds one master playlist with every transcoded audio rendition
+- [ ] seeks before paced input and bounds the software video encoder
+- [ ] orders platform hardware encoders before the software fallback
+- [ ] parses valid byte ranges and rejects unavailable offsets
+- [ ] serves single-file HLS ranges and purges only orphan UUID caches
 - [ ] serves tokenized manifests on loopback and cleans the session
 - [ ] starts one FFmpeg process for a multi-audio master session
+- [ ] falls back from a failed hardware encoder to bounded software
 - [ ] supersedes an initializing session and keeps only one FFmpeg process
 
-### `src/js/app/__tests__/nowPlayingIpcHandlers.test.js` (23)
+### `src/js/app/__tests__/nowPlayingIpcHandlers.test.js` (24)
 - [ ] registers all Player channels
+- [ ] waits for HLS disposal before allowing application quit
 - [ ] lists and selects audio streams only for stored local tracks
 - [ ] rejects audio selection fields in fallback playback requests
 - [ ] creates a validated multi-audio HLS session for local media
@@ -280,7 +284,7 @@
 - [ ] registers get, set, replace and reset and broadcasts successful changes
 
 ### `src/js/app/__tests__/shortcutService.test.js` (11)
-- [ ] exposes 31 unique actions with platform defaults
+- [ ] exposes 30 unique actions with platform defaults
 - [ ] normalizes aliases and rejects unsafe combinations
 - [ ] fills new actions and migrates legacy site shortcuts once
 - [ ] preserves existing assignments and leaves conflicting new defaults unassigned
@@ -288,7 +292,7 @@
 - [ ] reports conflicts and swaps assignments atomically
 - [ ] replace ignores unknown ids, fills missing ids and reset restores defaults
 - [ ] rolls global registrations back if the OS rejects a new accelerator
-- [ ] registers owned callbacks and independently suppresses reload
+- [ ] registers owned site callbacks
 - [ ] disable flag removes only service-owned shortcuts
 - [ ] restores the disable flag when re-enabling registrations fails
 
@@ -814,7 +818,7 @@
 - [ ] disables playback and file actions for a missing local track
 
 ### `src/js/modules/__tests__/nowPlayingImmersiveControllers.test.js` (3)
-- [ ] reveals sidebar and topbar on hover/focus with delayed hide
+- [ ] reveals only the sidebar on hover/focus with delayed hide
 - [ ] keeps a pinned sidebar visible across pointer leave and restores it
 - [ ] syncs fullscreen state and removes external listeners on dispose
 
@@ -832,8 +836,9 @@
 - [ ] accepts credential-free HTTP(S) URLs
 - [ ] marks HLS manifests for the HLS playback adapter
 
-### `src/js/modules/__tests__/nowPlayingPlaybackController.test.js` (38)
+### `src/js/modules/__tests__/nowPlayingPlaybackController.test.js` (41)
 - [ ] reports the buffered range without mutating playback position
+- [ ] reports absolute time and buffer for a restarted HLS timeline
 - [ ] selects a track, swaps the reusable media layer and starts playback
 - [ ] classifies the loaded media by its actual video track
 - [ ] marks direct network media as unsafe for Web Audio analysis
@@ -862,6 +867,8 @@
 - [ ] stops playback, resets progress and cancels a pending track load
 - [ ] closes the current playback without clearing the queue
 - [ ] marks explicit seeks for immediate external position updates
+- [ ] seeks inside prepared HLS data and debounces a distant restart
+- [ ] keeps a paused state while restarting HLS at a distant position
 - [ ] ends the session at the natural end of the final track
 - [ ] ends the session for an empty queue and active media errors
 - [ ] ends playback state when disposed
@@ -1177,10 +1184,11 @@
 - [ ] keeps download actions disabled when downloader is unavailable
 - [ ] marks history as not hydrated by default
 
-### `src/js/modules/__tests__/tabSystem.test.js` (6)
+### `src/js/modules/__tests__/tabSystem.test.js` (7)
 - [ ] does not append a tab wrapper into itself when re-rendering an emptied tab
 - [ ] keeps the latest tab visible after rapid hotkey-style switching
 - [ ] keeps generated tabs and panels accessible
+- [ ] mounts and disposes an icon-only navigation proxy
 - [ ] keeps Downloader available when legacy developer preference exists
 - [ ] keeps products tab hidden until developer mode is enabled
 - [ ] falls back from products tab when developer mode is disabled
@@ -1344,10 +1352,6 @@
 - [ ] cleanup removes disconnected elements from active tooltip map
 - [ ] body click hides shown tooltips
 
-### `src/js/modules/__tests__/topBarReloadGuard.test.js` (2)
-- [ ] reloads when there is no active download
-- [ ] disables reload button during active download and restores it after
-
 ### `src/js/modules/__tests__/topBarResponsive.test.js` (4)
 - [ ] sets --topbar-current-height CSS variable
 - [ ] updates --topbar-current-height on resize
@@ -1466,6 +1470,10 @@
 - [ ] builds overview and feature slides from release notes table
 - [ ] adds and removes modal overlay class when modal opens and closes
 - [ ] template keeps accessible label and carousel hooks
+
+### `src/js/modules/__tests__/windowControls.test.js` (2)
+- [ ] delegates global and dynamically mounted Player controls
+- [ ] removes the delegated handler on dispose
 
 ### `src/js/modules/__tests__/windowsTrayMenu.test.js` (2)
 - [ ] applies availability without exposing a path

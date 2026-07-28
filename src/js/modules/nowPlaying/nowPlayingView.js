@@ -82,7 +82,7 @@ export function createNowPlayingView({
   const visualizerStatus = root.querySelector('[data-ui="visualizer-status"]');
   const sidebar = root.querySelector(".now-playing__sidebar");
   const sidebarZone = root.querySelector(".now-playing__sidebar-reveal-zone");
-  const topbarZone = root.querySelector(".now-playing__topbar-reveal-zone");
+  const playerTopbar = root.querySelector('[data-ui="player-topbar"]');
   const trackStage = root.querySelector(".now-playing__track-stage");
   const artworkStack = root.querySelector(".now-playing__artwork-stack");
   const playlistSection = root.querySelector(".now-playing__playlist-section");
@@ -138,7 +138,7 @@ export function createNowPlayingView({
   const controlsVisibility = createControlsVisibility({
     root,
     dock,
-    lockRegions: [dock, visualizerPanel],
+    lockRegions: [dock, visualizerPanel, playerTopbar],
   });
   const visualizer = createAudioVisualizerController({
     canvas: visualizerCanvas,
@@ -159,7 +159,6 @@ export function createNowPlayingView({
     root,
     sidebar,
     sidebarZone,
-    topbarZone,
   });
   const fullscreen = createFullscreenController({
     root,

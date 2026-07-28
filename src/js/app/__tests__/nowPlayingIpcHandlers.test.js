@@ -81,7 +81,7 @@ describe("nowPlayingIpcHandlers", () => {
     fs.rmSync(root, { recursive: true, force: true });
   });
 
-  function register() {
+  function register(appOverride = null) {
     const { CHANNELS } = require("../../ipc/channels");
     const {
       registerNowPlayingIpcHandlers,
@@ -95,7 +95,7 @@ describe("nowPlayingIpcHandlers", () => {
       }),
     };
     registerNowPlayingIpcHandlers({
-      app: { getPath: jest.fn(() => root) },
+      app: appOverride || { getPath: jest.fn(() => root) },
       audioTracksService,
       dialog,
       ffmpegPathResolver: jest.fn(() => ""),
@@ -133,6 +133,32 @@ describe("nowPlayingIpcHandlers", () => {
         expect.any(Function),
       );
     });
+  });
+
+  test("waits for HLS disposal before allowing application quit", async () => {
+    let beforeQuit;
+    const app = {
+      getPath: jest.fn(() => root),
+      on: jest.fn((eventName, handler) => {
+        if (eventName === "before-quit") beforeQuit = handler;
+      }),
+      quit: jest.fn(),
+    };
+    register(app);
+    const event = { preventDefault: jest.fn() };
+
+    beforeQuit(event);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(event.preventDefault).toHaveBeenCalledTimes(1);
+    expect(timelinePreviewService.dispose).toHaveBeenCalledTimes(1);
+    expect(audioTracksService.dispose).toHaveBeenCalledTimes(1);
+    expect(hlsService.dispose).toHaveBeenCalledTimes(1);
+    expect(app.quit).toHaveBeenCalledTimes(1);
+
+    beforeQuit({ preventDefault: jest.fn() });
+    expect(hlsService.dispose).toHaveBeenCalledTimes(1);
   });
 
   test("lists and selects audio streams only for stored local tracks", async () => {
@@ -216,6 +242,7 @@ describe("nowPlayingIpcHandlers", () => {
             providerId: "local",
             sourceRef: mediaPath,
             kind: "video",
+            duration: 100,
             mediaInfo: { videoCodec: "h264" },
             selectedAudioTrackId: "audio-2",
           },
@@ -226,7 +253,11 @@ describe("nowPlayingIpcHandlers", () => {
 
     const result = await handlers[
       CHANNELS.NOW_PLAYING_CREATE_LOCAL_PLAYBACK_SESSION
-    ](null, { trackId: "multi", includeAudioTracks: true });
+    ](null, {
+      trackId: "multi",
+      includeAudioTracks: true,
+      startTime: 150,
+    });
 
     expect(hlsService.createSession).toHaveBeenCalledWith({
       inputs: [mediaPath],
@@ -235,11 +266,13 @@ describe("nowPlayingIpcHandlers", () => {
       multiAudioTracks: tracks,
       includeVideo: true,
       copyVideo: true,
+      startTime: 99.9,
     });
     expect(result).toMatchObject({
       success: true,
       data: {
         kind: "hls",
+        sourceDuration: 100,
         hlsAudioTrackSelection: {
           selectedAudioTrackId: "audio-2",
           tracks,
@@ -253,6 +286,7 @@ describe("nowPlayingIpcHandlers", () => {
     [{}],
     [{ trackId: "missing", extra: true }],
     [{ trackId: 3 }],
+    [{ trackId: "missing", startTime: -1 }],
   ])("rejects invalid audio track requests %#", async (request) => {
     const { CHANNELS } = register();
     await expect(

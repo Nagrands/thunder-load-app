@@ -248,11 +248,24 @@ function registerNowPlayingIpcHandlers({
         hlsService.getPreviewInputs?.(sessionId) || [],
       getTrackById,
     });
-  if (typeof app.once === "function") {
-    app.once("before-quit", () => {
+  if (typeof app.on === "function") {
+    let shutdownStarted = false;
+    let shutdownCompleted = false;
+    app.on("before-quit", (event) => {
+      if (shutdownCompleted) return;
+      event?.preventDefault?.();
+      if (shutdownStarted) return;
+      shutdownStarted = true;
       timelinePreviewService.dispose();
       audioTracksService.dispose?.();
-      void hlsService.dispose();
+      void Promise.resolve(hlsService.dispose())
+        .catch((error) => {
+          log.warn("[now-playing] Failed to dispose HLS service:", error);
+        })
+        .finally(() => {
+          shutdownCompleted = true;
+          app.quit?.();
+        });
     });
   }
   const importOptions = () => ({
@@ -595,11 +608,14 @@ function registerNowPlayingIpcHandlers({
         typeof request !== "object" ||
         Array.isArray(request) ||
         Object.keys(request).some(
-          (key) => !["trackId", "includeAudioTracks"].includes(key),
+          (key) =>
+            !["trackId", "includeAudioTracks", "startTime"].includes(key),
         ) ||
         typeof request.trackId !== "string" ||
         (request.includeAudioTracks !== undefined &&
-          typeof request.includeAudioTracks !== "boolean")
+          typeof request.includeAudioTracks !== "boolean") ||
+        (request.startTime !== undefined &&
+          (!Number.isFinite(request.startTime) || request.startTime < 0))
       ) {
         return failure(
           "INVALID_AUDIO_TRACK_REQUEST",
@@ -614,6 +630,11 @@ function registerNowPlayingIpcHandlers({
         return failure("TRACK_UNAVAILABLE", "Track file is unavailable");
       }
       try {
+        const sourceDuration = Math.max(0, Number(track.duration) || 0);
+        const requestedStartTime = Math.max(0, Number(request.startTime) || 0);
+        const startTime = sourceDuration
+          ? Math.min(requestedStartTime, Math.max(0, sourceDuration - 0.1))
+          : requestedStartTime;
         const tracks =
           request.includeAudioTracks === true
             ? await audioTracksService.getTracks(track)
@@ -629,6 +650,7 @@ function registerNowPlayingIpcHandlers({
           copyCodecs: false,
           allowLocal: true,
         };
+        if (startTime > 0) sessionOptions.startTime = startTime;
         if (tracks.length > 1) {
           const videoCodec = String(
             track.mediaInfo?.videoCodec || "",
@@ -642,6 +664,7 @@ function registerNowPlayingIpcHandlers({
           tracks.length > 1
             ? {
                 ...playback,
+                sourceDuration,
                 hlsAudioTrackSelection: {
                   selectedAudioTrackId: tracks.some(
                     (item) => item.id === track.selectedAudioTrackId,

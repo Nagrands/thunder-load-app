@@ -146,7 +146,6 @@ export function buildNowPlayingMarkup() {
       <div class="now-playing__color-wash"></div>
     </div>
 
-    <div class="now-playing__topbar-reveal-zone" tabindex="0" aria-label="${t("nowPlaying.controls")}"></div>
     <div
       class="now-playing__sidebar-reveal-zone"
       tabindex="0"
@@ -155,6 +154,15 @@ export function buildNowPlayingMarkup() {
 
     <div class="now-playing__layout" data-ui="player-stage">
       <header class="now-playing__player-topbar" data-ui="player-topbar">
+        <div class="now-playing__header-leading">
+          <span class="now-playing__header-title" data-i18n="tabs.nowPlaying">${t("tabs.nowPlaying")}</span>
+          <nav
+            class="now-playing__tab-menu"
+            data-ui="player-tab-menu"
+            data-i18n-aria="topbar.nav"
+            aria-label="${t("topbar.nav")}"
+          ></nav>
+        </div>
         <button
           class="now-playing__floating-title"
           type="button"
@@ -167,11 +175,35 @@ export function buildNowPlayingMarkup() {
           <i data-lucide="chevron-down" aria-hidden="true"></i>
         </button>
         <div class="now-playing__top-actions" aria-label="${t("nowPlaying.tools")}">
-          ${iconButton("placeholder-subtitles", "captions", "nowPlaying.unavailable.subtitles", "now-playing__control--glass now-playing__placeholder-control")}
           ${iconButton("toggle-audio-tracks", "audio-lines", "nowPlaying.audioTracks.open", "now-playing__control--glass now-playing__audio-trigger")}
-          ${iconButton("placeholder-mini-player", "music-2", "nowPlaying.unavailable.miniPlayer", "now-playing__control--glass now-playing__placeholder-control")}
-          ${iconButton("placeholder-picture", "image", "nowPlaying.unavailable.picture", "now-playing__control--glass now-playing__placeholder-control")}
           ${iconButton("toggle-player-menu", "ellipsis-vertical", "nowPlaying.more", "now-playing__control--glass")}
+          <span class="now-playing__window-divider" aria-hidden="true"></span>
+          <button
+            type="button"
+            class="now-playing__window-action now-playing__window-action--minimize"
+            data-window-action="minimize"
+            data-i18n-aria="topbar.minimize"
+            data-i18n-title="topbar.minimize"
+            data-bs-toggle="tooltip"
+            data-bs-placement="bottom"
+            aria-label="${t("topbar.minimize")}"
+            title="${t("topbar.minimize")}"
+          >
+            <i data-lucide="minus" aria-hidden="true"></i>
+          </button>
+          <button
+            type="button"
+            class="now-playing__window-action now-playing__window-action--close"
+            data-window-action="close"
+            data-i18n-aria="topbar.close"
+            data-i18n-title="topbar.close"
+            data-bs-toggle="tooltip"
+            data-bs-placement="bottom"
+            aria-label="${t("topbar.close")}"
+            title="${t("topbar.close")}"
+          >
+            <i data-lucide="x" aria-hidden="true"></i>
+          </button>
         </div>
       </header>
 
@@ -393,8 +425,6 @@ export function buildNowPlayingMarkup() {
             data-ui="volume-percent"
             for="now-playing-volume"
           >100%</output>
-          ${iconButton("placeholder-subtitles", "captions", "nowPlaying.unavailable.subtitles", "now-playing__placeholder-control")}
-          ${iconButton("placeholder-settings", "settings", "nowPlaying.unavailable.settings", "now-playing__placeholder-control")}
           ${iconButton("fullscreen", "fa-solid fa-expand", "nowPlaying.enterFullscreen", "now-playing__control--fullscreen")}
         </div>
       </section>

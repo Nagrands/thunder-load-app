@@ -3,13 +3,11 @@ const HIDE_DELAY_MS = 180;
 export function createImmersiveOverlayVisibility({
   root,
   sidebar,
-  topbar = document.querySelector(".top-bar"),
   sidebarZone,
-  topbarZone,
   delay = HIDE_DELAY_MS,
 }) {
-  const timers = { sidebar: null, topbar: null };
-  const engaged = { sidebar: false, topbar: false };
+  const timers = { sidebar: null };
+  const engaged = { sidebar: false };
   const bindings = [];
   let active = false;
   let disposed = false;
@@ -82,7 +80,6 @@ export function createImmersiveOverlayVisibility({
   }
 
   bindRegion("sidebar", sidebarZone, sidebar);
-  bindRegion("topbar", topbarZone, topbar);
 
   return {
     setSidebarPinned(pinned) {
@@ -101,16 +98,13 @@ export function createImmersiveOverlayVisibility({
     onHide() {
       active = false;
       engaged.sidebar = false;
-      engaged.topbar = false;
       hide("sidebar", { immediate: true });
-      hide("topbar", { immediate: true });
     },
     dispose() {
       if (disposed) return;
       disposed = true;
       active = false;
       hide("sidebar", { immediate: true });
-      hide("topbar", { immediate: true });
       bindings.splice(0).forEach((unbind) => unbind());
     },
   };

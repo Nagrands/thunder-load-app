@@ -5,6 +5,8 @@ import {
 
 const REPEAT_MODES = new Set(["off", "all", "one"]);
 const HLS_START_TIMEOUT_MS = 15_000;
+const HLS_SEEK_RESTART_DELAY_MS = 180;
+const HLS_SEEK_TOLERANCE_SECONDS = 0.5;
 let hlsModulePromise = null;
 
 async function loadHlsConstructor() {
@@ -97,6 +99,8 @@ export class PlaybackController {
     this.layerPlaybacks = [null, null];
     this.hlsInstances = [null, null];
     this.pendingReleases = new Set();
+    this.seekRestartTimer = null;
+    this.pendingSeekTime = null;
     this.bindMediaEvents();
     this.applyVolume();
     this.trace("controller-created");
@@ -129,15 +133,26 @@ export class PlaybackController {
         activeRecord.track?.id === this.currentTrack.id &&
         media?.dataset.trackId === this.currentTrack?.id,
     );
+    const playback = activeRecordMatches ? activeRecord.playback : null;
+    const timelineOffset = Math.max(
+      0,
+      Number(playback?.timelineOffset) || 0,
+    );
     let bufferedEnd = 0;
     try {
       if (media?.buffered?.length) {
         bufferedEnd =
-          Number(media.buffered.end(media.buffered.length - 1)) || 0;
+          timelineOffset +
+          (Number(media.buffered.end(media.buffered.length - 1)) || 0);
       }
     } catch {
       bufferedEnd = 0;
     }
+    const sourceDuration =
+      Number(playback?.sourceDuration) ||
+      Number(this.currentTrack?.duration) ||
+      0;
+    const mediaTime = timelineOffset + (Number(media?.currentTime) || 0);
     return {
       queue: this.queueSnapshot,
       currentTrack: this.currentTrack ? { ...this.currentTrack } : null,
@@ -153,9 +168,10 @@ export class PlaybackController {
       repeat: this.repeat,
       volume: this.volume,
       muted: this.muted,
-      currentTime: Number(media?.currentTime) || 0,
+      currentTime:
+        this.pendingSeekTime === null ? mediaTime : this.pendingSeekTime,
       duration:
-        Number(media?.duration) || Number(this.currentTrack?.duration) || 0,
+        sourceDuration || timelineOffset + (Number(media?.duration) || 0),
       bufferedEnd,
       mediaReady: activeRecordMatches && activeRecord.mediaReady === true,
       hasVideoTrack: activeRecordMatches
@@ -181,6 +197,7 @@ export class PlaybackController {
   }
 
   setQueue(tracks = [], { selectedTrackId = null } = {}) {
+    this.clearSeekRestart();
     this.selectionVersion += 1;
     this.isLoading = false;
     this.loadingTrackId = null;
@@ -268,7 +285,11 @@ export class PlaybackController {
     const index = this.queue.findIndex((track) => track.id === trackId);
     if (index === -1) return false;
     const track = this.queue[index];
+    const normalizedStartTime = Math.max(0, Number(startTime) || 0);
+    this.clearSeekRestart({ clearPendingTime: normalizedStartTime === 0 });
+    if (normalizedStartTime > 0) this.pendingSeekTime = normalizedStartTime;
     if (track.availability === "missing") {
+      this.clearSeekRestart();
       this.currentIndex = index;
       this.error = { code: "TRACK_UNAVAILABLE", message: "Track unavailable" };
       this.isPlaying = false;
@@ -306,6 +327,7 @@ export class PlaybackController {
       const playback = await this.providers.resolveTrack(track, {
         forceRefresh,
         signal: session.controller.signal,
+        startTime: normalizedStartTime,
       });
       if (!this.isCurrentSession(session)) {
         this.trace("stale-playback-released", {
@@ -315,8 +337,11 @@ export class PlaybackController {
         await this.providers.releasePlayback?.(track, playback);
         return false;
       }
-      await this.loadPlayback(track, playback, session, { startTime });
+      await this.loadPlayback(track, playback, session, {
+        startTime: normalizedStartTime,
+      });
       if (!this.isCurrentSession(session)) return false;
+      this.pendingSeekTime = null;
       this.trace("loading-completed", {
         sessionId: version,
         trackId: track.id,
@@ -339,6 +364,7 @@ export class PlaybackController {
       this.isStopped = true;
       this.isLoading = false;
       this.loadingTrackId = null;
+      this.pendingSeekTime = null;
       this.emit();
       return false;
     }
@@ -369,7 +395,10 @@ export class PlaybackController {
       ),
     };
     const normalizedStartTime = Math.max(0, Number(startTime) || 0);
-    if (normalizedStartTime > 0) {
+    if (
+      normalizedStartTime > 0 &&
+      !(playback.kind === "hls" && Number(playback.timelineOffset) > 0)
+    ) {
       this.pendingStartTimes.set(nextMedia, {
         selectionVersion: session.id,
         time: normalizedStartTime,
@@ -1012,6 +1041,7 @@ export class PlaybackController {
 
   pause({ preserveResumeOnShow = false } = {}) {
     if (this.isLoading) this.cancelPlaybackSession();
+    this.clearSeekRestart();
     this.quiesceMediaLayers();
     this.isPlaying = false;
     this.isLoading = false;
@@ -1027,6 +1057,7 @@ export class PlaybackController {
       trackId: this.currentTrack?.id || null,
     });
     this.cancelPlaybackSession();
+    this.clearSeekRestart();
     this.quiesceMediaLayers({ resetPosition: true });
     void this.releaseAllLayers();
     this.isPlaying = false;
@@ -1045,6 +1076,7 @@ export class PlaybackController {
       trackId: this.currentTrack?.id || null,
     });
     this.cancelPlaybackSession();
+    this.clearSeekRestart();
     this.quiesceMediaLayers({ resetPosition: true });
     void this.releaseAllLayers();
     this.currentIndex = -1;
@@ -1066,11 +1098,78 @@ export class PlaybackController {
 
   seek(value) {
     if (!this.activeMedia) return;
+    const record = this.layerPlaybacks[this.activeLayerIndex];
+    const playback = record?.playback;
     const duration =
-      Number(this.activeMedia.duration) || Number(this.currentTrack?.duration);
-    this.activeMedia.currentTime = clamp(value, 0, duration || 0);
+      Number(playback?.sourceDuration) ||
+      Number(this.currentTrack?.duration) ||
+      Number(this.activeMedia.duration) ||
+      0;
+    const target = clamp(value, 0, duration);
+    const timelineOffset = Math.max(
+      0,
+      Number(playback?.timelineOffset) || 0,
+    );
+    if (
+      playback?.kind === "hls" &&
+      playback?.hlsAudioTrackSelection &&
+      !this.isHlsTimeSeekable(target, timelineOffset)
+    ) {
+      this.scheduleHlsSeekRestart(target);
+      return;
+    }
+    this.clearSeekRestart();
+    this.activeMedia.currentTime = Math.max(0, target - timelineOffset);
     this.positionRevision += 1;
     this.emit();
+  }
+
+  isHlsTimeSeekable(target, timelineOffset = 0) {
+    const relativeTarget = Number(target) - Number(timelineOffset);
+    if (relativeTarget < -HLS_SEEK_TOLERANCE_SECONDS) return false;
+    const ranges = this.activeMedia?.seekable;
+    const length = Number(ranges?.length) || 0;
+    for (let index = 0; index < length; index += 1) {
+      try {
+        const start = Number(ranges.start(index));
+        const end = Number(ranges.end(index));
+        if (
+          relativeTarget >= start - HLS_SEEK_TOLERANCE_SECONDS &&
+          relativeTarget <= end + HLS_SEEK_TOLERANCE_SECONDS
+        ) {
+          return true;
+        }
+      } catch {
+        return false;
+      }
+    }
+    return false;
+  }
+
+  scheduleHlsSeekRestart(target) {
+    this.clearSeekRestart({ clearPendingTime: false });
+    this.pendingSeekTime = target;
+    this.positionRevision += 1;
+    this.emit();
+    this.seekRestartTimer = setTimeout(() => {
+      this.seekRestartTimer = null;
+      const trackId = this.currentTrack?.id;
+      if (!trackId || this.disposed || this.pendingSeekTime !== target) return;
+      const autoplay = this.isPlaying && !this.isSuspended;
+      void this.selectTrack(trackId, {
+        autoplay,
+        forceRefresh: true,
+        startTime: target,
+      });
+    }, HLS_SEEK_RESTART_DELAY_MS);
+  }
+
+  clearSeekRestart({ clearPendingTime = true } = {}) {
+    if (this.seekRestartTimer !== null) {
+      clearTimeout(this.seekRestartTimer);
+      this.seekRestartTimer = null;
+    }
+    if (clearPendingTime) this.pendingSeekTime = null;
   }
 
   setVolume(value) {
@@ -1273,7 +1372,7 @@ export class PlaybackController {
 
   async previous() {
     if (!this.queue.length) return false;
-    if ((Number(this.activeMedia?.currentTime) || 0) > 3) {
+    if ((Number(this.getSnapshot().currentTime) || 0) > 3) {
       this.seek(0);
       return true;
     }
@@ -1413,6 +1512,7 @@ export class PlaybackController {
   dispose() {
     if (this.disposed) return;
     this.cancelPlaybackSession();
+    this.clearSeekRestart();
     this.disposed = true;
     this.isPlaying = false;
     this.isStopped = true;

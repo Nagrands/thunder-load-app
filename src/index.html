@@ -74,23 +74,6 @@
           </span>
         </button>
 
-        <button
-          id="reload-app"
-          type="button"
-          aria-label="Обновить окно"
-          data-topbar-priority="p3"
-          data-bs-toggle="tooltip"
-          data-bs-placement="bottom"
-          title="Обновить окно"
-          data-i18n-title="topbar.reload"
-          data-hotkey="Ctrl+R"
-          data-shortcut-action="app.reload"
-        >
-          <span class="menu-main">
-            <i class="fa-solid fa-arrow-rotate-right"></i>
-            <span class="menu-text" data-i18n="topbar.action.reload">Обновить</span>
-          </span>
-        </button>
       </div>
 
       <span class="top-bar__divider" aria-hidden="true"></span>
@@ -102,7 +85,7 @@
           aria-label="Свернуть окно"
           title="Свернуть"
           data-i18n-title="topbar.minimize"
-          onclick="window.electron.minimize()"
+          data-window-action="minimize"
         >
           <i class="fas fa-window-minimize"></i>
         </button>
@@ -112,7 +95,7 @@
           aria-label="Закрыть окно"
           title="Закрыть"
           data-i18n-title="topbar.close"
-          onclick="window.electron.close()"
+          data-window-action="close"
         >
           <i class="fas fa-times"></i>
         </button>

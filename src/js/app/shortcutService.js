@@ -115,13 +115,6 @@ function createShortcutCatalog(platform = process.platform) {
       key: "clearHistory",
       defaultAccelerator: "CommandOrControl+M",
     }),
-    createAction({
-      id: "app.reload",
-      scope: "global",
-      category: "system",
-      key: "reload",
-      defaultAccelerator: "CommandOrControl+R",
-    }),
     ...SITE_ACTIONS.map(([id, key, , number]) =>
       createAction({
         id,
@@ -347,7 +340,6 @@ class ShortcutService {
     this.platform = platform;
     this.catalog = createShortcutCatalog(platform);
     this.ownedAccelerators = new Set();
-    this.reloadSuppressed = false;
     this.assignments = this.loadAssignments();
   }
 
@@ -460,16 +452,6 @@ class ShortcutService {
     this.mainWindow = mainWindow;
   }
 
-  setReloadSuppressed(suppressed) {
-    const next = Boolean(suppressed);
-    if (this.reloadSuppressed === next) return { success: true };
-    const previous = this.reloadSuppressed;
-    this.reloadSuppressed = next;
-    const result = this.registerGlobals();
-    if (!result.success) this.reloadSuppressed = previous;
-    return result;
-  }
-
   setGlobalShortcutsDisabled(disabled) {
     const previous = this.store.get("disableGlobalShortcuts", false);
     const next = Boolean(disabled);
@@ -492,10 +474,7 @@ class ShortcutService {
 
   getGlobalActions() {
     if (this.store.get("disableGlobalShortcuts", false)) return [];
-    return this.catalog.filter(
-      (action) => action.scope === "global" &&
-        !(action.id === "app.reload" && this.reloadSuppressed),
-    );
+    return this.catalog.filter((action) => action.scope === "global");
   }
 
   registerGlobals() {
@@ -556,10 +535,6 @@ class ShortcutService {
     return () => {
       const targetWindow = this.mainWindow;
       if (!targetWindow || targetWindow.isDestroyed?.()) return;
-      if (actionId === "app.reload") {
-        targetWindow.reload();
-        return;
-      }
       const site = SITE_ACTIONS.find(([id]) => id === actionId);
       if (!site) return;
       targetWindow.webContents?.send?.("open-site", site[2]);

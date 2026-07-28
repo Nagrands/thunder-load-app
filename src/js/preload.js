@@ -209,7 +209,6 @@ try {
     "backup:chooseDir",
     "backup:openPath",
     "backup:getLastTimes",
-    "backup:toggleReloadBlock",
   ]);
 
   /**

@@ -55,7 +55,6 @@ const { windowsTrayMenuController } = require("./windowsTrayMenu");
 const {
   configureShortcutService,
   setGlobalShortcutsDisabled,
-  setReloadShortcutSuppressed,
 } = require("./shortcuts.js");
 const {
   installYtDlp,
@@ -682,7 +681,6 @@ function setupIpcHandlers(dependencies) {
     notifyDownloadError,
     sendDownloadCompletionNotification,
     showTrayNotification,
-    setReloadMenuEnabled,
     webControlServer,
     dispatchPendingWhatsNew,
     clearPendingWhatsNewVersion,
@@ -764,27 +762,6 @@ function setupIpcHandlers(dependencies) {
     log.warn("Unable to remove legacy auto-shutdown settings:", e);
   }
 
-  let backupReloadBlocked = false;
-  let downloadReloadBlocked = false;
-  const isReloadShortcutBlocked = () =>
-    backupReloadBlocked || downloadReloadBlocked;
-  const syncReloadBlockState = () => {
-    const blocked = isReloadShortcutBlocked();
-    setReloadShortcutSuppressed(blocked);
-    if (typeof setReloadMenuEnabled === "function") {
-      setReloadMenuEnabled(!blocked);
-    }
-  };
-  const setDownloadReloadBlocked = (shouldBlock) => {
-    const next = Boolean(shouldBlock);
-    if (downloadReloadBlocked === next) return;
-    downloadReloadBlocked = next;
-    syncReloadBlockState();
-  };
-  const setBackupReloadBlocked = (shouldBlock) => {
-    backupReloadBlocked = Boolean(shouldBlock);
-    syncReloadBlockState();
-  };
   const previewDirPath =
     (typeof previewCacheDir === "string" && previewCacheDir) ||
     path.join(app.getPath("userData"), "thunderload-previews");
@@ -793,20 +770,6 @@ function setupIpcHandlers(dependencies) {
     isPathInsideBaseDir,
   });
   const { ensurePreviewCacheDir } = historyPreviewCache;
-
-  if (mainWindow?.webContents) {
-    mainWindow.webContents.on("before-input-event", (event, input) => {
-      if (
-        isReloadShortcutBlocked() &&
-        input?.type === "keyDown" &&
-        typeof input?.key === "string" &&
-        ((input.key.toLowerCase() === "r" && (input.control || input.meta)) ||
-          input.key.toLowerCase() === "f5")
-      ) {
-        event.preventDefault();
-      }
-    });
-  }
 
   registerUiSettingsIpcHandlers({ ipcMain, mainWindow, store });
 
@@ -3088,7 +3051,6 @@ function setupIpcHandlers(dependencies) {
   registerBackupIpcHandlers({
     ipcMain,
     mainWindow,
-    setBackupReloadBlocked,
   });
 
   // Проверка на отмену загрузки
@@ -3428,7 +3390,6 @@ function setupIpcHandlers(dependencies) {
         startedAt: Date.now(),
       });
       downloadState.downloadInProgress = downloadState.activeDownloads.size > 0;
-      setDownloadReloadBlocked(downloadState.downloadInProgress);
       try {
         const result = await startDownloadProcess(
           event,
@@ -3460,7 +3421,6 @@ function setupIpcHandlers(dependencies) {
         downloadState.activeDownloads.delete(jobId);
         downloadState.downloadInProgress =
           downloadState.activeDownloads.size > 0;
-        setDownloadReloadBlocked(downloadState.downloadInProgress);
         setActiveDownloadToken(null);
       }
     },

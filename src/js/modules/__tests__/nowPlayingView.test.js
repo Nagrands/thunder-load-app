@@ -180,10 +180,18 @@ describe("Now Playing view", () => {
       view.element.querySelector('[data-ui="floating-title"]').textContent,
     ).toBe("Demo track");
     expect(
-      view.element
-        .querySelector('[data-action="placeholder-subtitles"]')
-        .getAttribute("aria-disabled"),
-    ).toBe("true");
+      view.element.querySelector('[data-ui="player-tab-menu"]'),
+    ).not.toBeNull();
+    expect(view.element.querySelector(".now-playing__header-title").textContent)
+      .toBe("tabs.nowPlaying");
+    expect(
+      view.element.querySelectorAll(
+        '[data-action^="placeholder-subtitles"], [data-action="placeholder-mini-player"], [data-action="placeholder-picture"], [data-action="placeholder-settings"]',
+      ),
+    ).toHaveLength(0);
+    expect(
+      view.element.querySelectorAll("[data-window-action]"),
+    ).toHaveLength(2);
     expect(
       view.element.querySelector(".now-playing__sidebar-toolbar"),
     ).not.toBeNull();
@@ -255,7 +263,7 @@ describe("Now Playing view", () => {
     ).not.toBeNull();
     expect(
       view.element.querySelector(".now-playing__topbar-reveal-zone"),
-    ).not.toBeNull();
+    ).toBeNull();
     expect(sidebar.querySelector(".now-playing__brand-label").hidden).toBe(
       true,
     );

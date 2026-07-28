@@ -103,6 +103,68 @@ describe("TabSystem", () => {
     );
   });
 
+  test("mounts and disposes an icon-only navigation proxy", () => {
+    const tabs = new TabSystem(".group-menu", "#main-view");
+    tabs.addTab("download", "Download", "fa-solid fa-download", () =>
+      document.createElement("div"),
+    );
+    tabs.addTab("tools", "Tools", "fa-solid fa-toolbox", () =>
+      document.createElement("div"),
+    );
+    tabs.addTab("products", "Format", "fa-solid fa-list-check", () =>
+      document.createElement("div"),
+    );
+    tabs.addTab("now-playing", "Player", "fa-solid fa-play", () =>
+      document.createElement("div"),
+    );
+    tabs.activateTab("now-playing");
+
+    const navigation = document.createElement("nav");
+    document.body.appendChild(navigation);
+    const dispose = tabs.mountNavigationProxy(navigation, {
+      excludeIds: ["now-playing"],
+    });
+
+    const buttons = navigation.querySelectorAll("[data-tab-target]");
+    expect(buttons).toHaveLength(3);
+    expect(navigation.textContent).toBe("");
+    expect(
+      navigation.querySelector('[data-tab-target="products"]').hidden,
+    ).toBe(true);
+    expect(
+      navigation.querySelector('[data-tab-target="products"]').style.display,
+    ).toBe("none");
+    expect(
+      navigation.querySelector('[data-tab-target="download"]').getAttribute(
+        "aria-label",
+      ),
+    ).toBe("Download");
+    expect(
+      navigation.querySelector('[data-tab-target="download"]').dataset.bsToggle,
+    ).toBe("tooltip");
+
+    tabs.setTabLabel("download", "Загрузчик");
+    expect(
+      navigation.querySelector('[data-tab-target="download"]').title,
+    ).toBe("Загрузчик");
+
+    localStorage.setItem("developerToolsUnlocked", "true");
+    window.dispatchEvent(
+      new CustomEvent("tools:developer-unlock-changed", {
+        detail: { enabled: true },
+      }),
+    );
+    expect(
+      navigation.querySelector('[data-tab-target="products"]').style.display,
+    ).toBe("");
+
+    navigation.querySelector('[data-tab-target="tools"]').click();
+    expect(tabs.activeTabId).toBe("tools");
+
+    dispose();
+    expect(navigation.childElementCount).toBe(0);
+  });
+
   test("keeps Downloader available when legacy developer preference exists", () => {
     localStorage.setItem("developerToolsUnlocked", "true");
     localStorage.setItem("developerDisableDownloaderTab", "true");

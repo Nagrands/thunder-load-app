@@ -199,16 +199,20 @@ describe("Now Playing providers", () => {
     };
     const provider = new LocalMusicProvider(api);
 
-    const playback = await provider.resolveTrack({
-      id: "movie",
-      sourceRef: "/media/movie.mkv",
-      availability: "available",
-      selectedAudioTrackId: "audio-2",
-    });
+    const playback = await provider.resolveTrack(
+      {
+        id: "movie",
+        sourceRef: "/media/movie.mkv",
+        availability: "available",
+        selectedAudioTrackId: "audio-2",
+      },
+      { startTime: 600 },
+    );
 
     expect(api.createLocalPlaybackSession).toHaveBeenCalledWith({
       trackId: "movie",
       includeAudioTracks: true,
+      startTime: 600,
     });
     expect(playback).toMatchObject({
       kind: "hls",

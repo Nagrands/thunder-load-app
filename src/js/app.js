@@ -52,7 +52,7 @@ configureVersionedLogFile();
 
 const startupMetrics = createStartupMetrics(log);
 
-const { createWindow, setReloadMenuEnabled } = startupMetrics.measure(
+const { createWindow } = startupMetrics.measure(
   "require window.js",
   () => require("./app/window.js"),
 );
@@ -199,7 +199,6 @@ if (!app.requestSingleInstanceLock()) {
     notifyDownloadError,
     sendDownloadCompletionNotification,
     showTrayNotification,
-    setReloadMenuEnabled,
     webControlServer: null,
     dispatchPendingWhatsNew: () => false,
     clearPendingWhatsNewVersion: () => false,

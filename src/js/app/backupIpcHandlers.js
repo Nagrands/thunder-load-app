@@ -15,7 +15,6 @@ function getBackupManager() {
 function registerBackupIpcHandlers({
   ipcMain,
   mainWindow,
-  setBackupReloadBlocked,
 }) {
   ipcMain.handle(CHANNELS.BACKUP_GET_PROGRAMS, async () => {
     try {
@@ -110,19 +109,6 @@ function registerBackupIpcHandlers({
     }
   });
 
-  ipcMain.handle(
-    CHANNELS.BACKUP_TOGGLE_RELOAD_BLOCK,
-    async (_evt, shouldBlock) => {
-      try {
-        const blocked = Boolean(shouldBlock);
-        setBackupReloadBlocked(blocked);
-        return { success: true, blocked };
-      } catch (error) {
-        log.error("backup:toggleReloadBlock error:", error);
-        return { success: false, error: error.message || String(error) };
-      }
-    },
-  );
 }
 
 module.exports = {

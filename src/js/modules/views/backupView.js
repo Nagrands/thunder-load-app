@@ -83,33 +83,6 @@ export default function renderBackup() {
       ? ipc.invoke(ch, ...args)
       : Promise.reject(new Error("IPC not available"));
 
-  let activeBackupRuns = 0;
-  const toggleReloadShortcut = async (shouldBlock) => {
-    try {
-      await invoke("backup:toggleReloadBlock", shouldBlock);
-    } catch (error) {
-      console.error(
-        "[backupView] Не удалось переключить горячую клавишу Ctrl+R:",
-        error,
-      );
-    }
-  };
-
-  const acquireReloadShortcutBlock = () => {
-    activeBackupRuns += 1;
-    if (activeBackupRuns === 1) {
-      void toggleReloadShortcut(true);
-    }
-  };
-
-  const releaseReloadShortcutBlock = () => {
-    if (activeBackupRuns === 0) return;
-    activeBackupRuns -= 1;
-    if (activeBackupRuns === 0) {
-      void toggleReloadShortcut(false);
-    }
-  };
-
   const wrapper = document.createElement("div");
   wrapper.id = "backup-view";
   wrapper.className = "backup-view tab-content p-4 space-y-4";
@@ -2691,7 +2664,6 @@ export default function renderBackup() {
     const lockedKeys = list.map((program) => profileKey(program));
     lockedKeys.forEach((key) => setProfileLocked(key, true));
 
-    acquireReloadShortcutBlock();
     try {
       let res;
       try {
@@ -2808,7 +2780,6 @@ export default function renderBackup() {
 
       lockedKeys.forEach((key) => setProfileLocked(key, false));
     } finally {
-      releaseReloadShortcutBlock();
     }
   }
 

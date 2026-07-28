@@ -48,6 +48,8 @@
  * @property {string=} mimeType
  * @property {string=} posterUrl
  * @property {string=} sessionId
+ * @property {number=} timelineOffset
+ * @property {number=} sourceDuration
  * @property {{selectedAudioTrackId: string, tracks: Array<{id: string, order: number, isDefault?: boolean}>}=} nativeAudioTrackSelection
  * @property {{selectedAudioTrackId: string|null, tracks: Array<{id: string, order: number, isDefault?: boolean}>}=} hlsAudioTrackSelection
  */

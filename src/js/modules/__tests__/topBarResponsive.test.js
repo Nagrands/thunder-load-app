@@ -5,7 +5,6 @@ describe("topBarResponsive", () => {
         <div class="top-bar__right-group">
           <button id="shortcuts-button" type="button"></button>
           <button id="open-github" type="button"></button>
-          <button id="reload-app" type="button"></button>
         </div>
       </div>
     `;

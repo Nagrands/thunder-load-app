@@ -115,7 +115,6 @@ jest.mock("../shortcuts.js", () => ({
     reset: jest.fn(() => ({ success: true, assignments: {} })),
   })),
   setGlobalShortcutsDisabled: jest.fn(),
-  setReloadShortcutSuppressed: jest.fn(),
 }));
 
 jest.mock("electron-log", () => ({
@@ -183,7 +182,6 @@ describe("ipcHandlers tools quick actions", () => {
     setDownloadPath = jest.fn(),
   } = {}) {
     const { setupIpcHandlers } = require("../ipcHandlers");
-    const setReloadMenuEnabled = jest.fn();
     const mainWindow = {
       webContents: {
         send: jest.fn(),
@@ -218,11 +216,10 @@ describe("ipcHandlers tools quick actions", () => {
       notifyDownloadError: jest.fn(),
       sendDownloadCompletionNotification: jest.fn(),
       showTrayNotification: jest.fn(),
-      setReloadMenuEnabled,
       dispatchPendingWhatsNew: jest.fn(),
       clearPendingWhatsNewVersion: jest.fn(),
     });
-    return { mainWindow, store, setDownloadPath, setReloadMenuEnabled };
+    return { mainWindow, store, setDownloadPath };
   }
 
   test("set-open-on-copy-url-status toggles clipboard monitor and persists state", async () => {
@@ -2222,7 +2219,6 @@ describe("ipcHandlers download pool", () => {
     downloadState = { downloadPath: "/tmp", downloadInProgress: false },
   } = {}) {
     const { setupIpcHandlers } = require("../ipcHandlers");
-    const setReloadMenuEnabled = jest.fn();
     const mainWindow = {
       webContents: {
         send: jest.fn(),
@@ -2254,11 +2250,10 @@ describe("ipcHandlers download pool", () => {
       notifyDownloadError: jest.fn(),
       sendDownloadCompletionNotification: jest.fn(),
       showTrayNotification: jest.fn(),
-      setReloadMenuEnabled,
       dispatchPendingWhatsNew: jest.fn(),
       clearPendingWhatsNewVersion: jest.fn(),
     });
-    return { mainWindow, store, setReloadMenuEnabled, downloadState };
+    return { mainWindow, store, downloadState };
   }
 
   const deferred = () => {
@@ -2367,53 +2362,6 @@ describe("ipcHandlers download pool", () => {
     expect(firstToolsArg).toEqual(
       expect.objectContaining({ get: expect.any(Function) }),
     );
-  });
-
-  test("DOWNLOAD_VIDEO blocks reload while a download is active and restores it afterwards", async () => {
-    const { CHANNELS } = require("../../ipc/channels");
-    const download = require("../../scripts/download.js");
-    const { getToolsVersions } = require("../toolsVersions");
-    const shortcuts = require("../shortcuts.js");
-    const media = deferred();
-
-    getToolsVersions.mockResolvedValue({
-      ytDlp: { ok: true },
-      ffmpeg: { ok: true },
-    });
-    download.getVideoInfo.mockResolvedValue({
-      title: "Test title",
-      formats: [{ format_id: "best" }],
-    });
-    download.selectFormatsByQuality.mockReturnValue({
-      videoFormat: "bestvideo",
-      audioFormat: "bestaudio",
-      audioExt: "m4a",
-      videoExt: "mp4",
-      resolution: "1080p",
-      fps: 30,
-    });
-    download.downloadMedia.mockImplementation(() => media.promise);
-
-    const { setReloadMenuEnabled } = initHandlers();
-    const event = { sender: { send: jest.fn() } };
-    const promise = handlers[CHANNELS.DOWNLOAD_VIDEO](
-      event,
-      "https://example.com/a",
-      "Source",
-      "job-a",
-    );
-
-    await Promise.resolve();
-    expect(shortcuts.setReloadShortcutSuppressed).toHaveBeenCalledWith(true);
-    expect(setReloadMenuEnabled).toHaveBeenCalledWith(false);
-
-    media.resolve("/tmp/file-a.mp4");
-    await promise;
-
-    expect(shortcuts.setReloadShortcutSuppressed).toHaveBeenLastCalledWith(
-      false,
-    );
-    expect(setReloadMenuEnabled).toHaveBeenLastCalledWith(true);
   });
 
   test("rejects second DOWNLOAD_VIDEO when parallel limit is set to 1", async () => {
@@ -2591,7 +2539,6 @@ describe("ipcHandlers download pool", () => {
       notifyDownloadError: jest.fn(),
       sendDownloadCompletionNotification: jest.fn(),
       showTrayNotification: jest.fn(),
-      setReloadMenuEnabled: jest.fn(),
       dispatchPendingWhatsNew: jest.fn(),
       clearPendingWhatsNewVersion: jest.fn(),
     });
@@ -2647,7 +2594,6 @@ describe("ipcHandlers download pool", () => {
       notifyDownloadError: jest.fn(),
       sendDownloadCompletionNotification: jest.fn(),
       showTrayNotification: jest.fn(),
-      setReloadMenuEnabled: jest.fn(),
       dispatchPendingWhatsNew: jest.fn(),
       clearPendingWhatsNewVersion: jest.fn(),
     });
@@ -2766,7 +2712,6 @@ describe("ipcHandlers download pool", () => {
       notifyDownloadError: jest.fn(),
       sendDownloadCompletionNotification: jest.fn(),
       showTrayNotification: jest.fn(),
-      setReloadMenuEnabled: jest.fn(),
       dispatchPendingWhatsNew: jest.fn(),
       clearPendingWhatsNewVersion: jest.fn(),
     });

@@ -1183,7 +1183,7 @@ describe("network status setting removal", () => {
           success: true,
           assignments: {
             "settings.open": "CommandOrControl+,",
-            "app.reload": "CommandOrControl+R",
+            "site.youtube.open": "CommandOrControl+Shift+1",
           },
         });
       }
@@ -1194,7 +1194,7 @@ describe("network status setting removal", () => {
 
     expect(config?.shortcuts?.assignments).toEqual({
       "settings.open": "CommandOrControl+,",
-      "app.reload": "CommandOrControl+R",
+      "site.youtube.open": "CommandOrControl+Shift+1",
     });
   });
 
@@ -1450,7 +1450,7 @@ describe("network status setting removal", () => {
       shortcuts: {
         disableGlobalShortcuts: true,
         assignments: {
-          "app.reload": "CommandOrControl+R",
+          "site.youtube.open": "CommandOrControl+Shift+1",
         },
       },
     });

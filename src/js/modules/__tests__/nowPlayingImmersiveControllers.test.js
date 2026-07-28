@@ -8,9 +8,7 @@ import createImmersiveOverlayVisibility from "../nowPlaying/immersiveOverlayVisi
 describe("Now Playing immersive controllers", () => {
   beforeEach(() => {
     document.body.innerHTML = `
-      <div class="top-bar"><button class="topbar-focus">Topbar</button></div>
       <section class="now-playing">
-        <div class="now-playing__topbar-reveal-zone" tabindex="0"></div>
         <div class="now-playing__sidebar-reveal-zone" tabindex="0"></div>
         <aside class="now-playing__sidebar"><button>Sidebar</button></aside>
         <button class="now-playing__control--fullscreen">
@@ -24,17 +22,15 @@ describe("Now Playing immersive controllers", () => {
     jest.useRealTimers();
   });
 
-  test("reveals sidebar and topbar on hover/focus with delayed hide", () => {
+  test("reveals only the sidebar on hover/focus with delayed hide", () => {
     jest.useFakeTimers();
     const root = document.querySelector(".now-playing");
     const sidebar = root.querySelector(".now-playing__sidebar");
     const sidebarZone = root.querySelector(".now-playing__sidebar-reveal-zone");
-    const topbarZone = root.querySelector(".now-playing__topbar-reveal-zone");
     const controller = createImmersiveOverlayVisibility({
       root,
       sidebar,
       sidebarZone,
-      topbarZone,
     });
     controller.onShow();
 
@@ -46,14 +42,7 @@ describe("Now Playing immersive controllers", () => {
     jest.advanceTimersByTime(1);
     expect(root.classList.contains("is-sidebar-visible")).toBe(false);
 
-    topbarZone.focus();
-    expect(root.classList.contains("is-topbar-visible")).toBe(true);
-    document.querySelector(".topbar-focus").focus();
-    jest.runAllTimers();
-    expect(root.classList.contains("is-topbar-visible")).toBe(true);
-
     controller.onHide();
-    expect(root.classList.contains("is-topbar-visible")).toBe(false);
     controller.dispose();
     sidebarZone.dispatchEvent(new MouseEvent("mouseenter"));
     expect(root.classList.contains("is-sidebar-visible")).toBe(false);
@@ -68,7 +57,6 @@ describe("Now Playing immersive controllers", () => {
       root,
       sidebar,
       sidebarZone,
-      topbarZone: root.querySelector(".now-playing__topbar-reveal-zone"),
     });
 
     controller.setSidebarPinned(true);

@@ -644,17 +644,6 @@ function createAppMenu(isDev, app) {
     {
       label: "Вид",
       submenu: [
-        {
-          id: "view-reload",
-          label: "Перезагрузить",
-          click: (_item, window) => window?.reload?.(),
-        },
-        {
-          id: "view-force-reload",
-          label: "Принудительно перезагрузить",
-          click: (_item, window) =>
-            window?.webContents?.reloadIgnoringCache?.(),
-        },
         { role: "toggledevtools", visible: isDev },
         { type: "separator" },
         { role: "resetzoom" },
@@ -684,14 +673,6 @@ function createAppMenu(isDev, app) {
   Menu.setApplicationMenu(appMenu);
 }
 
-function setReloadMenuEnabled(enabled) {
-  const next = Boolean(enabled);
-  ["view-reload", "view-force-reload"].forEach((id) => {
-    const item = appMenu?.getMenuItemById?.(id);
-    if (item) item.enabled = next;
-  });
-}
-
 function resetWindowStateForTests() {
   windowTray = null;
   dockMediaState = null;
@@ -704,6 +685,5 @@ module.exports = {
   buildTrayMenuTemplate,
   buildDockMenuTemplate,
   setDockMediaState,
-  setReloadMenuEnabled,
   resetWindowStateForTests,
 };

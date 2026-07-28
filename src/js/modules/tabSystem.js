@@ -127,7 +127,7 @@ export default class TabSystem {
   }
 
   _syncNavigationProxy(proxy) {
-    if (!proxy?.container?.isConnected && !proxy?.container) return;
+    if (!proxy?.container) return;
     this.tabs.forEach((rec, id) => {
       if (proxy.excludeIds.has(id)) return;
       let button = proxy.buttons.get(id);
@@ -153,8 +153,10 @@ export default class TabSystem {
       const label = rec.label || rec.labelEl?.textContent || id;
       button.setAttribute("aria-label", label);
       button.setAttribute("title", label);
-      button.hidden = rec.button?.style.display === "none";
-      button.disabled = button.hidden;
+      const hidden = rec.button?.style.display === "none";
+      button.hidden = hidden;
+      button.disabled = hidden;
+      button.style.display = hidden ? "none" : "";
     });
   }
 

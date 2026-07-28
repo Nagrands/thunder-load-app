@@ -15,10 +15,6 @@ export const coreTranslations = {
     "topbar.action.settings": "Настройки",
     "topbar.action.theme": "Тема",
     "topbar.action.github": "GitHub",
-    "topbar.action.reload": "Обновить",
-    "topbar.reload": "Обновить окно",
-    "topbar.reload.disabled":
-      "Обновление недоступно во время активной загрузки",
     "topbar.minimize": "Свернуть",
     "topbar.close": "Закрыть",
     "footer.kicker": "Thunder",
@@ -128,8 +124,6 @@ export const coreTranslations = {
     "nowPlaying.more": "Ещё",
     "nowPlaying.trackInfo": "Информация о текущем файле",
     "nowPlaying.playlist.count": "{count} элементов",
-    "nowPlaying.unavailable.subtitles":
-      "Выбор субтитров появится в следующем обновлении",
     "nowPlaying.audioTracks.open": "Выбрать аудиодорожку",
     "nowPlaying.audioTracks.title": "Аудиодорожки",
     "nowPlaying.audioTracks.kicker": "Звук",
@@ -181,10 +175,6 @@ export const coreTranslations = {
       "Для этого сетевого источника доступна статичная визуализация",
     "nowPlaying.visualizer.unavailable":
       "Не удалось подключить анализатор — используется статичная визуализация",
-    "nowPlaying.unavailable.miniPlayer": "Отдельный мини-плеер пока недоступен",
-    "nowPlaying.unavailable.picture": "Настройки изображения пока недоступны",
-    "nowPlaying.unavailable.settings":
-      "Дополнительные настройки воспроизведения пока недоступны",
     "nowPlaying.unavailable.download": "Загрузка из Плеера пока недоступна",
     "nowPlaying.addFiles": "Добавить файлы",
     "nowPlaying.addFolder": "Добавить папку",
@@ -447,9 +437,6 @@ export const coreTranslations = {
     "topbar.action.settings": "Settings",
     "topbar.action.theme": "Theme",
     "topbar.action.github": "GitHub",
-    "topbar.action.reload": "Reload",
-    "topbar.reload": "Reload window",
-    "topbar.reload.disabled": "Reload is unavailable during an active download",
     "topbar.minimize": "Minimize",
     "topbar.close": "Close",
     "footer.kicker": "Thunder",
@@ -557,8 +544,6 @@ export const coreTranslations = {
     "nowPlaying.more": "More",
     "nowPlaying.trackInfo": "Current media information",
     "nowPlaying.playlist.count": "{count} items",
-    "nowPlaying.unavailable.subtitles":
-      "Subtitle selection is coming in a future update",
     "nowPlaying.audioTracks.open": "Choose audio track",
     "nowPlaying.audioTracks.title": "Audio tracks",
     "nowPlaying.audioTracks.kicker": "Audio",
@@ -608,11 +593,6 @@ export const coreTranslations = {
       "A static visualization is used for this network source",
     "nowPlaying.visualizer.unavailable":
       "The analyser could not be connected; a static visualization is used",
-    "nowPlaying.unavailable.miniPlayer":
-      "The standalone mini player is not available yet",
-    "nowPlaying.unavailable.picture": "Picture settings are not available yet",
-    "nowPlaying.unavailable.settings":
-      "Advanced playback settings are not available yet",
     "nowPlaying.unavailable.download":
       "Downloading from Player is not available yet",
     "nowPlaying.addFiles": "Add files",

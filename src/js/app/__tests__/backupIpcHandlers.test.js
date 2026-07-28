@@ -38,15 +38,12 @@ describe("backupIpcHandlers", () => {
         send: jest.fn(),
       },
     };
-    const setBackupReloadBlocked = jest.fn();
-
     registerBackupIpcHandlers({
       ipcMain,
       mainWindow,
-      setBackupReloadBlocked,
     });
 
-    return { CHANNELS, ipcMain, mainWindow, setBackupReloadBlocked };
+    return { CHANNELS, ipcMain, mainWindow };
   }
 
   test("registers backup channels without loading backupManager", async () => {
@@ -75,18 +72,5 @@ describe("backupIpcHandlers", () => {
       programs: [{ name: "App" }],
     });
     expect(mockBackupManagerLoaded).toBe(true);
-  });
-
-  test("toggles reload blocking without loading backupManager", async () => {
-    const { CHANNELS, setBackupReloadBlocked } = register();
-
-    const result = await handlers[CHANNELS.BACKUP_TOGGLE_RELOAD_BLOCK](
-      null,
-      true,
-    );
-
-    expect(result).toEqual({ success: true, blocked: true });
-    expect(setBackupReloadBlocked).toHaveBeenCalledWith(true);
-    expect(mockBackupManagerLoaded).toBe(false);
   });
 });
