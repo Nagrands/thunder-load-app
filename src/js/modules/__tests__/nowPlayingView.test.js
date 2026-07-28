@@ -375,10 +375,14 @@ describe("Now Playing view", () => {
     document.body.appendChild(view.element);
     await view.ready;
     const range = view.element.querySelector('[data-action="volume"]');
+    const progress = view.element.querySelector('[data-action="seek"]');
     const percent = view.element.querySelector('[data-ui="volume-percent"]');
     const mute = view.element.querySelector('[data-action="mute"]');
     jest.useFakeTimers();
 
+    expect(progress.hasAttribute("data-bs-toggle")).toBe(false);
+    expect(progress.hasAttribute("title")).toBe(false);
+    expect(progress.getAttribute("aria-label")).toBe("nowPlaying.seek");
     expect(percent.textContent).toBe("50%");
     expect(range.getAttribute("aria-valuetext")).toBe("50%");
     expect(mute.getAttribute("aria-label")).toBe("nowPlaying.mute");

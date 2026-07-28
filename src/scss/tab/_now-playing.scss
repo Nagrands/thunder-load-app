@@ -3621,6 +3621,12 @@ body.is-now-playing-active:has(.now-playing.is-reduced-motion) {
     display: none;
   }
 
+  &.is-time-only {
+    width: max-content;
+    min-width: 44px;
+    padding: 5px 9px;
+  }
+
   img {
     display: block;
     width: 140px;

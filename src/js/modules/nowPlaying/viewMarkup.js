@@ -357,14 +357,10 @@ export function buildNowPlayingMarkup() {
               step="0.1"
               value="0"
               data-i18n-aria="nowPlaying.seek"
-              data-i18n-title="nowPlaying.seek"
-              data-bs-toggle="tooltip"
-              data-bs-placement="top"
               ${shortcutAttributes([
                 PLAYER_COMMANDS.SEEK_BACKWARD,
                 PLAYER_COMMANDS.SEEK_FORWARD,
               ])}
-              title="${t("nowPlaying.seek")}"
               aria-label="${t("nowPlaying.seek")}"
             />
           </span>

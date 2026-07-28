@@ -40879,6 +40879,11 @@ body.is-now-playing-active:has(.now-playing.is-reduced-motion) .top-bar {
 .now-playing__timeline-preview[hidden] {
   display: none;
 }
+.now-playing__timeline-preview.is-time-only {
+  width: max-content;
+  min-width: 44px;
+  padding: 5px 9px;
+}
 .now-playing__timeline-preview img {
   display: block;
   width: 140px;

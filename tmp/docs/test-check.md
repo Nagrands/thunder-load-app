@@ -2,7 +2,7 @@
 
 - Автосборка списка: `npm run test-check:sync-tests`
 - Найдено файлов: 139
-- Найдено тест-кейсов (test/it): 1219
+- Найдено тест-кейсов (test/it): 1220
 
 <!-- AUTO-JEST-TESTS:START -->
 
@@ -886,9 +886,10 @@
 - [ ] restores canonical YouTube tracks and resolves fresh playback URLs
 - [ ] surfaces structured YouTube resolve errors
 
-### `src/js/modules/__tests__/nowPlayingTimelinePreviewController.test.js` (3)
+### `src/js/modules/__tests__/nowPlayingTimelinePreviewController.test.js` (4)
 - [ ] debounces frame requests and does not seek active playback
 - [ ] cancels a pending request when pointer leaves
+- [ ] shows only the hovered time for audio without requesting an image
 - [ ] requests the first video frame immediately when the active track changes
 
 ### `src/js/modules/__tests__/nowPlayingTransientQueue.test.js` (2)

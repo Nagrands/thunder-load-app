@@ -120,6 +120,47 @@ describe("timelinePreviewController", () => {
     previewController.dispose();
   });
 
+  test("shows only the hovered time for audio without requesting an image", () => {
+    const root = document.querySelector("section");
+    const progress = root.querySelector("input");
+    progress.getBoundingClientRect = jest.fn(() => ({
+      left: 100,
+      width: 400,
+    }));
+    const api = {
+      cancelTimelinePreview: jest.fn(),
+      getTimelinePreview: jest.fn(),
+    };
+    const previewController = createTimelinePreviewController({
+      api,
+      controller: {
+        getPreviewContext: () => ({}),
+        getSnapshot: () => ({
+          currentTrack: { id: "audio", kind: "audio" },
+          duration: 200,
+        }),
+      },
+      progress,
+      root,
+    });
+
+    progress.dispatchEvent(
+      new MouseEvent("pointermove", { bubbles: true, clientX: 300 }),
+    );
+    jest.advanceTimersByTime(120);
+
+    const preview = root.querySelector('[data-ui="timeline-preview"]');
+    const image = root.querySelector('[data-ui="timeline-preview-image"]');
+    expect(preview.hidden).toBe(false);
+    expect(preview.classList.contains("is-time-only")).toBe(true);
+    expect(image.hidden).toBe(true);
+    expect(
+      root.querySelector('[data-ui="timeline-preview-time"]').textContent,
+    ).toBe("1:40");
+    expect(api.getTimelinePreview).not.toHaveBeenCalled();
+    previewController.dispose();
+  });
+
   test("requests the first video frame immediately when the active track changes", async () => {
     const root = document.querySelector("section");
     const progress = root.querySelector("input");

@@ -77,6 +77,10 @@ describe("tooltipInitializer", () => {
     initTooltips(document);
 
     expect(MockTooltip.getOrCreateInstance).toHaveBeenCalledTimes(1);
+    expect(document.getElementById("a").hasAttribute("title")).toBe(false);
+    expect(
+      document.getElementById("a").getAttribute("data-bs-original-title"),
+    ).toBe("Alpha");
   });
 
   test("updates tooltip content when title changes", () => {
@@ -94,6 +98,8 @@ describe("tooltipInitializer", () => {
     expect(instance.setContent).toHaveBeenCalledWith({
       ".tooltip-inner": "Beta",
     });
+    expect(btn.hasAttribute("title")).toBe(false);
+    expect(btn.getAttribute("data-bs-original-title")).toBe("Beta");
   });
 
   test("fallback title update without setContent does not force dispose", () => {
@@ -146,16 +152,17 @@ describe("tooltipInitializer", () => {
     const btn = document.getElementById("a");
 
     initTooltips(document);
-    expect(btn.getAttribute("title")).toContain(" / ");
+    expect(btn.hasAttribute("title")).toBe(false);
+    expect(btn.getAttribute("data-bs-original-title")).toContain(" / ");
     expect(btn.dataset.tooltipHotkeyApplied).toContain("/");
 
-    const previousTitle = btn.getAttribute("title");
-    btn.removeAttribute("title");
+    const previousTitle = btn.getAttribute("data-bs-original-title");
     btn.setAttribute("data-bs-original-title", previousTitle);
     btn.dataset.hotkey = "Alt+Shift+Left / Alt+Shift+Right";
     btn.dispatchEvent(new CustomEvent("hotkey:changed", { bubbles: true }));
 
-    expect(btn.getAttribute("title")).toMatch(/Shift|⇧/);
+    expect(btn.hasAttribute("title")).toBe(false);
+    expect(btn.getAttribute("data-bs-original-title")).toMatch(/Shift|⇧/);
     expect(instances.get(btn).setContent).toHaveBeenCalled();
   });
 

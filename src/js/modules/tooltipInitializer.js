@@ -296,9 +296,10 @@ function syncTooltipInstance(el) {
 
   const tooltip = instance || createTooltip(el);
   if (!tooltip) return;
-  if (!el.getAttribute("data-bs-original-title") && title) {
-    el.setAttribute("data-bs-original-title", title);
-  }
+  // Keep one canonical title source for Bootstrap and remove the native
+  // browser title. Repeated hotkey/i18n updates may restore `title`, which
+  // otherwise produces a second system tooltip beside the Bootstrap one.
+  el.setAttribute("data-bs-original-title", title);
   const prevTitle = el.dataset.tooltipTitle || "";
 
   if (prevTitle !== title) {
@@ -326,6 +327,7 @@ function syncTooltipInstance(el) {
   if (el.dataset.tooltipManaged !== "1") {
     el.dataset.tooltipManaged = "1";
   }
+  el.removeAttribute("title");
 }
 
 function findPopoverTarget(target) {

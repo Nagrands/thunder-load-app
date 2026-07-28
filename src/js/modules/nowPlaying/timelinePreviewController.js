@@ -82,10 +82,11 @@ export function createTimelinePreviewController({
     const snapshot = controller.getSnapshot();
     const track = snapshot.currentTrack;
     const duration = Math.max(0, Number(snapshot.duration) || 0);
-    if (!preview || !progress || track?.kind !== "video" || !duration) {
+    if (!preview || !progress || !track || !duration) {
       hide();
       return;
     }
+    const hasVideoPreview = track.kind === "video";
     const bounds = progress.getBoundingClientRect();
     const ratio = Math.min(
       1,
@@ -93,9 +94,18 @@ export function createTimelinePreviewController({
     );
     const timestamp = duration * ratio;
     visibleTrackId = track.id;
+    preview.classList.toggle("is-time-only", !hasVideoPreview);
     preview.hidden = false;
     preview.style.setProperty("--preview-position", `${ratio * 100}%`);
     if (time) time.textContent = formatPlaybackTime(timestamp);
+    if (!hasVideoPreview) {
+      cancelPending();
+      if (image) {
+        image.hidden = true;
+        image.removeAttribute("src");
+      }
+      return;
+    }
     if (timer !== null) clearTimeout(timer);
     timer = setTimeout(() => {
       timer = null;
@@ -121,6 +131,11 @@ export function createTimelinePreviewController({
     eagerTrackId = nextTrackId;
     cancelPending();
     visibleTrackId = nextTrackId;
+    if (image) {
+      image.hidden = true;
+      image.removeAttribute("src");
+    }
+    preview?.classList.toggle("is-time-only", track?.kind !== "video");
     if (track?.kind !== "video" || !nextTrackId) return;
     const duration = Math.max(
       0,
