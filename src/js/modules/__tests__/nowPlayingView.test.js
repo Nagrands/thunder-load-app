@@ -1161,7 +1161,7 @@ describe("Now Playing view", () => {
               order: 1,
               title: "Дубляж",
               language: "rus",
-              codec: "ac3",
+              codec: "aac",
               channels: 6,
               isDefault: false,
             },

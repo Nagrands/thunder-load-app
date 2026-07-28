@@ -594,8 +594,12 @@ function registerNowPlayingIpcHandlers({
         !request ||
         typeof request !== "object" ||
         Array.isArray(request) ||
-        Object.keys(request).some((key) => key !== "trackId") ||
-        typeof request.trackId !== "string"
+        Object.keys(request).some(
+          (key) => !["trackId", "includeAudioTracks"].includes(key),
+        ) ||
+        typeof request.trackId !== "string" ||
+        (request.includeAudioTracks !== undefined &&
+          typeof request.includeAudioTracks !== "boolean")
       ) {
         return failure(
           "INVALID_AUDIO_TRACK_REQUEST",
@@ -610,12 +614,44 @@ function registerNowPlayingIpcHandlers({
         return failure("TRACK_UNAVAILABLE", "Track file is unavailable");
       }
       try {
+        const tracks =
+          request.includeAudioTracks === true
+            ? await audioTracksService.getTracks(track)
+            : [];
+        if (request.includeAudioTracks === true && tracks.length < 2) {
+          return failure(
+            "AUDIO_TRACKS_UNAVAILABLE",
+            "Multiple audio tracks are unavailable",
+          );
+        }
+        const sessionOptions = {
+          inputs: [track.sourceRef],
+          copyCodecs: false,
+          allowLocal: true,
+        };
+        if (tracks.length > 1) {
+          const videoCodec = String(
+            track.mediaInfo?.videoCodec || "",
+          ).toLowerCase();
+          sessionOptions.multiAudioTracks = tracks;
+          sessionOptions.includeVideo = Boolean(videoCodec);
+          sessionOptions.copyVideo = videoCodec === "h264";
+        }
+        const playback = await hlsService.createSession(sessionOptions);
         return success(
-          await hlsService.createSession({
-            inputs: [track.sourceRef],
-            copyCodecs: false,
-            allowLocal: true,
-          }),
+          tracks.length > 1
+            ? {
+                ...playback,
+                hlsAudioTrackSelection: {
+                  selectedAudioTrackId: tracks.some(
+                    (item) => item.id === track.selectedAudioTrackId,
+                  )
+                    ? track.selectedAudioTrackId
+                    : null,
+                  tracks,
+                },
+              }
+            : playback,
         );
       } catch (error) {
         return failure(error.code || "HLS_TRANSCODE_FAILED", error.message);

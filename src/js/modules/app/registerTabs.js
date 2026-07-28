@@ -4,6 +4,7 @@ import { initDownloaderBackgroundPreview } from "../downloaderBackgroundPreview.
 import { initDownloaderLivePreview } from "../downloaderLivePreview.js";
 import { getDefaultTab } from "../features/settings/defaultTabStore.js";
 import { applyI18n, t } from "../i18n.js";
+import { initTooltips } from "../tooltipInitializer.js";
 import { requestToolsView } from "../toolsNavigation.js";
 import { registerLocalShortcutAction } from "../hotkeys.js";
 import {
@@ -80,6 +81,7 @@ let nowPlayingViewInstance = null;
 let nowPlayingShouldBeActive = false;
 let toolsRenderVersion = 0;
 let removePlayerShortcutActions = [];
+let removePlayerNavigationProxy = null;
 let lazyModuleLoaders = {
   loadDownloaderToolsStatusModule: () => import("../downloaderToolsStatus.js"),
   loadToolsViewModule: () => import("../views/toolsView.js"),
@@ -168,7 +170,7 @@ async function renderProductsTab(productsWrapper) {
   }
 }
 
-async function renderNowPlayingTab(nowPlayingWrapper) {
+async function renderNowPlayingTab(nowPlayingWrapper, tabs) {
   try {
     if (!nowPlayingViewInstance) {
       nowPlayingViewReadyPromise ||= (async () => {
@@ -184,6 +186,17 @@ async function renderNowPlayingTab(nowPlayingWrapper) {
         return nowPlayingViewInstance;
       })();
       await nowPlayingViewReadyPromise;
+    }
+    if (!removePlayerNavigationProxy && nowPlayingViewInstance?.element) {
+      const navigation = nowPlayingViewInstance.element.querySelector(
+        '[data-ui="player-tab-menu"]',
+      );
+      if (navigation && typeof tabs?.mountNavigationProxy === "function") {
+        removePlayerNavigationProxy = tabs.mountNavigationProxy(navigation, {
+          excludeIds: ["now-playing"],
+        });
+        initTooltips(navigation);
+      }
     }
     if (nowPlayingShouldBeActive) nowPlayingViewInstance?.onShow();
   } catch (error) {
@@ -219,7 +232,7 @@ function registerPlayerShortcutActions({ tabs, nowPlayingWrapper }) {
     if (commandsThatOpenPlayer.has(commandId)) {
       nowPlayingShouldBeActive = true;
       tabs.activateTab("now-playing");
-      await renderNowPlayingTab(nowPlayingWrapper);
+      await renderNowPlayingTab(nowPlayingWrapper, tabs);
     }
     return nowPlayingViewInstance?.executeCommand?.(commandId) ?? false;
   };
@@ -308,7 +321,7 @@ export async function registerTabs(mainView) {
     t("tabs.nowPlaying"),
     "fa-solid fa-circle-play",
     () => {
-      void renderNowPlayingTab(wrappers.nowPlayingWrapper);
+      void renderNowPlayingTab(wrappers.nowPlayingWrapper, tabs);
       return wrappers.nowPlayingWrapper;
     },
     {
@@ -347,7 +360,7 @@ export async function registerTabs(mainView) {
     if (!files.length) return;
     nowPlayingShouldBeActive = true;
     tabs.activateTab("now-playing");
-    await renderNowPlayingTab(wrappers.nowPlayingWrapper);
+    await renderNowPlayingTab(wrappers.nowPlayingWrapper, tabs);
     await nowPlayingViewInstance?.importPaths?.(files, {
       autoplay: payload.autoplay !== false,
     });
@@ -360,6 +373,8 @@ export async function registerTabs(mainView) {
     wrappers,
     dispose() {
       unregisterPlayerShortcutActions();
+      removePlayerNavigationProxy?.();
+      removePlayerNavigationProxy = null;
       nowPlayingViewInstance?.dispose?.();
       nowPlayingViewInstance = null;
       nowPlayingViewReadyPromise = null;
@@ -376,6 +391,8 @@ export function __test_setLazyModuleLoaders(loaders = {}) {
   nowPlayingViewReadyPromise = null;
   nowPlayingViewInstance?.dispose?.();
   nowPlayingViewInstance = null;
+  removePlayerNavigationProxy?.();
+  removePlayerNavigationProxy = null;
   nowPlayingShouldBeActive = false;
   toolsRenderVersion = 0;
   lazyModuleLoaders = {

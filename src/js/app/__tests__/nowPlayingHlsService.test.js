@@ -6,6 +6,7 @@ const path = require("path");
 const {
   NowPlayingHlsService,
   buildFfmpegArgs,
+  buildMultiAudioFfmpegArgs,
   validateInputs,
 } = require("../nowPlayingHlsService");
 
@@ -57,6 +58,42 @@ describe("Now Playing HLS service", () => {
     expect(args).toEqual(expect.arrayContaining(["-c:a", "aac"]));
   });
 
+  test("builds one master playlist with every transcoded audio rendition", () => {
+    const args = buildMultiAudioFfmpegArgs({
+      audioTracks: [
+        { id: "audio-1", order: 0, codec: "ac3", isDefault: true },
+        { id: "audio-2", order: 1, codec: "aac" },
+        { id: "audio-3", order: 2, codec: "aac" },
+      ],
+      copyVideo: true,
+      includeVideo: true,
+      input: "/media/movie.mkv",
+      outputPath: "/tmp/player/index.m3u8",
+    });
+
+    expect(args).toEqual(
+      expect.arrayContaining([
+        "-map",
+        "0:v:0",
+        "0:a:0",
+        "0:a:1",
+        "0:a:2",
+        "-c:v",
+        "copy",
+        "-c:a",
+        "aac",
+        "-master_pl_name",
+        "index.m3u8",
+      ]),
+    );
+    expect(args[args.indexOf("-var_stream_map") + 1]).toContain(
+      "name:audio-1",
+    );
+    expect(args[args.indexOf("-var_stream_map") + 1]).toContain(
+      "name:audio-3",
+    );
+  });
+
   test("serves tokenized manifests on loopback and cleans the session", async () => {
     const cacheRoot = fs.mkdtempSync(
       path.join(os.tmpdir(), "now-playing-hls-"),
@@ -99,6 +136,55 @@ describe("Now Playing HLS service", () => {
     expect(spawnProcess.mock.results[0].value.kill).toHaveBeenCalledWith(
       "SIGTERM",
     );
+    await service.dispose();
+    fs.rmSync(cacheRoot, { recursive: true, force: true });
+  });
+
+  test("starts one FFmpeg process for a multi-audio master session", async () => {
+    const cacheRoot = fs.mkdtempSync(
+      path.join(os.tmpdir(), "now-playing-hls-audio-"),
+    );
+    const spawnProcess = jest.fn((_binary, args) => {
+      const child = new EventEmitter();
+      child.stderr = new EventEmitter();
+      child.exitCode = null;
+      child.kill = jest.fn(() => {
+        child.exitCode = 0;
+      });
+      const outputPattern = args.at(-1);
+      const directory = path.dirname(outputPattern);
+      const masterName = args[args.indexOf("-master_pl_name") + 1];
+      setTimeout(
+        () => fs.writeFileSync(path.join(directory, masterName), "#EXTM3U\n"),
+        1,
+      );
+      return child;
+    });
+    const server = new EventEmitter();
+    server.listen = jest.fn((_port, _host, callback) => callback());
+    server.address = jest.fn(() => ({ port: 43125 }));
+    server.close = jest.fn((callback) => callback());
+    const service = new NowPlayingHlsService({
+      cacheRoot,
+      ffmpegPathResolver: () => "/tools/ffmpeg",
+      spawnProcess,
+      serverFactory: () => server,
+    });
+
+    const descriptor = await service.createSession({
+      inputs: ["/media/movie.mkv"],
+      allowLocal: true,
+      multiAudioTracks: [
+        { id: "audio-1", order: 0, codec: "ac3", isDefault: true },
+        { id: "audio-2", order: 1, codec: "aac" },
+      ],
+      includeVideo: true,
+      copyVideo: true,
+    });
+
+    expect(descriptor).toMatchObject({ kind: "hls" });
+    expect(spawnProcess).toHaveBeenCalledTimes(1);
+    expect(spawnProcess.mock.calls[0][1]).toContain("-var_stream_map");
     await service.dispose();
     fs.rmSync(cacheRoot, { recursive: true, force: true });
   });

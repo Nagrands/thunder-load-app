@@ -8,9 +8,9 @@ const path = require("path");
 const { spawn } = require("child_process");
 
 const START_TIMEOUT_MS = 12_000;
-const SESSION_TTL_MS = 30 * 60 * 1000;
+const SESSION_TTL_MS = 6 * 60 * 60 * 1000;
 const MAX_SESSIONS = 1;
-const MAX_CACHE_BYTES = 2 * 1024 * 1024 * 1024;
+const MAX_CACHE_BYTES = 10 * 1024 * 1024 * 1024;
 const CLEANUP_INTERVAL_MS = 30_000;
 const FORCE_KILL_TIMEOUT_MS = 1_500;
 const HLS_CONTENT_TYPES = Object.freeze({
@@ -95,6 +95,85 @@ function buildFfmpegArgs({
     "-hls_segment_filename",
     path.join(path.dirname(outputPath), "segment-%06d.ts"),
     outputPath,
+  );
+  return args;
+}
+
+function buildMultiAudioFfmpegArgs({
+  audioTracks,
+  copyVideo = false,
+  includeVideo = true,
+  input,
+  outputPath,
+}) {
+  const normalizedTracks = Array.isArray(audioTracks)
+    ? audioTracks.filter(
+        (track, order) =>
+          /^audio-(?:0|[1-9]\d{0,2})$/.test(String(track?.id || "")) &&
+          track?.order === order,
+      )
+    : [];
+  if (normalizedTracks.length < 2) {
+    throw createError(
+      "INVALID_HLS_AUDIO_TRACKS",
+      "At least two ordered audio tracks are required",
+    );
+  }
+  const args = [
+    "-hide_banner",
+    "-loglevel",
+    "warning",
+    "-nostdin",
+    "-y",
+    "-i",
+    input,
+  ];
+  if (includeVideo) args.push("-map", "0:v:0");
+  normalizedTracks.forEach((_track, order) => {
+    args.push("-map", `0:a:${order}`);
+  });
+  if (includeVideo) {
+    if (copyVideo) args.push("-c:v", "copy");
+    else args.push("-c:v", "libx264", "-preset", "veryfast");
+  }
+  args.push("-c:a", "aac", "-b:a", "192k");
+  const audioGroup = "audio";
+  const variants = [];
+  if (includeVideo) variants.push(`v:0,agroup:${audioGroup}`);
+  const defaultOrder = Math.max(
+    0,
+    normalizedTracks.findIndex((track) => track.isDefault === true),
+  );
+  normalizedTracks.forEach((track, order) => {
+    variants.push(
+      [
+        `a:${order}`,
+        `agroup:${audioGroup}`,
+        `name:${track.id}`,
+        order === defaultOrder ? "default:yes" : "",
+      ]
+        .filter(Boolean)
+        .join(","),
+    );
+  });
+  args.push(
+    "-f",
+    "hls",
+    "-hls_time",
+    "4",
+    "-hls_list_size",
+    "0",
+    "-hls_playlist_type",
+    "event",
+    "-hls_flags",
+    "independent_segments+temp_file",
+    "-master_pl_name",
+    path.basename(outputPath),
+    "-var_stream_map",
+    variants.join(" "),
+    "-hls_segment_filename",
+    path.join(path.dirname(outputPath), "stream-%v-segment-%06d.ts"),
+    path.join(path.dirname(outputPath), "stream-%v.m3u8"),
   );
   return args;
 }
@@ -270,7 +349,9 @@ class NowPlayingHlsService {
       request.method !== "GET" ||
       !session ||
       session.token !== match[1] ||
-      !/^(?:index\.m3u8|segment-\d{6}\.ts)$/.test(fileName)
+      !/^(?:index\.m3u8|segment-\d{6}\.ts|stream-[a-z0-9-]+(?:\.m3u8|-segment-\d{6}\.ts))$/.test(
+        fileName,
+      )
     ) {
       response.writeHead(404).end();
       return;
@@ -294,7 +375,14 @@ class NowPlayingHlsService {
     }
   }
 
-  async createSession({ inputs, copyCodecs = false, allowLocal = false }) {
+  async createSession({
+    inputs,
+    copyCodecs = false,
+    allowLocal = false,
+    multiAudioTracks = [],
+    includeVideo = true,
+    copyVideo = false,
+  }) {
     const generation = ++this.creationGeneration;
     this.activeCreation?.abort();
     const creation = new AbortController();
@@ -324,15 +412,25 @@ class NowPlayingHlsService {
     const directory = path.join(this.cacheRoot, id);
     const manifestPath = path.join(directory, "index.m3u8");
     await fsPromises.mkdir(directory, { recursive: true });
+    const hasMultipleAudioTracks =
+      Array.isArray(multiAudioTracks) && multiAudioTracks.length > 1;
     const spawnFfmpeg = (hardwareAcceleration) =>
       this.spawnProcess(
         ffmpegPath,
-        buildFfmpegArgs({
-          inputs: safeInputs,
-          copyCodecs,
-          outputPath: manifestPath,
-          hardwareAcceleration,
-        }),
+        hasMultipleAudioTracks
+          ? buildMultiAudioFfmpegArgs({
+              audioTracks: multiAudioTracks,
+              copyVideo,
+              includeVideo,
+              input: safeInputs[0],
+              outputPath: manifestPath,
+            })
+          : buildFfmpegArgs({
+              inputs: safeInputs,
+              copyCodecs,
+              outputPath: manifestPath,
+              hardwareAcceleration,
+            }),
         { stdio: ["ignore", "ignore", "pipe"], windowsHide: true },
       );
     let child = spawnFfmpeg(true);
@@ -481,5 +579,6 @@ module.exports = {
   NowPlayingHlsService,
   SESSION_TTL_MS,
   buildFfmpegArgs,
+  buildMultiAudioFfmpegArgs,
   validateInputs,
 };

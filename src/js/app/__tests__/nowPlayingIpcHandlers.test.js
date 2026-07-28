@@ -193,6 +193,61 @@ describe("nowPlayingIpcHandlers", () => {
     expect(hlsService.createSession).not.toHaveBeenCalled();
   });
 
+  test("creates a validated multi-audio HLS session for local media", async () => {
+    const { CHANNELS } = register();
+    const mediaPath = path.join(root, "multi.mkv");
+    fs.writeFileSync(mediaPath, "video");
+    const tracks = [
+      {
+        id: "audio-1",
+        order: 0,
+        codec: "ac3",
+        isDefault: true,
+      },
+      { id: "audio-2", order: 1, codec: "aac" },
+    ];
+    audioTracksService.getTracks.mockResolvedValue(tracks);
+    storeValues["nowPlaying.state"] = {
+      version: 3,
+      catalog: {
+        tracks: [
+          {
+            id: "multi",
+            providerId: "local",
+            sourceRef: mediaPath,
+            kind: "video",
+            mediaInfo: { videoCodec: "h264" },
+            selectedAudioTrackId: "audio-2",
+          },
+        ],
+      },
+      selectedTrackId: "multi",
+    };
+
+    const result = await handlers[
+      CHANNELS.NOW_PLAYING_CREATE_LOCAL_PLAYBACK_SESSION
+    ](null, { trackId: "multi", includeAudioTracks: true });
+
+    expect(hlsService.createSession).toHaveBeenCalledWith({
+      inputs: [mediaPath],
+      copyCodecs: false,
+      allowLocal: true,
+      multiAudioTracks: tracks,
+      includeVideo: true,
+      copyVideo: true,
+    });
+    expect(result).toMatchObject({
+      success: true,
+      data: {
+        kind: "hls",
+        hlsAudioTrackSelection: {
+          selectedAudioTrackId: "audio-2",
+          tracks,
+        },
+      },
+    });
+  });
+
   test.each([
     [null],
     [{}],

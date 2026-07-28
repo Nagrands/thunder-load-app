@@ -10,6 +10,7 @@ export default class TabSystem {
       throw new Error("TabSystem: containers not found");
 
     this.tabs = new Map();
+    this.navigationProxies = new Set();
     this.activeTabId = null;
     this.ANIM_MS = 250; // длительность анимации (ms)
     // WG Unlock visibility wiring
@@ -84,16 +85,83 @@ export default class TabSystem {
     );
     anchor ? this.menu.insertBefore(btn, anchor) : this.menu.appendChild(btn);
 
-    this.tabs.set(id, { button: btn, labelEl, render: renderCb, ...hooks });
+    this.tabs.set(id, {
+      button: btn,
+      iconCls,
+      label,
+      labelEl,
+      render: renderCb,
+      ...hooks,
+    });
     if (id === this._PRD_ID) this._applyProductsVisibility();
     if (id === this._WG_ID) this._applyWgVisibility();
     if (id === this._BK_ID) this._applyBackupVisibility();
+    this._syncNavigationProxies();
   }
 
   setTabLabel(id, label) {
     const rec = this.tabs.get(id);
     if (!rec?.labelEl) return;
+    rec.label = label;
     rec.labelEl.textContent = label;
+    this._syncNavigationProxies();
+  }
+
+  mountNavigationProxy(container, { excludeIds = [] } = {}) {
+    if (!(container instanceof Element)) return () => {};
+    const proxy = {
+      container,
+      excludeIds: new Set(excludeIds),
+      buttons: new Map(),
+      cleanups: new Map(),
+    };
+    this.navigationProxies.add(proxy);
+    this._syncNavigationProxy(proxy);
+    return () => {
+      if (!this.navigationProxies.delete(proxy)) return;
+      proxy.cleanups.forEach((cleanup) => cleanup());
+      proxy.cleanups.clear();
+      proxy.buttons.clear();
+      container.replaceChildren();
+    };
+  }
+
+  _syncNavigationProxy(proxy) {
+    if (!proxy?.container?.isConnected && !proxy?.container) return;
+    this.tabs.forEach((rec, id) => {
+      if (proxy.excludeIds.has(id)) return;
+      let button = proxy.buttons.get(id);
+      if (!button) {
+        button = document.createElement("button");
+        button.type = "button";
+        button.className = "now-playing__tab-link";
+        button.dataset.tabTarget = id;
+        button.dataset.bsToggle = "tooltip";
+        button.dataset.bsPlacement = "bottom";
+        const icon = document.createElement("i");
+        icon.className = rec.iconCls;
+        icon.setAttribute("aria-hidden", "true");
+        button.appendChild(icon);
+        const onClick = () => this.activateTab(id);
+        button.addEventListener("click", onClick);
+        proxy.cleanups.set(id, () =>
+          button.removeEventListener("click", onClick),
+        );
+        proxy.buttons.set(id, button);
+        proxy.container.appendChild(button);
+      }
+      const label = rec.label || rec.labelEl?.textContent || id;
+      button.setAttribute("aria-label", label);
+      button.setAttribute("title", label);
+      button.hidden = rec.button?.style.display === "none";
+      button.disabled = button.hidden;
+    });
+  }
+
+  _syncNavigationProxies() {
+    this.navigationProxies.forEach((proxy) =>
+      this._syncNavigationProxy(proxy),
+    );
   }
 
   activateTab(id) {
@@ -178,6 +246,7 @@ export default class TabSystem {
     el.classList.remove("tab-hide"); //  <<<  важно!
     this.activeTabId = id;
     this._syncActiveTabLayoutState(id);
+    this._syncNavigationProxies();
     // небольшая пауза – чтобы transition сработал
     requestAnimationFrame(() => {
       if (this.activeTabId === id && !el.classList.contains("tab-hide")) {
@@ -230,6 +299,7 @@ export default class TabSystem {
       rec.element.style.display = "none";
       rec.onHide?.();
     }
+    this._syncNavigationProxies();
   }
 
   _applyWgVisibility() {
@@ -260,6 +330,7 @@ export default class TabSystem {
         // контейнер отобразится при явной активации через activateTab()
       }
     }
+    this._syncNavigationProxies();
   }
 
   _isBackupDisabled() {
@@ -294,6 +365,7 @@ export default class TabSystem {
         rec.onHide?.();
       }
     }
+    this._syncNavigationProxies();
   }
 
   _findFirstVisibleTabId(excludeId = null) {
@@ -317,5 +389,6 @@ export default class TabSystem {
     }
     this.activeTabId = null;
     this._syncActiveTabLayoutState("");
+    this._syncNavigationProxies();
   }
 }

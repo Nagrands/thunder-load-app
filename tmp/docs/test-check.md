@@ -2,7 +2,7 @@
 
 - Автосборка списка: `npm run test-check:sync-tests`
 - Найдено файлов: 139
-- Найдено тест-кейсов (test/it): 1220
+- Найдено тест-кейсов (test/it): 1226
 
 <!-- AUTO-JEST-TESTS:START -->
 
@@ -209,17 +209,20 @@
 - [ ] uses a stat-keyed LRU cache and re-probes a changed file
 - [ ] reports missing tools, files and probe timeouts safely
 
-### `src/js/app/__tests__/nowPlayingHlsService.test.js` (5)
+### `src/js/app/__tests__/nowPlayingHlsService.test.js` (7)
 - [ ] accepts only one or two resolved HTTP inputs
 - [ ] maps adaptive video and audio and uses copy for compatible codecs
 - [ ] does not map a selected stream for local compatibility playback
+- [ ] builds one master playlist with every transcoded audio rendition
 - [ ] serves tokenized manifests on loopback and cleans the session
+- [ ] starts one FFmpeg process for a multi-audio master session
 - [ ] supersedes an initializing session and keeps only one FFmpeg process
 
-### `src/js/app/__tests__/nowPlayingIpcHandlers.test.js` (22)
+### `src/js/app/__tests__/nowPlayingIpcHandlers.test.js` (23)
 - [ ] registers all Player channels
 - [ ] lists and selects audio streams only for stored local tracks
 - [ ] rejects audio selection fields in fallback playback requests
+- [ ] creates a validated multi-audio HLS session for local media
 - [ ] updates only Player preferences in the persisted v3 state
 - [ ] normalizes zero volume to muted in the atomic patch
 - [ ] routes timeline preview requests and cancellation
@@ -829,18 +832,20 @@
 - [ ] accepts credential-free HTTP(S) URLs
 - [ ] marks HLS manifests for the HLS playback adapter
 
-### `src/js/modules/__tests__/nowPlayingPlaybackController.test.js` (36)
+### `src/js/modules/__tests__/nowPlayingPlaybackController.test.js` (38)
 - [ ] reports the buffered range without mutating playback position
 - [ ] selects a track, swaps the reusable media layer and starts playback
 - [ ] classifies the loaded media by its actual video track
 - [ ] marks direct network media as unsafe for Web Audio analysis
 - [ ] switches native audio without loading, seeking or restarting playback
+- [ ] switches fallback HLS audio without reloading or restarting playback
 - [ ] returns to the probed default native audio track
 - [ ] applies rapid native selections synchronously with the last one active
 - [ ] blocks mismatched and compatibility audio track lists
 - [ ] rolls back native flags when an audio track setter fails
 - [ ] applies a persisted native audio track before initial autoplay
 - [ ] waits for HLS metadata without requiring media.src
+- [ ] restores a persisted HLS audio rendition before autoplay
 - [ ] retries an interrupted play once after media becomes ready
 - [ ] returns a sanitized terminal error when the play retry fails
 - [ ] does not retry an interrupted play after the session is replaced
@@ -873,13 +878,14 @@
 - [ ] reports async errors and renders premium track information
 - [ ] omits unknown metadata and falls back for unavailable audio
 
-### `src/js/modules/__tests__/nowPlayingProviders.test.js` (11)
+### `src/js/modules/__tests__/nowPlayingProviders.test.js` (12)
 - [ ] normalizes metadata and deduplicates local paths
 - [ ] normalizes extended video formats and V3 metadata
 - [ ] merges structured import results without replacing the queue
 - [ ] resolves local files into playback DTOs and rejects missing tracks
 - [ ] routes AVI/MPEG through the protected local HLS session
 - [ ] keeps exact selected audio tracks on the direct local source
+- [ ] uses one multi-audio HLS session for codecs Chromium cannot expose
 - [ ] registry validates and routes provider calls
 - [ ] canonicalizes and imports a single YouTube video
 - [ ] rejects YouTube playlist URLs and invalid hosts

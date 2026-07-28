@@ -29,7 +29,7 @@ import { initSettingsModal } from "../settingsModal.js";
 import { initUpdateHandler } from "../updateHandler.js";
 import { initTopBarThemeToggle } from "../topBarThemeToggle.js";
 import { initTopBarResponsive } from "../topBarResponsive.js";
-import { initTopBarReloadGuard } from "../topBarReloadGuard.js";
+import { initWindowControls } from "../windowControls.js";
 import { initWebControlBridge } from "../webControlBridge.js";
 import { initFirstRunModal } from "../firstRunModal.js";
 import { initializeTheme } from "../themeManager.js";
@@ -86,13 +86,19 @@ async function runCriticalInitialization(mainView) {
   initUrlInputHandler();
   initDownloaderAvailability();
   initHistory();
-  initTopBarReloadGuard();
+  const disposeWindowControls = initWindowControls();
   initTopBarResponsive();
   initFirstRunModal();
   registerStatusMessageListener();
 
   console.timeEnd("[Startup] Critical init");
-  return { tabs, dispose: tabsRuntime.dispose };
+  return {
+    tabs,
+    dispose() {
+      disposeWindowControls();
+      tabsRuntime.dispose?.();
+    },
+  };
 }
 
 async function runDeferredInitialization({ tabs }) {

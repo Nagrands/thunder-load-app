@@ -42,6 +42,14 @@ function getAudioTrackList(media) {
   }
 }
 
+function getHlsAudioTrackList(hls) {
+  try {
+    return Array.isArray(hls?.audioTracks) ? hls.audioTracks : null;
+  } catch {
+    return null;
+  }
+}
+
 export class PlaybackController {
   constructor({
     providers,
@@ -386,10 +394,25 @@ export class PlaybackController {
         media: nextMedia,
         src: playback.src,
         session,
+        requireAudioTracks: Boolean(playback.hlsAudioTrackSelection),
       });
       if (!this.isCurrentSession(session)) {
         await this.releaseLayer(nextLayerIndex);
         return false;
+      }
+      if (playback.hlsAudioTrackSelection) {
+        const hlsResult = this.applyHlsAudioTrackSelection({
+          audioTrackId:
+            playback.hlsAudioTrackSelection.selectedAudioTrackId || null,
+          hls,
+          tracks: playback.hlsAudioTrackSelection.tracks,
+        });
+        if (!hlsResult.success) {
+          this.trace("hls-audio-restore-skipped", {
+            code: hlsResult.code,
+            trackId: track.id,
+          });
+        }
       }
       this.applyPendingStartTime(nextMedia);
     } else {
@@ -488,10 +511,29 @@ export class PlaybackController {
     ) {
       return { supported: false, code: "AUDIO_TRACKS_NOT_READY", count: 0 };
     }
-    if (
-      record.playback.kind === "hls" ||
-      this.hlsInstances[this.activeLayerIndex]
-    ) {
+    const hls = this.hlsInstances[this.activeLayerIndex];
+    if (record.playback.kind === "hls" || hls) {
+      const hlsSelection = record.playback.hlsAudioTrackSelection;
+      const hlsTracks = getHlsAudioTrackList(hls);
+      const expectedTracks = Array.isArray(hlsSelection?.tracks)
+        ? hlsSelection.tracks
+        : [];
+      if (
+        hlsSelection &&
+        hlsTracks &&
+        hlsTracks.length > 1 &&
+        hlsTracks.length === expectedTracks.length
+      ) {
+        return {
+          supported: true,
+          code: null,
+          count: hlsTracks.length,
+          enabledOrder: Number.isInteger(hls.audioTrack)
+            ? hls.audioTrack
+            : null,
+          mode: "hls",
+        };
+      }
       return {
         supported: false,
         code: "AUDIO_TRACKS_FALLBACK_UNSUPPORTED",
@@ -581,19 +623,89 @@ export class PlaybackController {
     };
   }
 
+  applyHlsAudioTrackSelection({
+    audioTrackId = null,
+    hls = this.hlsInstances[this.activeLayerIndex],
+    tracks = [],
+  } = {}) {
+    const list = getHlsAudioTrackList(hls);
+    const normalizedTracks = Array.isArray(tracks) ? tracks : [];
+    if (!list || list.length < 2) {
+      return {
+        success: false,
+        code: "AUDIO_TRACKS_NATIVE_UNAVAILABLE",
+      };
+    }
+    if (
+      normalizedTracks.length !== list.length ||
+      normalizedTracks.some(
+        (track, index) =>
+          !Number.isInteger(track?.order) || track.order !== index,
+      )
+    ) {
+      return { success: false, code: "AUDIO_TRACKS_NATIVE_MISMATCH" };
+    }
+    const selectedTrack = audioTrackId
+      ? normalizedTracks.find((track) => track.id === audioTrackId)
+      : normalizedTracks.find((track) => track.isDefault) ||
+        normalizedTracks[0];
+    if (!selectedTrack) {
+      return { success: false, code: "AUDIO_TRACK_NOT_FOUND" };
+    }
+    const targetOrder = normalizedTracks.indexOf(selectedTrack);
+    const normalizedTargetName = selectedTrack.id.replace(
+      /[^a-z0-9]/gi,
+      "_",
+    );
+    const expectedNames = normalizedTracks.map((track) =>
+      track.id.replace(/[^a-z0-9]/gi, "_"),
+    );
+    const actualNames = list.map((track) =>
+      String(track?.name || "").replace(/[^a-z0-9]/gi, "_"),
+    );
+    const namesMatch = expectedNames.every((name) =>
+      actualNames.includes(name),
+    );
+    const namedOrder = namesMatch
+      ? actualNames.indexOf(normalizedTargetName)
+      : -1;
+    const hlsOrder = namedOrder >= 0 ? namedOrder : targetOrder;
+    try {
+      hls.audioTrack = hlsOrder;
+      if (Number(hls.audioTrack) !== hlsOrder) {
+        throw new Error("HLS audio track was not selected");
+      }
+    } catch {
+      return { success: false, code: "AUDIO_TRACK_SWITCH_FAILED" };
+    }
+    return {
+      success: true,
+      audioTrackId,
+      order: targetOrder,
+      hlsOrder,
+    };
+  }
+
   selectNativeAudioTrack({ audioTrackId = null, tracks = [] } = {}) {
     const state = this.getNativeAudioTrackState();
     if (!state.supported) {
       return { success: false, code: state.code };
     }
-    const result = this.applyNativeAudioTrackSelection({
-      audioTrackId,
-      tracks,
-    });
+    const result =
+      state.mode === "hls"
+        ? this.applyHlsAudioTrackSelection({
+            audioTrackId,
+            tracks,
+          })
+        : this.applyNativeAudioTrackSelection({
+            audioTrackId,
+            tracks,
+          });
     if (!result.success) return result;
     this.setCurrentTrackAudioSelection(audioTrackId);
-    this.trace("native-audio-selected", {
+    this.trace("audio-selected", {
       audioTrackId,
+      mode: state.mode || "native",
       order: result.order,
       trackId: this.currentTrack?.id,
     });
@@ -625,14 +737,22 @@ export class PlaybackController {
     return true;
   }
 
-  waitForHlsReady({ Hls, hls, media, src, session }) {
+  waitForHlsReady({
+    Hls,
+    hls,
+    media,
+    src,
+    session,
+    requireAudioTracks = false,
+  }) {
     return new Promise((resolve, reject) => {
       let settled = false;
       let manifestReady = false;
       let metadataReady = Number(media.readyState) >= 1;
+      let audioTracksReady = !requireAudioTracks;
       const signal = session.controller.signal;
       const tryFinish = () => {
-        if (manifestReady && metadataReady) finish();
+        if (manifestReady && metadataReady && audioTracksReady) finish();
       };
       const finish = (error = null) => {
         if (settled) return;
@@ -642,6 +762,9 @@ export class PlaybackController {
         media.removeEventListener("loadedmetadata", handleLoadedMetadata);
         hls.off(Hls.Events.MEDIA_ATTACHED, handleMediaAttached);
         hls.off(Hls.Events.MANIFEST_PARSED, handleManifestParsed);
+        if (Hls.Events.AUDIO_TRACKS_UPDATED) {
+          hls.off(Hls.Events.AUDIO_TRACKS_UPDATED, handleAudioTracksUpdated);
+        }
         hls.off(Hls.Events.ERROR, handleError);
         if (error) reject(error);
         else resolve();
@@ -664,6 +787,13 @@ export class PlaybackController {
       };
       const handleManifestParsed = () => {
         manifestReady = true;
+        if (requireAudioTracks && getHlsAudioTrackList(hls)?.length > 1) {
+          audioTracksReady = true;
+        }
+        tryFinish();
+      };
+      const handleAudioTracksUpdated = () => {
+        audioTracksReady = getHlsAudioTrackList(hls)?.length > 1;
         tryFinish();
       };
       const handleLoadedMetadata = () => {
@@ -692,6 +822,9 @@ export class PlaybackController {
 
       hls.on(Hls.Events.MEDIA_ATTACHED, handleMediaAttached);
       hls.on(Hls.Events.MANIFEST_PARSED, handleManifestParsed);
+      if (requireAudioTracks && Hls.Events.AUDIO_TRACKS_UPDATED) {
+        hls.on(Hls.Events.AUDIO_TRACKS_UPDATED, handleAudioTracksUpdated);
+      }
       hls.on(Hls.Events.ERROR, handleError);
       media.addEventListener("loadedmetadata", handleLoadedMetadata);
       signal.addEventListener("abort", handleAbort, { once: true });

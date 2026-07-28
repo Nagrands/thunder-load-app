@@ -205,6 +205,59 @@ describe("Now Playing playback controller", () => {
     expect(controller.currentTrack.selectedAudioTrackId).toBe("audio-4");
   });
 
+  test("switches fallback HLS audio without reloading or restarting playback", async () => {
+    const { controller, mediaLayers, providers } = createController();
+    const trackMetadata = [
+      { id: "audio-1", order: 0, codec: "ac3", isDefault: true },
+      { id: "audio-2", order: 1, codec: "aac" },
+    ];
+    controller.setQueue(tracks);
+    await controller.selectTrack("one");
+    const activeIndex = controller.activeLayerIndex;
+    const media = mediaLayers[activeIndex];
+    media.currentTime = 38.5;
+    media.load.mockClear();
+    media.play.mockClear();
+    controller.layerPlaybacks[activeIndex].playback = {
+      kind: "hls",
+      hlsAudioTrackSelection: {
+        selectedAudioTrackId: null,
+        tracks: trackMetadata,
+      },
+    };
+    const hls = {
+      audioTrack: 0,
+      audioTracks: [{ name: "audio-1" }, { name: "audio-2" }],
+    };
+    controller.hlsInstances[activeIndex] = hls;
+
+    const result = controller.selectNativeAudioTrack({
+      audioTrackId: "audio-2",
+      tracks: trackMetadata,
+    });
+
+    expect(result).toMatchObject({
+      success: true,
+      audioTrackId: "audio-2",
+      hlsOrder: 1,
+    });
+    expect(hls.audioTrack).toBe(1);
+    expect(media.currentTime).toBe(38.5);
+    expect(media.load).not.toHaveBeenCalled();
+    expect(media.play).not.toHaveBeenCalled();
+    expect(providers.resolveTrack).toHaveBeenCalledTimes(1);
+    expect(controller.currentTrack.selectedAudioTrackId).toBe("audio-2");
+
+    hls.audioTracks = [{ name: "audio_0" }, { name: "audio_1" }];
+    expect(
+      controller.selectNativeAudioTrack({
+        audioTrackId: "audio-1",
+        tracks: trackMetadata,
+      }),
+    ).toMatchObject({ success: true, hlsOrder: 0 });
+    expect(hls.audioTrack).toBe(0);
+  });
+
   test("returns to the probed default native audio track", async () => {
     const { controller, mediaLayers } = createController();
     const nativeTracks = exposeAudioTracks(mediaLayers[1], 3, 2);
@@ -358,6 +411,7 @@ describe("Now Playing playback controller", () => {
     const operationOrder = [];
     class DeferredHls {
       static Events = {
+        AUDIO_TRACKS_UPDATED: "audioTracksUpdated",
         MEDIA_ATTACHED: "mediaAttached",
         MANIFEST_PARSED: "manifestParsed",
         ERROR: "error",
@@ -435,6 +489,96 @@ describe("Now Playing playback controller", () => {
     expect(providers.resolveTrack).toHaveBeenCalledTimes(1);
     expect(DeferredHls.instances).toHaveLength(1);
     expect(controller.getSnapshot().error).toBeNull();
+  });
+
+  test("restores a persisted HLS audio rendition before autoplay", async () => {
+    class MultiAudioHls {
+      static Events = {
+        AUDIO_TRACKS_UPDATED: "audioTracksUpdated",
+        MEDIA_ATTACHED: "mediaAttached",
+        MANIFEST_PARSED: "manifestParsed",
+        ERROR: "error",
+      };
+
+      static instances = [];
+
+      static isSupported() {
+        return true;
+      }
+
+      constructor() {
+        this.handlers = new Map();
+        this.audioTrack = 0;
+        this.audioTracks = [];
+        MultiAudioHls.instances.push(this);
+      }
+
+      on(eventName, handler) {
+        const handlers = this.handlers.get(eventName) || new Set();
+        handlers.add(handler);
+        this.handlers.set(eventName, handlers);
+      }
+
+      off(eventName, handler) {
+        this.handlers.get(eventName)?.delete(handler);
+      }
+
+      emit(eventName, data) {
+        this.handlers
+          .get(eventName)
+          ?.forEach((handler) => handler(eventName, data));
+      }
+
+      attachMedia(media) {
+        this.media = media;
+        queueMicrotask(() => this.emit(MultiAudioHls.Events.MEDIA_ATTACHED));
+      }
+
+      loadSource() {}
+      destroy() {}
+    }
+
+    const { controller, mediaLayers, providers } = createController(() => 0, {
+      hlsLoader: async () => MultiAudioHls,
+    });
+    providers.resolveTrack.mockResolvedValue({
+      kind: "hls",
+      src: "http://127.0.0.1/playback/index.m3u8",
+      hlsAudioTrackSelection: {
+        selectedAudioTrackId: "audio-3",
+        tracks: [
+          { id: "audio-1", order: 0, isDefault: true },
+          { id: "audio-2", order: 1 },
+          { id: "audio-3", order: 2 },
+        ],
+      },
+    });
+    mediaLayers[1].play.mockImplementation(async () => {
+      expect(MultiAudioHls.instances[0].audioTrack).toBe(2);
+    });
+    controller.setQueue([{ ...tracks[0], selectedAudioTrackId: "audio-3" }]);
+
+    const selection = controller.selectTrack("one");
+    await flushPlaybackCleanup();
+    MultiAudioHls.instances[0].emit(MultiAudioHls.Events.MANIFEST_PARSED);
+    mediaLayers[1].dispatchEvent(new Event("loadedmetadata"));
+    await Promise.resolve();
+    expect(mediaLayers[1].play).not.toHaveBeenCalled();
+    MultiAudioHls.instances[0].audioTracks = [
+      { name: "audio_1" },
+      { name: "audio_2" },
+      { name: "audio_3" },
+    ];
+    MultiAudioHls.instances[0].emit(MultiAudioHls.Events.AUDIO_TRACKS_UPDATED);
+    await selection;
+
+    expect(mediaLayers[1].play).toHaveBeenCalledTimes(1);
+    expect(controller.getNativeAudioTrackState()).toMatchObject({
+      supported: true,
+      count: 3,
+      enabledOrder: 2,
+      mode: "hls",
+    });
   });
 
   test("retries an interrupted play once after media becomes ready", async () => {

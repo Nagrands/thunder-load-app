@@ -174,6 +174,52 @@ describe("Now Playing providers", () => {
     });
   });
 
+  test("uses one multi-audio HLS session for codecs Chromium cannot expose", async () => {
+    const hlsAudioTrackSelection = {
+      selectedAudioTrackId: null,
+      tracks: [
+        { id: "audio-1", order: 0, codec: "ac3", isDefault: true },
+        { id: "audio-2", order: 1, codec: "aac" },
+      ],
+    };
+    const api = {
+      createLocalPlaybackSession: jest.fn().mockResolvedValue({
+        success: true,
+        data: {
+          kind: "hls",
+          sessionId: "multi-audio",
+          src: "http://127.0.0.1/hls/index.m3u8",
+          hlsAudioTrackSelection,
+        },
+      }),
+      getAudioTracks: jest.fn().mockResolvedValue({
+        success: true,
+        data: { tracks: hlsAudioTrackSelection.tracks },
+      }),
+    };
+    const provider = new LocalMusicProvider(api);
+
+    const playback = await provider.resolveTrack({
+      id: "movie",
+      sourceRef: "/media/movie.mkv",
+      availability: "available",
+      selectedAudioTrackId: "audio-2",
+    });
+
+    expect(api.createLocalPlaybackSession).toHaveBeenCalledWith({
+      trackId: "movie",
+      includeAudioTracks: true,
+    });
+    expect(playback).toMatchObject({
+      kind: "hls",
+      sessionId: "multi-audio",
+      hlsAudioTrackSelection: {
+        selectedAudioTrackId: "audio-2",
+        tracks: hlsAudioTrackSelection.tracks,
+      },
+    });
+  });
+
   test("registry validates and routes provider calls", async () => {
     const registry = new MusicProviderRegistry();
     expect(() => registry.register({ id: "broken" })).toThrow(
