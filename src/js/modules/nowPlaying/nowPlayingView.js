@@ -85,7 +85,10 @@ export function createNowPlayingView({
     '[data-action="toggle-visualizer-settings"]',
   );
   visualizerToggle?.setAttribute("aria-expanded", "false");
-  visualizerToggle?.setAttribute("aria-controls", "now-playing-visualizer-panel");
+  visualizerToggle?.setAttribute(
+    "aria-controls",
+    "now-playing-visualizer-panel",
+  );
   visualizerPanel.id = "now-playing-visualizer-panel";
   const sidebar = root.querySelector(".now-playing__sidebar");
   const sidebarZone = root.querySelector(".now-playing__sidebar-reveal-zone");
@@ -114,9 +117,7 @@ export function createNowPlayingView({
   const duration = root.querySelector('[data-ui="duration"]');
   const playerMenu = root.querySelector('[data-ui="player-menu"]');
   const addMenu = root.querySelector('[data-ui="sidebar-add-menu"]');
-  const addMenuTrigger = root.querySelector(
-    '[data-action="toggle-add-menu"]',
-  );
+  const addMenuTrigger = root.querySelector('[data-action="toggle-add-menu"]');
   addMenuTrigger?.setAttribute("aria-haspopup", "menu");
   addMenuTrigger?.setAttribute("aria-expanded", "false");
   addMenuTrigger?.setAttribute("aria-controls", "now-playing-add-menu");
@@ -699,6 +700,16 @@ export function createNowPlayingView({
         );
         status.textContent = "";
       }
+      if (
+        source === "folder" &&
+        imported.folderName &&
+        imported.folderTrackIds?.length
+      ) {
+        libraryView.openDialog("folder", {
+          folderName: imported.folderName,
+          trackIds: imported.folderTrackIds,
+        });
+      }
     } catch (error) {
       status.textContent = showPlayerError(error);
     }
@@ -821,6 +832,26 @@ export function createNowPlayingView({
       showPlayerToast("nowPlaying.toast.playlistCreated", "success", {
         title: playlist.title,
       });
+      return true;
+    }
+    if (mode === "folderPlaylist") {
+      const result = libraryModel.createOrUpdatePlaylist(context.folderName, {
+        trackIds: context.trackIds,
+      });
+      if (!result.playlist) return false;
+      libraryModel.setActivePlaylist(result.playlist.id);
+      syncLibraryQueue();
+      libraryView.show();
+      showPlayerToast(
+        result.created
+          ? "nowPlaying.toast.folderPlaylistCreated"
+          : "nowPlaying.toast.folderPlaylistUpdated",
+        "success",
+        {
+          title: result.playlist.title,
+          count: result.addedCount,
+        },
+      );
       return true;
     }
     if (mode === "rename") {
@@ -1382,9 +1413,7 @@ export function createNowPlayingView({
           ? 0
           : event.key === "End"
             ? items.length - 1
-            : (current +
-                (event.key === "ArrowDown" ? 1 : -1) +
-                items.length) %
+            : (current + (event.key === "ArrowDown" ? 1 : -1) + items.length) %
               items.length;
       items[index]?.focus();
       return;

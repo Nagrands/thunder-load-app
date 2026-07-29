@@ -379,6 +379,8 @@ function registerNowPlayingIpcHandlers({
           canceled: true,
           added: [],
           tracks: [],
+          folderName: "",
+          folderTrackIds: [],
           state: null,
         });
       }
@@ -390,7 +392,19 @@ function registerNowPlayingIpcHandlers({
       ) {
         return failure("INVALID_PATH", "Invalid media folder path");
       }
-      return await importFiles(await scanMediaDirectory(folderPath));
+      const importedResult = await importFiles(
+        await scanMediaDirectory(folderPath),
+      );
+      if (!importedResult?.success) return importedResult;
+      const folderName =
+        String(path.basename(folderPath)).trim().slice(0, 80) || "Folder";
+      return success({
+        ...importedResult.data,
+        folderName,
+        folderTrackIds: Array.isArray(importedResult.data?.importedTrackIds)
+          ? importedResult.data.importedTrackIds
+          : [],
+      });
     } catch (error) {
       log.error("[now-playing] Folder import failed:", error);
       return failure(error.code || "IMPORT_FAILED", error.message);

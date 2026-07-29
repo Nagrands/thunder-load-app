@@ -336,6 +336,30 @@ export class MediaLibraryModel {
     return { ...playlist, trackIds: [...playlist.trackIds] };
   }
 
+  createOrUpdatePlaylist(title, { trackIds = [] } = {}) {
+    const normalizedTitle = cleanTitle(title);
+    const existing = this.state.playlists.find(
+      (playlist) => playlist.title === normalizedTitle,
+    );
+    if (!existing) {
+      const playlist = this.createPlaylist(normalizedTitle, { trackIds });
+      return {
+        playlist,
+        created: true,
+        addedCount: playlist.trackIds.length,
+      };
+    }
+    let addedCount = 0;
+    trackIds.forEach((trackId) => {
+      if (this.addTrackToPlaylist(trackId, existing.id)) addedCount += 1;
+    });
+    return {
+      playlist: this.getPlaylist(existing.id),
+      created: false,
+      addedCount,
+    };
+  }
+
   renamePlaylist(playlistId, title) {
     const playlist = this.state.playlists.find(
       (item) => item.id === playlistId,
@@ -439,9 +463,7 @@ export class MediaLibraryModel {
   }
 
   renameTrack(trackId, displayTitle) {
-    const track = this.state.catalog.tracks.find(
-      (item) => item.id === trackId,
-    );
+    const track = this.state.catalog.tracks.find((item) => item.id === trackId);
     if (!track) return false;
     track.displayTitle = cleanTitle(displayTitle, track.title);
     return true;

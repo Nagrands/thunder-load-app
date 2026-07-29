@@ -538,11 +538,59 @@ describe("nowPlayingIpcHandlers", () => {
     const canceled = await handlers[CHANNELS.NOW_PLAYING_IMPORT_FOLDER]();
 
     expect(imported.data.added).toHaveLength(1);
+    expect(imported.data.folderName).toBe("album");
+    expect(imported.data.folderTrackIds).toEqual(
+      imported.data.importedTrackIds,
+    );
     expect(canceled).toEqual({
       success: true,
-      data: { canceled: true, added: [], tracks: [], state: null },
+      data: {
+        canceled: true,
+        added: [],
+        tracks: [],
+        folderName: "",
+        folderTrackIds: [],
+        state: null,
+      },
       error: null,
     });
+  });
+
+  test("returns every folder track id when some files already exist", async () => {
+    const { CHANNELS } = register();
+    const album = path.join(root, "Repeated album");
+    const existingPath = path.join(album, "existing.mp3");
+    const newPath = path.join(album, "new.mp3");
+    fs.mkdirSync(album, { recursive: true });
+    fs.writeFileSync(existingPath, "existing");
+    fs.writeFileSync(newPath, "new");
+    storeValues["nowPlaying.state"] = {
+      version: 3,
+      catalog: {
+        tracks: [
+          {
+            id: "existing-track",
+            providerId: "local",
+            sourceRef: existingPath,
+            title: "Existing",
+          },
+        ],
+      },
+      playlists: [],
+    };
+    dialog.showOpenDialog.mockResolvedValue({
+      canceled: false,
+      filePaths: [album],
+    });
+
+    const result = await handlers[CHANNELS.NOW_PLAYING_IMPORT_FOLDER]();
+
+    expect(result.data.folderName).toBe("Repeated album");
+    expect(result.data.added).toHaveLength(1);
+    expect(result.data.folderTrackIds).toEqual(
+      expect.arrayContaining(["existing-track", result.data.added[0].id]),
+    );
+    expect(result.data.folderTrackIds).toHaveLength(2);
   });
 
   test("sanitizes persisted state without rescanning every local file", async () => {

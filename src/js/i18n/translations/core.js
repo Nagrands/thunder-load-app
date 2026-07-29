@@ -207,6 +207,14 @@ export const coreTranslations = {
     "nowPlaying.youtube.added": "Видео добавлено в медиатеку",
     "nowPlaying.toast.filesAdded": "Добавлено файлов: {count}",
     "nowPlaying.toast.folderAdded": "Из папки добавлено файлов: {count}",
+    "nowPlaying.folderChoice.title": "Создать плейлист «{title}»?",
+    "nowPlaying.folderChoice.hint":
+      "В папке найдено файлов: {count}. Их можно собрать в отдельный плейлист или оставить только в общей Медиатеке.",
+    "nowPlaying.folderChoice.create": "Создать «{title}»",
+    "nowPlaying.folderChoice.libraryOnly": "Только в Медиатеку",
+    "nowPlaying.toast.folderPlaylistCreated": "Плейлист «{title}» создан",
+    "nowPlaying.toast.folderPlaylistUpdated":
+      "Плейлист «{title}» дополнен ({count})",
     "nowPlaying.toast.importWarning":
       "Добавлено: {count}. Пропущено: {skipped}",
     "nowPlaying.toast.linkAdded": "Ссылка добавлена в медиатеку",
@@ -642,6 +650,14 @@ export const coreTranslations = {
     "nowPlaying.youtube.added": "Video added to the media library",
     "nowPlaying.toast.filesAdded": "Files added: {count}",
     "nowPlaying.toast.folderAdded": "Files added from folder: {count}",
+    "nowPlaying.folderChoice.title": "Create the “{title}” playlist?",
+    "nowPlaying.folderChoice.hint":
+      "{count} files were found in the folder. Create a separate playlist for them or keep them only in the main Library.",
+    "nowPlaying.folderChoice.create": "Create “{title}”",
+    "nowPlaying.folderChoice.libraryOnly": "Library only",
+    "nowPlaying.toast.folderPlaylistCreated": "Playlist “{title}” created",
+    "nowPlaying.toast.folderPlaylistUpdated":
+      "Playlist “{title}” updated ({count})",
     "nowPlaying.toast.importWarning": "Added: {count}. Skipped: {skipped}",
     "nowPlaying.toast.linkAdded": "Link added to the media library",
     "nowPlaying.toast.addedToQueue": "“{title}” added to the queue",

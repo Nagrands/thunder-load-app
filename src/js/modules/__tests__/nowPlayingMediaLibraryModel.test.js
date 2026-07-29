@@ -140,6 +140,29 @@ describe("Now Playing media library model", () => {
     expect(model.getState().activePlaylistId).toBe(MEDIA_LIBRARY_ID);
   });
 
+  test("creates or updates an exact-name folder playlist without duplicates", () => {
+    const model = createMediaLibraryModel(
+      { version: 3, catalog: { tracks: localTracks } },
+      { idFactory: () => "folder-playlist", now: () => 500 },
+    );
+
+    const created = model.createOrUpdatePlaylist("Album", {
+      trackIds: ["local-one"],
+    });
+    const updated = model.createOrUpdatePlaylist("Album", {
+      trackIds: ["local-one", "local-two"],
+    });
+    const differentCase = model.createOrUpdatePlaylist("album", {
+      trackIds: ["local-two"],
+    });
+
+    expect(created).toMatchObject({ created: true, addedCount: 1 });
+    expect(updated).toMatchObject({ created: false, addedCount: 1 });
+    expect(updated.playlist.trackIds).toEqual(["local-one", "local-two"]);
+    expect(differentCase.created).toBe(true);
+    expect(model.getState().playlists).toHaveLength(2);
+  });
+
   test("reorders the system media library without changing the selected track", () => {
     const model = createMediaLibraryModel({
       version: 3,
@@ -201,9 +224,7 @@ describe("Now Playing media library model", () => {
           },
         ],
       },
-      playlists: [
-        { id: "streams", title: "Streams", trackIds: ["stream"] },
-      ],
+      playlists: [{ id: "streams", title: "Streams", trackIds: ["stream"] }],
       activePlaylistId: "streams",
     });
 

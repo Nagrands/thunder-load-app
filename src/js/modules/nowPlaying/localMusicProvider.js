@@ -154,6 +154,12 @@ export class LocalMusicProvider {
       playlistImports: Array.isArray(payload?.playlistImports)
         ? payload.playlistImports.map((playlist) => ({ ...playlist }))
         : [],
+      folderName:
+        input === "folder" ? String(payload?.folderName || "").trim() : "",
+      folderTrackIds:
+        input === "folder" && Array.isArray(payload?.folderTrackIds)
+          ? payload.folderTrackIds.map(String)
+          : [],
       warnings: Array.isArray(payload?.warnings)
         ? payload.warnings.map((warning) => ({ ...warning }))
         : [],
@@ -227,8 +233,7 @@ export class LocalMusicProvider {
       if (descriptor?.hlsAudioTrackSelection) {
         descriptor.hlsAudioTrackSelection.selectedAudioTrackId =
           audioTracks.some(
-            (audioTrack) =>
-              audioTrack.id === normalized.selectedAudioTrackId,
+            (audioTrack) => audioTrack.id === normalized.selectedAudioTrackId,
           )
             ? normalized.selectedAudioTrackId
             : null;

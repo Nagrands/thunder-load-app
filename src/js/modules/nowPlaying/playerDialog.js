@@ -24,6 +24,7 @@ const MODE_ALIASES = {
   rename: "renamePlaylist",
   youtube: "youtubeUrl",
   addTrack: "addToPlaylist",
+  folder: "folderPlaylist",
 };
 
 const SUBMIT_MODES = {
@@ -33,6 +34,7 @@ const SUBMIT_MODES = {
   youtubeQuality: "youtubeQuality",
   addToPlaylist: "addTrack",
   renameTrack: "renameTrack",
+  folderPlaylist: "folderPlaylist",
 };
 
 function formatQualityOption(option = {}) {
@@ -112,12 +114,26 @@ function getConfig(mode, context) {
       submit: "modal.close",
       type: "info",
     },
+    folderPlaylist: {
+      titleText: t("nowPlaying.folderChoice.title", {
+        title: context.folderName,
+      }),
+      hintText: t("nowPlaying.folderChoice.hint", {
+        count: context.trackIds?.length || 0,
+      }),
+      submitText: t("nowPlaying.folderChoice.create", {
+        title: context.folderName,
+      }),
+      cancel: "nowPlaying.folderChoice.libraryOnly",
+      type: "choice",
+    },
   };
   return configs[mode] || null;
 }
 
 export function createPlayerDialog({ element, onSubmit } = {}) {
-  const modal = element || document.querySelector('[data-ui="player-form-modal"]');
+  const modal =
+    element || document.querySelector('[data-ui="player-form-modal"]');
   if (!(modal instanceof HTMLElement)) {
     throw new Error("Player form modal is not available");
   }
@@ -191,7 +207,9 @@ export function createPlayerDialog({ element, onSubmit } = {}) {
     const mediaInfo = track.mediaInfo || {};
     const titleText =
       track.displayTitle || track.title || t("nowPlaying.info.untitled");
-    const subtitleText = [track.artist, track.album].filter(Boolean).join(" · ");
+    const subtitleText = [track.artist, track.album]
+      .filter(Boolean)
+      .join(" · ");
     info.hidden = false;
     infoTitle.textContent = titleText;
     infoSubtitle.textContent = subtitleText;
@@ -234,7 +252,9 @@ export function createPlayerDialog({ element, onSubmit } = {}) {
     setInfoField("dimensions", formatMediaDimensions(mediaInfo));
     setInfoField(
       "container",
-      String(mediaInfo.container || "").trim().toUpperCase(),
+      String(mediaInfo.container || "")
+        .trim()
+        .toUpperCase(),
     );
     setInfoField(
       "kind",
@@ -242,15 +262,10 @@ export function createPlayerDialog({ element, onSubmit } = {}) {
     );
     setInfoField(
       "provider",
-      track.providerId
-        ? t(`nowPlaying.info.provider.${track.providerId}`)
-        : "",
+      track.providerId ? t(`nowPlaying.info.provider.${track.providerId}`) : "",
     );
 
-    setPlayerIcon(
-      infoFallback,
-      track.kind === "audio" ? "music-2" : "film",
-    );
+    setPlayerIcon(infoFallback, track.kind === "audio" ? "music-2" : "film");
     const posterUrl = String(context.posterUrl || track.artworkUrl || "");
     if (posterUrl && infoArtwork) {
       infoArtwork.src = posterUrl;
@@ -262,9 +277,11 @@ export function createPlayerDialog({ element, onSubmit } = {}) {
   }
 
   function getFocusable() {
-    return [...modal.querySelectorAll("button:not([disabled]), input:not([hidden]):not([disabled]), select:not([hidden]):not([disabled])")].filter(
-      (item) => !item.hidden,
-    );
+    return [
+      ...modal.querySelectorAll(
+        "button:not([disabled]), input:not([hidden]):not([disabled]), select:not([hidden]):not([disabled])",
+      ),
+    ].filter((item) => !item.hidden);
   }
 
   function showError(message) {
@@ -336,15 +353,16 @@ export function createPlayerDialog({ element, onSubmit } = {}) {
     }
     activeMode = mode;
     activeContext = normalizedContext;
-    title.textContent = t(config.title);
-    hint.textContent =
-      config.hintText || (config.hint ? t(config.hint) : "");
+    title.textContent = config.titleText || t(config.title);
+    hint.textContent = config.hintText || (config.hint ? t(config.hint) : "");
     label.textContent = config.label ? t(config.label) : "";
-    submit.textContent = t(config.submit);
+    submit.textContent = config.submitText || t(config.submit);
+    cancel.textContent = t(config.cancel || "modal.confirm.cancel");
     error.hidden = true;
     error.textContent = "";
     const isSelect = config.type === "select";
     const isInfo = config.type === "info";
+    const isChoice = config.type === "choice";
     modal.dataset.mode = mode;
     modal.setAttribute(
       "aria-describedby",
@@ -353,13 +371,13 @@ export function createPlayerDialog({ element, onSubmit } = {}) {
     hint.hidden = isInfo;
     info.hidden = !isInfo;
     cancel.hidden = isInfo;
-    field.hidden = isInfo;
-    input.hidden = isSelect || isInfo;
+    field.hidden = isInfo || isChoice;
+    input.hidden = isSelect || isInfo || isChoice;
     select.hidden = !isSelect;
     if (isInfo) renderTrackInfo(normalizedContext);
     else resetTrackInfo();
     if (isSelect) populateSelect(mode, config, normalizedContext);
-    if (!isSelect && !isInfo) {
+    if (!isSelect && !isInfo && !isChoice) {
       input.type = config.type;
       input.maxLength = config.maxLength;
       input.value = config.value;
@@ -370,9 +388,10 @@ export function createPlayerDialog({ element, onSubmit } = {}) {
     openRegisteredModal(modal);
     acquireOverlayActive(PLAYER_MODAL_OVERLAY_OWNER);
     queueMicrotask(() => {
-      const focusTarget = isInfo ? submit : isSelect ? select : input;
+      const focusTarget =
+        isInfo || isChoice ? submit : isSelect ? select : input;
       focusTarget.focus();
-      if (!isSelect && !isInfo) focusTarget.select();
+      if (!isSelect && !isInfo && !isChoice) focusTarget.select();
     });
     return true;
   }
@@ -384,8 +403,13 @@ export function createPlayerDialog({ element, onSubmit } = {}) {
       close();
       return;
     }
-    const value = select.hidden ? input.value.trim() : select.value;
-    if (!value) {
+    const isChoice = activeMode === "folderPlaylist";
+    const value = isChoice
+      ? activeContext.folderName
+      : select.hidden
+        ? input.value.trim()
+        : select.value;
+    if (!value && !isChoice) {
       showError(t("nowPlaying.library.required"));
       return;
     }
@@ -406,7 +430,10 @@ export function createPlayerDialog({ element, onSubmit } = {}) {
     } catch (submitError) {
       showError(submitError?.message || t("nowPlaying.error"));
     } finally {
-      if (activeMode === mode && modal.getAttribute("aria-hidden") === "false") {
+      if (
+        activeMode === mode &&
+        modal.getAttribute("aria-hidden") === "false"
+      ) {
         setBusy(false);
         submit.textContent = submitLabel;
       }
@@ -457,7 +484,9 @@ export function createPlayerDialog({ element, onSubmit } = {}) {
       modal.removeEventListener("keydown", handleKeydown);
       modal.removeEventListener("click", handleOverlayClick);
       infoArtwork?.removeEventListener("error", handleInfoArtworkError);
-      closeButtons.forEach((button) => button.removeEventListener("click", close));
+      closeButtons.forEach((button) =>
+        button.removeEventListener("click", close),
+      );
       unregister();
     },
     open,

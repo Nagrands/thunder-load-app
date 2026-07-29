@@ -267,6 +267,88 @@ describe("Now Playing view", () => {
     view.dispose();
   });
 
+  test("offers a folder playlist and opens the created collection", async () => {
+    const dialog = installPlayerDialogFixture();
+    const api = {
+      getState: jest.fn().mockResolvedValue({
+        success: true,
+        data: { version: 3, catalog: { tracks: [] }, playlists: [] },
+      }),
+      setState: jest.fn().mockResolvedValue({ success: true }),
+      importFiles: jest.fn(),
+      importFolder: jest.fn().mockResolvedValue({
+        success: true,
+        data: {
+          tracks: [sampleTrack],
+          importedTrackIds: [sampleTrack.id],
+          folderName: "Thunder",
+          folderTrackIds: [sampleTrack.id],
+        },
+      }),
+    };
+    const view = createNowPlayingView({ api });
+    document.body.appendChild(view.element);
+    await view.ready;
+
+    view.element.querySelector('[data-action="add-folder"]').click();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(dialog.dataset.mode).toBe("folderPlaylist");
+    expect(
+      dialog.querySelector('[data-ui="player-form-modal-cancel"]').textContent,
+    ).toBe("nowPlaying.folderChoice.libraryOnly");
+    dialog
+      .querySelector('[data-ui="player-form-modal-form"]')
+      .dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(
+      view.element.querySelector('[data-ui="active-playlist-title"]')
+        .textContent,
+    ).toBe("Thunder");
+    expect(view.element.querySelector('[data-ui="library-view"]').hidden).toBe(
+      false,
+    );
+    view.dispose();
+  });
+
+  test("keeps an imported folder only in the library when the choice is closed", async () => {
+    const dialog = installPlayerDialogFixture();
+    const api = {
+      getState: jest.fn().mockResolvedValue({
+        success: true,
+        data: { version: 3, catalog: { tracks: [] }, playlists: [] },
+      }),
+      setState: jest.fn().mockResolvedValue({ success: true }),
+      importFiles: jest.fn(),
+      importFolder: jest.fn().mockResolvedValue({
+        success: true,
+        data: {
+          tracks: [sampleTrack],
+          importedTrackIds: [sampleTrack.id],
+          folderName: "Thunder",
+          folderTrackIds: [sampleTrack.id],
+        },
+      }),
+    };
+    const view = createNowPlayingView({ api });
+    document.body.appendChild(view.element);
+    await view.ready;
+
+    view.element.querySelector('[data-action="add-folder"]').click();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    dialog.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+    );
+
+    expect(dialog.getAttribute("aria-hidden")).toBe("true");
+    expect(
+      view.element.querySelectorAll(".player-library__playlist-card"),
+    ).toHaveLength(1);
+    view.dispose();
+  });
+
   test("opens structured track information with the current poster", async () => {
     const dialog = installPlayerDialogFixture();
     const api = {
@@ -742,9 +824,7 @@ describe("Now Playing view", () => {
     activeVideo.dispatchEvent(new Event("loadedmetadata"));
     await new Promise((resolve) => setTimeout(resolve, 0));
     view.element.querySelector('[data-action="show-library"]').click();
-    const backdrop = view.element.querySelector(
-      '[data-ui="library-backdrop"]',
-    );
+    const backdrop = view.element.querySelector('[data-ui="library-backdrop"]');
     expect(backdrop.classList.contains("is-live-video")).toBe(true);
     expect(
       view.element.querySelector('[data-ui="library-backdrop-cover"]').hidden,
@@ -858,9 +938,9 @@ describe("Now Playing view", () => {
     expect(visualizerToggle.getAttribute("aria-expanded")).toBe("true");
     expect(visualizerPanel.hidden).toBe(false);
     expect(visualizerDetails.hidden).toBe(false);
-    expect(
-      view.element.classList.contains("is-visualizer-settings-open"),
-    ).toBe(true);
+    expect(view.element.classList.contains("is-visualizer-settings-open")).toBe(
+      true,
+    );
 
     visualizerToggle.click();
     expect(visualizerToggle.getAttribute("aria-expanded")).toBe("false");

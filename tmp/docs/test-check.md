@@ -2,7 +2,7 @@
 
 - Автосборка списка: `npm run test-check:sync-tests`
 - Найдено файлов: 142
-- Найдено тест-кейсов (test/it): 1245
+- Найдено тест-кейсов (test/it): 1249
 
 <!-- AUTO-JEST-TESTS:START -->
 
@@ -233,7 +233,7 @@
 - [ ] falls back from a failed hardware encoder to bounded software
 - [ ] supersedes an initializing session and keeps only one FFmpeg process
 
-### `src/js/app/__tests__/nowPlayingIpcHandlers.test.js` (24)
+### `src/js/app/__tests__/nowPlayingIpcHandlers.test.js` (25)
 - [ ] registers all Player channels
 - [ ] waits for HLS disposal before allowing application quit
 - [ ] lists and selects audio streams only for stored local tracks
@@ -246,6 +246,7 @@
 - [ ] adds imported media to the active custom playlist
 - [ ] links an existing catalog item into the active custom playlist
 - [ ] imports a folder recursively and returns cancellation safely
+- [ ] returns every folder track id when some files already exist
 - [ ] sanitizes persisted state without rescanning every local file
 - [ ] defaults legacy and invalid Now Playing preferences safely
 - [ ] recovers from a malformed V2 catalog without throwing
@@ -834,11 +835,12 @@
 - [ ] keeps a pinned sidebar visible across pointer leave and restores it
 - [ ] syncs fullscreen state and removes external listeners on dispose
 
-### `src/js/modules/__tests__/nowPlayingMediaLibraryModel.test.js` (8)
+### `src/js/modules/__tests__/nowPlayingMediaLibraryModel.test.js` (9)
 - [ ] migrates the V1 queue into the virtual media library
 - [ ] sanitizes broken playlist references and falls back to the library
 - [ ] deduplicates local paths and YouTube videos by canonical video id
 - [ ] supports playlist CRUD, ordering and catalog deletion
+- [ ] creates or updates an exact-name folder playlist without duplicates
 - [ ] reorders the system media library without changing the selected track
 - [ ] returns defensive state copies
 - [ ] migrates V2 metadata and keeps the active network playlist
@@ -921,9 +923,11 @@
 - [ ] keeps insertion order and supports reorder, removal and filtering
 - [ ] never exposes mutable internal items
 
-### `src/js/modules/__tests__/nowPlayingView.test.js` (40)
+### `src/js/modules/__tests__/nowPlayingView.test.js` (42)
 - [ ] renders an accessible player and restores selectedTrackId
 - [ ] opens the sidebar Add menu with file, folder and YouTube actions
+- [ ] offers a folder playlist and opens the created collection
+- [ ] keeps an imported folder only in the library when the choice is closed
 - [ ] opens structured track information with the current poster
 - [ ] opens a non-blocking media library empty state
 - [ ] keeps the library and another playlist track available after an unavailable track error
