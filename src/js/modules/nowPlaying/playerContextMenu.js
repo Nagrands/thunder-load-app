@@ -23,9 +23,8 @@ function createMenu() {
     const button = document.createElement("button");
     button.type = "button";
     button.dataset.contextAction = action;
-    button.dataset.i18n = labelKey;
     button.setAttribute("role", "menuitem");
-    button.innerHTML = `<i data-lucide="${icon}" aria-hidden="true"></i><span>${t(labelKey)}</span>`;
+    button.innerHTML = `<i data-lucide="${icon}" aria-hidden="true"></i><span data-i18n="${labelKey}">${t(labelKey)}</span>`;
     menu.appendChild(button);
   });
   return menu;

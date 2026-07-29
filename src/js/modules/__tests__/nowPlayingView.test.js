@@ -675,6 +675,24 @@ describe("Now Playing view", () => {
     expect(
       view.element.querySelectorAll(".now-playing__video.is-visible"),
     ).toHaveLength(1);
+    const activeVideo = view.element.querySelector(
+      ".now-playing__video.is-visible",
+    );
+    Object.defineProperties(activeVideo, {
+      readyState: { configurable: true, value: 1 },
+      videoHeight: { configurable: true, value: 1080 },
+      videoWidth: { configurable: true, value: 1920 },
+    });
+    activeVideo.dispatchEvent(new Event("loadedmetadata"));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    view.element.querySelector('[data-action="show-library"]').click();
+    const backdrop = view.element.querySelector(
+      '[data-ui="library-backdrop"]',
+    );
+    expect(backdrop.classList.contains("is-live-video")).toBe(true);
+    expect(
+      view.element.querySelector('[data-ui="library-backdrop-cover"]').hidden,
+    ).toBe(true);
     view.dispose();
   });
 
@@ -2260,6 +2278,16 @@ describe("Now Playing view", () => {
     expect(miniPoster.hidden).toBe(false);
     expect(miniPoster.src).toBe("data:image/jpeg;base64,eager-poster");
     const library = view.element.querySelector('[data-ui="library-view"]');
+    const libraryCover = library.querySelector(
+      '[data-ui="library-backdrop-cover"]',
+    );
+    expect(libraryCover.hidden).toBe(false);
+    expect(libraryCover.src).toBe("data:image/jpeg;base64,eager-poster");
+    expect(
+      library
+        .querySelector('[data-ui="library-backdrop"]')
+        .classList.contains("is-live-video"),
+    ).toBe(false);
     expect(library.querySelector('[data-filter="video"]').hidden).toBe(false);
     expect(library.querySelector('[data-filter="audio"]').hidden).toBe(true);
     expect(library.querySelector('[data-filter="missing"]').hidden).toBe(true);

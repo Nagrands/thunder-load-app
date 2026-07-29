@@ -342,6 +342,10 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
     ),
   ];
   const miniPlayer = root.querySelector('[data-ui="mini-player"]');
+  const libraryBackdrop = root.querySelector('[data-ui="library-backdrop"]');
+  const libraryBackdropCover = root.querySelector(
+    '[data-ui="library-backdrop-cover"]',
+  );
   const operationStatus = root.querySelector(
     '[data-ui="library-operation-status"]',
   );
@@ -569,6 +573,7 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
   function renderPlayback(snapshot = {}) {
     latestSnapshot = snapshot;
     renderMiniPlayer(snapshot);
+    renderLibraryBackdrop(snapshot);
     const affectedIds = new Set([
       previousPlaybackTrackId,
       previousLoadingTrackId,
@@ -728,15 +733,38 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
     );
   }
 
+  function getArtworkSource(track) {
+    return (
+      track?.artworkUrl ||
+      (track?.id === transientPosterTrackId ? transientPosterUrl : "")
+    );
+  }
+
   function renderMiniArtwork(track) {
     const image = root.querySelector('[data-ui="mini-artwork"]');
     const artwork = image.closest(".player-library__mini-artwork");
-    const source =
-      track?.artworkUrl ||
-      (track?.id === transientPosterTrackId ? transientPosterUrl : "");
+    const source = getArtworkSource(track);
     image.src = source;
     image.hidden = !source;
     artwork.classList.toggle("has-artwork", Boolean(source));
+  }
+
+  function renderLibraryBackdrop(snapshot = latestSnapshot) {
+    if (!libraryBackdrop || !libraryBackdropCover) return;
+    const source = getArtworkSource(snapshot?.currentTrack);
+    const showsLiveVideo =
+      snapshot?.isPlaying === true &&
+      snapshot?.currentTrack?.kind === "video";
+    if (source) {
+      if (libraryBackdropCover.getAttribute("src") !== source) {
+        libraryBackdropCover.src = source;
+      }
+    } else {
+      libraryBackdropCover.removeAttribute("src");
+    }
+    libraryBackdropCover.hidden = showsLiveVideo || !source;
+    libraryBackdrop.classList.toggle("has-cover", Boolean(source));
+    libraryBackdrop.classList.toggle("is-live-video", showsLiveVideo);
   }
 
   function useGeneratedPoster(trackId, dataUrl) {
@@ -747,6 +775,7 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
       renderMiniArtwork(
         latestSnapshot.currentTrack || { id: transientPosterTrackId },
       );
+      renderLibraryBackdrop();
     }
   }
 
@@ -762,6 +791,7 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
     transientPosterUrl = "";
     if (latestSnapshot.currentTrack) {
       renderMiniArtwork(latestSnapshot.currentTrack);
+      renderLibraryBackdrop();
     }
   }
 

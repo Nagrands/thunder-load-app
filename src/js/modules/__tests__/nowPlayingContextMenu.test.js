@@ -5,6 +5,31 @@ jest.mock("../i18n.js", () => ({
 import { createPlayerContextMenu } from "../nowPlaying/playerContextMenu.js";
 
 describe("Now Playing context menu", () => {
+  test("keeps an icon beside every translated action label", () => {
+    const root = document.createElement("section");
+    document.body.appendChild(root);
+    const menu = createPlayerContextMenu({ root, onAction: jest.fn() });
+    const items = Array.from(
+      root.querySelectorAll('[data-ui="player-context-menu"] [role="menuitem"]'),
+    );
+
+    expect(items).toHaveLength(10);
+    items.forEach((item) => {
+      expect(item.dataset.i18n).toBeUndefined();
+      expect(item.querySelector("[data-lucide]")).not.toBeNull();
+      expect(item.querySelector("span[data-i18n]")).not.toBeNull();
+    });
+    expect(
+      root.querySelector('[data-context-action="play"] [data-lucide]').dataset
+        .lucide,
+    ).toBe("play");
+    expect(
+      root.querySelector('[data-context-action="delete"] [data-lucide]').dataset
+        .lucide,
+    ).toBe("trash-2");
+    menu.dispose();
+  });
+
   test("hides local-only actions for remote tracks and restores focus", () => {
     const root = document.createElement("section");
     const trigger = document.createElement("button");

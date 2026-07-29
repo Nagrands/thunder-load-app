@@ -510,6 +510,10 @@ export function buildNowPlayingMarkup() {
       aria-labelledby="player-library-title"
       hidden
     >
+      <div class="player-library__backdrop" data-ui="library-backdrop" aria-hidden="true">
+        <img class="player-library__backdrop-cover" data-ui="library-backdrop-cover" alt="" />
+        <div class="player-library__backdrop-overlay"></div>
+      </div>
       <header class="player-library__header">
         <div class="player-library__heading">
           <span class="player-library__eyebrow" data-i18n="tabs.nowPlaying">${t("tabs.nowPlaying")}</span>

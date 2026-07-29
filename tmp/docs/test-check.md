@@ -2,7 +2,7 @@
 
 - Автосборка списка: `npm run test-check:sync-tests`
 - Найдено файлов: 141
-- Найдено тест-кейсов (test/it): 1236
+- Найдено тест-кейсов (test/it): 1237
 
 <!-- AUTO-JEST-TESTS:START -->
 
@@ -823,7 +823,8 @@
 - [ ] uses a static fallback without creating Web Audio for direct network media
 - [ ] disables particles and reflection for reduced motion
 
-### `src/js/modules/__tests__/nowPlayingContextMenu.test.js` (3)
+### `src/js/modules/__tests__/nowPlayingContextMenu.test.js` (4)
+- [ ] keeps an icon beside every translated action label
 - [ ] hides local-only actions for remote tracks and restores focus
 - [ ] dispatches the selected action with track context
 - [ ] disables playback and file actions for a missing local track
