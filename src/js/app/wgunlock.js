@@ -14,17 +14,13 @@ const confPath = path.join(app.getPath("userData"), "wireguard.conf");
  */
 async function handlePortInUse(lPort) {
   try {
-    const cfg = await readConfig();
-    cfg.autosend = false;
-    await writeConfig(cfg);
-
     const win = BrowserWindow.getAllWindows()[0];
     win?.webContents.send(
       "toast",
-      `Порт ${lPort} уже используется. <br>Автоотправка отключена.`,
+      `Порт ${lPort} уже используется.`,
     );
   } catch (e) {
-    console.warn("Ошибка при отключении autosend:", e);
+    console.warn("Ошибка при обработке занятого порта:", e);
   }
 }
 
@@ -34,7 +30,7 @@ async function handlePortInUse(lPort) {
 async function readConfig() {
   try {
     const raw = await fs.readFile(confPath, "utf-8");
-    return raw
+    const config = raw
       .split(/\r?\n/)
       .filter((line) => line.includes("=") && !line.startsWith("["))
       .map((line) => line.split("=").map((s) => s.trim()))
@@ -45,6 +41,11 @@ async function readConfig() {
         }),
         {},
       );
+    if (Object.prototype.hasOwnProperty.call(config, "autosend")) {
+      delete config.autosend;
+      await writeConfig(config);
+    }
+    return config;
   } catch {
     return { ...DEFAULTS };
   }
@@ -111,14 +112,13 @@ for (const [channel, handler] of Object.entries(handlers)) {
 
 /**
  * Значения по умолчанию
- * @type {{ip: string, rPort: number, lPort: number, msg: string, autosend: boolean}}
+ * @type {{ip: string, rPort: number, lPort: number, msg: string}}
  */
 const DEFAULTS = {
   ip: "127.0.0.1",
   rPort: 51820,
   lPort: 56132,
   msg: ")",
-  autosend: false,
 };
 
 /**

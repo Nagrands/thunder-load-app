@@ -47,7 +47,6 @@ import { registerTabs } from "./registerTabs.js";
 import {
   registerI18nListeners,
   registerStatusMessageListener,
-  registerWgControls,
 } from "./registerGlobalListeners.js";
 
 const DEFERRED_INIT_FALLBACK_DELAY_MS = 0;
@@ -132,8 +131,6 @@ async function runDeferredInitialization({ tabs }) {
     initTopBarThemeToggle();
     initWebControlBridge();
 
-    registerWgControls();
-
     initUpdateHandler();
     initTooltips();
     console.log("All modules initialized with TabSystem v1.0");
@@ -164,6 +161,24 @@ function cleanupLegacyRandomizerStorage() {
   }
 }
 
+function cleanupLegacyToolsSettings() {
+  const MIGRATION_KEY = "migration.toolsSettingsRemoved.v1";
+  try {
+    if (localStorage.getItem(MIGRATION_KEY) === "1") return;
+    [
+      "wgUnlockDisabled",
+      "backupDisabled",
+      "toolsRememberLastView",
+      "toolsLastView",
+      "bk_view_mode",
+      "bk_log_visible",
+    ].forEach((key) => localStorage.removeItem(key));
+    localStorage.setItem(MIGRATION_KEY, "1");
+  } catch {
+    // ignore storage errors
+  }
+}
+
 async function applyPlatformClass() {
   try {
     const { isMac } = await window.electron.getPlatformInfo();
@@ -181,6 +196,7 @@ export async function startRenderer() {
     initLowEffectsFromStore();
     applyPlatformClass();
     cleanupLegacyRandomizerStorage();
+    cleanupLegacyToolsSettings();
     syncDeveloperModeState();
     initI18n();
     initTrayStateSync();

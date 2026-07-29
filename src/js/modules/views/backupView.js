@@ -40,28 +40,6 @@ import {
 export default function renderBackup() {
   const BACKUP_DELETE_MODAL_SCROLL_LOCK_OWNER = "backup-delete-modal";
   const BACKUP_EDIT_MODAL_SCROLL_LOCK_OWNER = "backup-edit-modal";
-  /**
-   * Detects whether the Backup tool is disabled via localStorage flag.
-   * @returns {boolean}
-   */
-  const _isBackupDisabled = () => {
-    try {
-      const raw = localStorage.getItem("backupDisabled");
-      if (raw === null) return false;
-      return JSON.parse(raw) === true;
-    } catch {
-      return false;
-    }
-  };
-
-  if (_isBackupDisabled()) {
-    const placeholder = document.createElement("div");
-    placeholder.id = "backup-view";
-    placeholder.className = "backup-view tab-content p-4 space-y-4";
-    placeholder.style.display = "none";
-    return placeholder;
-  }
-
   const ipc = window.electron?.ipcRenderer || window.electron;
   const tb = (key, vars) => t(`backup.${key}`, vars);
   const escapeHtml = (value) =>
@@ -214,47 +192,6 @@ export default function renderBackup() {
   wrapper.appendChild(container);
   window.addEventListener("i18n:changed", () => applyI18n(wrapper));
 
-  const VIEW_MODE_KEY = "bk_view_mode";
-  const LOG_VISIBLE_KEY = "bk_log_visible";
-
-  const readViewMode = () => {
-    try {
-      const raw = localStorage.getItem(VIEW_MODE_KEY);
-      const parsed = raw ? JSON.parse(raw) : "full";
-      return parsed === "compact" ? "compact" : "full";
-    } catch {
-      return "full";
-    }
-  };
-
-  const readLogVisible = () => {
-    try {
-      const raw = localStorage.getItem(LOG_VISIBLE_KEY);
-      if (raw === null) return true;
-      return JSON.parse(raw) !== false;
-    } catch {
-      return true;
-    }
-  };
-
-  let viewMode = readViewMode();
-  let logVisible = readLogVisible();
-
-  const logBlock = container.querySelector(".wg-log-block");
-  const applyLogVisibility = (visible) => {
-    if (logBlock) {
-      logBlock.style.display = visible ? "" : "none";
-    }
-  };
-  applyLogVisibility(logVisible);
-
-  function updateViewToggleIcon(targetMode = viewMode) {
-    const icon = wrapper.querySelector("#bk-toggle-view i");
-    if (!icon) return;
-    icon.className =
-      targetMode === "full" ? "fa-solid fa-bars" : "fa-solid fa-list";
-  }
-
   // Функция поиска элемента внутри wrapper
   /**
    * Shorthand DOM query inside the Backup view wrapper.
@@ -269,10 +206,7 @@ export default function renderBackup() {
   let currentVisibleKeys = new Set();
   const VIRTUALIZATION_MIN_ITEMS = 20;
   const VIRTUALIZATION_OVERSCAN = 6;
-  const VIRTUAL_ROW_HEIGHT = {
-    compact: 94,
-    full: 122,
-  };
+  const VIRTUAL_ROW_HEIGHT = 122;
 
   // Кнопка с иконкой «минус» вместо счётчика открывает модальное окно
   const minusBtn = getEl("#bk-open-delete-modal");
@@ -438,43 +372,6 @@ export default function renderBackup() {
       closeOverlay();
       await runForIndices(indices);
     };
-  }
-
-  // Добавляем кнопку переключения вида профилей (Full / Compact)
-  const toolbarActions = container.querySelector("#bk-toolbar .bk-actions");
-  if (toolbarActions) {
-    const toggleViewBtn = document.createElement("button");
-    toggleViewBtn.id = "bk-toggle-view";
-    toggleViewBtn.className = "btn btn-sm";
-    toggleViewBtn.innerHTML = '<i class="fa-solid fa-bars"></i>';
-    toggleViewBtn.title = tb("action.toggleView");
-    toggleViewBtn.setAttribute("data-i18n-title", "backup.action.toggleView");
-    toggleViewBtn.setAttribute("data-bs-toggle", "tooltip");
-    toggleViewBtn.setAttribute("data-bs-placement", "top");
-
-    const runSelectedBtn = toolbarActions.querySelector("#bk-run-selected");
-    if (runSelectedBtn) {
-      toolbarActions.insertBefore(toggleViewBtn, runSelectedBtn);
-    } else {
-      toolbarActions.appendChild(toggleViewBtn);
-    }
-
-    toggleViewBtn.addEventListener("click", () => {
-      viewMode = viewMode === "full" ? "compact" : "full";
-      try {
-        localStorage.setItem(VIEW_MODE_KEY, JSON.stringify(viewMode));
-      } catch {}
-      renderList();
-
-      updateActionsState();
-      updateViewToggleIcon();
-      window.dispatchEvent(
-        new CustomEvent("backup:viewMode", {
-          detail: { mode: viewMode, source: "backupView" },
-        }),
-      );
-    });
-    updateViewToggleIcon();
   }
 
   // Search filter logic
@@ -1220,57 +1117,6 @@ export default function renderBackup() {
     const isSelected = selectedKeys.has(key);
     const tags = Array.isArray(p.tags) ? p.tags.filter(Boolean) : [];
 
-    if (viewMode === "compact") {
-      const row = document.createElement("div");
-      row.className = "bk-row bk-row-compact wg-card";
-      row.style.animationDelay = `${pageIndex * 0.04}s`;
-      row.dataset.profileKey = key;
-      row.dataset.index = String(idx);
-      row.dataset.i = String(idx);
-      row.tabIndex = 0;
-      row.setAttribute("role", "button");
-      row.setAttribute("aria-pressed", isSelected ? "true" : "false");
-      if (isSelected) row.classList.add("is-selected");
-      row.innerHTML = `
-    <div class="bk-row-content">
-      <div class="bk-row-main">
-        <i class="fa-solid fa-database"></i>
-        <span class="bk-name">${p.name}</span>
-      </div>
-      <div class="bk-row-meta" title="${p.source_path}">${p.source_path}</div>
-      ${
-        tags.length
-          ? `<div class="bk-tags" aria-label="${tb("tags.aria")}">${tags
-              .map((t) => `<span class="bk-tag">${t}</span>`)
-              .join("")}</div>`
-          : ""
-      }
-    </div>
-    <div class="bk-row-actions">
-      <button class="btn bk-open" data-i="${idx}" data-lockable="true"><i class="fa-solid fa-folder-open"></i></button>
-      <button class="btn bk-run" data-i="${idx}" data-lockable="true"><i class="fa-solid fa-play"></i></button>
-    </div>`;
-      row.addEventListener("dblclick", () => showEditForm(idx));
-      row.addEventListener("click", (event) => {
-        if (
-          event.target.closest(".bk-row-actions") ||
-          event.target.closest("button")
-        ) {
-          return;
-        }
-        toggleRowSelection(row);
-      });
-      row.addEventListener("keydown", (event) => {
-        if (event.key === " " || event.key === "Enter") {
-          event.preventDefault();
-          toggleRowSelection(row);
-        }
-      });
-      root.appendChild(row);
-      applyLockToRow(row, locked);
-      return row;
-    }
-
     const row = document.createElement("div");
     row.className = "bk-row";
     row.style.animationDelay = `${pageIndex * 0.05}s`;
@@ -1336,10 +1182,7 @@ export default function renderBackup() {
   };
 
   const renderVirtualizedRows = (root, entries) => {
-    const rowHeight =
-      viewMode === "compact"
-        ? VIRTUAL_ROW_HEIGHT.compact
-        : VIRTUAL_ROW_HEIGHT.full;
+    const rowHeight = VIRTUAL_ROW_HEIGHT;
 
     let lastStart = -1;
     let lastEnd = -1;
@@ -3027,44 +2870,6 @@ export default function renderBackup() {
       if (runBtn && !runBtn.disabled) runBtn.click();
       return;
     }
-  });
-
-  window.addEventListener("backup:viewMode", (event) => {
-    if (event?.detail?.source === "backupView") return;
-    const mode = event?.detail?.mode;
-    if (!mode) return;
-    const normalized = mode === "compact" ? "compact" : "full";
-    if (normalized === viewMode) return;
-    viewMode = normalized;
-    try {
-      localStorage.setItem(VIEW_MODE_KEY, JSON.stringify(viewMode));
-    } catch {}
-    renderList();
-    updateViewToggleIcon();
-  });
-
-  window.addEventListener("backup:logVisible", (event) => {
-    if (event?.detail?.source === "backupView") return;
-    const visible = event?.detail?.visible !== false;
-    if (visible === logVisible) return;
-    logVisible = visible;
-    try {
-      localStorage.setItem(LOG_VISIBLE_KEY, JSON.stringify(visible));
-    } catch {}
-    applyLogVisibility(visible);
-  });
-
-  queueMicrotask(() => {
-    window.dispatchEvent(
-      new CustomEvent("backup:viewMode", {
-        detail: { mode: viewMode, source: "backupView" },
-      }),
-    );
-    window.dispatchEvent(
-      new CustomEvent("backup:logVisible", {
-        detail: { visible: logVisible, source: "backupView" },
-      }),
-    );
   });
 
   // Initial load

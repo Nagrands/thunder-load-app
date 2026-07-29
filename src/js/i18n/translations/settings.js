@@ -3,16 +3,12 @@ export const settingsTranslations = {
     "settings.tabs.general": "Общие",
     "settings.tabs.downloader": "Загрузчик",
     "settings.tabs.player": "Плеер",
-    "settings.tabs.wg": "Инструменты",
-    "settings.tabs.backup": "Инструмент Backup",
     "settings.tabs.appearance": "Внешний вид",
     "settings.tabs.shortcuts": "Горячие клавиши",
     "settings.tabs.about": "О приложении",
     "settings.tabs.other": "Другое",
     "settings.sections.menu": "Разделы",
     "settings.sections.toggle": "Показать разделы настроек",
-    "settings.tab.enabled": "Вкл",
-    "settings.tab.disabled": "Выкл",
     "settings.player.title": "Плеер",
     "settings.player.hint":
       "Настройте поведение панели и параметры воспроизведения.",
@@ -131,23 +127,6 @@ export const settingsTranslations = {
       "Не удалось сохранить настройки cookies: {message}",
     "settings.downloader.cookies.file.error":
       "Не удалось выбрать файл cookies: {message}",
-    "settings.disableTab": "Отключить вкладку",
-    "settings.wg.title": "Вкладка «Инструменты»",
-    "settings.wg.disable.hint":
-      "Скрывает вкладку Инструменты и отключает её запуск. При отключении связанные параметры становятся недоступны.",
-    "settings.wg.autosend": "Авто‑отправка при запуске приложения",
-    "settings.wg.rememberLastTool": "Запоминать последний открытый инструмент",
-    "settings.wg.rememberLastTool.hint":
-      "При следующем открытии вкладки Инструменты сразу показывает инструмент, который был открыт последним.",
-    "settings.backup.title": "Инструмент Backup в Инструментах",
-    "settings.backup.disable.hint":
-      "Управление отображением профилей и журнала инструмента Backup в разделе Инструменты.",
-    "settings.backup.compact.hint":
-      "Переключает отображение профилей между подробным и компактным режимом.",
-    "settings.backup.compact": "Компактный список профилей",
-    "settings.backup.log.hint":
-      "Скрыть или показать блок с логом операций резервного копирования.",
-    "settings.backup.log": "Показывать лог операций",
     "settings.appearance.title": "Внешний вид приложения",
     "settings.appearance.theme": "Цветовая тема",
     "settings.appearance.theme.system": "Системная",
@@ -354,16 +333,6 @@ export const settingsTranslations = {
     "settings.theme.set": "Выбрана тема: <strong>{theme}</strong>",
     "settings.theme.reset":
       "<strong>Тема</strong> сброшена на <strong>{theme}</strong>",
-    "settings.module.wg.disabled":
-      "Вкладка <strong>Инструменты</strong> отключена",
-    "settings.module.wg.enabled":
-      "Вкладка <strong>Инструменты</strong> включена",
-    "settings.module.backup.disabled":
-      "Инструмент <strong>Backup</strong> отключен",
-    "settings.module.backup.enabled":
-      "Инструмент <strong>Backup</strong> включен",
-    "settings.wg.disable.note":
-      "Применяется сразу. Можно включить обратно в любое время.",
     "settings.downloadCompleteModal.disabled":
       "Модальное окно после загрузки <strong>отключено</strong>",
     "settings.downloadCompleteModal.enabled":
@@ -385,16 +354,12 @@ export const settingsTranslations = {
     "settings.tabs.general": "General",
     "settings.tabs.downloader": "Downloader",
     "settings.tabs.player": "Player",
-    "settings.tabs.wg": "Tools",
-    "settings.tabs.backup": "Backup tool",
     "settings.tabs.appearance": "Appearance",
     "settings.tabs.shortcuts": "Shortcuts",
     "settings.tabs.about": "About app",
     "settings.tabs.other": "Other",
     "settings.sections.menu": "Sections",
     "settings.sections.toggle": "Show settings sections",
-    "settings.tab.enabled": "On",
-    "settings.tab.disabled": "Off",
     "settings.player.title": "Player",
     "settings.player.hint":
       "Configure panel behavior and playback preferences.",
@@ -508,22 +473,6 @@ export const settingsTranslations = {
       "Unable to save cookies settings: {message}",
     "settings.downloader.cookies.file.error":
       "Unable to choose cookies file: {message}",
-    "settings.disableTab": "Disable tab",
-    "settings.wg.title": "Tab “Tools”",
-    "settings.wg.disable.hint":
-      "Hides the Tools tab and disables its startup flow. Related options become unavailable while it is disabled.",
-    "settings.wg.autosend": "Auto-send on app startup",
-    "settings.wg.rememberLastTool": "Remember last opened tool",
-    "settings.wg.rememberLastTool.hint":
-      "When enabled, the Tools tab reopens with the tool you used last time.",
-    "settings.backup.title": "Backup tool inside Tools",
-    "settings.backup.disable.hint":
-      "Controls profile display and the operations log for the Backup tool inside Tools.",
-    "settings.backup.compact.hint":
-      "Switches profile display between detailed and compact mode.",
-    "settings.backup.compact": "Compact profile list",
-    "settings.backup.log.hint": "Hide or show the backup operations log block.",
-    "settings.backup.log": "Show operations log",
     "settings.appearance.title": "App appearance",
     "settings.appearance.theme": "Color theme",
     "settings.appearance.theme.system": "System",
@@ -716,12 +665,6 @@ export const settingsTranslations = {
     "settings.theme.set": "Theme selected: <strong>{theme}</strong>",
     "settings.theme.reset":
       "<strong>Theme</strong> reset to <strong>{theme}</strong>",
-    "settings.module.wg.disabled": "Tab <strong>Tools</strong> disabled",
-    "settings.module.wg.enabled": "Tab <strong>Tools</strong> enabled",
-    "settings.module.backup.disabled": "Backup <strong>tool</strong> disabled",
-    "settings.module.backup.enabled": "Backup <strong>tool</strong> enabled",
-    "settings.wg.disable.note":
-      "Applies immediately. You can re‑enable it anytime.",
     "settings.downloadCompleteModal.disabled":
       "Post‑download modal is <strong>disabled</strong>",
     "settings.downloadCompleteModal.enabled":

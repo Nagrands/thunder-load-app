@@ -13,32 +13,16 @@ export default class TabSystem {
     this.navigationProxies = new Set();
     this.activeTabId = null;
     this.ANIM_MS = 250; // длительность анимации (ms)
-    // WG Unlock visibility wiring
-    this._WG_ID = "wireguard";
-    // Backup visibility wiring
-    this._BK_ID = "backup";
     // Developer-only products tab
     this._PRD_ID = "products";
     this._NOW_PLAYING_ID = "now-playing";
-    this._applyWgVisibility =
-      this._applyWgVisibility?.bind(this) || this._applyWgVisibility;
-    this._applyBackupVisibility =
-      this._applyBackupVisibility?.bind(this) || this._applyBackupVisibility;
     this._applyProductsVisibility =
       this._applyProductsVisibility?.bind(this) ||
       this._applyProductsVisibility;
-    window.addEventListener("wg:toggleDisabled", () =>
-      this._applyWgVisibility(),
-    );
-    window.addEventListener("backup:toggleDisabled", () =>
-      this._applyBackupVisibility(),
-    );
     window.addEventListener("tools:developer-unlock-changed", () =>
       this._applyProductsVisibility(),
     );
     // применить сразу (если вкладка уже есть)
-    this._applyWgVisibility();
-    this._applyBackupVisibility();
     this._applyProductsVisibility();
   }
 
@@ -94,8 +78,6 @@ export default class TabSystem {
       ...hooks,
     });
     if (id === this._PRD_ID) this._applyProductsVisibility();
-    if (id === this._WG_ID) this._applyWgVisibility();
-    if (id === this._BK_ID) this._applyBackupVisibility();
     this._syncNavigationProxies();
   }
 
@@ -172,20 +154,6 @@ export default class TabSystem {
       if (firstVisible) return this.activateTab(firstVisible);
       this._clearActiveTab();
       return;
-    }
-    // Guard: не позволяем активировать WG Unlock, если вкладка отключена
-    if (id === this._WG_ID && this._isWgDisabled()) {
-      const firstVisible = this._findFirstVisibleTabId(id);
-      if (firstVisible) return this.activateTab(firstVisible);
-      this._clearActiveTab();
-      return; // нет доступных вкладок
-    }
-    // Guard: не позволяем активировать Backup, если вкладка отключена
-    if (id === this._BK_ID && this._isBackupDisabled()) {
-      const firstVisible = this._findFirstVisibleTabId(id);
-      if (firstVisible) return this.activateTab(firstVisible);
-      this._clearActiveTab();
-      return; // нет доступных вкладок
     }
     if (!this.tabs.has(id) || id === this.activeTabId) return;
 
@@ -266,17 +234,6 @@ export default class TabSystem {
       );
     } catch {}
   }
-  _isWgDisabled() {
-    try {
-      const raw = localStorage.getItem("wgUnlockDisabled");
-      // Дефолт: вкладка отключена, если ключ не задан
-      if (raw === null) return true;
-      return JSON.parse(raw) === true;
-    } catch {
-      return true;
-    }
-  }
-
   _isProductsDisabled() {
     return !readDeveloperModeEnabled();
   }
@@ -300,72 +257,6 @@ export default class TabSystem {
       rec.element.classList.add("tab-hide");
       rec.element.style.display = "none";
       rec.onHide?.();
-    }
-    this._syncNavigationProxies();
-  }
-
-  _applyWgVisibility() {
-    const id = this._WG_ID;
-    if (!id || !this.tabs?.has(id)) return;
-    const rec = this.tabs.get(id);
-    const disabled = this._isWgDisabled();
-
-    // кнопка вкладки
-    if (rec.button) rec.button.style.display = disabled ? "none" : "";
-
-    // если активная вкладка скрывается — переключаемся на первую доступную
-    if (disabled && this.activeTabId === id) {
-      const firstVisible = this._findFirstVisibleTabId(id);
-      if (firstVisible) this.activateTab(firstVisible);
-      else this._clearActiveTab();
-    }
-
-    // скрываем/показываем сам контейнер вкладки (если уже отрендерен)
-    if (rec.element) {
-      if (disabled) {
-        rec.element.classList.remove("tab-show");
-        rec.element.classList.add("tab-hide");
-        rec.element.style.display = "none";
-        rec.onHide?.();
-      } else {
-        // не активируем автоматически; просто делаем доступной
-        // контейнер отобразится при явной активации через activateTab()
-      }
-    }
-    this._syncNavigationProxies();
-  }
-
-  _isBackupDisabled() {
-    try {
-      const raw = localStorage.getItem("backupDisabled");
-      if (raw === null) return false; // по умолчанию Backup включён
-      return JSON.parse(raw) === true;
-    } catch {
-      return false;
-    }
-  }
-
-  _applyBackupVisibility() {
-    const id = this._BK_ID;
-    if (!id || !this.tabs?.has(id)) return;
-    const rec = this.tabs.get(id);
-    const disabled = this._isBackupDisabled();
-
-    if (rec.button) rec.button.style.display = disabled ? "none" : "";
-
-    if (disabled && this.activeTabId === id) {
-      const firstVisible = this._findFirstVisibleTabId(id);
-      if (firstVisible) this.activateTab(firstVisible);
-      else this._clearActiveTab();
-    }
-
-    if (rec.element) {
-      if (disabled) {
-        rec.element.classList.remove("tab-show");
-        rec.element.classList.add("tab-hide");
-        rec.element.style.display = "none";
-        rec.onHide?.();
-      }
     }
     this._syncNavigationProxies();
   }

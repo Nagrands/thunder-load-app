@@ -11,22 +11,6 @@ export function registerI18nListeners(tabs) {
   });
 }
 
-export function registerWgControls() {
-  const wgAutosendCheckbox = document.getElementById("wg-autosend");
-  if (wgAutosendCheckbox) {
-    window.electron.ipcRenderer.invoke("wg-get-config").then((cfg) => {
-      wgAutosendCheckbox.checked = !!cfg.autosend;
-    });
-
-    wgAutosendCheckbox.addEventListener("change", () => {
-      window.electron.ipcRenderer.send("wg-set-config", {
-        key: "autosend",
-        val: wgAutosendCheckbox.checked,
-      });
-    });
-  }
-}
-
 export function registerStatusMessageListener() {
   window.electron.receive("status-message", (message) => {
     let el = document.getElementById("startup-status");

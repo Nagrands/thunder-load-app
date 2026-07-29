@@ -64,7 +64,8 @@ The Tools launcher contains:
 | Backup           | Run reusable source-to-destination archive profiles with filters, logs, and preflight checks | Cross-platform behavior uses platform archive tools            |
 | Quick Shortcuts  | Create Windows power, recovery, and system shortcuts                                         | Actions are Windows-only; macOS can expose a developer preview |
 
-Some tools can be hidden in Settings. Backup remains a tool inside this section, not a top-level tab.
+Tools and Backup are always available. Backup remains inside this section, not
+a top-level tab.
 
 ### File Sorter
 
@@ -109,12 +110,10 @@ Settings control:
 - font size and visual effects;
 - the built-in editor for all 16 shortcuts, including search, conflict
   detection, and restoring defaults;
-- default section and enabled modules;
 - managed tools directory and Downloader behavior;
 - download quality behavior and parallel limit;
 - clipboard/window behavior;
 - Downloader tool-status visibility;
-- Backup list and log presentation;
 - developer-only tool visibility.
 
 ### Keyboard Shortcuts

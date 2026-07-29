@@ -1,7 +1,3 @@
-jest.mock("../settings", () => ({
-  updateModuleBadge: jest.fn(),
-}));
-
 jest.mock("../settingsStore", () => ({
   setTheme: jest.fn().mockResolvedValue("dark"),
   getTheme: jest.fn().mockResolvedValue("dark"),
@@ -25,17 +21,14 @@ describe("firstRunModal", () => {
         <div data-first-run-panel="0" class="first-run-section is-active"></div>
         <div data-first-run-panel="1" class="first-run-section" hidden></div>
         <div data-first-run-panel="2" class="first-run-section" hidden></div>
-        <div data-first-run-panel="3" class="first-run-section" hidden></div>
         <button class="first-run-step is-active" data-step-index="0" data-step-label-key="firstRun.steps.language"></button>
-        <button class="first-run-step" data-step-index="1" data-step-label-key="firstRun.steps.modules"></button>
-        <button class="first-run-step" data-step-index="2" data-step-label-key="firstRun.steps.theme"></button>
-        <button class="first-run-step" data-step-index="3" data-step-label-key="firstRun.steps.summary"></button>
+        <button class="first-run-step" data-step-index="1" data-step-label-key="firstRun.steps.theme"></button>
+        <button class="first-run-step" data-step-index="2" data-step-label-key="firstRun.steps.summary"></button>
         <span id="first-run-step-label"></span>
         <strong id="first-run-step-counter"></strong>
         <button id="first-run-back"></button>
         <button id="first-run-primary" class="btn btn-secondary"></button>
         <strong id="first-run-summary-language"></strong>
-        <strong id="first-run-summary-tabs"></strong>
         <strong id="first-run-summary-theme"></strong>
         <label class="first-run-option">
           <input type="radio" name="first-run-language" value="ru" checked />
@@ -48,15 +41,6 @@ describe("firstRunModal", () => {
         </label>
         <label class="first-run-option">
           <input type="radio" name="first-run-theme" value="midnight" />
-        </label>
-        <label class="first-run-option">
-          <input type="checkbox" name="first-run-tab" value="download" checked disabled />
-        </label>
-        <label class="first-run-option">
-          <input type="checkbox" name="first-run-tab" value="wireguard" />
-        </label>
-        <label class="first-run-option">
-          <input type="checkbox" name="first-run-tab" value="backup" />
         </label>
       </div>`;
     localStorage.clear();
@@ -85,13 +69,6 @@ describe("firstRunModal", () => {
     const nextBtn = document.getElementById("first-run-primary");
     nextBtn.dispatchEvent(new Event("click"));
 
-    const wgCheckbox = document.querySelector(
-      'input[name="first-run-tab"][value="wireguard"]',
-    );
-    wgCheckbox.checked = true;
-    wgCheckbox.dispatchEvent(new Event("change", { bubbles: true }));
-    nextBtn.dispatchEvent(new Event("click"));
-
     const midnight = document.querySelector(
       'input[name="first-run-theme"][value="midnight"]',
     );
@@ -108,10 +85,6 @@ describe("firstRunModal", () => {
     expect(
       document.getElementById("first-run-summary-theme")?.textContent,
     ).toBe("settings.appearance.theme.midnight");
-    expect(document.getElementById("first-run-summary-tabs")?.textContent).toBe(
-      "tabs.download, tabs.tools",
-    );
-
     document.getElementById("first-run-back").dispatchEvent(new Event("click"));
     expect(
       document.querySelector('input[name="first-run-theme"][value="midnight"]')
@@ -130,45 +103,13 @@ describe("firstRunModal", () => {
     expect(setTheme).toHaveBeenCalledWith("midnight");
     expect(setLanguage).toHaveBeenCalledWith("en");
     expect(localStorage.getItem("firstRunCompleted")).toBe("1");
-    expect(localStorage.getItem("wgUnlockDisabled")).toBe("false");
-    expect(localStorage.getItem("backupDisabled")).toBe("true");
+    expect(localStorage.getItem("wgUnlockDisabled")).toBeNull();
+    expect(localStorage.getItem("backupDisabled")).toBeNull();
     expect(modal?.style.display).toBe("none");
     expect(modal?.getAttribute("aria-hidden")).toBe("true");
     expect(document.body.classList.contains("modal-overlay-active")).toBe(
       false,
     );
-  });
-
-  test("treats Backup as a tool inside Tools in the summary", async () => {
-    const { initFirstRunModal } = require("../firstRunModal.js");
-    initFirstRunModal();
-
-    const backupCheckbox = document.querySelector(
-      'input[name="first-run-tab"][value="backup"]',
-    );
-    const wgCheckbox = document.querySelector(
-      'input[name="first-run-tab"][value="wireguard"]',
-    );
-    const nextBtn = document.getElementById("first-run-primary");
-
-    wgCheckbox.checked = true;
-    wgCheckbox.dispatchEvent(new Event("change", { bubbles: true }));
-    backupCheckbox.checked = true;
-    backupCheckbox.dispatchEvent(new Event("change", { bubbles: true }));
-
-    nextBtn.dispatchEvent(new Event("click"));
-    nextBtn.dispatchEvent(new Event("click"));
-    nextBtn.dispatchEvent(new Event("click"));
-    nextBtn.dispatchEvent(new Event("click"));
-    await Promise.resolve();
-
-    expect(document.getElementById("first-run-summary-tabs")?.textContent).toBe(
-      "tabs.download, tabs.tools",
-    );
-    expect(
-      document.getElementById("first-run-summary-tabs")?.textContent,
-    ).not.toContain("tabs.backup");
-    expect(localStorage.getItem("backupDisabled")).toBe("false");
   });
 
   test("does not show modal when already completed", async () => {

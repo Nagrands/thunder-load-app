@@ -2080,45 +2080,6 @@ h1.section-heading {
   }
 }
 
-.bk-row-compact {
-  padding: 10px 14px;
-  gap: 10px;
-
-  .bk-row-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-
-    .bk-row-main {
-      gap: 8px;
-
-      .bk-name {
-        font-weight: 700;
-        color: var(--color-highlight);
-      }
-    }
-
-    .bk-row-meta {
-      max-width: 100%;
-    }
-  }
-
-  .bk-row-actions {
-    display: flex;
-    flex-direction: row;
-    gap: 6px;
-
-    button {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 32px;
-      height: 32px;
-    }
-  }
-}
-
 // Responsive for .bk-row
 @media (max-width: 640px) {
   .bk-row {

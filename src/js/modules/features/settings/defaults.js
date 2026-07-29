@@ -41,18 +41,6 @@ export const DEFAULT_CONFIG = {
     disableGlobalShortcuts: false,
     assignments: null,
   },
-  modules: {
-    wgUnlockDisabled: true,
-    backupDisabled: false,
-  },
-  backup: {
-    viewMode: "full",
-    logVisible: true,
-  },
-  wg: {
-    autosend: false,
-    rememberLastTool: false,
-  },
   tools: {
     resetLocation: false,
     locationPath: null,

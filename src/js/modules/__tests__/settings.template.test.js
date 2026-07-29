@@ -3,7 +3,7 @@ import path from "path";
 
 import { settingsTranslations } from "../../i18n/translations/settings.js";
 
-describe("settings template backup placement", () => {
+describe("settings template structure", () => {
   test("includes Thunder Spark brand lockup in the footer", () => {
     const indexPath = path.resolve(process.cwd(), "src/index.html");
     const html = fs.readFileSync(indexPath, "utf8");
@@ -49,23 +49,19 @@ describe("settings template backup placement", () => {
     expect(actionsHtml).not.toContain("Открыть live preview");
   });
 
-  test("keeps Backup controls inside Tools and removes separate sidebar tab", () => {
+  test("removes Tools and Backup preferences from Settings", () => {
     const indexPath = path.resolve(process.cwd(), "src/index.html");
     const html = fs.readFileSync(indexPath, "utf8");
 
-    expect(html).toContain('data-tab="wgunlock-settings"');
+    expect(html).not.toContain('data-tab="wgunlock-settings"');
+    expect(html).not.toContain('id="settings-section-tab-tools"');
+    expect(html).not.toContain('id="wgunlock-settings"');
     expect(html).not.toContain('data-tab="backup-settings"');
-    expect(html).not.toContain('<div id="backup-settings" class="tab-pane">');
-
-    const toolsPaneStart = html.indexOf('id="wgunlock-settings"');
-    const appearancePaneStart = html.indexOf('id="appearance-settings"');
-    const toolsPaneHtml = html.slice(toolsPaneStart, appearancePaneStart);
-
-    expect(toolsPaneHtml).not.toContain('id="backup-disable-toggle"');
-    expect(toolsPaneHtml).toContain('id="backup-compact-toggle"');
-    expect(toolsPaneHtml).toContain('id="backup-log-toggle"');
-    expect(toolsPaneHtml).toContain('id="settings-backup-status-badge"');
-    expect(toolsPaneHtml).toContain('id="settings-backup-status-text"');
+    expect(html).not.toContain('id="wg-disable-toggle"');
+    expect(html).not.toContain('id="wg-autosend"');
+    expect(html).not.toContain('id="wg-remember-last-tool"');
+    expect(html).not.toContain('id="backup-compact-toggle"');
+    expect(html).not.toContain('id="backup-log-toggle"');
   });
 
   test("includes the emerald theme in settings and first-run templates", () => {
@@ -129,10 +125,12 @@ describe("settings template backup placement", () => {
     const html = fs.readFileSync(indexPath, "utf8");
     const downloaderTab = html.indexOf('id="settings-section-tab-downloader"');
     const playerTab = html.indexOf('id="settings-section-tab-player"');
-    const toolsTab = html.indexOf('id="settings-section-tab-tools"');
+    const appearanceTab = html.indexOf(
+      'id="settings-section-tab-appearance"',
+    );
 
     expect(downloaderTab).toBeLessThan(playerTab);
-    expect(playerTab).toBeLessThan(toolsTab);
+    expect(playerTab).toBeLessThan(appearanceTab);
     expect(html).toContain('data-tab="player-settings"');
     expect(html).toContain('id="player-settings"');
     expect(html).toContain('aria-labelledby="settings-section-tab-player"');
@@ -240,8 +238,8 @@ describe("settings template backup placement", () => {
     const indexPath = path.resolve(process.cwd(), "src/index.html");
     const html = fs.readFileSync(indexPath, "utf8");
     const downloaderPaneStart = html.indexOf('id="window-settings"');
-    const toolsPaneStart = html.indexOf('id="wgunlock-settings"');
-    const downloaderPaneHtml = html.slice(downloaderPaneStart, toolsPaneStart);
+    const playerPaneStart = html.indexOf('id="player-settings"');
+    const downloaderPaneHtml = html.slice(downloaderPaneStart, playerPaneStart);
 
     expect(downloaderPaneHtml).not.toContain('id="tools-info"');
     expect(downloaderPaneHtml).not.toContain("settings-card--tools-compact");

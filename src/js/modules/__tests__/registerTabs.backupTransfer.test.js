@@ -59,12 +59,7 @@ describe("registerTabs backup transfer", () => {
 
     window.electron = {
       ipcRenderer: {
-        invoke: jest.fn(async (channel) => {
-          if (channel === "wg-get-config") {
-            return { autosend: false };
-          }
-          return null;
-        }),
+        invoke: jest.fn(async () => null),
       },
     };
 

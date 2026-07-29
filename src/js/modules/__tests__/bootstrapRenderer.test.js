@@ -60,7 +60,6 @@ describe("bootstrapRenderer", () => {
       }),
       registerI18nListeners: jest.fn(),
       registerStatusMessageListener: jest.fn(),
-      registerWgControls: jest.fn(),
     };
   });
 
@@ -192,16 +191,34 @@ describe("bootstrapRenderer", () => {
       jest.doMock("../app/registerGlobalListeners.js", () => ({
         registerI18nListeners: mocks.registerI18nListeners,
         registerStatusMessageListener: mocks.registerStatusMessageListener,
-        registerWgControls: mocks.registerWgControls,
       }));
 
       ({ startRenderer } = require("../app/bootstrapRenderer.js"));
     });
 
     const preloader = document.getElementById("app-preloader");
+    [
+      "wgUnlockDisabled",
+      "backupDisabled",
+      "toolsRememberLastView",
+      "toolsLastView",
+      "bk_view_mode",
+      "bk_log_visible",
+    ].forEach((key) => localStorage.setItem(key, "true"));
     await startRenderer();
 
     expect(localStorage.getItem("developerDisableDownloaderTab")).toBeNull();
+    expect(localStorage.getItem("migration.toolsSettingsRemoved.v1")).toBe(
+      "1",
+    );
+    [
+      "wgUnlockDisabled",
+      "backupDisabled",
+      "toolsRememberLastView",
+      "toolsLastView",
+      "bk_view_mode",
+      "bk_log_visible",
+    ].forEach((key) => expect(localStorage.getItem(key)).toBeNull());
     expect(mocks.initI18n).toHaveBeenCalled();
     expect(mocks.initializeTheme).toHaveBeenCalled();
     expect(mocks.initializeFontSize).toHaveBeenCalled();
@@ -235,7 +252,6 @@ describe("bootstrapRenderer", () => {
     expect(mocks.initSettings).toHaveBeenCalled();
     expect(mocks.initFooterStatusBar).toHaveBeenCalled();
     expect(mocks.initTooltips).toHaveBeenCalled();
-    expect(mocks.registerWgControls).toHaveBeenCalled();
     expect(mocks.initUpdateHandler).toHaveBeenCalled();
   });
 });

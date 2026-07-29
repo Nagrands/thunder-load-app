@@ -116,7 +116,6 @@ describe("toolsView quick actions", () => {
     refreshToolsInfoState.mockClear();
     localStorage.clear();
     delete window.__thunder_dev_tools_unlocked__;
-    localStorage.setItem("wgUnlockDisabled", "false");
     document.body.innerHTML = "";
     converterProgressHandler = null;
 
@@ -337,7 +336,6 @@ describe("toolsView quick actions", () => {
               rPort: 51820,
               lPort: 56132,
               msg: ")",
-              autosend: false,
             };
           }
           if (channel === "backup:getPrograms") {
@@ -674,12 +672,12 @@ describe("toolsView quick actions", () => {
     expect(backupBtn?.disabled).toBe(false);
   });
 
-  test("hides Backup from launcher when it is disabled", async () => {
+  test("keeps Backup visible despite a legacy disabled flag", async () => {
     localStorage.setItem("backupDisabled", "true");
     const el = await renderView();
     expect(
       el.querySelector("#tools-open-backup")?.classList.contains("hidden"),
-    ).toBe(true);
+    ).toBe(false);
   });
 
   test("renders available and unavailable sections on windows", async () => {
@@ -731,21 +729,16 @@ describe("toolsView quick actions", () => {
     ).toBe(true);
   });
 
-  test("restores last hash view when remember setting is enabled", async () => {
+  test("ignores the removed remember-last-tool setting", async () => {
     localStorage.setItem("toolsRememberLastView", "true");
     localStorage.setItem("toolsLastView", "hash");
     const el = await renderView();
     expect(
       el.querySelector("#tools-launcher")?.classList.contains("hidden"),
-    ).toBe(true);
-    expect(
-      el.querySelector('[data-tool-view="hash"]')?.classList.contains("hidden"),
     ).toBe(false);
     expect(
-      el
-        .querySelector('[data-tool-nav="hash"]')
-        ?.getAttribute("aria-current"),
-    ).toBe("page");
+      el.querySelector('[data-tool-view="hash"]')?.classList.contains("hidden"),
+    ).toBe(true);
   });
 
   test("falls back to launcher when last view power is unavailable", async () => {
@@ -769,15 +762,18 @@ describe("toolsView quick actions", () => {
     );
   });
 
-  test("restores File Sorter when last view is remembered", async () => {
+  test("does not restore File Sorter from legacy state", async () => {
     localStorage.setItem("toolsRememberLastView", "true");
     localStorage.setItem("toolsLastView", "sorter");
     const el = await renderView();
     expect(
+      el.querySelector("#tools-launcher")?.classList.contains("hidden"),
+    ).toBe(false);
+    expect(
       el
         .querySelector('[data-tool-view="sorter"]')
         ?.classList.contains("hidden"),
-    ).toBe(false);
+    ).toBe(true);
   });
 
   test("shows File Sorter as available tool and opens it", async () => {

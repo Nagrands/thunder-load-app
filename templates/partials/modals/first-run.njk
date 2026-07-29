@@ -14,13 +14,13 @@
           Добро пожаловать в Thunder
         </h2>
         <p id="first-run-desc" data-i18n="firstRun.subtitle">
-          Настройте язык, вкладки и тему перед началом работы.
+          Настройте язык и тему перед началом работы.
         </p>
       </div>
 
       <div class="first-run-progress">
         <div class="first-run-progress__meta">
-          <span id="first-run-step-counter">Шаг 1 из 4</span>
+          <span id="first-run-step-counter">Шаг 1 из 3</span>
           <strong id="first-run-step-label" data-i18n="firstRun.steps.language">Язык</strong>
         </div>
 
@@ -39,30 +39,20 @@
             type="button"
             class="first-run-step"
             data-step-index="1"
-            data-step-label-key="firstRun.steps.modules"
-            disabled
-          >
-            <span class="first-run-step__index">2</span>
-            <span class="first-run-step__label" data-i18n="firstRun.steps.modules">Модули</span>
-          </button>
-          <button
-            type="button"
-            class="first-run-step"
-            data-step-index="2"
             data-step-label-key="firstRun.steps.theme"
             disabled
           >
-            <span class="first-run-step__index">3</span>
+            <span class="first-run-step__index">2</span>
             <span class="first-run-step__label" data-i18n="firstRun.steps.theme">Тема</span>
           </button>
           <button
             type="button"
             class="first-run-step"
-            data-step-index="3"
+            data-step-index="2"
             data-step-label-key="firstRun.steps.summary"
             disabled
           >
-            <span class="first-run-step__index">4</span>
+            <span class="first-run-step__index">3</span>
             <span class="first-run-step__label" data-i18n="firstRun.steps.summary">Итог</span>
           </button>
         </div>
@@ -102,52 +92,6 @@
       </section>
 
       <section class="first-run-section" data-first-run-panel="1" hidden>
-        <div class="first-run-section__header">
-          <h3 data-i18n="firstRun.tabs">Вкладки для работы</h3>
-          <p data-i18n="firstRun.tabsSubtitle">
-            Оставьте только те разделы, которыми будете пользоваться регулярно. Загрузчик включен всегда.
-          </p>
-        </div>
-
-        <div class="first-run-options first-run-options--modules">
-          <label class="first-run-option is-selected is-disabled">
-            <input
-              type="checkbox"
-              name="first-run-tab"
-              value="download"
-              checked
-              disabled
-            />
-            <div class="first-run-option__content">
-              <strong data-i18n="tabs.download">Downloader</strong>
-              <small data-i18n="firstRun.tabs.downloadHint">Загрузка видео и аудио</small>
-            </div>
-            <span class="first-run-option__badge" data-i18n="firstRun.required">Обязательно</span>
-          </label>
-
-          <label class="first-run-option">
-            <input type="checkbox" name="first-run-tab" value="wireguard" />
-            <div class="first-run-option__content">
-              <strong data-i18n="tabs.tools">Инструменты</strong>
-              <small data-i18n="firstRun.tabs.wgHint">
-                WG Unlock, Hash Check и быстрые инструменты
-              </small>
-            </div>
-          </label>
-
-          <label class="first-run-option">
-            <input type="checkbox" name="first-run-tab" value="backup" />
-            <div class="first-run-option__content">
-              <strong data-i18n="tabs.backup">Backup tool</strong>
-              <small data-i18n="firstRun.tabs.backupHint">
-                Резервные копии и профили внутри Инструментов
-              </small>
-            </div>
-          </label>
-        </div>
-      </section>
-
-      <section class="first-run-section" data-first-run-panel="2" hidden>
         <div class="first-run-section__header">
           <h3 data-i18n="firstRun.theme">Цветовая тема</h3>
           <p data-i18n="firstRun.themeSubtitle">
@@ -208,7 +152,7 @@
         </div>
       </section>
 
-      <section class="first-run-section" data-first-run-panel="3" hidden>
+      <section class="first-run-section" data-first-run-panel="2" hidden>
         <div class="first-run-section__header">
           <h3 data-i18n="firstRun.summary">Проверьте настройки</h3>
           <p data-i18n="firstRun.summarySubtitle">
@@ -222,13 +166,6 @@
               Язык интерфейса
             </span>
             <strong id="first-run-summary-language"></strong>
-          </div>
-
-          <div class="first-run-summary-card">
-            <span class="first-run-summary-card__label" data-i18n="firstRun.tabs">
-              Вкладки для работы
-            </span>
-            <strong id="first-run-summary-tabs"></strong>
           </div>
 
           <div class="first-run-summary-card">

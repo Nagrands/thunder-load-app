@@ -338,7 +338,6 @@ export async function registerTabs(mainView) {
   );
 
   const defaultTab = await getDefaultTab();
-  const wgConfig = await window.electron.ipcRenderer.invoke("wg-get-config");
   const requestedToolView = defaultTab === "backup" ? "backup" : "";
   const resolvedDefaultTab =
     defaultTab === "backup"
@@ -346,9 +345,9 @@ export async function registerTabs(mainView) {
       : ["download", "wireguard"].includes(defaultTab)
         ? defaultTab
         : "download";
-  const tabToActivate = wgConfig.autosend ? "wireguard" : resolvedDefaultTab;
+  const tabToActivate = resolvedDefaultTab;
 
-  if (requestedToolView && !wgConfig.autosend) {
+  if (requestedToolView) {
     requestToolsView(requestedToolView);
   }
   await ensureInitialTabReady(tabToActivate, wrappers);
@@ -369,7 +368,6 @@ export async function registerTabs(mainView) {
 
   return {
     tabs,
-    wgConfig,
     wrappers,
     dispose() {
       unregisterPlayerShortcutActions();

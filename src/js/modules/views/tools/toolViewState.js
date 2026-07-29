@@ -1,14 +1,7 @@
 import {
-  TOOLS_STORAGE_KEYS,
-  readBooleanStorage,
-  readStorageValue,
-  writeStorageValue,
-} from "./storage.js";
-import {
   DEVELOPER_TOOLS_UNLOCK_GLOBAL_KEY,
   readDeveloperModeEnabled,
 } from "../../developerMode.js";
-const BACKUP_DISABLED_STORAGE_KEY = "backupDisabled";
 
 function createToolViewState() {
   const state = {
@@ -55,9 +48,7 @@ function createToolViewState() {
     if (toolView === "sorter") return true;
     if (toolView === "media-inspector") return true;
     if (toolView === "media-converter") return true;
-    if (toolView === "backup") {
-      return !readBooleanStorage(BACKUP_DISABLED_STORAGE_KEY, false);
-    }
+    if (toolView === "backup") return true;
     return (
       toolView === "launcher" ||
       toolView === "wg" ||
@@ -66,28 +57,14 @@ function createToolViewState() {
     );
   };
 
-  const readLastToolView = () =>
-    readStorageValue(TOOLS_STORAGE_KEYS.LAST_TOOL_VIEW, "launcher") ||
-    "launcher";
-
-  const shouldRememberLastToolView = () =>
-    readBooleanStorage(TOOLS_STORAGE_KEYS.REMEMBER_LAST_VIEW, false);
-
-  const resolveInitialToolView = () => {
-    if (!shouldRememberLastToolView()) return "launcher";
-    const remembered = readLastToolView();
-    return isToolAvailable(remembered) ? remembered : "launcher";
-  };
+  const resolveInitialToolView = () => "launcher";
 
   const setCurrentToolView = (nextView) => {
     state.currentToolView = String(nextView || "launcher");
     return state.currentToolView;
   };
 
-  const persistCurrentToolView = (nextView) => {
-    if (!shouldRememberLastToolView()) return;
-    writeStorageValue(TOOLS_STORAGE_KEYS.LAST_TOOL_VIEW, nextView);
-  };
+  const persistCurrentToolView = () => {};
 
   return {
     get currentToolView() {

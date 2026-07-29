@@ -40,25 +40,6 @@ import {
 } from "./tools/powerShortcuts.js";
 
 export default function renderToolsView() {
-  // Guard: если вкладка WG Unlock отключена — не инициализируем UI
-  const _isWgDisabled = () => {
-    try {
-      const raw = localStorage.getItem("wgUnlockDisabled");
-      if (raw === null) return true;
-      return JSON.parse(raw) === true;
-    } catch {
-      return true;
-    }
-  };
-
-  if (_isWgDisabled()) {
-    const placeholder = document.createElement("div");
-    placeholder.id = "wireguard-view";
-    placeholder.className = "wireguard-view tab-content";
-    placeholder.style.display = "none";
-    return placeholder;
-  }
-
   const T0 = performance.now();
 
   const getEl = (id, root = document) => root.querySelector(`#${id}`);
@@ -1049,10 +1030,6 @@ export default function renderToolsView() {
         }, 100);
       }
 
-      if (cfg.autosend) {
-        log(t("wg.log.send.scheduleAuto"));
-        cleanup.setTimeout(() => getEl("wg-send", view)?.click(), 50);
-      }
     } catch (err) {
       toast(t("wg.toast.loadConfigError"), false);
       console.error(err);

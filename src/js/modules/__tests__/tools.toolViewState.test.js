@@ -6,21 +6,17 @@ describe("createToolViewState", () => {
     delete window.__thunder_dev_tools_unlocked__;
   });
 
-  test("resolves remembered tool only when it is available", () => {
+  test("always starts from the launcher and ignores legacy remembered state", () => {
     const state = createToolViewState();
 
     localStorage.setItem("toolsRememberLastView", "true");
     localStorage.setItem("toolsLastView", "power");
-    state.setPlatformInfo({ isWindows: false, platform: "linux" });
-
-    expect(state.resolveInitialToolView()).toBe("launcher");
-
     state.setPlatformInfo({ isWindows: true, platform: "win32" });
     expect(state.isToolAvailable("power")).toBe(true);
-    expect(state.resolveInitialToolView()).toBe("power");
+    expect(state.resolveInitialToolView()).toBe("launcher");
   });
 
-  test("resolves remembered backup tool and falls back when disabled", () => {
+  test("keeps Backup available despite legacy disabled state", () => {
     const state = createToolViewState();
 
     localStorage.setItem("toolsRememberLastView", "true");
@@ -28,10 +24,8 @@ describe("createToolViewState", () => {
     state.setPlatformInfo({ isWindows: true, platform: "win32" });
 
     expect(state.isToolAvailable("backup")).toBe(true);
-    expect(state.resolveInitialToolView()).toBe("backup");
-
     localStorage.setItem("backupDisabled", "true");
-    expect(state.isToolAvailable("backup")).toBe(false);
+    expect(state.isToolAvailable("backup")).toBe(true);
     expect(state.resolveInitialToolView()).toBe("launcher");
   });
 
@@ -57,24 +51,4 @@ describe("createToolViewState", () => {
     expect(state.isPowerToolAvailable()).toBe(true);
   });
 
-  test("remembers media-inspector as a valid last tool view", () => {
-    const state = createToolViewState();
-
-    localStorage.setItem("toolsRememberLastView", "true");
-    localStorage.setItem("toolsLastView", "media-inspector");
-    state.setPlatformInfo({ isWindows: false, platform: "darwin" });
-
-    expect(state.isToolAvailable("media-inspector")).toBe(true);
-    expect(state.resolveInitialToolView()).toBe("media-inspector");
-  });
-
-  test("remembers downloader tools as a valid last tool view", () => {
-    const state = createToolViewState();
-
-    localStorage.setItem("toolsRememberLastView", "true");
-    localStorage.setItem("toolsLastView", "downloader-tools");
-
-    expect(state.isToolAvailable("downloader-tools")).toBe(true);
-    expect(state.resolveInitialToolView()).toBe("downloader-tools");
-  });
 });

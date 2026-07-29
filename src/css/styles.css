@@ -19895,7 +19895,6 @@ body.low-effects .player-form-modal__hero, body.low-effects .player-form-modal__
 }
 .settings-modal #general-settings ul.module,
 .settings-modal #window-settings ul.module,
-.settings-modal #wgunlock-settings ul.module,
 .settings-modal #appearance-settings ul.module,
 .settings-modal #other-settings ul.module {
   display: flex;
@@ -19904,7 +19903,6 @@ body.low-effects .player-form-modal__hero, body.low-effects .player-form-modal__
 }
 .settings-modal #general-settings .custom-theme-select .dropdown-toggle,
 .settings-modal #window-settings .custom-theme-select .dropdown-toggle,
-.settings-modal #wgunlock-settings .custom-theme-select .dropdown-toggle,
 .settings-modal #appearance-settings .custom-theme-select .dropdown-toggle,
 .settings-modal #other-settings .custom-theme-select .dropdown-toggle {
   width: 220px;
@@ -19912,14 +19910,12 @@ body.low-effects .player-form-modal__hero, body.low-effects .player-form-modal__
 }
 .settings-modal #general-settings .custom-theme-select .dropdown-reset,
 .settings-modal #window-settings .custom-theme-select .dropdown-reset,
-.settings-modal #wgunlock-settings .custom-theme-select .dropdown-reset,
 .settings-modal #appearance-settings .custom-theme-select .dropdown-reset,
 .settings-modal #other-settings .custom-theme-select .dropdown-reset {
   height: 40px;
 }
 .settings-modal #general-settings ul.module.default-tab-group,
 .settings-modal #window-settings ul.module.default-tab-group,
-.settings-modal #wgunlock-settings ul.module.default-tab-group,
 .settings-modal #appearance-settings ul.module.default-tab-group,
 .settings-modal #other-settings ul.module.default-tab-group {
   display: flex;
@@ -19933,7 +19929,6 @@ body.low-effects .player-form-modal__hero, body.low-effects .player-form-modal__
 }
 .settings-modal #general-settings ul.module.default-tab-group li.custom-theme-select,
 .settings-modal #window-settings ul.module.default-tab-group li.custom-theme-select,
-.settings-modal #wgunlock-settings ul.module.default-tab-group li.custom-theme-select,
 .settings-modal #appearance-settings ul.module.default-tab-group li.custom-theme-select,
 .settings-modal #other-settings ul.module.default-tab-group li.custom-theme-select {
   position: relative;
@@ -19949,7 +19944,6 @@ body.low-effects .player-form-modal__hero, body.low-effects .player-form-modal__
 }
 .settings-modal #general-settings ul.module.default-tab-group li.custom-theme-select label,
 .settings-modal #window-settings ul.module.default-tab-group li.custom-theme-select label,
-.settings-modal #wgunlock-settings ul.module.default-tab-group li.custom-theme-select label,
 .settings-modal #appearance-settings ul.module.default-tab-group li.custom-theme-select label,
 .settings-modal #other-settings ul.module.default-tab-group li.custom-theme-select label {
   width: auto;
@@ -19965,7 +19959,6 @@ body.low-effects .player-form-modal__hero, body.low-effects .player-form-modal__
 }
 .settings-modal #general-settings ul.module.default-tab-group li.custom-theme-select label i,
 .settings-modal #window-settings ul.module.default-tab-group li.custom-theme-select label i,
-.settings-modal #wgunlock-settings ul.module.default-tab-group li.custom-theme-select label i,
 .settings-modal #appearance-settings ul.module.default-tab-group li.custom-theme-select label i,
 .settings-modal #other-settings ul.module.default-tab-group li.custom-theme-select label i {
   margin-right: 2px;
@@ -19973,7 +19966,6 @@ body.low-effects .player-form-modal__hero, body.low-effects .player-form-modal__
 }
 .settings-modal #general-settings ul.module.default-tab-group li.custom-theme-select label::before,
 .settings-modal #window-settings ul.module.default-tab-group li.custom-theme-select label::before,
-.settings-modal #wgunlock-settings ul.module.default-tab-group li.custom-theme-select label::before,
 .settings-modal #appearance-settings ul.module.default-tab-group li.custom-theme-select label::before,
 .settings-modal #other-settings ul.module.default-tab-group li.custom-theme-select label::before {
   content: "";
@@ -19986,7 +19978,6 @@ body.low-effects .player-form-modal__hero, body.low-effects .player-form-modal__
 }
 .settings-modal #general-settings ul.module.default-tab-group li.custom-theme-select:hover label,
 .settings-modal #window-settings ul.module.default-tab-group li.custom-theme-select:hover label,
-.settings-modal #wgunlock-settings ul.module.default-tab-group li.custom-theme-select:hover label,
 .settings-modal #appearance-settings ul.module.default-tab-group li.custom-theme-select:hover label,
 .settings-modal #other-settings ul.module.default-tab-group li.custom-theme-select:hover label {
   background: linear-gradient(125deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04)) padding-box;
@@ -19995,7 +19986,6 @@ body.low-effects .player-form-modal__hero, body.low-effects .player-form-modal__
 }
 .settings-modal #general-settings ul.module.default-tab-group input[type=radio],
 .settings-modal #window-settings ul.module.default-tab-group input[type=radio],
-.settings-modal #wgunlock-settings ul.module.default-tab-group input[type=radio],
 .settings-modal #appearance-settings ul.module.default-tab-group input[type=radio],
 .settings-modal #other-settings ul.module.default-tab-group input[type=radio] {
   position: absolute;
@@ -20004,7 +19994,6 @@ body.low-effects .player-form-modal__hero, body.low-effects .player-form-modal__
 }
 .settings-modal #general-settings ul.module.default-tab-group input[type=radio]:focus-visible + label,
 .settings-modal #window-settings ul.module.default-tab-group input[type=radio]:focus-visible + label,
-.settings-modal #wgunlock-settings ul.module.default-tab-group input[type=radio]:focus-visible + label,
 .settings-modal #appearance-settings ul.module.default-tab-group input[type=radio]:focus-visible + label,
 .settings-modal #other-settings ul.module.default-tab-group input[type=radio]:focus-visible + label {
   outline: 2px solid var(--color-accent);
@@ -20012,7 +20001,6 @@ body.low-effects .player-form-modal__hero, body.low-effects .player-form-modal__
 }
 .settings-modal #general-settings ul.module.default-tab-group input[type=radio]:checked + label,
 .settings-modal #window-settings ul.module.default-tab-group input[type=radio]:checked + label,
-.settings-modal #wgunlock-settings ul.module.default-tab-group input[type=radio]:checked + label,
 .settings-modal #appearance-settings ul.module.default-tab-group input[type=radio]:checked + label,
 .settings-modal #other-settings ul.module.default-tab-group input[type=radio]:checked + label {
   background: linear-gradient(135deg, rgba(var(--color-accent-rgb), 0.32) 0%, rgba(var(--color-accent-rgb), 0.18) 100%);
@@ -20021,7 +20009,6 @@ body.low-effects .player-form-modal__hero, body.low-effects .player-form-modal__
 }
 .settings-modal #general-settings ul.module.default-tab-group input[type=radio]:checked + label::before,
 .settings-modal #window-settings ul.module.default-tab-group input[type=radio]:checked + label::before,
-.settings-modal #wgunlock-settings ul.module.default-tab-group input[type=radio]:checked + label::before,
 .settings-modal #appearance-settings ul.module.default-tab-group input[type=radio]:checked + label::before,
 .settings-modal #other-settings ul.module.default-tab-group input[type=radio]:checked + label::before {
   background: var(--color-accent);
@@ -20029,21 +20016,18 @@ body.low-effects .player-form-modal__hero, body.low-effects .player-form-modal__
 }
 .settings-modal #general-settings ul.module.default-tab-group input[type=radio]:checked + label i,
 .settings-modal #window-settings ul.module.default-tab-group input[type=radio]:checked + label i,
-.settings-modal #wgunlock-settings ul.module.default-tab-group input[type=radio]:checked + label i,
 .settings-modal #appearance-settings ul.module.default-tab-group input[type=radio]:checked + label i,
 .settings-modal #other-settings ul.module.default-tab-group input[type=radio]:checked + label i {
   color: var(--color-text-main);
 }
 .settings-modal #general-settings ul.module.default-tab-group input[type=radio]:checked + label strong,
 .settings-modal #window-settings ul.module.default-tab-group input[type=radio]:checked + label strong,
-.settings-modal #wgunlock-settings ul.module.default-tab-group input[type=radio]:checked + label strong,
 .settings-modal #appearance-settings ul.module.default-tab-group input[type=radio]:checked + label strong,
 .settings-modal #other-settings ul.module.default-tab-group input[type=radio]:checked + label strong {
   color: var(--color-text-main);
 }
 .settings-modal #general-settings .dropdown-menu,
 .settings-modal #window-settings .dropdown-menu,
-.settings-modal #wgunlock-settings .dropdown-menu,
 .settings-modal #appearance-settings .dropdown-menu,
 .settings-modal #other-settings .dropdown-menu {
   min-width: 220px;
@@ -20052,7 +20036,6 @@ body.low-effects .player-form-modal__hero, body.low-effects .player-form-modal__
 }
 .settings-modal #general-settings .dropdown-menu li,
 .settings-modal #window-settings .dropdown-menu li,
-.settings-modal #wgunlock-settings .dropdown-menu li,
 .settings-modal #appearance-settings .dropdown-menu li,
 .settings-modal #other-settings .dropdown-menu li {
   position: relative;
@@ -20060,7 +20043,6 @@ body.low-effects .player-form-modal__hero, body.low-effects .player-form-modal__
 }
 .settings-modal #general-settings .dropdown-menu li::before,
 .settings-modal #window-settings .dropdown-menu li::before,
-.settings-modal #wgunlock-settings .dropdown-menu li::before,
 .settings-modal #appearance-settings .dropdown-menu li::before,
 .settings-modal #other-settings .dropdown-menu li::before {
   content: "";
@@ -20075,21 +20057,18 @@ body.low-effects .player-form-modal__hero, body.low-effects .player-form-modal__
 }
 .settings-modal #general-settings .dropdown-menu li[data-value=dark]::before,
 .settings-modal #window-settings .dropdown-menu li[data-value=dark]::before,
-.settings-modal #wgunlock-settings .dropdown-menu li[data-value=dark]::before,
 .settings-modal #appearance-settings .dropdown-menu li[data-value=dark]::before,
 .settings-modal #other-settings .dropdown-menu li[data-value=dark]::before {
   background: radial-gradient(circle at 30% 30%, #3a3a3a, #121212 70%);
 }
 .settings-modal #general-settings .dropdown-menu li[data-value=system]::before,
 .settings-modal #window-settings .dropdown-menu li[data-value=system]::before,
-.settings-modal #wgunlock-settings .dropdown-menu li[data-value=system]::before,
 .settings-modal #appearance-settings .dropdown-menu li[data-value=system]::before,
 .settings-modal #other-settings .dropdown-menu li[data-value=system]::before {
   background: conic-gradient(from 45deg, #f5f5f5 0 25%, #d6d6d6 25% 50%, #3a3a3a 50% 75%, #121212 75% 100%);
 }
 .settings-modal #general-settings .dropdown-menu li[data-value=midnight]::before,
 .settings-modal #window-settings .dropdown-menu li[data-value=midnight]::before,
-.settings-modal #wgunlock-settings .dropdown-menu li[data-value=midnight]::before,
 .settings-modal #appearance-settings .dropdown-menu li[data-value=midnight]::before,
 .settings-modal #other-settings .dropdown-menu li[data-value=midnight]::before {
   background: radial-gradient(circle at 30% 30%, #163a6b, #0b1220 70%);
@@ -20097,7 +20076,6 @@ body.low-effects .player-form-modal__hero, body.low-effects .player-form-modal__
 }
 .settings-modal #general-settings .dropdown-menu li[data-value=emerald]::before,
 .settings-modal #window-settings .dropdown-menu li[data-value=emerald]::before,
-.settings-modal #wgunlock-settings .dropdown-menu li[data-value=emerald]::before,
 .settings-modal #appearance-settings .dropdown-menu li[data-value=emerald]::before,
 .settings-modal #other-settings .dropdown-menu li[data-value=emerald]::before {
   background: radial-gradient(circle at 30% 30%, #4fd1c5, #0b1d18 70%);
@@ -20105,7 +20083,6 @@ body.low-effects .player-form-modal__hero, body.low-effects .player-form-modal__
 }
 .settings-modal #general-settings .dropdown-menu li[data-value=sunset]::before,
 .settings-modal #window-settings .dropdown-menu li[data-value=sunset]::before,
-.settings-modal #wgunlock-settings .dropdown-menu li[data-value=sunset]::before,
 .settings-modal #appearance-settings .dropdown-menu li[data-value=sunset]::before,
 .settings-modal #other-settings .dropdown-menu li[data-value=sunset]::before {
   background: radial-gradient(circle at 30% 30%, #fb923c, #2a162d 70%);
@@ -20113,7 +20090,6 @@ body.low-effects .player-form-modal__hero, body.low-effects .player-form-modal__
 }
 .settings-modal #general-settings .dropdown-menu li[data-value=violet]::before,
 .settings-modal #window-settings .dropdown-menu li[data-value=violet]::before,
-.settings-modal #wgunlock-settings .dropdown-menu li[data-value=violet]::before,
 .settings-modal #appearance-settings .dropdown-menu li[data-value=violet]::before,
 .settings-modal #other-settings .dropdown-menu li[data-value=violet]::before {
   background: radial-gradient(circle at 30% 30%, #c084fc, #1b0f2b 70%);
@@ -20121,7 +20097,6 @@ body.low-effects .player-form-modal__hero, body.low-effects .player-form-modal__
 }
 .settings-modal #general-settings .dropdown-menu li.active,
 .settings-modal #window-settings .dropdown-menu li.active,
-.settings-modal #wgunlock-settings .dropdown-menu li.active,
 .settings-modal #appearance-settings .dropdown-menu li.active,
 .settings-modal #other-settings .dropdown-menu li.active {
   outline: 1px solid var(--color-accent);
@@ -20130,7 +20105,6 @@ body.low-effects .player-form-modal__hero, body.low-effects .player-form-modal__
 }
 .settings-modal #general-settings .dropdown-menu li.active::after,
 .settings-modal #window-settings .dropdown-menu li.active::after,
-.settings-modal #wgunlock-settings .dropdown-menu li.active::after,
 .settings-modal #appearance-settings .dropdown-menu li.active::after,
 .settings-modal #other-settings .dropdown-menu li.active::after {
   content: "✓";
@@ -20144,42 +20118,36 @@ body.low-effects .player-form-modal__hero, body.low-effects .player-form-modal__
 }
 .settings-modal #general-settings #language-dropdown-menu,
 .settings-modal #window-settings #language-dropdown-menu,
-.settings-modal #wgunlock-settings #language-dropdown-menu,
 .settings-modal #appearance-settings #language-dropdown-menu,
 .settings-modal #other-settings #language-dropdown-menu {
   --dropdown-accent: 90, 200, 255;
 }
 .settings-modal #general-settings #font-size-dropdown-menu,
 .settings-modal #window-settings #font-size-dropdown-menu,
-.settings-modal #wgunlock-settings #font-size-dropdown-menu,
 .settings-modal #appearance-settings #font-size-dropdown-menu,
 .settings-modal #other-settings #font-size-dropdown-menu {
   --dropdown-accent: 245, 200, 90;
 }
 .settings-modal #general-settings #theme-dropdown-menu,
 .settings-modal #window-settings #theme-dropdown-menu,
-.settings-modal #wgunlock-settings #theme-dropdown-menu,
 .settings-modal #appearance-settings #theme-dropdown-menu,
 .settings-modal #other-settings #theme-dropdown-menu {
   --dropdown-accent: var(--color-accent-rgb);
 }
 .settings-modal #general-settings .dropdown-menu,
 .settings-modal #window-settings .dropdown-menu,
-.settings-modal #wgunlock-settings .dropdown-menu,
 .settings-modal #appearance-settings .dropdown-menu,
 .settings-modal #other-settings .dropdown-menu {
   --dropdown-accent: var(--color-accent-rgb);
 }
 .settings-modal #general-settings .dropdown-menu li:hover,
 .settings-modal #window-settings .dropdown-menu li:hover,
-.settings-modal #wgunlock-settings .dropdown-menu li:hover,
 .settings-modal #appearance-settings .dropdown-menu li:hover,
 .settings-modal #other-settings .dropdown-menu li:hover {
   color: rgb(var(--dropdown-accent));
 }
 .settings-modal #general-settings .dropdown-menu li.active,
 .settings-modal #window-settings .dropdown-menu li.active,
-.settings-modal #wgunlock-settings .dropdown-menu li.active,
 .settings-modal #appearance-settings .dropdown-menu li.active,
 .settings-modal #other-settings .dropdown-menu li.active {
   background: rgba(var(--dropdown-accent), 0.2);
@@ -20189,8 +20157,6 @@ body.low-effects .player-form-modal__hero, body.low-effects .player-form-modal__
 .settings-modal #general-settings #font-size-dropdown-menu li::before,
 .settings-modal #window-settings #language-dropdown-menu li::before,
 .settings-modal #window-settings #font-size-dropdown-menu li::before,
-.settings-modal #wgunlock-settings #language-dropdown-menu li::before,
-.settings-modal #wgunlock-settings #font-size-dropdown-menu li::before,
 .settings-modal #appearance-settings #language-dropdown-menu li::before,
 .settings-modal #appearance-settings #font-size-dropdown-menu li::before,
 .settings-modal #other-settings #language-dropdown-menu li::before,
@@ -20207,8 +20173,6 @@ body.low-effects .player-form-modal__hero, body.low-effects .player-form-modal__
 .settings-modal #general-settings #font-size-dropdown-menu li,
 .settings-modal #window-settings #language-dropdown-menu li,
 .settings-modal #window-settings #font-size-dropdown-menu li,
-.settings-modal #wgunlock-settings #language-dropdown-menu li,
-.settings-modal #wgunlock-settings #font-size-dropdown-menu li,
 .settings-modal #appearance-settings #language-dropdown-menu li,
 .settings-modal #appearance-settings #font-size-dropdown-menu li,
 .settings-modal #other-settings #language-dropdown-menu li,
@@ -20219,8 +20183,6 @@ body.low-effects .player-form-modal__hero, body.low-effects .player-form-modal__
 .settings-modal #general-settings .dropdown-reset:focus-visible,
 .settings-modal #window-settings .dropdown-toggle:focus-visible,
 .settings-modal #window-settings .dropdown-reset:focus-visible,
-.settings-modal #wgunlock-settings .dropdown-toggle:focus-visible,
-.settings-modal #wgunlock-settings .dropdown-reset:focus-visible,
 .settings-modal #appearance-settings .dropdown-toggle:focus-visible,
 .settings-modal #appearance-settings .dropdown-reset:focus-visible,
 .settings-modal #other-settings .dropdown-toggle:focus-visible,
@@ -20338,12 +20300,10 @@ body.low-effects .player-form-modal__hero, body.low-effects .player-form-modal__
     min-height: 60px;
   }
 }
-.settings-modal #wgunlock-settings .settings-grid,
 .settings-modal #appearance-settings .settings-grid,
 .settings-modal #other-settings .settings-grid {
   grid-template-columns: 1fr;
 }
-.settings-modal #wgunlock-settings .settings-card,
 .settings-modal #appearance-settings .settings-card,
 .settings-modal #other-settings .settings-card {
   grid-column: 1/-1;
@@ -22609,7 +22569,6 @@ body.low-effects .player-form-modal__hero, body.low-effects .player-form-modal__
   .settings-modal #window-settings .settings-card--quality {
     min-height: 0;
   }
-  .settings-modal #wgunlock-settings .settings-grid,
   .settings-modal #appearance-settings .settings-grid,
   .settings-modal #other-settings .settings-grid {
     grid-template-columns: 1fr;
@@ -34886,39 +34845,6 @@ h1.section-heading .bk-heading-search #bk-search-info {
 .bk-row .bk-row-actions button.is-loading {
   opacity: 0.55;
   pointer-events: none;
-}
-
-.bk-row-compact {
-  padding: 10px 14px;
-  gap: 10px;
-}
-.bk-row-compact .bk-row-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.bk-row-compact .bk-row-content .bk-row-main {
-  gap: 8px;
-}
-.bk-row-compact .bk-row-content .bk-row-main .bk-name {
-  font-weight: 700;
-  color: var(--color-highlight);
-}
-.bk-row-compact .bk-row-content .bk-row-meta {
-  max-width: 100%;
-}
-.bk-row-compact .bk-row-actions {
-  display: flex;
-  flex-direction: row;
-  gap: 6px;
-}
-.bk-row-compact .bk-row-actions button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
 }
 
 @media (max-width: 640px) {

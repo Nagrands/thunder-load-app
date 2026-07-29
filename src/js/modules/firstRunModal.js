@@ -1,19 +1,13 @@
 import { setLanguage, setLanguagePreview, getLanguage, t } from "./i18n.js";
 import { setTheme, getTheme } from "./settingsStore.js";
-import { updateModuleBadge } from "./settings.js";
 import {
   acquireOverlayActive,
   releaseOverlayActive,
 } from "./scrollLockManager.js";
 
 const FIRST_RUN_KEY = "firstRunCompleted";
-const STEP_COUNT = 4;
+const STEP_COUNT = 3;
 const FIRST_RUN_MODAL_OVERLAY_OWNER = "first-run-modal";
-
-const DEFAULT_TAB_FLAGS = {
-  wireguard: true,
-  backup: true,
-};
 
 const LANGUAGE_LABEL_KEYS = {
   ru: "language.ru",
@@ -28,59 +22,6 @@ const THEME_LABEL_KEYS = {
   violet: "settings.appearance.theme.violet",
 };
 
-const TAB_LABEL_KEYS = {
-  download: "tabs.download",
-  wireguard: "tabs.tools",
-  backup: "tabs.backup",
-};
-
-const normalizeSelectedTabs = (tabs) => {
-  const nextTabs = Array.isArray(tabs) ? [...tabs] : [];
-  const hasBackup = nextTabs.includes("backup");
-  const filtered = nextTabs.filter((tab) => tab !== "backup");
-  if (hasBackup && !filtered.includes("wireguard")) {
-    filtered.push("wireguard");
-  }
-  return filtered;
-};
-
-const getFlag = (key, fallback) => {
-  try {
-    const raw = localStorage.getItem(key);
-    if (raw === null) return fallback;
-    return JSON.parse(raw) === true;
-  } catch {
-    return fallback;
-  }
-};
-
-const setFlag = (key, value) => {
-  try {
-    localStorage.setItem(key, JSON.stringify(!!value));
-  } catch {}
-};
-
-const applyTabFlags = (flags) => {
-  const nextFlags = {
-    ...flags,
-    wireguard: flags.wireguard || flags.backup,
-  };
-  const wgDisabled = !nextFlags.wireguard;
-  const backupDisabled = !flags.backup;
-  setFlag("wgUnlockDisabled", wgDisabled);
-  setFlag("backupDisabled", backupDisabled);
-  updateModuleBadge("wg", wgDisabled);
-  updateModuleBadge("backup", backupDisabled);
-  window.dispatchEvent(
-    new CustomEvent("wg:toggleDisabled", { detail: { disabled: wgDisabled } }),
-  );
-  window.dispatchEvent(
-    new CustomEvent("backup:toggleDisabled", {
-      detail: { disabled: backupDisabled },
-    }),
-  );
-};
-
 const getSelectedRadio = (name) => {
   const checked = document.querySelector(`input[name="${name}"]:checked`);
   return checked ? checked.value : "";
@@ -93,18 +34,6 @@ const setRadioValue = (name, value) => {
   if (target) target.checked = true;
 };
 
-const setCheckboxValue = (name, value, checked) => {
-  const target = document.querySelector(
-    `input[name="${name}"][value="${value}"]`,
-  );
-  if (target) target.checked = !!checked;
-};
-
-const getSelectedTabs = () =>
-  Array.from(
-    document.querySelectorAll('input[name="first-run-tab"]:checked'),
-  ).map((el) => el.value);
-
 export function initFirstRunModal() {
   const modal = document.getElementById("first-run-modal");
   if (!modal) return;
@@ -115,7 +44,6 @@ export function initFirstRunModal() {
   const backButton = document.getElementById("first-run-back");
   const primaryButton = document.getElementById("first-run-primary");
   const summaryLanguage = document.getElementById("first-run-summary-language");
-  const summaryTabs = document.getElementById("first-run-summary-tabs");
   const summaryTheme = document.getElementById("first-run-summary-theme");
   if (
     !backButton ||
@@ -123,7 +51,6 @@ export function initFirstRunModal() {
     !stepLabel ||
     !stepCounter ||
     !summaryLanguage ||
-    !summaryTabs ||
     !summaryTheme
   ) {
     return;
@@ -169,17 +96,6 @@ export function initFirstRunModal() {
     });
   });
 
-  setCheckboxValue(
-    "first-run-tab",
-    "wireguard",
-    !getFlag("wgUnlockDisabled", DEFAULT_TAB_FLAGS.wireguard) ? true : false,
-  );
-  setCheckboxValue(
-    "first-run-tab",
-    "backup",
-    !getFlag("backupDisabled", DEFAULT_TAB_FLAGS.backup) ? true : false,
-  );
-
   const syncSelectedCards = () => {
     Array.from(modal.querySelectorAll(".first-run-option")).forEach(
       (option) => {
@@ -194,14 +110,10 @@ export function initFirstRunModal() {
   const updateSummary = () => {
     const lang = getSelectedRadio("first-run-language") || "ru";
     const theme = getSelectedRadio("first-run-theme") || "dark";
-    const selectedTabs = normalizeSelectedTabs(getSelectedTabs());
     summaryLanguage.textContent = t(LANGUAGE_LABEL_KEYS[lang] || "language.ru");
     summaryTheme.textContent = t(
       THEME_LABEL_KEYS[theme] || "settings.appearance.theme.dark",
     );
-    summaryTabs.textContent = selectedTabs
-      .map((tab) => t(TAB_LABEL_KEYS[tab] || "tabs.download"))
-      .join(", ");
   };
 
   const renderStep = () => {
@@ -258,17 +170,10 @@ export function initFirstRunModal() {
 
   Array.from(
     modal.querySelectorAll(
-      'input[name="first-run-tab"], input[name="first-run-language"], input[name="first-run-theme"]',
+      'input[name="first-run-language"], input[name="first-run-theme"]',
     ),
   ).forEach((input) => {
     input.addEventListener("change", () => {
-      if (
-        input.name === "first-run-tab" &&
-        input.value === "backup" &&
-        input.checked
-      ) {
-        setCheckboxValue("first-run-tab", "wireguard", true);
-      }
       syncSelectedCards();
       updateSummary();
     });
@@ -290,15 +195,8 @@ export function initFirstRunModal() {
 
     const lang = getSelectedRadio("first-run-language") || "ru";
     const theme = getSelectedRadio("first-run-theme") || "dark";
-    const selectedTabs = getSelectedTabs();
-    const flags = {
-      wireguard:
-        selectedTabs.includes("wireguard") || selectedTabs.includes("backup"),
-      backup: selectedTabs.includes("backup"),
-    };
 
     await setTheme(theme);
-    applyTabFlags(flags);
     setLanguage(lang);
 
     try {

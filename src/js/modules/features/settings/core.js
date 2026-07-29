@@ -22,7 +22,7 @@ import {
 import { showToast } from "../../toast.js";
 import { showConfirmationDialog } from "../../modals.js";
 import { getLowEffects, setLowEffects } from "../../effectsMode.js";
-import { applyI18n, t } from "../../i18n.js";
+import { t } from "../../i18n.js";
 import {
   DEFAULT_CONFIG,
   DEFAULT_PLAYER_SETTINGS,
@@ -34,11 +34,6 @@ import {
   clearOpenSettingsHandlers,
   onOpenSettings,
 } from "./openSettingsBus.js";
-import {
-  bindModuleBadgesI18nSync,
-  syncModuleBadges,
-  updateModuleBadge,
-} from "./moduleBadges.js";
 import { initDeveloperToolsGate } from "./developerToolsGate.js";
 import { initDownloadQualityProfileSettings } from "./downloadQualityProfileSettings.js";
 import { initLanguageDropdown } from "./languageDropdown.js";
@@ -57,8 +52,6 @@ import {
   normalizePlayerSettings,
 } from "./playerSettings.js";
 import { applyPlayerSettings } from "../../nowPlaying/settingsEvents.js";
-
-const WG_REMEMBER_LAST_TOOL_KEY = "toolsRememberLastView";
 
 /**
  * Функция для инициализации настроек
@@ -81,9 +74,6 @@ async function initSettings() {
 
   // UI language dropdown (custom)
   initLanguageDropdown();
-
-  bindModuleBadgesI18nSync();
-  syncModuleBadges();
 
   initDeveloperToolsGate();
 
@@ -571,378 +561,6 @@ async function initSettings() {
       }
     });
 
-  // === WG Unlock: отключение вкладки (settings toggle) ===
-  (function initWgDisableToggle() {
-    const KEY = "wgUnlockDisabled";
-    const read = () => {
-      try {
-        const raw = localStorage.getItem(KEY);
-        // По умолчанию вкладка отключена, если ключ отсутствует
-        if (raw === null) return true;
-        return JSON.parse(raw) === true;
-      } catch {
-        // Безопасный дефолт — отключено
-        return true;
-      }
-    };
-
-    function toggleWgSettingsDisabled(disabled) {
-      // Ищем контролы WG-секции, которые должны отключаться вместе с вкладкой
-      const modal =
-        document.getElementById("settings-modal") ||
-        document.querySelector("#settings");
-      const root = modal || document;
-      const autosend = root.querySelector(
-        '#wg-autosend, #wg-autosend-toggle, [name="wg-autosend"], [data-setting="wg-autosend"]',
-      );
-      const rememberLastTool = root.querySelector("#wg-remember-last-tool");
-      [autosend, rememberLastTool].forEach((control) => {
-        if (!control) return;
-        control.disabled = !!disabled;
-        const label =
-          control.closest("label, .form-check, .settings-row") ||
-          control.parentElement;
-        if (label) label.classList.toggle("is-disabled", !!disabled);
-        if (label && label.hasAttribute("data-bs-toggle")) {
-          try {
-            window.bootstrap?.Tooltip?.getOrCreateInstance(label);
-          } catch {}
-        }
-      });
-    }
-
-    function findWgSectionContainer(modal) {
-      // Ищем ПРАВЫЙ КОНТЕНТ WG-секции (не левую навигацию)
-      const byPaneId = modal?.querySelector("#wgunlock-settings");
-      if (byPaneId)
-        return (
-          byPaneId.querySelector(
-            ".settings-content, .section-body, .tab-pane, .card-body",
-          ) || byPaneId
-        );
-
-      const byId = modal?.querySelector("#settings-wg");
-      if (byId)
-        return (
-          byId.querySelector(
-            ".settings-content, .section-body, .tab-pane, .card-body",
-          ) || byId
-        );
-
-      const byData = modal?.querySelector('[data-section="wg"]');
-      if (byData)
-        return (
-          byData.querySelector(
-            ".settings-content, .section-body, .tab-pane, .card-body",
-          ) || byData
-        );
-
-      const byClass = modal?.querySelector(".settings-section--wg");
-      if (byClass)
-        return (
-          byClass.querySelector(
-            ".settings-content, .section-body, .tab-pane, .card-body",
-          ) || byClass
-        );
-
-      // Заголовок WG Unlock → ближайшая секция → её контент
-      const heading = Array.from(
-        modal?.querySelectorAll("h2, h3, .section-title") || [],
-      ).find((h) => /WG\s*Unlock/i.test(h.textContent || ""));
-      if (heading) {
-        const sec =
-          heading.closest(
-            ".settings-section, .card, section, .accordion-item",
-          ) || heading.parentElement;
-        if (sec)
-          return (
-            sec.querySelector(
-              ".settings-content, .section-body, .tab-pane, .card-body",
-            ) || sec
-          );
-      }
-      // Фолбэк — контент модалки
-      return (
-        modal?.querySelector(
-          ".settings-body, .modal-body, .settings-content",
-        ) ||
-        modal ||
-        document.body
-      );
-    }
-
-    const write = (v) => {
-      const val = !!v;
-      try {
-        localStorage.setItem(KEY, JSON.stringify(val));
-      } catch {}
-      // необязательный IPC-фолбэк — если канал есть в preload whitelist
-      try {
-        window.electron?.send &&
-          window.electron.send("settings:set", { key: KEY, value: val });
-      } catch {}
-      // мгновенно обновляем интерфейс вкладок (tabSystem.js подпишется на событие)
-      window.dispatchEvent(
-        new CustomEvent("wg:toggleDisabled", { detail: { disabled: val } }),
-      );
-      // Блокируем/разблокируем связанные настройки WG
-      toggleWgSettingsDisabled(val);
-      // тост
-      window.electron?.invoke?.(
-        "toast",
-        val
-          ? t("settings.module.wg.disabled")
-          : t("settings.module.wg.enabled"),
-        val ? "info" : "success",
-        { allowHtml: true },
-      );
-      updateModuleBadge("wg", val);
-    };
-
-    // Находим контейнер модалки и WG‑секцию
-    const modal =
-      document.getElementById("settings-modal") ||
-      document.querySelector("#settings");
-    const target = findWgSectionContainer(modal);
-    if (!target) return; // защитимся, если модалка ещё не инициализирована
-
-    // Если тумблер уже размечен в index.html — привяжем логику и не создаём дубликат
-    const staticToggle = document.querySelector(
-      "#wgunlock-settings #wg-disable-toggle, #wg-disable-toggle",
-    );
-    if (staticToggle) {
-      const initialVal = read();
-      staticToggle.checked = initialVal;
-      updateModuleBadge("wg", initialVal);
-      staticToggle.addEventListener("change", () =>
-        write(staticToggle.checked),
-      );
-      onOpenSettings("wg-disable-toggle-static", () => {
-        const val = read();
-        staticToggle.checked = val;
-        toggleWgSettingsDisabled(val);
-        updateModuleBadge("wg", val);
-      });
-      toggleWgSettingsDisabled(read());
-      return;
-    }
-
-    // Guard: если переключатель уже вставлен — не дублируем UI
-    const existing = target.querySelector("#wg-disable-toggle");
-    if (existing) {
-      // синхронизируем состояние и обработчики на всякий случай
-      existing.checked = read();
-      existing.addEventListener("change", () => write(existing.checked), {
-        once: true,
-      });
-      toggleWgSettingsDisabled(read());
-      onOpenSettings("wg-disable-toggle-existing", () => {
-        const val = read();
-        existing.checked = val;
-        toggleWgSettingsDisabled(val);
-      });
-      return;
-    }
-
-    // Создаём UI‑блок именно в секции WG Unlock
-    const row = document.createElement("div");
-    row.className = "settings-row settings-row--wg-disable";
-    row.innerHTML = `
-      <label class="checkbox-label" data-bs-toggle="tooltip" data-bs-placement="top" title="${t("settings.wg.disable.hint")}" data-i18n-title="settings.wg.disable.hint">
-        <input id="wg-disable-toggle" type="checkbox" />
-        <i class="fa-solid fa-bolt"></i>
-        <span>${t("settings.disableTab")} ${t("settings.tabs.wg")}</span>
-      </label>
-      <p class="field-hint" data-i18n="settings.wg.disable.note">${t("settings.wg.disable.note")}</p>
-    `;
-
-    target.appendChild(row);
-    applyI18n(row);
-
-    // Видимость: показывать блок только на активной WG-секции
-    function isWgSectionActive() {
-      // Bootstrap 5 tab-pane.active или кастомная активность
-      const pane = row.closest(
-        ".tab-pane, .settings-section, section, .card, .accordion-item",
-      );
-      if (!pane) return true; // если не таб — считаем активным
-      // active по классам или стилям
-      const isActiveClass =
-        pane.classList.contains("active") || !pane.hasAttribute("hidden");
-      const isVisible = pane.offsetParent !== null; // отрисован
-      return isActiveClass && isVisible;
-    }
-    function syncRowVisibility() {
-      row.style.display = isWgSectionActive() ? "" : "none";
-    }
-    // первичная синхронизация
-    syncRowVisibility();
-
-    // Bootstrap событие переключения вкладок
-    document.addEventListener(
-      "shown.bs.tab",
-      (_e) => {
-        // если переключились в/из WG — обновим видимость
-        syncRowVisibility();
-      },
-      true,
-    );
-
-    // Делегированный обработчик на клик по навигации настроек
-    document.addEventListener(
-      "click",
-      (e) => {
-        const el = e.target.closest(
-          '[data-bs-toggle="tab"], [role="tab"], .settings-nav a, .settings-nav button',
-        );
-        if (el) {
-          setTimeout(syncRowVisibility, 0);
-        }
-      },
-      true,
-    );
-
-    // Наблюдаем за контейнером табов на изменения классов/атрибутов
-    const tabsRoot = modal?.querySelector(
-      ".tab-content, .settings-tabs, .modal-body",
-    );
-    if (tabsRoot && "MutationObserver" in window) {
-      const mo = new MutationObserver(() => syncRowVisibility());
-      mo.observe(tabsRoot, {
-        attributes: true,
-        subtree: true,
-        attributeFilter: ["class", "style", "hidden"],
-      });
-    }
-
-    // Инициализация чекбокса
-    const input = row.querySelector("#wg-disable-toggle");
-    input.checked = read();
-    input.addEventListener("change", () => write(input.checked));
-
-    // Синхронизация при каждом открытии модалки
-    onOpenSettings("wg-disable-toggle-generated", () => {
-      const val = read();
-      input.checked = val;
-      toggleWgSettingsDisabled(val);
-      updateModuleBadge("wg", val);
-    });
-
-    // Применим блокировку зависимых настроек WG на старте
-    const initVal = read();
-    toggleWgSettingsDisabled(initVal);
-    updateModuleBadge("wg", initVal);
-  })();
-  // === /WG Unlock: отключение вкладки ===
-
-  // === WG Unlock: запоминать последний инструмент ===
-  (function initRememberLastToolToggle() {
-    const input = document.getElementById("wg-remember-last-tool");
-    if (!input) return;
-    const read = () => {
-      try {
-        const raw = localStorage.getItem(WG_REMEMBER_LAST_TOOL_KEY);
-        if (raw === null) return false;
-        return JSON.parse(raw) === true;
-      } catch {
-        return false;
-      }
-    };
-    const write = (enabled) => {
-      try {
-        localStorage.setItem(
-          WG_REMEMBER_LAST_TOOL_KEY,
-          JSON.stringify(!!enabled),
-        );
-      } catch {}
-    };
-    const syncFromStore = () => {
-      input.checked = read();
-    };
-    syncFromStore();
-    input.addEventListener("change", () => write(input.checked));
-    onOpenSettings("wg-remember-last-tool", syncFromStore);
-  })();
-  // === /WG Unlock: запоминать последний инструмент ===
-
-  // === Backup: компактный список профилей ===
-  (function initBackupViewModeToggle() {
-    const input = document.getElementById("backup-compact-toggle");
-    if (!input) return;
-    const KEY = "bk_view_mode";
-    const read = () => {
-      try {
-        const raw = localStorage.getItem(KEY);
-        const parsed = raw ? JSON.parse(raw) : "full";
-        return parsed === "compact";
-      } catch {
-        return false;
-      }
-    };
-    const write = (compact, source = "settings") => {
-      const mode = compact ? "compact" : "full";
-      try {
-        localStorage.setItem(KEY, JSON.stringify(mode));
-      } catch {}
-      window.dispatchEvent(
-        new CustomEvent("backup:viewMode", { detail: { mode, source } }),
-      );
-    };
-    input.checked = read();
-    input.addEventListener("change", () => write(input.checked, "settings"));
-    window.addEventListener("backup:viewMode", (event) => {
-      const mode = event?.detail?.mode;
-      if (!mode) return;
-      const shouldCheck = mode === "compact";
-      if (input.checked !== shouldCheck) {
-        input.checked = shouldCheck;
-      }
-    });
-    onOpenSettings("backup-view-mode", () => {
-      const val = read();
-      if (input.checked !== val) input.checked = val;
-    });
-  })();
-
-  // === Backup: показ/скрытие лога ===
-  (function initBackupLogToggle() {
-    const input = document.getElementById("backup-log-toggle");
-    if (!input) return;
-    const KEY = "bk_log_visible";
-    const read = () => {
-      try {
-        const raw = localStorage.getItem(KEY);
-        if (raw === null) return true;
-        return JSON.parse(raw) !== false;
-      } catch {
-        return true;
-      }
-    };
-    const write = (visible, source = "settings") => {
-      const flag = !!visible;
-      try {
-        localStorage.setItem(KEY, JSON.stringify(flag));
-      } catch {}
-      window.dispatchEvent(
-        new CustomEvent("backup:logVisible", {
-          detail: { visible: flag, source },
-        }),
-      );
-    };
-    input.checked = read();
-    input.addEventListener("change", () => write(input.checked, "settings"));
-    window.addEventListener("backup:logVisible", (event) => {
-      const detail = event?.detail;
-      if (!detail) return;
-      const visible = detail.visible !== false;
-      if (input.checked !== visible) input.checked = visible;
-    });
-    onOpenSettings("backup-log-visibility", () => {
-      const visible = read();
-      if (input.checked !== visible) input.checked = visible;
-    });
-  })();
-
   // Переключатель отображения статуса инструментов в шапке Загрузчика
   (function initAutoOpenQualityModalToggle() {
     const checkbox = document.getElementById(
@@ -1091,44 +709,6 @@ async function collectCurrentConfig() {
     }
   })();
 
-  const readJsonFlag = (key, defVal) => {
-    try {
-      const raw = localStorage.getItem(key);
-      if (raw === null) return defVal;
-      return JSON.parse(raw) === true;
-    } catch {
-      return defVal;
-    }
-  };
-
-  const backupViewMode = (() => {
-    try {
-      const raw = localStorage.getItem("bk_view_mode");
-      const parsed = raw ? JSON.parse(raw) : "full";
-      return parsed === "compact" ? "compact" : "full";
-    } catch {
-      return "full";
-    }
-  })();
-
-  const backupLogVisible = (() => {
-    try {
-      const raw = localStorage.getItem("bk_log_visible");
-      if (raw === null) return true;
-      return JSON.parse(raw) !== false;
-    } catch {
-      return true;
-    }
-  })();
-
-  let wgAutosend = false;
-  try {
-    const cfg = await window.electron?.ipcRenderer?.invoke?.("wg-get-config");
-    if (cfg && typeof cfg.autosend !== "undefined") {
-      wgAutosend = !!cfg.autosend;
-    }
-  } catch {}
-
   const merged = deepMergeConfig(DEFAULT_CONFIG, {
     general: {
       autoLaunch,
@@ -1165,18 +745,6 @@ async function collectCurrentConfig() {
         typeof shortcutsState.assignments === "object"
           ? { ...shortcutsState.assignments }
           : {},
-    },
-    modules: {
-      wgUnlockDisabled: readJsonFlag("wgUnlockDisabled", true),
-      backupDisabled: readJsonFlag("backupDisabled", false),
-    },
-    backup: {
-      viewMode: backupViewMode,
-      logVisible: backupLogVisible,
-    },
-    wg: {
-      autosend: wgAutosend,
-      rememberLastTool: readJsonFlag(WG_REMEMBER_LAST_TOOL_KEY, false),
     },
     tools: {
       resetLocation: false,
@@ -1229,11 +797,6 @@ async function applyConfig(config, options = {}) {
     }
   } catch {}
 
-  const writeJson = (key, value) => {
-    try {
-      localStorage.setItem(key, JSON.stringify(value));
-    } catch {}
-  };
   try {
     localStorage.setItem(
       "firstRunCompleted",
@@ -1241,23 +804,8 @@ async function applyConfig(config, options = {}) {
     );
   } catch {}
 
-  writeJson("wgUnlockDisabled", !!cfg.modules.wgUnlockDisabled);
   try {
     localStorage.removeItem("developerDisableDownloaderTab");
-  } catch {}
-  writeJson("backupDisabled", !!cfg.modules.backupDisabled);
-  writeJson(
-    "bk_view_mode",
-    cfg.backup.viewMode === "compact" ? "compact" : "full",
-  );
-  writeJson("bk_log_visible", !!cfg.backup.logVisible);
-  writeJson(WG_REMEMBER_LAST_TOOL_KEY, !!cfg.wg.rememberLastTool);
-
-  try {
-    window.electron?.ipcRenderer?.send?.("wg-set-config", {
-      key: "autosend",
-      val: !!cfg.wg.autosend,
-    });
   } catch {}
 
   const ipcTasks = [
@@ -1484,9 +1032,7 @@ export async function resetConfigToDefaults() {
   location.reload();
 }
 
-export const __test_updateModuleBadge = updateModuleBadge;
 export const __test_collectCurrentConfig = collectCurrentConfig;
 export const __test_applyConfig = applyConfig;
-export { updateModuleBadge };
 
 export { getDefaultTab, initSettings, setDefaultTab };

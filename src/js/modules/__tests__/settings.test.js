@@ -22,212 +22,6 @@ const { TextEncoder, TextDecoder } = require("util");
 global.TextEncoder = global.TextEncoder || TextEncoder;
 global.TextDecoder = global.TextDecoder || TextDecoder;
 
-let settingsModule;
-
-describe("updateModuleBadge", () => {
-  beforeEach(() => {
-    jest.resetModules();
-    localStorage.clear();
-    document.body.innerHTML = `
-      <div>
-        <button class="tab-link" data-tab="wgunlock-settings" id="btn-wg">
-          <span class="tab-badge tab-badge-off" id="tab-badge-wg">Выкл</span>
-        </button>
-        <span id="settings-wg-status-badge"></span>
-        <p id="settings-wg-status-text"></p>
-        <span id="settings-backup-status-badge"></span>
-        <p id="settings-backup-status-text"></p>
-      </div>`;
-    settingsModule = require("../settings");
-  });
-
-  it("shows badge and marks button disabled when disabled = true", () => {
-    expect(typeof settingsModule.__test_updateModuleBadge).toBe("function");
-    settingsModule.__test_updateModuleBadge("wg", true);
-    const btn = document.querySelector(".tab-link");
-    const badge = document.querySelector(".tab-badge");
-    expect(btn).not.toBeNull();
-    expect(badge).not.toBeNull();
-    expect(btn?.classList.contains("tab-disabled")).toBe(true);
-    expect(badge?.textContent).toBe("Выкл");
-    expect(badge?.hasAttribute("hidden")).toBe(false);
-    expect(
-      document.getElementById("settings-wg-status-badge")?.textContent,
-    ).toBe("Выкл");
-    expect(
-      document
-        .getElementById("settings-wg-status-badge")
-        ?.classList.contains("is-disabled"),
-    ).toBe(true);
-    expect(document.getElementById("settings-wg-status-text")?.innerHTML).toBe(
-      "Вкладка <strong>Инструменты</strong> отключена",
-    );
-  });
-
-  it("hides badge and removes disabled class when disabled = false", () => {
-    expect(typeof settingsModule.__test_updateModuleBadge).toBe("function");
-    settingsModule.__test_updateModuleBadge("wg", false);
-    const btn = document.querySelector(".tab-link");
-    const badge = document.querySelector(".tab-badge");
-    expect(btn).not.toBeNull();
-    expect(badge).not.toBeNull();
-    expect(btn?.classList.contains("tab-disabled")).toBe(false);
-    expect(badge?.textContent).toBe("Вкл");
-    expect(badge?.style.display).toBe("none");
-    expect(
-      document.getElementById("settings-wg-status-badge")?.textContent,
-    ).toBe("Вкл");
-    expect(
-      document
-        .getElementById("settings-wg-status-badge")
-        ?.classList.contains("is-disabled"),
-    ).toBe(false);
-    expect(document.getElementById("settings-wg-status-text")?.innerHTML).toBe(
-      "Вкладка <strong>Инструменты</strong> включена",
-    );
-  });
-
-  it("sets accessibility attrs for wg sidebar badge", () => {
-    settingsModule.__test_updateModuleBadge("wg", true);
-    const btn = document.getElementById("btn-wg");
-    const badge = document.getElementById("tab-badge-wg");
-    expect(btn?.dataset.disabled).toBe("1");
-    expect(badge?.getAttribute("aria-label")).toBe("Вкладка отключена");
-    expect(badge?.getAttribute("aria-hidden")).toBe("false");
-    expect(
-      document.getElementById("settings-wg-status-badge")?.textContent,
-    ).toBe("Выкл");
-    expect(
-      document
-        .getElementById("settings-wg-status-badge")
-        ?.classList.contains("is-disabled"),
-    ).toBe(true);
-
-    settingsModule.__test_updateModuleBadge("wg", false);
-    expect(btn?.dataset.disabled).toBe("0");
-    expect(badge?.getAttribute("aria-label")).toBe("Вкладка включена");
-    expect(badge?.getAttribute("aria-hidden")).toBe("true");
-    expect(badge?.style.display).toBe("none");
-    expect(
-      document.getElementById("settings-wg-status-badge")?.textContent,
-    ).toBe("Вкл");
-    expect(
-      document
-        .getElementById("settings-wg-status-badge")
-        ?.classList.contains("is-disabled"),
-    ).toBe(false);
-    expect(document.getElementById("settings-wg-status-text")?.innerHTML).toBe(
-      "Вкладка <strong>Инструменты</strong> включена",
-    );
-  });
-
-  it("updates backup status card without requiring a sidebar tab", () => {
-    settingsModule.__test_updateModuleBadge("backup", true);
-    expect(
-      document.getElementById("settings-backup-status-badge")?.textContent,
-    ).toBe("Выкл");
-    expect(
-      document
-        .getElementById("settings-backup-status-badge")
-        ?.classList.contains("is-disabled"),
-    ).toBe(true);
-    expect(
-      document.getElementById("settings-backup-status-text")?.innerHTML,
-    ).toContain("Backup");
-    expect(
-      document.getElementById("settings-backup-status-text")?.innerHTML,
-    ).not.toContain("Вкладка");
-
-    settingsModule.__test_updateModuleBadge("backup", false);
-    expect(
-      document.getElementById("settings-backup-status-badge")?.textContent,
-    ).toBe("Вкл");
-    expect(
-      document
-        .getElementById("settings-backup-status-badge")
-        ?.classList.contains("is-disabled"),
-    ).toBe(false);
-  });
-
-  it("silently ignores unknown module keys", () => {
-    expect(() =>
-      settingsModule.__test_updateModuleBadge("unknown", true),
-    ).not.toThrow();
-  });
-});
-
-describe("wg disable toggle initializes badge state", () => {
-  beforeEach(() => {
-    jest.resetModules();
-    localStorage.clear();
-    global.window = global.window || {};
-    window.electron = {
-      invoke: jest.fn().mockResolvedValue(false),
-      on: jest.fn(),
-      send: jest.fn(),
-    };
-  });
-
-  it("shows badge as off when stored flag is true", async () => {
-    localStorage.setItem("wgUnlockDisabled", "true");
-    document.body.innerHTML = `
-      <div id="settings-modal">
-        <button class="tab-link" data-tab="wgunlock-settings" id="btn-wg">
-          <span class="tab-badge" id="tab-badge-wg" hidden>Вкл</span>
-        </button>
-        <span id="settings-wg-status-badge"></span>
-        <p id="settings-wg-status-text"></p>
-        <div id="wgunlock-settings">
-          <input id="wg-disable-toggle" type="checkbox" />
-        </div>
-      </div>`;
-    const mod = require("../settings");
-    await mod.initSettings?.();
-    const badge = document.getElementById("tab-badge-wg");
-    const btn = document.getElementById("btn-wg");
-    expect(badge?.hidden).toBe(false);
-    expect(badge?.style.display).toBe("");
-    expect(badge?.textContent).toBe("Выкл");
-    expect(btn?.classList.contains("tab-disabled")).toBe(true);
-    expect(
-      document.getElementById("settings-wg-status-badge")?.textContent,
-    ).toBe("Выкл");
-  });
-});
-
-describe("tools remember last tool setting", () => {
-  beforeEach(() => {
-    jest.resetModules();
-    localStorage.clear();
-    global.window = global.window || {};
-    window.electron = {
-      invoke: jest.fn().mockResolvedValue(false),
-      on: jest.fn(),
-      send: jest.fn(),
-    };
-  });
-
-  it("is disabled by default and persists checkbox changes", async () => {
-    document.body.innerHTML = `
-      <div id="settings-modal">
-        <div id="wgunlock-settings">
-          <input id="wg-disable-toggle" type="checkbox" />
-          <input id="wg-remember-last-tool" type="checkbox" />
-        </div>
-      </div>`;
-    const mod = require("../settings");
-    await mod.initSettings?.();
-
-    const rememberInput = document.getElementById("wg-remember-last-tool");
-    expect(rememberInput?.checked).toBe(false);
-    expect(localStorage.getItem("toolsRememberLastView")).toBeNull();
-
-    rememberInput.checked = true;
-    rememberInput.dispatchEvent(new Event("change"));
-    expect(localStorage.getItem("toolsRememberLastView")).toBe("true");
-  });
-});
-
 describe("web control settings", () => {
   beforeEach(() => {
     jest.resetModules();
@@ -333,50 +127,6 @@ describe("web control settings", () => {
       "web:setEnabled",
       false,
     );
-  });
-});
-
-describe("backup settings inside tools section", () => {
-  beforeEach(() => {
-    jest.resetModules();
-    localStorage.clear();
-    global.window = global.window || {};
-    window.electron = {
-      invoke: jest.fn().mockResolvedValue(false),
-      on: jest.fn(),
-      send: jest.fn(),
-    };
-  });
-
-  it("reads and applies backup toggles inside wgunlock-settings", async () => {
-    localStorage.setItem("backupDisabled", "true");
-    localStorage.setItem("bk_view_mode", JSON.stringify("compact"));
-    localStorage.setItem("bk_log_visible", "false");
-    document.body.innerHTML = `
-      <div id="settings-modal">
-        <button class="tab-link" data-tab="wgunlock-settings" id="btn-wg">
-          <span class="tab-badge" id="tab-badge-wg" hidden>Вкл</span>
-        </button>
-        <div id="wgunlock-settings">
-          <input id="wg-disable-toggle" type="checkbox" />
-          <input id="backup-compact-toggle" type="checkbox" />
-          <input id="backup-log-toggle" type="checkbox" />
-        </div>
-        <span id="settings-wg-status-badge"></span>
-        <p id="settings-wg-status-text"></p>
-        <span id="settings-backup-status-badge"></span>
-        <p id="settings-backup-status-text"></p>
-      </div>`;
-    const mod = require("../settings");
-    await mod.initSettings?.();
-
-    expect(document.getElementById("backup-compact-toggle")?.checked).toBe(
-      true,
-    );
-    expect(document.getElementById("backup-log-toggle")?.checked).toBe(false);
-    expect(
-      document.getElementById("settings-backup-status-badge")?.textContent,
-    ).toBe("Выкл");
   });
 });
 
@@ -1131,7 +881,7 @@ describe("network status setting removal", () => {
       send: jest.fn(),
       ipcRenderer: {
         send: jest.fn(),
-        invoke: jest.fn().mockResolvedValue({ autosend: false }),
+        invoke: jest.fn().mockResolvedValue({}),
       },
       tools: {
         getLocation: jest.fn().mockResolvedValue(null),
@@ -1146,13 +896,14 @@ describe("network status setting removal", () => {
     expect("showNetworkStatus" in config.appearance).toBe(false);
   });
 
-  it("does not export the removed Downloader developer preference", async () => {
+  it("does not export removed module, Backup, or WG preferences", async () => {
     localStorage.setItem("developerDisableDownloaderTab", "true");
     const mod = require("../settings");
     const config = await mod.__test_collectCurrentConfig();
 
-    expect(config?.modules).toBeDefined();
-    expect("downloaderDisabled" in config.modules).toBe(false);
+    expect(config).not.toHaveProperty("modules");
+    expect(config).not.toHaveProperty("backup");
+    expect(config).not.toHaveProperty("wg");
   });
 
   it("exports yt-dlp cookies settings", async () => {
@@ -1269,6 +1020,26 @@ describe("network status setting removal", () => {
     });
 
     expect(localStorage.getItem("developerDisableDownloaderTab")).toBeNull();
+  });
+
+  it("ignores removed Tools and Backup fields from legacy imports", async () => {
+    const mod = require("../settings");
+
+    await mod.__test_applyConfig({
+      modules: { wgUnlockDisabled: true, backupDisabled: true },
+      backup: { viewMode: "compact", logVisible: false },
+      wg: { autosend: true, rememberLastTool: true },
+    });
+
+    expect(localStorage.getItem("wgUnlockDisabled")).toBeNull();
+    expect(localStorage.getItem("backupDisabled")).toBeNull();
+    expect(localStorage.getItem("bk_view_mode")).toBeNull();
+    expect(localStorage.getItem("bk_log_visible")).toBeNull();
+    expect(localStorage.getItem("toolsRememberLastView")).toBeNull();
+    expect(window.electron.ipcRenderer.send).not.toHaveBeenCalledWith(
+      "wg-set-config",
+      expect.anything(),
+    );
   });
 
   it("applies yt-dlp cookies settings", async () => {

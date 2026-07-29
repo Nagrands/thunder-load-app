@@ -352,10 +352,9 @@ export const coreTranslations = {
     "language.en": "English",
     "firstRun.eyebrow": "Первый запуск",
     "firstRun.title": "Добро пожаловать в Thunder",
-    "firstRun.subtitle": "Настройте язык, вкладки и тему перед началом работы.",
+    "firstRun.subtitle": "Настройте язык и тему перед началом работы.",
     "firstRun.stepCounter": "Шаг {current} из {total}",
     "firstRun.steps.language": "Язык",
-    "firstRun.steps.modules": "Модули",
     "firstRun.steps.theme": "Тема",
     "firstRun.steps.summary": "Итог",
     "firstRun.language": "Язык интерфейса",
@@ -364,13 +363,6 @@ export const coreTranslations = {
     "firstRun.languageRuHint":
       "Основной интерфейс и подсказки на русском языке",
     "firstRun.languageEnHint": "English interface for menus, tips, and dialogs",
-    "firstRun.tabs": "Вкладки для работы",
-    "firstRun.tabsSubtitle":
-      "Оставьте только те разделы, которыми будете пользоваться регулярно. Загрузчик включен всегда.",
-    "firstRun.tabs.downloadHint": "Загрузка видео и аудио",
-    "firstRun.tabs.wgHint": "WG Unlock, Hash Check и быстрые инструменты",
-    "firstRun.tabs.backupHint": "Резервные копии и профили внутри Инструментов",
-    "firstRun.required": "Обязательно",
     "firstRun.theme": "Цветовая тема",
     "firstRun.themeSubtitle":
       "Выберите внешний вид приложения. Предпросмотр темы применяется сразу.",
@@ -773,11 +765,9 @@ export const coreTranslations = {
     "language.en": "English",
     "firstRun.eyebrow": "First launch",
     "firstRun.title": "Welcome to Thunder",
-    "firstRun.subtitle":
-      "Choose language, tabs, and theme before getting started.",
+    "firstRun.subtitle": "Choose language and theme before getting started.",
     "firstRun.stepCounter": "Step {current} of {total}",
     "firstRun.steps.language": "Language",
-    "firstRun.steps.modules": "Modules",
     "firstRun.steps.theme": "Theme",
     "firstRun.steps.summary": "Summary",
     "firstRun.language": "Interface language",
@@ -786,13 +776,6 @@ export const coreTranslations = {
     "firstRun.languageRuHint":
       "Russian interface for the main app and guidance text",
     "firstRun.languageEnHint": "English interface for menus, tips, and dialogs",
-    "firstRun.tabs": "Tabs for your workflow",
-    "firstRun.tabsSubtitle":
-      "Keep only the sections you plan to use regularly. Downloader stays enabled.",
-    "firstRun.tabs.downloadHint": "Video and audio downloads",
-    "firstRun.tabs.wgHint": "WG Unlock, hash check, and quick tools",
-    "firstRun.tabs.backupHint": "Backups and profiles inside Tools",
-    "firstRun.required": "Required",
     "firstRun.theme": "Color theme",
     "firstRun.themeSubtitle":
       "Choose how the app looks. Theme preview is applied immediately.",

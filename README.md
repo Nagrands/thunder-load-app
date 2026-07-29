@@ -118,9 +118,9 @@ or use the `*:watch` commands.
 
 ## Configuration
 
-- Choose the downloads folder from Downloader. Settings controls the managed tools directory, language, theme, enabled modules, and Downloader behavior.
+- Choose the downloads folder from Downloader. Settings controls the managed tools directory, language, theme, and Downloader behavior. Tools and Backup are always available.
 - Default data locations remain under the legacy `Thunder Load` folder for compatibility: macOS `~/Library/Application Support/Thunder Load`, Windows `%APPDATA%/Thunder Load`, Linux `~/.config/Thunder Load`.
-- Use the Tools manager in Settings to inspect, update, reinstall, migrate, or reset runtime dependencies. Linux may require `ffmpeg`/`ffprobe` from the system package manager, and compatible tools can also be resolved from `PATH`.
+- Use the dependency manager in Tools to inspect, update, reinstall, migrate, or reset runtime dependencies. Linux may require `ffmpeg`/`ffprobe` from the system package manager, and compatible tools can also be resolved from `PATH`.
 
 ## Documentation
 
