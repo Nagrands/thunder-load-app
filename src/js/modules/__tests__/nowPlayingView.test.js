@@ -840,9 +840,32 @@ describe("Now Playing view", () => {
     expect(
       view.element.querySelector('[data-ui="audio-visualizer"]').hidden,
     ).toBe(false);
+    const visualizerToggle = view.element.querySelector(
+      '.now-playing__dock [data-action="toggle-visualizer-settings"]',
+    );
+    const visualizerPanel = view.element.querySelector(
+      '[data-ui="visualizer-panel"]',
+    );
+    const visualizerDetails = view.element.querySelector(
+      '[data-ui="visualizer-details"]',
+    );
+    expect(visualizerToggle.hidden).toBe(false);
+    expect(visualizerToggle.getAttribute("aria-expanded")).toBe("false");
+    expect(visualizerPanel.hidden).toBe(true);
+    expect(visualizerDetails.hidden).toBe(true);
+
+    visualizerToggle.click();
+    expect(visualizerToggle.getAttribute("aria-expanded")).toBe("true");
+    expect(visualizerPanel.hidden).toBe(false);
+    expect(visualizerDetails.hidden).toBe(false);
     expect(
-      view.element.querySelector('[data-ui="visualizer-panel"]').hidden,
-    ).toBe(false);
+      view.element.classList.contains("is-visualizer-settings-open"),
+    ).toBe(true);
+
+    visualizerToggle.click();
+    expect(visualizerToggle.getAttribute("aria-expanded")).toBe("false");
+    expect(visualizerPanel.hidden).toBe(true);
+    visualizerToggle.click();
     expect(
       view.element.querySelector('[data-visualizer-setting="colorScheme"]')
         .value,
@@ -901,6 +924,9 @@ describe("Now Playing view", () => {
     expect(
       view.element.querySelector('[data-ui="audio-visualizer"]').hidden,
     ).toBe(true);
+    expect(visualizerToggle.hidden).toBe(true);
+    expect(visualizerPanel.hidden).toBe(true);
+    expect(visualizerToggle.getAttribute("aria-expanded")).toBe("false");
     expect(canvasContext.clearRect).toHaveBeenCalled();
     view.dispose();
     expect(source.disconnect).toHaveBeenCalled();

@@ -319,18 +319,6 @@ export function buildNowPlayingMarkup() {
         aria-label="${t("nowPlaying.visualizer.settings")}"
         hidden
       >
-        <button
-          type="button"
-          class="now-playing__visualizer-toggle"
-          data-action="toggle-visualizer-settings"
-          data-i18n-aria="nowPlaying.visualizer.settings"
-          aria-label="${t("nowPlaying.visualizer.settings")}"
-          aria-expanded="false"
-        >
-          <i data-lucide="audio-lines" aria-hidden="true"></i>
-          <span data-i18n="nowPlaying.visualizer.title">${t("nowPlaying.visualizer.title")}</span>
-          <i data-lucide="chevron-up" aria-hidden="true"></i>
-        </button>
         <div class="now-playing__visualizer-summary">
           <label>
             <span data-i18n="nowPlaying.visualizer.type">${t("nowPlaying.visualizer.type")}</span>
@@ -448,6 +436,7 @@ export function buildNowPlayingMarkup() {
             data-ui="volume-percent"
             for="now-playing-volume"
           >100%</output>
+          ${iconButton("toggle-visualizer-settings", "audio-lines", "nowPlaying.visualizer.settings", "now-playing__visualizer-dock-toggle")}
           ${iconButton("fullscreen", "fa-solid fa-expand", "nowPlaying.enterFullscreen", "now-playing__control--fullscreen")}
         </div>
       </section>

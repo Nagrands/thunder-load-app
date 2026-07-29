@@ -81,6 +81,12 @@ export function createNowPlayingView({
     '[data-ui="visualizer-details"]',
   );
   const visualizerStatus = root.querySelector('[data-ui="visualizer-status"]');
+  const visualizerToggle = root.querySelector(
+    '[data-action="toggle-visualizer-settings"]',
+  );
+  visualizerToggle?.setAttribute("aria-expanded", "false");
+  visualizerToggle?.setAttribute("aria-controls", "now-playing-visualizer-panel");
+  visualizerPanel.id = "now-playing-visualizer-panel";
   const sidebar = root.querySelector(".now-playing__sidebar");
   const sidebarZone = root.querySelector(".now-playing__sidebar-reveal-zone");
   const playerTopbar = root.querySelector('[data-ui="player-topbar"]');
@@ -138,6 +144,8 @@ export function createNowPlayingView({
   let visualizerConnectionVersion = 0;
   let visualizerConnectionFailed = false;
   let visualizerMedia = null;
+  let visualizerAvailable = false;
+  let visualizerSettingsExpanded = false;
   let visualizerSettings = { ...DEFAULT_VISUALIZER_SETTINGS };
   let draggedTrackId = "";
   let libraryModel = null;
@@ -443,10 +451,13 @@ export function createNowPlayingView({
       snapshot.hasVideoTrack === false &&
       snapshot.isLoading !== true &&
       !snapshot.error;
+    visualizerAvailable = eligible;
     visualizerLayer.hidden = !eligible;
-    visualizerPanel.hidden = !eligible;
+    visualizerToggle.hidden = !eligible;
+    visualizerPanel.hidden = !eligible || !visualizerSettingsExpanded;
     root.classList.toggle("has-audio-visualizer", eligible);
     if (!eligible) {
+      setVisualizerSettingsExpanded(false);
       visualizerConnectionVersion += 1;
       visualizerConnectionFailed = false;
       visualizerMedia = null;
@@ -493,6 +504,18 @@ export function createNowPlayingView({
       return t("nowPlaying.audioTracks.switchError");
     }
     return error?.message || "";
+  }
+
+  function setVisualizerSettingsExpanded(expanded) {
+    const nextExpanded = Boolean(expanded && visualizerAvailable);
+    const changed = visualizerSettingsExpanded !== nextExpanded;
+    visualizerSettingsExpanded = nextExpanded;
+    visualizerPanel.hidden = !nextExpanded;
+    visualizerDetails.hidden = !nextExpanded;
+    visualizerToggle?.setAttribute("aria-expanded", String(nextExpanded));
+    root.classList.toggle("is-visualizer-settings-open", nextExpanded);
+    if (changed) controlsVisibility.setLocked(nextExpanded);
+    return nextExpanded;
   }
 
   function render(snapshot) {
@@ -1077,12 +1100,8 @@ export function createNowPlayingView({
     }
     if (preferences.handleAction(action)) return true;
     if (action === "toggle-visualizer-settings") {
-      const expanded = visualizerDetails.hidden;
-      visualizerDetails.hidden = !expanded;
-      target.setAttribute("aria-expanded", String(expanded));
-      root.classList.toggle("is-visualizer-settings-open", expanded);
-      controlsVisibility.setLocked(expanded);
-      return true;
+      setVisualizerSettingsExpanded(!visualizerSettingsExpanded);
+      return visualizerSettingsExpanded;
     }
     if (action === "reset-visualizer-settings") {
       return saveVisualizerSettings(DEFAULT_VISUALIZER_SETTINGS);
