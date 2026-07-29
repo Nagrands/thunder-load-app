@@ -2,7 +2,7 @@
 
 - Автосборка списка: `npm run test-check:sync-tests`
 - Найдено файлов: 142
-- Найдено тест-кейсов (test/it): 1249
+- Найдено тест-кейсов (test/it): 1250
 
 <!-- AUTO-JEST-TESTS:START -->
 
@@ -850,7 +850,7 @@
 - [ ] accepts credential-free HTTP(S) URLs
 - [ ] marks HLS manifests for the HLS playback adapter
 
-### `src/js/modules/__tests__/nowPlayingPlaybackController.test.js` (41)
+### `src/js/modules/__tests__/nowPlayingPlaybackController.test.js` (42)
 - [ ] reports the buffered range without mutating playback position
 - [ ] reports absolute time and buffer for a restarted HLS timeline
 - [ ] selects a track, swaps the reusable media layer and starts playback
@@ -874,6 +874,7 @@
 - [ ] persists selectedTrackId and settings but not playback position
 - [ ] restores a V2 active playlist without taking ownership of library CRUD
 - [ ] updates its queue from a library model state
+- [ ] keeps the current playback while switching to a playlist without it
 - [ ] pauses while hidden and resumes only when it was playing
 - [ ] does not auto-resume after an explicit pause while suspended
 - [ ] keeps the media session active on pause and reactivates it on play
@@ -963,7 +964,7 @@
 - [ ] loads a video poster eagerly for the current card and library mini-player
 - [ ] keeps the sidebar fallback visible when a generated poster fails
 - [ ] searches the active playlist, composes filters, and renders no-results
-- [ ] switches playlists from the library and sidebar without autoplay
+- [ ] switches playlists from the library and sidebar without interrupting playback
 - [ ] creates a playlist with the accessible library dialog
 - [ ] imports a single YouTube video from the library dialog
 

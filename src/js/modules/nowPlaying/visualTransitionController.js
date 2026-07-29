@@ -74,9 +74,10 @@ export function createVisualTransitionController({
 
   function onArtworkError(event) {
     const image = event.currentTarget;
-    if (image.dataset.visualTrackId !== visualTrackId) return;
     image.hidden = true;
     image.removeAttribute("src");
+    image.classList.remove("is-loaded");
+    if (image.dataset.visualTrackId !== visualTrackId) return;
     setArtworkVisibility(false);
     commitTransition(Number(image.dataset.layerIndex), visualTrackId);
   }
@@ -127,7 +128,7 @@ export function createVisualTransitionController({
       commitTransition(nextIndex, track.id);
       return;
     }
-    image.hidden = false;
+    image.hidden = true;
     image.src = track.artworkUrl;
     if (isReducedMotion()) {
       image.hidden = true;
@@ -136,6 +137,7 @@ export function createVisualTransitionController({
       return;
     }
     if (image.complete && image.naturalWidth > 0) {
+      image.hidden = false;
       setArtworkVisibility(true);
       commitTransition(nextIndex, track.id, { artworkReady: true });
     }

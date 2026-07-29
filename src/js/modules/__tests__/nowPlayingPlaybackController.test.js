@@ -837,6 +837,43 @@ describe("Now Playing playback controller", () => {
     expect(controller.currentTrack.id).toBe("two");
   });
 
+  test("keeps the current playback while switching to a playlist without it", async () => {
+    const { controller, mediaLayers } = createController();
+    controller.setQueue(tracks);
+    await controller.selectTrack("one");
+    mediaLayers.forEach((media) => media.pause.mockClear());
+
+    controller.setLibraryState(
+      {
+        version: 3,
+        catalog: { tracks },
+        playlists: [
+          {
+            id: "next-playlist",
+            title: "Next playlist",
+            trackIds: ["two", "three"],
+          },
+        ],
+        activePlaylistId: "next-playlist",
+      },
+      { selectedTrackId: "one", preservePlayback: true },
+    );
+
+    expect(controller.queue.map((track) => track.id)).toEqual([
+      "one",
+      "two",
+      "three",
+    ]);
+    expect(controller.currentTrack.id).toBe("one");
+    expect(controller.isPlaying).toBe(true);
+    expect(mediaLayers.every((media) => media.pause.mock.calls.length === 0)).toBe(
+      true,
+    );
+
+    await controller.next();
+    expect(controller.currentTrack.id).toBe("two");
+  });
+
   test("pauses while hidden and resumes only when it was playing", async () => {
     const { controller } = createController();
     controller.setQueue(tracks);

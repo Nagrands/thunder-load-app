@@ -74,7 +74,7 @@ function iconButton(action, icon, labelKey, extraClass = "") {
 function artworkLayer(index) {
   return `
     <div class="now-playing__artwork-layer" data-artwork-layer="${index}">
-      <img class="now-playing__artwork" alt="" />
+      <img class="now-playing__artwork" alt="" hidden />
     </div>
   `;
 }
@@ -421,14 +421,10 @@ export function buildNowPlayingMarkup() {
             step="0.01"
             value="1"
             data-i18n-aria="nowPlaying.volume"
-            data-i18n-title="nowPlaying.volume"
-            data-bs-toggle="tooltip"
-            data-bs-placement="top"
             ${shortcutAttributes([
               PLAYER_COMMANDS.VOLUME_DOWN,
               PLAYER_COMMANDS.VOLUME_UP,
             ])}
-            title="${t("nowPlaying.volume")}"
             aria-label="${t("nowPlaying.volume")}"
           />
           <output

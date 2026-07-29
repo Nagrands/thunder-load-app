@@ -589,7 +589,7 @@ body.is-now-playing-active {
 }
 
 .now-playing__artwork {
-  display: block;
+  display: none;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -597,6 +597,7 @@ body.is-now-playing-active {
   transition: opacity 180ms ease;
 
   &.is-loaded {
+    display: block;
     opacity: 1;
   }
 }
@@ -1259,6 +1260,10 @@ body.is-now-playing-active {
   box-shadow: inset 0 0 0 1px rgba(var(--thunder-electric-rgb), 0.16);
 }
 
+.now-playing__visualizer-dock-toggle[hidden] {
+  display: none;
+}
+
 .now-playing__volume-percent {
   min-width: 38px;
   color: rgba(224, 237, 255, 0.72);
@@ -1484,8 +1489,8 @@ body.low-effects .now-playing {
 }
 
 .now-playing.is-volume-feedback-visible .now-playing__volume-percent,
-.now-playing__volume:hover .now-playing__volume-percent,
-.now-playing__volume:focus-within .now-playing__volume-percent {
+.now-playing__volume-range:hover + .now-playing__volume-percent,
+.now-playing__volume-range:focus-visible + .now-playing__volume-percent {
   opacity: 1;
   transform: translateY(0);
 }
@@ -3404,7 +3409,12 @@ body.is-mac {
 
 .now-playing__generated-poster {
   z-index: 1;
+  display: none;
   object-fit: cover;
+}
+
+.now-playing.has-generated-poster .now-playing__generated-poster {
+  display: block;
 }
 
 .now-playing__artwork-fallback {
@@ -3830,6 +3840,7 @@ body.is-mac {
   color: rgba(232, 243, 255, 0.86);
   background: rgba(3, 11, 21, 0.92);
   box-shadow: 0 8px 20px rgba(0, 2, 8, 0.3);
+  pointer-events: none;
   text-align: center;
 }
 

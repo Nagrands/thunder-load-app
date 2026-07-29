@@ -196,13 +196,27 @@ export class PlaybackController {
     this.listeners.forEach((listener) => listener(snapshot));
   }
 
-  setQueue(tracks = [], { selectedTrackId = null } = {}) {
-    this.clearSeekRestart();
-    this.selectionVersion += 1;
-    this.isLoading = false;
-    this.loadingTrackId = null;
+  setQueue(
+    tracks = [],
+    { selectedTrackId = null, preservePlayback = false } = {},
+  ) {
+    const currentTrack = this.currentTrack;
+    const nextQueue = Array.isArray(tracks) ? [...tracks] : [];
+    if (
+      preservePlayback &&
+      currentTrack &&
+      !nextQueue.some((track) => track.id === currentTrack.id)
+    ) {
+      nextQueue.unshift(currentTrack);
+    }
+    if (!preservePlayback) {
+      this.clearSeekRestart();
+      this.selectionVersion += 1;
+      this.isLoading = false;
+      this.loadingTrackId = null;
+    }
     const previousId = selectedTrackId || this.currentTrack?.id;
-    this.queue = Array.isArray(tracks) ? [...tracks] : [];
+    this.queue = nextQueue;
     this.queueSnapshot = this.queue.map((track) => ({ ...track }));
     this.currentIndex = previousId
       ? this.queue.findIndex((track) => track.id === previousId)
@@ -267,13 +281,17 @@ export class PlaybackController {
     };
   }
 
-  setLibraryState(state, { selectedTrackId = null } = {}) {
+  setLibraryState(
+    state,
+    { selectedTrackId = null, preservePlayback = false } = {},
+  ) {
     this.libraryState = normalizeMediaLibraryState(state);
     this.setQueue(getActiveTracksFromState(this.libraryState), {
       selectedTrackId:
         selectedTrackId ||
         this.currentTrack?.id ||
         this.libraryState.selectedTrackId,
+      preservePlayback,
     });
   }
 

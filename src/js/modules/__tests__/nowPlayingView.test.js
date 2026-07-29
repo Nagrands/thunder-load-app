@@ -293,6 +293,9 @@ describe("Now Playing view", () => {
     view.element.querySelector('[data-action="add-folder"]').click();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
+    expect(view.element.querySelector(".now-playing__status").textContent).toBe(
+      "",
+    );
     expect(dialog.dataset.mode).toBe("folderPlaylist");
     expect(
       dialog.querySelector('[data-ui="player-form-modal-cancel"]').textContent,
@@ -536,6 +539,9 @@ describe("Now Playing view", () => {
     expect(progress.getAttribute("aria-label")).toBe("nowPlaying.seek");
     expect(percent.textContent).toBe("50%");
     expect(range.getAttribute("aria-valuetext")).toBe("50%");
+    expect(range.hasAttribute("data-bs-toggle")).toBe(false);
+    expect(range.hasAttribute("title")).toBe(false);
+    expect(range.getAttribute("aria-label")).toBe("nowPlaying.volume");
     expect(mute.getAttribute("aria-label")).toBe("nowPlaying.mute");
 
     const wheelUp = new WheelEvent("wheel", {
@@ -991,6 +997,8 @@ describe("Now Playing view", () => {
       .querySelector('.now-playing__track[data-track-id="video-visualizer"]')
       .dispatchEvent(new MouseEvent("dblclick", { bubbles: true }));
     await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(visualizerToggle.hidden).toBe(true);
+    expect(visualizerPanel.hidden).toBe(true);
     const activeVideo = view.element.querySelector(
       '.now-playing__video[data-track-id="video-visualizer"]',
     );
@@ -1558,7 +1566,9 @@ describe("Now Playing view", () => {
     const firstArtwork = view.element.querySelector(
       '[data-artwork-layer="0"] .now-playing__artwork',
     );
+    expect(firstArtwork.hidden).toBe(true);
     firstArtwork.dispatchEvent(new Event("load"));
+    expect(firstArtwork.hidden).toBe(false);
     expect(
       view.element.querySelector(
         ".now-playing__metadata-slot.is-active .now-playing__track-title",
@@ -1579,7 +1589,9 @@ describe("Now Playing view", () => {
     const secondArtwork = Array.from(
       view.element.querySelectorAll(".now-playing__artwork"),
     ).find((image) => image.dataset.visualTrackId === "second");
+    expect(secondArtwork.hidden).toBe(true);
     secondArtwork.dispatchEvent(new Event("load"));
+    expect(secondArtwork.hidden).toBe(false);
     expect(
       view.element.querySelector(
         ".now-playing__metadata-slot.is-active .now-playing__track-title",
@@ -1667,6 +1679,8 @@ describe("Now Playing view", () => {
     );
 
     artwork.dispatchEvent(new Event("error"));
+    const miniArtwork = view.element.querySelector('[data-ui="mini-artwork"]');
+    miniArtwork.dispatchEvent(new Event("error"));
 
     const activeMetadata = view.element.querySelector(
       ".now-playing__metadata-slot.is-active",
@@ -1674,6 +1688,13 @@ describe("Now Playing view", () => {
     expect(artwork.hidden).toBe(true);
     expect(artwork.hasAttribute("src")).toBe(false);
     expect(artwork.classList.contains("is-loaded")).toBe(false);
+    expect(miniArtwork.hidden).toBe(true);
+    expect(miniArtwork.hasAttribute("src")).toBe(false);
+    expect(
+      miniArtwork
+        .closest(".player-library__mini-artwork")
+        .classList.contains("has-artwork"),
+    ).toBe(false);
     expect(
       view.element.querySelector(".now-playing__artwork-stack").hidden,
     ).toBe(false);
@@ -2625,7 +2646,7 @@ describe("Now Playing view", () => {
     view.dispose();
   });
 
-  test("switches playlists from the library and sidebar without autoplay", async () => {
+  test("switches playlists from the library and sidebar without interrupting playback", async () => {
     const secondTrack = {
       ...sampleTrack,
       id: "second",
@@ -2676,21 +2697,20 @@ describe("Now Playing view", () => {
       .click();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(HTMLMediaElement.prototype.pause).toHaveBeenCalled();
+    expect(HTMLMediaElement.prototype.pause).not.toHaveBeenCalled();
     expect(HTMLMediaElement.prototype.play).not.toHaveBeenCalled();
     expect(
-      view.element.querySelector(".now-playing__track.is-current").dataset
-        .trackId,
-    ).toBe("second");
+      view.element.querySelector(".now-playing__track.is-current"),
+    ).toBeNull();
+    expect(
+      [...view.element.querySelectorAll(".now-playing__track")].map(
+        (row) => row.dataset.trackId,
+      ),
+    ).toEqual(["second"]);
     expect(
       view.element.querySelector('[data-ui="brand-label"]').textContent,
     ).toBe("nowPlaying.label");
 
-    play.click();
-    await Promise.resolve();
-    expect(HTMLMediaElement.prototype.play).toHaveBeenCalledTimes(1);
-    HTMLMediaElement.prototype.play.mockClear();
-    HTMLMediaElement.prototype.pause.mockClear();
     view.element.querySelector('[data-action="show-player"]').click();
     const sidebarSwitcher = view.element.querySelector(
       '[data-ui="sidebar-playlist-switcher"]',
@@ -2709,7 +2729,7 @@ describe("Now Playing view", () => {
     sidebarPlaylistMenu.querySelector('[data-playlist-id="calm"]').click();
     await new Promise((resolve) => setTimeout(resolve, 260));
 
-    expect(HTMLMediaElement.prototype.pause).toHaveBeenCalled();
+    expect(HTMLMediaElement.prototype.pause).not.toHaveBeenCalled();
     expect(HTMLMediaElement.prototype.play).not.toHaveBeenCalled();
     expect(sidebarSwitcher.dataset.playlistId).toBe("calm");
     expect(

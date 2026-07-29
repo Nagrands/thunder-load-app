@@ -140,6 +140,19 @@ function createPlaylistCard(playlist, tracks, active) {
     const image = document.createElement("img");
     image.src = firstArtwork;
     image.alt = "";
+    image.addEventListener(
+      "error",
+      () => {
+        image.replaceWith(
+          createIcon(
+            isSystemPlaylist(playlist)
+              ? "fa-solid fa-photo-film"
+              : "fa-solid fa-list",
+          ),
+        );
+      },
+      { once: true },
+    );
     artwork.appendChild(image);
   } else {
     artwork.appendChild(
@@ -242,6 +255,19 @@ function createTrackRow(track, index, playlist, snapshot) {
     const image = document.createElement("img");
     image.src = track.artworkUrl;
     image.alt = "";
+    image.addEventListener(
+      "error",
+      () => {
+        image.replaceWith(
+          createIcon(
+            track.kind === "video"
+              ? "fa-solid fa-film"
+              : "fa-solid fa-music",
+          ),
+        );
+      },
+      { once: true },
+    );
     artwork.appendChild(image);
   } else {
     artwork.appendChild(
@@ -371,6 +397,7 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
   let miniTrackId = null;
   let transientPosterTrackId = "";
   let transientPosterUrl = "";
+  const failedArtworkSources = new Set();
 
   function getPlayerDialog() {
     if (playerDialog) return playerDialog;
@@ -734,10 +761,10 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
   }
 
   function getArtworkSource(track) {
-    return (
+    const source =
       track?.artworkUrl ||
-      (track?.id === transientPosterTrackId ? transientPosterUrl : "")
-    );
+      (track?.id === transientPosterTrackId ? transientPosterUrl : "");
+    return failedArtworkSources.has(source) ? "" : source;
   }
 
   function renderMiniArtwork(track) {
@@ -748,6 +775,25 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
     image.hidden = !source;
     artwork.classList.toggle("has-artwork", Boolean(source));
   }
+
+  function handleArtworkError(event) {
+    const image = event.currentTarget;
+    const source = image.getAttribute("src") || "";
+    if (source) failedArtworkSources.add(source);
+    image.hidden = true;
+    image.removeAttribute("src");
+    if (image.matches('[data-ui="mini-artwork"]')) {
+      image
+        .closest(".player-library__mini-artwork")
+        ?.classList.remove("has-artwork");
+    } else {
+      libraryBackdrop?.classList.remove("has-cover");
+    }
+  }
+
+  const miniArtwork = root.querySelector('[data-ui="mini-artwork"]');
+  miniArtwork?.addEventListener("error", handleArtworkError);
+  libraryBackdropCover?.addEventListener("error", handleArtworkError);
 
   function renderLibraryBackdrop(snapshot = latestSnapshot) {
     if (!libraryBackdrop || !libraryBackdropCover) return;
@@ -847,6 +893,8 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
     dispose() {
       closeDialog();
       playerDialog?.dispose();
+      miniArtwork?.removeEventListener("error", handleArtworkError);
+      libraryBackdropCover?.removeEventListener("error", handleArtworkError);
       playerDialog = null;
     },
     getActivePlaylist: () => getActivePlaylist(latestState),

@@ -150,6 +150,7 @@ export function createNowPlayingView({
   let visualizerSettings = { ...DEFAULT_VISUALIZER_SETTINGS };
   let draggedTrackId = "";
   let libraryModel = null;
+  let visiblePlaylistQueue = [];
   const renderPlaylist = createPlaylistRenderer(playlist);
   const controlsVisibility = createControlsVisibility({
     root,
@@ -448,6 +449,7 @@ export function createNowPlayingView({
   function syncVisualizer(snapshot) {
     const eligible =
       Boolean(snapshot.currentTrack) &&
+      snapshot.currentTrack.kind === "audio" &&
       snapshot.mediaReady === true &&
       snapshot.hasVideoTrack === false &&
       snapshot.isLoading !== true &&
@@ -521,12 +523,19 @@ export function createNowPlayingView({
 
   function render(snapshot) {
     latestSnapshot = snapshot;
+    const playlistSnapshot = {
+      ...snapshot,
+      queue: visiblePlaylistQueue,
+      currentIndex: visiblePlaylistQueue.findIndex(
+        (track) => track.id === snapshot.currentTrack?.id,
+      ),
+    };
     mediaSession.sync(snapshot);
-    const playlistIconsChanged = renderPlaylist(snapshot);
+    const playlistIconsChanged = renderPlaylist(playlistSnapshot);
     visualTransitions.update(snapshot);
     syncVisualizer(snapshot);
     updateControls(snapshot);
-    presentation.update(snapshot);
+    presentation.update(playlistSnapshot);
     audioTracks?.sync(snapshot);
     timelinePreview.update(snapshot);
     if (playlistIconsChanged) presentation.refreshIcons();
@@ -535,9 +544,9 @@ export function createNowPlayingView({
       controlTooltipKey = nextControlTooltipKey;
       initTooltips(dock);
     }
-    count.textContent = String(snapshot.queue.length);
+    count.textContent = String(visiblePlaylistQueue.length);
     root.classList.toggle("is-empty", snapshot.queue.length === 0);
-    playlist.hidden = snapshot.queue.length === 0;
+    playlist.hidden = visiblePlaylistQueue.length === 0;
     errorPanel.hidden =
       !snapshot.error || root.classList.contains("is-library-view");
     errorPanel.classList.toggle("is-visible", !!snapshot.error);
@@ -663,7 +672,6 @@ export function createNowPlayingView({
   }
 
   async function importSource(source) {
-    status.textContent = t("nowPlaying.importing");
     try {
       const previousIds = new Set(provider.tracks.map((track) => track.id));
       const imported = await provider.importSource(source);
@@ -690,14 +698,16 @@ export function createNowPlayingView({
           skipped: warningCount,
         });
         status.textContent = t("nowPlaying.playlists.youtubeSkipped");
-      } else if (newlyAddedIds.length) {
-        showPlayerToast(
-          source === "folder"
-            ? "nowPlaying.toast.folderAdded"
-            : "nowPlaying.toast.filesAdded",
-          "success",
-          { count: newlyAddedIds.length },
-        );
+      } else {
+        if (newlyAddedIds.length) {
+          showPlayerToast(
+            source === "folder"
+              ? "nowPlaying.toast.folderAdded"
+              : "nowPlaying.toast.filesAdded",
+            "success",
+            { count: newlyAddedIds.length },
+          );
+        }
         status.textContent = "";
       }
       if (
@@ -801,11 +811,16 @@ export function createNowPlayingView({
     }
   }
 
-  function syncLibraryQueue({ selectedTrackId = null } = {}) {
+  function syncLibraryQueue({
+    selectedTrackId = null,
+    preservePlayback = false,
+  } = {}) {
     if (!libraryModel) return;
+    visiblePlaylistQueue = libraryModel.getActiveTracks();
     controller.setLibraryState(libraryModel.getState(), {
       selectedTrackId:
         selectedTrackId || controller.currentTrack?.id || undefined,
+      preservePlayback,
     });
     libraryView.render(libraryModel.getState(), latestSnapshot);
     initTooltips(root);
@@ -1680,19 +1695,10 @@ export function createNowPlayingView({
   async function selectPlaylist(playlistId) {
     const previousTrack = controller.currentTrack;
     if (!libraryModel.setActivePlaylist(playlistId)) return false;
-    const nextTracks = libraryModel.getActiveTracks();
-    const selectedTrackId = nextTracks.some(
-      (track) => track.id === previousTrack?.id,
-    )
-      ? previousTrack.id
-      : nextTracks[0]?.id;
-    if (previousTrack && previousTrack.id !== selectedTrackId) {
-      controller.pause();
-    }
-    syncLibraryQueue({ selectedTrackId });
-    if (selectedTrackId && previousTrack?.id !== selectedTrackId) {
-      await controller.selectTrack(selectedTrackId, { autoplay: false });
-    }
+    syncLibraryQueue({
+      selectedTrackId: previousTrack?.id,
+      preservePlayback: Boolean(previousTrack),
+    });
     return true;
   }
 
@@ -1749,6 +1755,7 @@ export function createNowPlayingView({
       renderVisualizerSettings();
       libraryModel = createMediaLibraryModel(state);
       const libraryState = libraryModel.getState();
+      visiblePlaylistQueue = libraryModel.getActiveTracks();
       provider.restore({
         tracks: libraryState.catalog.tracks.filter(
           (track) => track.providerId === "local",
