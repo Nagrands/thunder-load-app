@@ -1,6 +1,7 @@
 const mockExposeInMainWorld = jest.fn();
 const mockInvoke = jest.fn();
 const mockSend = jest.fn();
+const mockGetPathForFile = jest.fn();
 
 jest.mock("electron", () => ({
   contextBridge: { exposeInMainWorld: mockExposeInMainWorld },
@@ -12,7 +13,7 @@ jest.mock("electron", () => ({
     removeAllListeners: jest.fn(),
     send: mockSend,
   },
-  webUtils: { getPathForFile: jest.fn() },
+  webUtils: { getPathForFile: mockGetPathForFile },
 }));
 
 describe("preload Now Playing API", () => {
@@ -21,6 +22,7 @@ describe("preload Now Playing API", () => {
     mockExposeInMainWorld.mockClear();
     mockInvoke.mockClear();
     mockSend.mockClear();
+    mockGetPathForFile.mockReset();
     require("../preload");
   });
 
@@ -77,5 +79,19 @@ describe("preload Now Playing API", () => {
       "now-playing:cancel-timeline-preview",
       "preview-1",
     );
+  });
+
+  test("resolves dropped media file paths through Electron webUtils", () => {
+    const api = mockExposeInMainWorld.mock.calls[0][1];
+    const file = { name: "demo.mp4" };
+    mockGetPathForFile.mockReturnValue("/media/demo.mp4");
+
+    expect(api.nowPlaying.getDroppedFilePath(file)).toBe("/media/demo.mp4");
+    expect(mockGetPathForFile).toHaveBeenCalledWith(file);
+
+    mockGetPathForFile.mockImplementationOnce(() => {
+      throw new Error("unavailable");
+    });
+    expect(api.nowPlaying.getDroppedFilePath(file)).toBe("");
   });
 });

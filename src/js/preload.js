@@ -382,6 +382,7 @@ try {
    * @property {{
    *   importFiles: () => Promise<any>,
    *   importFolder: () => Promise<any>,
+   *   getDroppedFilePath: (file: File) => string,
    *   getState: () => Promise<any>,
    *   setState: (state: any) => Promise<any>,
    * }} nowPlaying
@@ -489,6 +490,13 @@ try {
       importFiles: () => safeInvoke("now-playing:import-files"),
       importFolder: () => safeInvoke("now-playing:import-folder"),
       importPaths: (paths) => safeInvoke("now-playing:import-paths", paths),
+      getDroppedFilePath: (file) => {
+        try {
+          return webUtils.getPathForFile(file);
+        } catch {
+          return "";
+        }
+      },
       analyzeYouTubeVideo: (url, options = {}) =>
         safeInvoke("now-playing:analyze-youtube-video", url, options),
       importYouTubeVideo: (url, qualitySelection = null) =>

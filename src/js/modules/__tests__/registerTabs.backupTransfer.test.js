@@ -15,6 +15,7 @@ describe("registerTabs backup transfer", () => {
   let initDownloaderLivePreviewMock;
   let applyI18nMock;
   let registerTabs;
+  let tabsRegistration;
   let setLazyModuleLoaders;
   let shortcutActions;
 
@@ -41,6 +42,7 @@ describe("registerTabs backup transfer", () => {
       onShow: jest.fn(),
       onHide: jest.fn(),
       dispose: jest.fn(),
+      importPaths: jest.fn(async () => true),
     };
     createNowPlayingViewMock = jest.fn(({ element }) => {
       nowPlayingViewInstance.element = element;
@@ -60,6 +62,11 @@ describe("registerTabs backup transfer", () => {
     window.electron = {
       ipcRenderer: {
         invoke: jest.fn(async () => null),
+      },
+      nowPlaying: {
+        getDroppedFilePath: jest.fn((file) => file?.path || ""),
+        onOpenFiles: jest.fn(),
+        notifyOpenFilesReady: jest.fn(),
       },
     };
 
@@ -107,10 +114,15 @@ describe("registerTabs backup transfer", () => {
       }),
     }));
 
+    let registerTabsModule;
     ({
       __test_setLazyModuleLoaders: setLazyModuleLoaders,
-      registerTabs,
+      registerTabs: registerTabsModule,
     } = require("../app/registerTabs.js"));
+    registerTabs = async (...args) => {
+      tabsRegistration = await registerTabsModule(...args);
+      return tabsRegistration;
+    };
     setLazyModuleLoaders({
       loadDownloaderToolsStatusModule: () =>
         Promise.resolve({
@@ -123,6 +135,11 @@ describe("registerTabs backup transfer", () => {
       loadNowPlayingViewModule: () =>
         Promise.resolve({ createNowPlayingView: createNowPlayingViewMock }),
     });
+  });
+
+  afterEach(() => {
+    tabsRegistration?.dispose();
+    tabsRegistration = null;
   });
 
   test("registers Download, Tools, Products, and Now Playing tabs", async () => {
@@ -291,5 +308,98 @@ describe("registerTabs backup transfer", () => {
     await shortcutActions.get("player.open")();
 
     expect(createNowPlayingViewMock).toHaveBeenCalledTimes(1);
+  });
+
+  test("shows media drop feedback and hides it when the drag leaves", async () => {
+    getDefaultTabMock.mockResolvedValueOnce("download");
+    const registration = await registerTabs(
+      document.getElementById("main-view"),
+    );
+    const mainView = document.getElementById("main-view");
+    const overlay = document.querySelector(
+      '[data-ui="media-file-drop-overlay"]',
+    );
+    const dataTransfer = {
+      files: [],
+      types: ["Files"],
+      dropEffect: "",
+    };
+    const dragEnter = new Event("dragenter", {
+      bubbles: true,
+      cancelable: true,
+    });
+    Object.defineProperty(dragEnter, "dataTransfer", { value: dataTransfer });
+
+    mainView.dispatchEvent(dragEnter);
+
+    expect(dragEnter.defaultPrevented).toBe(true);
+    expect(overlay.hidden).toBe(false);
+    expect(overlay.getAttribute("aria-hidden")).toBe("false");
+    expect(mainView.classList.contains("is-media-file-dragover")).toBe(true);
+
+    const dragLeave = new Event("dragleave", {
+      bubbles: true,
+      cancelable: true,
+    });
+    Object.defineProperty(dragLeave, "dataTransfer", { value: dataTransfer });
+    mainView.dispatchEvent(dragLeave);
+
+    expect(overlay.hidden).toBe(true);
+    expect(mainView.classList.contains("is-media-file-dragover")).toBe(false);
+
+    registration.dispose();
+    expect(overlay.isConnected).toBe(false);
+  });
+
+  test("opens Player and imports supported dropped media files", async () => {
+    getDefaultTabMock.mockResolvedValueOnce("download");
+    await registerTabs(document.getElementById("main-view"));
+    const mainView = document.getElementById("main-view");
+    const files = [
+      { name: "Song.MP3", path: "/media/Song.MP3" },
+      { name: "movie.mkv", path: "/media/movie.mkv" },
+      { name: "notes.txt", path: "/media/notes.txt" },
+      { name: "duplicate.mkv", path: "/media/movie.mkv" },
+    ];
+    const drop = new Event("drop", { bubbles: true, cancelable: true });
+    Object.defineProperty(drop, "dataTransfer", {
+      value: { files, types: ["Files"], dropEffect: "" },
+    });
+
+    mainView.dispatchEvent(drop);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(drop.defaultPrevented).toBe(true);
+    expect(activateTabMock).toHaveBeenCalledWith("now-playing");
+    expect(createNowPlayingViewMock).toHaveBeenCalledTimes(1);
+    expect(window.electron.nowPlaying.getDroppedFilePath).toHaveBeenCalledTimes(
+      3,
+    );
+    expect(nowPlayingViewInstance.importPaths).toHaveBeenCalledWith(
+      ["/media/Song.MP3", "/media/movie.mkv"],
+      { autoplay: true },
+    );
+  });
+
+  test("does not open Player for unsupported dropped files", async () => {
+    getDefaultTabMock.mockResolvedValueOnce("download");
+    await registerTabs(document.getElementById("main-view"));
+    activateTabMock.mockClear();
+    const mainView = document.getElementById("main-view");
+    const drop = new Event("drop", { bubbles: true, cancelable: true });
+    Object.defineProperty(drop, "dataTransfer", {
+      value: {
+        files: [{ name: "notes.txt", path: "/media/notes.txt" }],
+        types: ["Files"],
+        dropEffect: "",
+      },
+    });
+
+    mainView.dispatchEvent(drop);
+    await Promise.resolve();
+
+    expect(drop.defaultPrevented).toBe(true);
+    expect(activateTabMock).not.toHaveBeenCalled();
+    expect(createNowPlayingViewMock).not.toHaveBeenCalled();
   });
 });

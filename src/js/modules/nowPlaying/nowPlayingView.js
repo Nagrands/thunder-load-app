@@ -1518,6 +1518,33 @@ export function createNowPlayingView({
     void controller.selectTrack(row.dataset.trackId);
   }
 
+  function onPlaybackKeydown(event) {
+    if (
+      event.defaultPrevented ||
+      event.repeat ||
+      event.key !== " " ||
+      event.altKey ||
+      event.ctrlKey ||
+      event.metaKey ||
+      event.shiftKey ||
+      !active ||
+      !controller.currentTrack
+    ) {
+      return;
+    }
+    const target = event.target;
+    if (
+      target instanceof Element &&
+      target.closest(
+        "button, input, select, textarea, a, [contenteditable='true'], [role='button'], [role='option'], [role='menuitem'], [role='dialog']",
+      )
+    ) {
+      return;
+    }
+    event.preventDefault();
+    void executeCommand(PLAYER_COMMANDS.TOGGLE_PLAYBACK);
+  }
+
   function onInput(event) {
     const visualizerControl = event.target.closest("[data-visualizer-setting]");
     if (
@@ -1564,9 +1591,15 @@ export function createNowPlayingView({
     const volumeTarget = event.target.closest(
       '[data-action="volume"], [data-action="mute"], [data-ui="volume-percent"]',
     );
+    const blockedTarget = event.target.closest(
+      "input:not([data-action='volume']), select, textarea, [contenteditable='true'], .now-playing__sidebar, .now-playing__player-menu, .now-playing__visualizer-panel, .now-playing__audio-menu",
+    );
     if (
-      !volumeTarget ||
-      !root.contains(volumeTarget) ||
+      !active ||
+      !controller.currentTrack ||
+      !root.contains(event.target) ||
+      (!volumeTarget &&
+        (root.classList.contains("is-library-view") || blockedTarget)) ||
       event.ctrlKey ||
       event.deltaY === 0 ||
       Math.abs(event.deltaX) > Math.abs(event.deltaY)
@@ -1727,6 +1760,7 @@ export function createNowPlayingView({
 
   root.addEventListener("click", onClick);
   root.addEventListener("keydown", onKeydown);
+  window.addEventListener("keydown", onPlaybackKeydown);
   root.addEventListener("input", onInput);
   root.addEventListener("change", onChange);
   root.addEventListener("wheel", onWheel, { passive: false });
@@ -1861,6 +1895,7 @@ export function createNowPlayingView({
       if (persistenceTimer !== null) clearTimeout(persistenceTimer);
       root.removeEventListener("click", onClick);
       root.removeEventListener("keydown", onKeydown);
+      window.removeEventListener("keydown", onPlaybackKeydown);
       root.removeEventListener("input", onInput);
       root.removeEventListener("change", onChange);
       root.removeEventListener("wheel", onWheel);

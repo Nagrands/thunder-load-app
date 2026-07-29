@@ -21,6 +21,166 @@ const GLOBAL_SELECTOR = [
   "#context-menu",
 ].join(",");
 
+const DROPPED_MEDIA_EXTENSIONS = new Set([
+  "aac",
+  "avi",
+  "flac",
+  "m4a",
+  "m4v",
+  "mkv",
+  "mov",
+  "mp3",
+  "mp4",
+  "mpeg",
+  "mpg",
+  "oga",
+  "ogg",
+  "opus",
+  "wav",
+  "weba",
+  "webm",
+]);
+
+function getFileExtension(value) {
+  const name = String(value || "")
+    .split(/[\\/]/)
+    .pop();
+  const separator = name.lastIndexOf(".");
+  return separator > 0 ? name.slice(separator + 1).toLowerCase() : "";
+}
+
+function isSupportedDroppedMedia(value) {
+  return DROPPED_MEDIA_EXTENSIONS.has(getFileExtension(value));
+}
+
+function hasFileDrop(dataTransfer) {
+  return (
+    Array.from(dataTransfer?.types || []).includes("Files") ||
+    Array.from(dataTransfer?.files || []).length > 0
+  );
+}
+
+function createMediaDropOverlay() {
+  const overlay = document.createElement("div");
+  overlay.className = "media-file-drop-overlay";
+  overlay.dataset.ui = "media-file-drop-overlay";
+  overlay.setAttribute("role", "status");
+  overlay.setAttribute("aria-live", "polite");
+  overlay.setAttribute("aria-hidden", "true");
+  overlay.hidden = true;
+  overlay.innerHTML = `
+    <span class="media-file-drop-overlay__icon" aria-hidden="true">
+      <i class="fa-solid fa-photo-film"></i>
+    </span>
+    <strong data-i18n="nowPlaying.drop.title">${t("nowPlaying.drop.title")}</strong>
+    <span data-i18n="nowPlaying.drop.hint">${t("nowPlaying.drop.hint")}</span>
+  `;
+  document.body.appendChild(overlay);
+  return overlay;
+}
+
+function registerMediaFileDrop({
+  mainView,
+  tabs,
+  nowPlayingWrapper,
+  renderPlayer,
+}) {
+  const overlay = createMediaDropOverlay();
+  const dropTarget = document.documentElement;
+  let dragDepth = 0;
+
+  const hideOverlay = () => {
+    dragDepth = 0;
+    mainView.classList.remove("is-media-file-dragover");
+    overlay.hidden = true;
+    overlay.setAttribute("aria-hidden", "true");
+  };
+
+  const showOverlay = () => {
+    mainView.classList.add("is-media-file-dragover");
+    overlay.hidden = false;
+    overlay.setAttribute("aria-hidden", "false");
+  };
+
+  const onDragEnter = (event) => {
+    if (!hasFileDrop(event.dataTransfer)) return;
+    if (event.defaultPrevented) {
+      hideOverlay();
+      return;
+    }
+    event.preventDefault();
+    dragDepth += 1;
+    showOverlay();
+  };
+
+  const onDragOver = (event) => {
+    if (!hasFileDrop(event.dataTransfer)) return;
+    if (event.defaultPrevented) {
+      hideOverlay();
+      return;
+    }
+    event.preventDefault();
+    if (event.dataTransfer) event.dataTransfer.dropEffect = "copy";
+    showOverlay();
+  };
+
+  const onDragLeave = (event) => {
+    if (!hasFileDrop(event.dataTransfer)) return;
+    dragDepth = Math.max(0, dragDepth - 1);
+    if (!dragDepth) hideOverlay();
+  };
+
+  const onDrop = async (event) => {
+    if (!hasFileDrop(event.dataTransfer)) return;
+    if (event.defaultPrevented) {
+      hideOverlay();
+      return;
+    }
+    event.preventDefault();
+    hideOverlay();
+
+    const getDroppedFilePath = window.electron?.nowPlaying?.getDroppedFilePath;
+    if (typeof getDroppedFilePath !== "function") return;
+
+    const paths = [];
+    const seen = new Set();
+    for (const file of Array.from(event.dataTransfer?.files || [])) {
+      if (!isSupportedDroppedMedia(file?.name)) continue;
+      const filePath = getDroppedFilePath(file);
+      if (
+        typeof filePath !== "string" ||
+        !isSupportedDroppedMedia(filePath) ||
+        seen.has(filePath)
+      ) {
+        continue;
+      }
+      seen.add(filePath);
+      paths.push(filePath);
+      if (paths.length >= 256) break;
+    }
+    if (!paths.length) return;
+
+    nowPlayingShouldBeActive = true;
+    tabs.activateTab("now-playing");
+    await renderPlayer(nowPlayingWrapper, tabs);
+    await nowPlayingViewInstance?.importPaths?.(paths, { autoplay: true });
+  };
+
+  dropTarget.addEventListener("dragenter", onDragEnter);
+  dropTarget.addEventListener("dragover", onDragOver);
+  dropTarget.addEventListener("dragleave", onDragLeave);
+  dropTarget.addEventListener("drop", onDrop);
+
+  return () => {
+    hideOverlay();
+    dropTarget.removeEventListener("dragenter", onDragEnter);
+    dropTarget.removeEventListener("dragover", onDragOver);
+    dropTarget.removeEventListener("dragleave", onDragLeave);
+    dropTarget.removeEventListener("drop", onDrop);
+    overlay.remove();
+  };
+}
+
 function createWrappers(mainView) {
   const downloaderWrapper = document.createElement("div");
   downloaderWrapper.id = "downloader-view";
@@ -82,6 +242,7 @@ let nowPlayingShouldBeActive = false;
 let toolsRenderVersion = 0;
 let removePlayerShortcutActions = [];
 let removePlayerNavigationProxy = null;
+let removeMediaFileDrop = null;
 let lazyModuleLoaders = {
   loadDownloaderToolsStatusModule: () => import("../downloaderToolsStatus.js"),
   loadToolsViewModule: () => import("../views/toolsView.js"),
@@ -257,6 +418,7 @@ async function ensureInitialTabReady(tabId, wrappers) {
 }
 
 export async function registerTabs(mainView) {
+  removeMediaFileDrop?.();
   const wrappers = createWrappers(mainView);
   const openHistoryBtn = document.getElementById("open-history");
   const showHistory = (flag) => {
@@ -280,6 +442,14 @@ export async function registerTabs(mainView) {
     },
     { onShow: () => showHistory(true), onHide: () => showHistory(false) },
   );
+
+  const unregisterMediaFileDrop = registerMediaFileDrop({
+    mainView,
+    tabs,
+    nowPlayingWrapper: wrappers.nowPlayingWrapper,
+    renderPlayer: renderNowPlayingTab,
+  });
+  removeMediaFileDrop = unregisterMediaFileDrop;
 
   registerPlayerShortcutActions({
     tabs,
@@ -370,6 +540,10 @@ export async function registerTabs(mainView) {
     tabs,
     wrappers,
     dispose() {
+      unregisterMediaFileDrop();
+      if (removeMediaFileDrop === unregisterMediaFileDrop) {
+        removeMediaFileDrop = null;
+      }
       unregisterPlayerShortcutActions();
       removePlayerNavigationProxy?.();
       removePlayerNavigationProxy = null;
@@ -381,6 +555,8 @@ export async function registerTabs(mainView) {
 }
 
 export function __test_setLazyModuleLoaders(loaders = {}) {
+  removeMediaFileDrop?.();
+  removeMediaFileDrop = null;
   unregisterPlayerShortcutActions();
   downloaderToolsStatusModulePromise = null;
   toolsViewModulePromise = null;

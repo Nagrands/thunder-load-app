@@ -11,6 +11,53 @@
   box-sizing: border-box;
 }
 
+.media-file-drop-overlay {
+  position: fixed;
+  inset: 16px;
+  z-index: 1000;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 10px;
+  padding: 32px;
+  color: var(--color-text-main);
+  text-align: center;
+  background: color-mix(in srgb, var(--color-bg-main) 88%, transparent);
+  border: 2px dashed var(--color-accent);
+  border-radius: 24px;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--color-accent) 24%, transparent),
+    0 24px 72px rgb(0 0 0 / 32%);
+  backdrop-filter: blur(18px);
+  pointer-events: none;
+
+  &[hidden] {
+    display: none;
+  }
+
+  strong {
+    font-size: clamp(20px, 3vw, 30px);
+  }
+
+  > span:last-child {
+    max-width: 460px;
+    color: var(--color-quality);
+    font-size: 14px;
+  }
+}
+
+.media-file-drop-overlay__icon {
+  display: grid;
+  width: 64px;
+  height: 64px;
+  color: var(--color-accent);
+  font-size: 28px;
+  background: color-mix(in srgb, var(--color-accent) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 35%, transparent);
+  border-radius: 18px;
+  place-items: center;
+}
+
 // Дополнительные контейнеры, которые могут появляться
 #app-preloader {
   --topbar-safe-space: max(72px, var(--topbar-current-height, 96px));

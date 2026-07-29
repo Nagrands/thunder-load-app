@@ -227,6 +227,7 @@ describe("Now Playing view", () => {
     const view = createNowPlayingView({ api });
     document.body.appendChild(view.element);
     await view.ready;
+    view.onShow();
     const trigger = view.element.querySelector(
       '[data-action="toggle-add-menu"]',
     );
@@ -528,6 +529,7 @@ describe("Now Playing view", () => {
     const view = createNowPlayingView({ api });
     document.body.appendChild(view.element);
     await view.ready;
+    view.onShow();
     const range = view.element.querySelector('[data-action="volume"]');
     const progress = view.element.querySelector('[data-action="seek"]');
     const percent = view.element.querySelector('[data-ui="volume-percent"]');
@@ -603,8 +605,88 @@ describe("Now Playing view", () => {
       .dispatchEvent(outsideWheel);
     expect(outsideWheel.defaultPrevented).toBe(false);
     expect(percent.textContent).toBe("5%");
+
+    const sceneWheel = new WheelEvent("wheel", {
+      bubbles: true,
+      cancelable: true,
+      deltaY: -100,
+    });
+    view.element
+      .querySelector('[data-ui="player-stage"]')
+      .dispatchEvent(sceneWheel);
+    expect(sceneWheel.defaultPrevented).toBe(true);
+    expect(percent.textContent).toBe("10%");
+
+    view.element.querySelector('[data-action="show-library"]').click();
+    const libraryWheel = new WheelEvent("wheel", {
+      bubbles: true,
+      cancelable: true,
+      deltaY: -100,
+    });
+    view.element
+      .querySelector('[data-ui="library-view"]')
+      .dispatchEvent(libraryWheel);
+    expect(libraryWheel.defaultPrevented).toBe(false);
+    expect(percent.textContent).toBe("10%");
     view.dispose();
     jest.useRealTimers();
+  });
+
+  test("toggles playback with Space while leaving interactive controls alone", async () => {
+    const api = {
+      getState: jest.fn().mockResolvedValue({
+        data: {
+          playlist: { tracks: [sampleTrack] },
+          selectedTrackId: "demo",
+        },
+      }),
+      setState: jest.fn().mockResolvedValue({ success: true }),
+      importFiles: jest.fn(),
+      importFolder: jest.fn(),
+    };
+    const view = createNowPlayingView({ api });
+    document.body.appendChild(view.element);
+    await view.ready;
+    view.onShow();
+    await Promise.resolve();
+    HTMLMediaElement.prototype.play.mockClear();
+    HTMLMediaElement.prototype.pause.mockClear();
+
+    const pauseEvent = new KeyboardEvent("keydown", {
+      key: " ",
+      bubbles: true,
+      cancelable: true,
+    });
+    view.element
+      .querySelector('[data-ui="player-stage"]')
+      .dispatchEvent(pauseEvent);
+    expect(pauseEvent.defaultPrevented).toBe(true);
+    expect(HTMLMediaElement.prototype.pause).toHaveBeenCalled();
+
+    const playEvent = new KeyboardEvent("keydown", {
+      key: " ",
+      bubbles: true,
+      cancelable: true,
+    });
+    view.element
+      .querySelector('[data-ui="player-stage"]')
+      .dispatchEvent(playEvent);
+    await Promise.resolve();
+    expect(playEvent.defaultPrevented).toBe(true);
+    expect(HTMLMediaElement.prototype.play).toHaveBeenCalled();
+
+    HTMLMediaElement.prototype.pause.mockClear();
+    const interactiveEvent = new KeyboardEvent("keydown", {
+      key: " ",
+      bubbles: true,
+      cancelable: true,
+    });
+    view.element
+      .querySelector('[data-action="volume"]')
+      .dispatchEvent(interactiveEvent);
+    expect(interactiveEvent.defaultPrevented).toBe(false);
+    expect(HTMLMediaElement.prototype.pause).not.toHaveBeenCalled();
+    view.dispose();
   });
 
   test("syncs fullscreen controls, Escape and tab hide with preload state", async () => {

@@ -2,7 +2,7 @@
 
 - Автосборка списка: `npm run test-check:sync-tests`
 - Найдено файлов: 142
-- Найдено тест-кейсов (test/it): 1250
+- Найдено тест-кейсов (test/it): 1255
 
 <!-- AUTO-JEST-TESTS:START -->
 
@@ -10,8 +10,9 @@
 - [ ] exposes whitelisted fullscreen invokes
 - [ ] unwraps native fullscreen events to a boolean and unsubscribes
 
-### `src/js/__tests__/preload.nowPlaying.test.js` (1)
+### `src/js/__tests__/preload.nowPlaying.test.js` (2)
 - [ ] exposes typed wrappers for all Now Playing invokes
+- [ ] resolves dropped media file paths through Electron webUtils
 
 ### `src/js/__tests__/preload.toolsDependencies.test.js` (2)
 - [ ] exposes the validated dependency action channel
@@ -924,7 +925,7 @@
 - [ ] keeps insertion order and supports reorder, removal and filtering
 - [ ] never exposes mutable internal items
 
-### `src/js/modules/__tests__/nowPlayingView.test.js` (42)
+### `src/js/modules/__tests__/nowPlayingView.test.js` (43)
 - [ ] renders an accessible player and restores selectedTrackId
 - [ ] opens the sidebar Add menu with file, folder and YouTube actions
 - [ ] offers a folder playlist and opens the created collection
@@ -934,6 +935,7 @@
 - [ ] keeps the library and another playlist track available after an unavailable track error
 - [ ] updates the brand label from playback state
 - [ ] adjusts volume with the mouse wheel and shows the percentage
+- [ ] toggles playback with Space while leaving interactive controls alone
 - [ ] syncs fullscreen controls, Escape and tab hide with preload state
 - [ ] routes Player commands through one state-synchronized facade
 - [ ] toggles fullscreen on player-stage double click only while playing
@@ -1075,7 +1077,7 @@
 - [ ] matches the noisy clipboard fixture
 - [ ] applies new produce aliases and keeps size notes only in summary
 
-### `src/js/modules/__tests__/registerTabs.backupTransfer.test.js` (10)
+### `src/js/modules/__tests__/registerTabs.backupTransfer.test.js` (13)
 - [ ] registers Download, Tools, Products, and Now Playing tabs
 - [ ] redirects legacy backup default tab to Tools entry point
 - [ ] ignores the removed Downloader developer preference
@@ -1086,6 +1088,9 @@
 - [ ] keeps Now Playing mounted and forwards tab lifecycle hooks
 - [ ] opens the lazy Player and media library through registered commands
 - [ ] deduplicates concurrent lazy Player initialization
+- [ ] shows media drop feedback and hides it when the drag leaves
+- [ ] opens Player and imports supported dropped media files
+- [ ] does not open Player for unsupported dropped files
 
 ### `src/js/modules/__tests__/scrollbarVisibility.test.js` (1)
 - [ ] shows scrollbars during wheel activity and hides them after idle

@@ -204,6 +204,9 @@ export const coreTranslations = {
     "nowPlaying.retry": "Повторить",
     "nowPlaying.youtube.fetching": "Получаем информацию о видео…",
     "nowPlaying.youtube.added": "Видео добавлено в медиатеку",
+    "nowPlaying.drop.title": "Добавить медиафайлы",
+    "nowPlaying.drop.hint":
+      "Отпустите аудио- или видеофайлы, чтобы открыть их в Плеере",
     "nowPlaying.toast.filesAdded": "Добавлено файлов: {count}",
     "nowPlaying.toast.folderAdded": "Из папки добавлено файлов: {count}",
     "nowPlaying.folderChoice.title": "Создать плейлист «{title}»?",
@@ -646,6 +649,8 @@ export const coreTranslations = {
     "nowPlaying.retry": "Retry",
     "nowPlaying.youtube.fetching": "Fetching video details…",
     "nowPlaying.youtube.added": "Video added to the media library",
+    "nowPlaying.drop.title": "Add media files",
+    "nowPlaying.drop.hint": "Drop audio or video files to open them in Player",
     "nowPlaying.toast.filesAdded": "Files added: {count}",
     "nowPlaying.toast.folderAdded": "Files added from folder: {count}",
     "nowPlaying.folderChoice.title": "Create the “{title}” playlist?",
