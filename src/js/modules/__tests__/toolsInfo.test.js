@@ -1,8 +1,10 @@
 import {
-  renderToolsInfo,
-  refreshToolsInfoState,
-  installAllTools,
   __resetToolsInfoForTests,
+  deactivateToolsInfo,
+  destroyToolsInfo,
+  installAllTools,
+  refreshToolsInfoState,
+  renderToolsInfo,
 } from "../toolsInfo";
 
 jest.mock("../tooltipInitializer.js", () => ({
@@ -13,76 +15,124 @@ jest.mock("../modals.js", () => ({
   showConfirmationDialog: jest.fn(),
 }));
 
-describe("renderToolsInfo", () => {
-  const versionPayload = {
-    ytDlp: { ok: true, path: "/bin/yt-dlp", version: "2024.01.01" },
-    ffmpeg: { ok: true, path: "/bin/ffmpeg", version: "ffmpeg version 7.1" },
-    deno: { ok: true, path: "/bin/deno", version: "deno 1.42.0" },
-  };
-  const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
+const versionPayload = {
+  ytDlp: { ok: true, path: "/bin/yt-dlp", version: "2024.01.01" },
+  ffmpeg: { ok: true, path: "/bin/ffmpeg", version: "ffmpeg version 7.1" },
+  deno: { ok: true, path: "/bin/deno", version: "deno 1.42.0" },
+};
 
+const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
+const row = (id) => document.querySelector(`[data-tool="${id}"]`);
+const menuTrigger = (id) =>
+  document.querySelector(`[data-tool-menu-trigger="${id}"]`);
+
+describe("tools dependency manager", () => {
   beforeEach(() => {
     __resetToolsInfoForTests();
+    localStorage.clear();
+    sessionStorage.clear();
     document.body.innerHTML = '<section id="tools-info"></section>';
     Object.defineProperty(window.navigator, "onLine", {
       value: true,
       configurable: true,
     });
+    Object.defineProperty(window.navigator, "clipboard", {
+      value: { writeText: jest.fn().mockResolvedValue(undefined) },
+      configurable: true,
+    });
+    window.requestAnimationFrame = (callback) => callback();
     window.electron = {
+      getPlatformInfo: jest.fn().mockResolvedValue({ platform: "darwin" }),
       invoke: jest.fn().mockResolvedValue(undefined),
+      openExternal: jest.fn(),
       tools: {
         getLocation: jest.fn().mockResolvedValue({
           success: true,
-          path: "/tmp/tools",
+          path: "/tmp/tools folder",
           isDefault: false,
           defaultPath: "/opt/tools",
         }),
         getVersions: jest.fn().mockResolvedValue(versionPayload),
-        installAll: jest.fn().mockResolvedValue(undefined),
-        checkUpdates: jest.fn().mockResolvedValue(null),
-        updateYtDlp: jest.fn().mockResolvedValue(undefined),
-        updateFfmpeg: jest.fn().mockResolvedValue(undefined),
+        installAll: jest.fn().mockResolvedValue({ success: true }),
+        checkUpdates: jest.fn().mockResolvedValue({
+          ytDlp: { current: "2024.01.01", latest: "2024.01.01" },
+          ffmpeg: { current: "7.1", latest: "7.1" },
+          deno: { current: "1.42.0", latest: "1.42.0" },
+        }),
+        runDependencyAction: jest.fn().mockResolvedValue({
+          success: true,
+          toolId: "ytDlp",
+          version: "2024.02.01",
+        }),
+        openLocation: jest.fn().mockResolvedValue({ success: true }),
+        showInFolder: jest.fn().mockResolvedValue({ success: true }),
+        setLocation: jest.fn().mockResolvedValue({ success: true }),
+        resetLocation: jest.fn().mockResolvedValue({ success: true }),
       },
     };
   });
 
   afterEach(() => {
+    destroyToolsInfo();
     document.body.innerHTML = "";
     delete window.electron;
     jest.clearAllMocks();
   });
 
-  it("renders dynamic tools UI with ti- prefixed ids", async () => {
+  it("renders all dependencies as one structured list with real versions", async () => {
     await renderToolsInfo();
 
-    expect(document.getElementById("ti-tools-location-path")).not.toBeNull();
-    expect(document.getElementById("tools-location-path")).toBeNull();
-    expect(document.getElementById("tools-advanced-section")).not.toBeNull();
-    expect(document.getElementById("tools-advanced-title")).not.toBeNull();
-    expect(document.getElementById("tools-wizard")).toBeNull();
-    expect(document.querySelector("details#tools-panel")).toBeNull();
+    expect(document.querySelectorAll(".dependency-row")).toHaveLength(3);
+    expect(row("ytDlp")?.textContent).toContain("2024.01.01");
+    expect(row("ffmpeg")?.textContent).toContain("7.1");
+    expect(row("deno")?.textContent).toContain("1.42.0");
+    expect(document.getElementById("tools-panel")?.dataset.summaryState).toBe(
+      "ready",
+    );
   });
 
-  it("shows tools version summary when all tools exist", async () => {
+  it("shows missing, unknown-version and error states without marking ready", async () => {
+    window.electron.tools.getVersions.mockResolvedValueOnce({
+      ytDlp: { ok: false, error: "missing" },
+      ffmpeg: { ok: true, path: "/bin/ffmpeg", version: "" },
+      deno: { ok: false, error: "<img src=x onerror=alert(1)>" },
+    });
+
     await renderToolsInfo();
-    const cards = document.querySelectorAll(".tool-card");
-    expect(cards.length).toBe(3);
-    const versions = Array.from(cards).map((card) =>
-      card.querySelector(".tool-card__version")?.textContent?.trim(),
+
+    expect(row("ytDlp")?.dataset.status).toBe("missing");
+    expect(row("ffmpeg")?.dataset.status).toBe("unknown_version");
+    expect(row("deno")?.dataset.status).toBe("error");
+    expect(document.getElementById("tools-panel")?.dataset.summaryState).toBe(
+      "error",
     );
-    expect(versions).toEqual(
-      expect.arrayContaining(["2024.01.01", "7.1", "1.42.0"]),
-    );
-    const badge = document.getElementById("tools-summary-badge");
-    const summaryStatus = document.getElementById("tools-summary-status");
-    const eyebrow = document.querySelector(".tools-panel-quick__eyebrow");
-    expect(badge?.textContent).toMatch(/Готово|OK/i);
-    expect(summaryStatus?.textContent).toMatch(/Все инструменты готовы/i);
-    expect(eyebrow?.textContent).toMatch(/Инструменты|Tools/i);
-    expect(eyebrow?.textContent).not.toMatch(/Проверка|Checking|Готово|Ready/i);
+    expect(document.querySelector("img[src='x']")).toBeNull();
   });
 
-  it("keeps checking copy split between eyebrow, badge and detailed status", async () => {
+  it("does not install, update, or perform a network update check on open", async () => {
+    await renderToolsInfo();
+
+    expect(window.electron.tools.getVersions).toHaveBeenCalledTimes(1);
+    expect(window.electron.tools.checkUpdates).not.toHaveBeenCalled();
+    expect(window.electron.tools.installAll).not.toHaveBeenCalled();
+    expect(window.electron.tools.runDependencyAction).not.toHaveBeenCalled();
+  });
+
+  it("shows cached state first and refreshes existing row nodes in place", async () => {
+    localStorage.setItem(
+      "toolsDependenciesSnapshotV2",
+      JSON.stringify({
+        tools: [
+          {
+            id: "ytDlp",
+            installed: true,
+            currentVersion: "cached",
+            status: "installed",
+            lastCheckedAt: 1,
+          },
+        ],
+      }),
+    );
     let resolveVersions;
     window.electron.tools.getVersions.mockImplementationOnce(
       () =>
@@ -93,256 +143,242 @@ describe("renderToolsInfo", () => {
 
     const renderPromise = renderToolsInfo();
     await flush();
-
-    const eyebrow = document.querySelector(".tools-panel-quick__eyebrow");
-    const badge = document.getElementById("tools-summary-badge");
-    const summaryStatus = document.getElementById("tools-summary-status");
-
-    expect(eyebrow?.textContent).toMatch(/Инструменты|Tools/i);
-    expect(eyebrow?.textContent).not.toMatch(/Проверка|Checking|Готово|Ready/i);
-    expect(badge?.textContent).toMatch(/Проверка|Checking/i);
-    expect(summaryStatus?.textContent).toMatch(
-      /Проверяем версии и обновления|Checking versions and updates/i,
-    );
-    expect(summaryStatus?.textContent).not.toMatch(/Проверка|Checking$/i);
-
-    resolveVersions?.(versionPayload);
+    const before = row("ytDlp");
+    expect(before?.textContent).toContain("cached");
+    resolveVersions(versionPayload);
     await renderPromise;
+
+    expect(row("ytDlp")).toBe(before);
+    expect(before?.textContent).toContain("2024.01.01");
   });
 
-  it("install button downloads when tools are missing", async () => {
-    window.electron.tools.getVersions.mockResolvedValueOnce({
-      ytDlp: { ok: false },
-      ffmpeg: { ok: false },
-      deno: { ok: true, path: "/bin/deno", version: "deno 1.42.0" },
-    });
-    await renderToolsInfo();
-    const primary = document.getElementById("tools-install-btn");
-    const label = primary?.querySelector("span");
-    expect(label?.textContent).toMatch(/Скачать зависимости/i);
-    primary?.click();
-    await flush();
-    expect(window.electron.tools.installAll).toHaveBeenCalledTimes(1);
-  });
-
-  it("shows install progress text on install button while downloading tools", async () => {
-    let resolveInstall;
-    window.electron.tools.installAll.mockImplementationOnce(
+  it("checks updates once, blocks repeated clicks, and shows an update", async () => {
+    let resolveCheck;
+    window.electron.tools.checkUpdates.mockImplementationOnce(
       () =>
         new Promise((resolve) => {
-          resolveInstall = resolve;
+          resolveCheck = resolve;
         }),
     );
-    window.electron.tools.getVersions.mockResolvedValueOnce({
-      ytDlp: { ok: false },
-      ffmpeg: { ok: false },
-      deno: { ok: true, path: "/bin/deno", version: "deno 1.42.0" },
-    });
     await renderToolsInfo();
+    const button = document.getElementById("tools-check-btn");
 
-    const installBtn = document.getElementById("tools-install-btn");
-    const installLabel = installBtn?.querySelector("span");
-    const initialText = installLabel?.textContent?.trim();
+    button.click();
+    button.click();
+    expect(button.disabled).toBe(true);
+    expect(window.electron.tools.checkUpdates).toHaveBeenCalledTimes(1);
 
-    installBtn?.click();
-    await flush();
-    await new Promise((resolve) => setTimeout(resolve, 450));
-
-    expect(installLabel?.textContent?.trim()).not.toBe(initialText);
-    expect(installLabel?.textContent).toMatch(/\./);
-
-    resolveInstall?.();
-    await flush();
-  });
-
-  it("check button reveals update flow when updates are available", async () => {
-    window.electron.tools.getVersions.mockResolvedValueOnce({
-      ytDlp: { ok: true, path: "/bin/yt-dlp", version: "2024.01.01" },
-      ffmpeg: {
-        ok: true,
-        path: "/bin/ffmpeg",
-        version: "ffmpeg version 7.1",
-      },
-      deno: { ok: true, path: "/bin/deno", version: "deno 1.42.0" },
-    });
-    window.electron.tools.checkUpdates.mockResolvedValueOnce({
-      ytDlp: { current: "2024.01.01", latest: "2024.02.01" },
-      ffmpeg: { current: "7.1", latest: "7.2" },
-      deno: { current: "1.42.0", latest: "1.42.0" },
-    });
-    await renderToolsInfo();
-    const checkBtn = document.getElementById("tools-check-btn");
-    const updateBtn = document.getElementById("tools-update-btn");
-    expect(checkBtn).not.toBeNull();
-    checkBtn?.click();
-    await flush(); // check updates completes and rewires button
-    expect(window.electron.tools.checkUpdates).toHaveBeenCalled();
-    expect(updateBtn?.style.display).toBe("");
-    updateBtn?.click();
-    await flush();
-    expect(window.electron.tools.updateYtDlp).toHaveBeenCalled();
-    expect(window.electron.tools.updateFfmpeg).toHaveBeenCalled();
-  });
-
-  it("force reinstall from overflow menu triggers installAll", async () => {
-    await renderToolsInfo();
-    // раскрываем меню "..."
-    const moreBtn = document.getElementById("tools-more-btn");
-    const forceBtn = document.getElementById("tools-force-btn");
-    expect(moreBtn).not.toBeNull();
-    expect(forceBtn).not.toBeNull();
-    const { showConfirmationDialog } = require("../modals.js");
-    showConfirmationDialog.mockResolvedValue(true);
-    moreBtn?.click();
-    forceBtn?.click();
-    await flush();
-    expect(window.electron.tools.installAll).toHaveBeenCalled();
-  });
-
-  it("updates summary after successful install", async () => {
-    // первая загрузка — инструменты отсутствуют
-    window.electron.tools.getVersions
-      .mockResolvedValueOnce({
-        ytDlp: { ok: false },
-        ffmpeg: { ok: false },
-        deno: { ok: false },
-      })
-      // после установки возвращаем корректные версии
-      .mockResolvedValueOnce(versionPayload);
-
-    await renderToolsInfo();
-    const badgeBefore = document.getElementById("tools-summary-badge");
-    expect(badgeBefore?.textContent).not.toMatch(/Готово/i);
-
-    const installBtn = document.getElementById("tools-install-btn");
-    installBtn?.click();
-    await flush();
-
-    const badgeAfter = document.getElementById("tools-summary-badge");
-    expect(window.electron.tools.installAll).toHaveBeenCalled();
-    expect(badgeAfter?.textContent).toMatch(/Готово|OK/i);
-  });
-
-  it("does not recreate root DOM on repeated refresh", async () => {
-    await renderToolsInfo();
-    const rootBefore = document.getElementById("tools-panel");
-    await refreshToolsInfoState({ force: true });
-    const rootAfter = document.getElementById("tools-panel");
-    expect(rootAfter).toBe(rootBefore);
-  });
-
-  it("keeps single-bound handlers across multiple refreshes", async () => {
-    window.electron.tools.checkUpdates.mockResolvedValue({
+    resolveCheck({
       ytDlp: { current: "2024.01.01", latest: "2024.02.01" },
       ffmpeg: { current: "7.1", latest: "7.1" },
       deno: { current: "1.42.0", latest: "1.42.0" },
     });
-    await renderToolsInfo();
-    await refreshToolsInfoState({ force: true });
-    await refreshToolsInfoState({ force: true });
-
-    const checkBtn = document.getElementById("tools-check-btn");
-    checkBtn?.click();
     await flush();
 
-    expect(window.electron.tools.checkUpdates).toHaveBeenCalledTimes(1);
-  });
-
-  it("ignores stale refresh response and keeps latest state", async () => {
-    await renderToolsInfo();
-
-    let resolveFirst;
-    const firstPromise = new Promise((resolve) => {
-      resolveFirst = resolve;
-    });
-    const secondPayload = {
-      ytDlp: { ok: true, path: "/bin/yt-dlp", version: "2025.01.01" },
-      ffmpeg: { ok: true, path: "/bin/ffmpeg", version: "ffmpeg version 8.0" },
-      deno: { ok: true, path: "/bin/deno", version: "deno 2.2.0" },
-    };
-
-    window.electron.tools.getVersions.mockReset();
-    window.electron.tools.getVersions
-      .mockImplementationOnce(() => firstPromise)
-      .mockImplementationOnce(() => Promise.resolve(secondPayload));
-
-    const p1 = refreshToolsInfoState({ force: true });
-    const p2 = refreshToolsInfoState({ force: true });
-    await p2;
-    resolveFirst(versionPayload);
-    await p1;
-    await flush();
-
-    const versions = Array.from(
-      document.querySelectorAll(".tool-card__version"),
-    )
-      .map((el) => el.textContent.trim())
-      .join(" ");
-    expect(versions).toContain("2025.01.01");
-    expect(versions).toContain("8.0");
-  });
-
-  it("reuses existing tool card nodes on refresh (partial update)", async () => {
-    await renderToolsInfo();
-    const ytBefore = document.querySelector('.tool-card[data-tool="yt"]');
-    window.electron.tools.getVersions.mockResolvedValueOnce({
-      ytDlp: { ok: true, path: "/bin/yt-dlp", version: "2026.01.01" },
-      ffmpeg: { ok: true, path: "/bin/ffmpeg", version: "ffmpeg version 7.1" },
-      deno: { ok: true, path: "/bin/deno", version: "deno 1.42.0" },
-    });
-    await refreshToolsInfoState({ force: true });
-    const ytAfter = document.querySelector('.tool-card[data-tool="yt"]');
-    expect(ytAfter).toBe(ytBefore);
-    expect(ytAfter?.querySelector(".tool-card__version")?.textContent).toBe(
-      "2026.01.01",
+    expect(row("ytDlp")?.dataset.status).toBe("update_available");
+    expect(document.getElementById("tools-panel")?.dataset.summaryState).toBe(
+      "updates_available",
     );
   });
 
-  it("uses cached checkUpdates result within TTL", async () => {
-    const updatesPayload = {
+  it("isolates a failed update check and exposes an error summary", async () => {
+    window.electron.tools.checkUpdates.mockRejectedValueOnce(
+      new Error("network failed"),
+    );
+    await renderToolsInfo();
+
+    document.getElementById("tools-check-btn").click();
+    await flush();
+
+    expect(document.getElementById("tools-panel")?.dataset.summaryState).toBe(
+      "error",
+    );
+    expect(row("ytDlp")?.dataset.status).toBe("error");
+  });
+
+  it("shows an explicit offline state without discarding local versions", async () => {
+    Object.defineProperty(window.navigator, "onLine", {
+      value: false,
+      configurable: true,
+    });
+
+    await renderToolsInfo();
+
+    expect(document.getElementById("tools-panel")?.dataset.summaryState).toBe(
+      "offline",
+    );
+    expect(row("ytDlp")?.textContent).toContain("2024.01.01");
+    expect(document.getElementById("tools-check-btn")?.disabled).toBe(true);
+  });
+
+  it("runs an individual update and reads the factual version again", async () => {
+    const { showConfirmationDialog } = require("../modals.js");
+    showConfirmationDialog.mockResolvedValue(true);
+    window.electron.tools.checkUpdates.mockResolvedValueOnce({
       ytDlp: { current: "2024.01.01", latest: "2024.02.01" },
       ffmpeg: { current: "7.1", latest: "7.1" },
       deno: { current: "1.42.0", latest: "1.42.0" },
-    };
-    window.electron.tools.checkUpdates.mockResolvedValue(updatesPayload);
+    });
     await renderToolsInfo();
-    const checkBtn = document.getElementById("tools-check-btn");
-    checkBtn?.click();
+    document.getElementById("tools-check-btn").click();
     await flush();
 
-    await new Promise((resolve) => setTimeout(resolve, 400));
-    checkBtn?.click();
+    menuTrigger("ytDlp").click();
+    row("ytDlp").querySelector('[data-tool-action="update"]').click();
     await flush();
 
+    expect(window.electron.tools.runDependencyAction).toHaveBeenCalledWith({
+      id: "ytDlp",
+      action: "update",
+    });
+    expect(window.electron.tools.getVersions).toHaveBeenCalledTimes(2);
+  });
+
+  it("offers install only for a missing dependency", async () => {
+    window.electron.tools.getVersions.mockResolvedValueOnce({
+      ...versionPayload,
+      deno: { ok: false, error: "missing" },
+    });
+    await renderToolsInfo();
+
+    menuTrigger("deno").click();
+    const menu = row("deno").querySelector('[data-tool-menu="deno"]');
+    expect(menu.querySelector('[data-tool-action="install"]')).not.toBeNull();
+    expect(menu.querySelector('[data-tool-action="reinstall"]')).toBeNull();
+  });
+
+  it("closes context menu on Escape and restores trigger focus", async () => {
+    await renderToolsInfo();
+    const trigger = menuTrigger("ytDlp");
+    trigger.click();
+    expect(trigger.getAttribute("aria-expanded")).toBe("true");
+
+    document.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+    );
+
+    expect(trigger.getAttribute("aria-expanded")).toBe("false");
+    expect(document.activeElement).toBe(trigger);
+  });
+
+  it("moves through context-menu actions with arrow keys", async () => {
+    await renderToolsInfo();
+    menuTrigger("ytDlp").click();
+    const items = Array.from(
+      row("ytDlp").querySelectorAll('[role="menuitem"]:not(:disabled)'),
+    );
+    expect(document.activeElement).toBe(items[0]);
+
+    document.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }),
+    );
+    expect(document.activeElement).toBe(items[1]);
+    document.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "End", bubbles: true }),
+    );
+    expect(document.activeElement).toBe(items.at(-1));
+  });
+
+  it("copies the tool path and exposes the full value as a tooltip", async () => {
+    await renderToolsInfo();
+    const path = document.getElementById("ti-tools-location-path");
+
+    expect(path.title).toBe("/tmp/tools folder");
+    document.getElementById("ti-tools-location-copy").click();
+    await flush();
+
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
+      "/tmp/tools folder",
+    );
+  });
+
+  it.each([
+    ["darwin", "Finder"],
+    ["win32", "Проводнике"],
+    ["linux", "файловом менеджере"],
+  ])("uses the platform reveal label for %s", async (platform, label) => {
+    window.electron.getPlatformInfo.mockResolvedValueOnce({ platform });
+    await renderToolsInfo();
+
+    expect(
+      document.getElementById("ti-tools-location-reveal")?.textContent,
+    ).toContain(label);
+  });
+
+  it("persists the advanced disclosure within the session with ARIA", async () => {
+    await renderToolsInfo();
+    const toggle = document.getElementById("tools-advanced-toggle");
+    const panel = document.getElementById("tools-advanced-panel");
+
+    expect(toggle.getAttribute("aria-controls")).toBe("tools-advanced-panel");
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+    expect(panel.hidden).toBe(true);
+    toggle.click();
+    expect(toggle.getAttribute("aria-expanded")).toBe("true");
+    expect(panel.hidden).toBe(false);
+
+    destroyToolsInfo();
+    await renderToolsInfo();
+    expect(
+      document
+        .getElementById("tools-advanced-toggle")
+        ?.getAttribute("aria-expanded"),
+    ).toBe("true");
+  });
+
+  it("uses button and menu semantics for keyboard-accessible actions", async () => {
+    await renderToolsInfo();
+
+    expect(document.getElementById("tools-check-btn")?.tagName).toBe("BUTTON");
+    expect(menuTrigger("ffmpeg")?.getAttribute("aria-haspopup")).toBe("menu");
+    menuTrigger("ffmpeg").click();
+    expect(
+      row("ffmpeg")
+        ?.querySelector('[data-tool-menu="ffmpeg"]')
+        ?.getAttribute("role"),
+    ).toBe("menu");
+    expect(
+      row("ffmpeg")
+        ?.querySelector('[data-tool-action="check"]')
+        ?.getAttribute("role"),
+    ).toBe("menuitem");
+  });
+
+  it("removes handlers and ignores late async responses after deactivation", async () => {
+    let resolveCheck;
+    window.electron.tools.checkUpdates.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveCheck = resolve;
+        }),
+    );
+    await renderToolsInfo();
+    document.getElementById("tools-check-btn").click();
+    deactivateToolsInfo();
+    resolveCheck({
+      ytDlp: { current: "2024.01.01", latest: "2025.01.01" },
+    });
+    await flush();
+
+    expect(row("ytDlp")?.dataset.status).toBe("installed");
+    await refreshToolsInfoState({ force: true });
+    expect(window.electron.tools.getVersions).toHaveBeenCalledTimes(2);
+    destroyToolsInfo();
+    const oldButton = document.getElementById("tools-check-btn");
+    oldButton.click();
     expect(window.electron.tools.checkUpdates).toHaveBeenCalledTimes(1);
   });
 
-  it("shows explicit offline summary state and quick actions", async () => {
+  it("does not recreate the root during an explicit local refresh", async () => {
     await renderToolsInfo();
-    window.dispatchEvent(new Event("offline"));
-    const panel = document.getElementById("tools-panel");
-    const badge = document.getElementById("tools-summary-badge");
-    const retryBtn = document.getElementById("tools-quick-retry-btn");
-    const openBtn = document.getElementById("tools-quick-open-location-btn");
-    expect(panel?.getAttribute("data-summary-state")).toBe("offline");
-    expect(badge?.textContent).toMatch(/Офлайн|Offline/i);
-    expect(retryBtn?.style.display).toBe("");
-    expect(openBtn?.style.display).toBe("none");
+    const root = document.getElementById("tools-panel");
+    await refreshToolsInfoState({ force: true });
+    expect(document.getElementById("tools-panel")).toBe(root);
   });
 
-  it("keeps overflow menu and force action in the compact footer row", async () => {
-    await renderToolsInfo();
-
-    expect(document.getElementById("tools-more-btn")).not.toBeNull();
-    expect(document.getElementById("tools-force-btn")).not.toBeNull();
-    expect(
-      document.getElementById("tools-advanced-title")?.textContent,
-    ).toMatch(/Дополнительно|More/i);
-  });
-
-  it("throws localized error when installAll bridge is unavailable", async () => {
+  it("keeps the legacy installAll export and reports a missing bridge", async () => {
+    await expect(installAllTools()).resolves.toEqual({ success: true });
     delete window.electron.tools.installAll;
-
     await expect(installAllTools()).rejects.toThrow(/недоступна|unavailable/i);
   });
 });

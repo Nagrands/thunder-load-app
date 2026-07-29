@@ -1,815 +1,1110 @@
-// src/js/modules/toolsInfo.js
-import { initTooltips } from "./tooltipInitializer.js";
+import { applyI18n, getLanguage, t } from "./i18n.js";
 import { showConfirmationDialog } from "./modals.js";
-import { applyI18n, t } from "./i18n.js";
-import {
-  closeDismissibleOverlays,
-  registerDismissibleOverlay,
-} from "./overlayManager.js";
+import { initTooltips } from "./tooltipInitializer.js";
 
-function firstLine(s = "") {
-  return s.split("\n")[0];
+const TOOL_DEFINITIONS = Object.freeze([
+  {
+    id: "ytDlp",
+    displayName: "yt-dlp",
+    iconClass: "fa-solid fa-download",
+    site: "https://github.com/yt-dlp/yt-dlp",
+  },
+  {
+    id: "ffmpeg",
+    displayName: "ffmpeg",
+    iconClass: "fa-solid fa-film",
+    site: "https://ffmpeg.org",
+  },
+  {
+    id: "deno",
+    displayName: "Deno",
+    iconClass: "fa-solid fa-code",
+    site: "https://deno.com",
+  },
+]);
+
+const TOOL_IDS = new Set(TOOL_DEFINITIONS.map(({ id }) => id));
+const TOOLS_REFRESH_STALE_MS = 20_000;
+const SNAPSHOT_KEY = "toolsDependenciesSnapshotV2";
+const ADVANCED_SESSION_KEY = "toolsDependenciesAdvancedOpen";
+const ACTION_COOLDOWN_MS = 350;
+const contexts = new Set();
+
+function firstLine(value = "") {
+  return String(value || "").split("\n")[0].trim();
 }
 
-function formatDenoVersion(s = "") {
-  const line = firstLine(s).trim();
-  if (!line) return "";
-  const parts = line.split(/\s+/);
-  if (parts.length >= 2 && parts[0].toLowerCase() === "deno") {
-    return parts[1];
+function formatDenoVersion(value = "") {
+  return firstLine(value).replace(/^deno\s+/i, "").replace(/^v/i, "").trim();
+}
+
+function formatVersion(id, value = "") {
+  const line = firstLine(value);
+  if (id === "ytDlp") return line.replace(/^v/i, "");
+  if (id === "ffmpeg") {
+    return line.replace(/^ffmpeg version\s*/i, "").split(/\s+/)[0] || "";
   }
-  return line.replace(/^deno\s+/i, "").trim();
+  return formatDenoVersion(line);
 }
 
-function normVer(v = "") {
-  if (!v || v === "—") return "";
-  return String(v).trim().replace(/^v/i, "").toLowerCase();
+function normVer(value = "") {
+  return String(value || "").trim().replace(/^v/i, "").toLowerCase();
 }
 
-function parseYtDlpVer(v) {
-  v = normVer(v);
-  const m = v.match(/^(\d{4})\.(\d{1,2})\.(\d{1,2})/);
-  if (!m) return null;
-  return [parseInt(m[1], 10), parseInt(m[2], 10), parseInt(m[3], 10)];
+function parseYtDlpVer(value) {
+  const match = normVer(value).match(/^(\d{4})\.(\d{1,2})\.(\d{1,2})/);
+  if (!match) return null;
+  return match.slice(1).map((entry) => Number.parseInt(entry, 10));
 }
 
-function cmpYtDlp(latest, current) {
-  const L = parseYtDlpVer(latest);
-  const C = parseYtDlpVer(current);
-  if (!L || !C) return null;
-  for (let i = 0; i < 3; i += 1) {
-    if (L[i] > C[i]) return 1;
-    if (L[i] < C[i]) return -1;
+function parseSemver(value) {
+  const match = normVer(value)
+    .split("-")[0]
+    .split("+")[0]
+    .match(/^(\d+)(?:\.(\d+))?(?:\.(\d+))?$/);
+  if (!match) return null;
+  return match.slice(1).map((entry) => Number.parseInt(entry || "0", 10));
+}
+
+function compareParts(latest, current) {
+  if (!latest || !current) return null;
+  for (let index = 0; index < 3; index += 1) {
+    if (latest[index] > current[index]) return 1;
+    if (latest[index] < current[index]) return -1;
   }
   return 0;
 }
 
-function parseSemverDetailed(v) {
-  v = normVer(v);
-  v = v.split("-")[0].split("+")[0];
-  const m = v.match(/^(\d+)(?:\.(\d+))?(?:\.(\d+))?$/);
-  if (!m) return null;
+function hasUpdate(id, current, latest) {
+  if (!current || !latest) return false;
+  const parser = id === "ytDlp" ? parseYtDlpVer : parseSemver;
+  return compareParts(parser(latest), parser(current)) === 1;
+}
+
+function createToolState(definition, saved = null) {
+  const savedStatus = [
+    "installed",
+    "update_available",
+    "missing",
+    "unknown_version",
+  ].includes(saved?.status)
+    ? saved.status
+    : "not_checked";
   return {
-    major: parseInt(m[1] || "0", 10),
-    minor: parseInt(m[2] || "0", 10),
-    patch: m[3] !== undefined ? parseInt(m[3], 10) : null,
+    id: definition.id,
+    displayName: definition.displayName,
+    installed: saved?.installed === true,
+    currentVersion:
+      typeof saved?.currentVersion === "string" ? saved.currentVersion : null,
+    latestVersion:
+      typeof saved?.latestVersion === "string" ? saved.latestVersion : null,
+    updateAvailable: saved?.updateAvailable === true,
+    status: savedStatus,
+    executablePath: null,
+    lastCheckedAt:
+      Number.isFinite(Number(saved?.lastCheckedAt)) &&
+      Number(saved.lastCheckedAt) > 0
+        ? Number(saved.lastCheckedAt)
+        : null,
+    error: null,
+    isChecking: false,
+    isUpdating: false,
+    skipUpdates: false,
   };
 }
 
-function cmpFfSemver(latest, current) {
-  const L = parseSemverDetailed(latest);
-  const C = parseSemverDetailed(current);
-  if (!L || !C) return null;
-  if (L.major === C.major && L.minor === C.minor && L.patch === null) {
-    return 0;
+function readSnapshot() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(SNAPSHOT_KEY) || "null");
+    if (!parsed || !Array.isArray(parsed.tools)) return null;
+    return parsed;
+  } catch {
+    return null;
   }
-  const lp = L.patch == null ? 0 : L.patch;
-  const cp = C.patch == null ? 0 : C.patch;
-  if (L.major !== C.major) return L.major > C.major ? 1 : -1;
-  if (L.minor !== C.minor) return L.minor > C.minor ? 1 : -1;
-  if (lp !== cp) return lp > cp ? 1 : -1;
-  return 0;
 }
 
-export function summarizeToolsState(res) {
-  const yt = res?.ytDlp;
-  const ff = res?.ffmpeg;
-  const dn = res?.deno;
+function saveSnapshot(tools) {
+  try {
+    localStorage.setItem(
+      SNAPSHOT_KEY,
+      JSON.stringify({
+        tools: tools.map((tool) => ({
+          id: tool.id,
+          installed: tool.installed,
+          currentVersion: tool.currentVersion,
+          latestVersion: tool.latestVersion,
+          updateAvailable: tool.updateAvailable,
+          status: tool.status,
+          lastCheckedAt: tool.lastCheckedAt,
+        })),
+      }),
+    );
+  } catch {}
+}
 
-  const hasYt = !!(yt?.ok && yt?.path);
-  const hasFf = !!(ff?.ok && ff?.path);
-  const hasDn = !!(dn?.ok && dn?.path);
-
-  const ytVer = hasYt ? firstLine(yt.version || "").replace(/^v/i, "") : null;
-  const ffVer = hasFf
-    ? firstLine(ff.version || "")
-        .replace(/^ffmpeg version\s*/i, "")
-        .split(" ")[0]
-    : null;
-  const dnVer = hasDn ? formatDenoVersion(dn.version || "") : null;
-
-  const versions = { yt: ytVer, ff: ffVer, deno: dnVer };
-
-  const missing = [];
-  if (!hasYt) missing.push("yt-dlp");
-  if (!hasFf) missing.push("ffmpeg");
-  if (!hasDn) missing.push("Deno");
-
-  const details = [
-    { id: "yt", label: "yt-dlp", ok: hasYt, version: ytVer },
-    {
-      id: "ff",
-      label: "ffmpeg",
-      ok: hasFf,
-      version: ffVer,
-      skip: ff?.skipUpdates,
-    },
-    { id: "deno", label: "Deno", ok: hasDn, version: dnVer },
-  ];
-
-  if (!missing.length) {
-    return {
-      state: "ok",
-      hasAll: true,
-      missing,
-      text: t("tools.summary.ok"),
-      versions,
-      details,
+function normalizeVersionsPayload(payload) {
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    return null;
+  }
+  const normalized = {};
+  for (const { id } of TOOL_DEFINITIONS) {
+    const raw = payload[id];
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+      normalized[id] = {
+        ok: false,
+        path: "",
+        version: "",
+        error: "invalid-response",
+      };
+      continue;
+    }
+    normalized[id] = {
+      ok: raw.ok === true,
+      path: typeof raw.path === "string" ? raw.path : "",
+      version: typeof raw.version === "string" ? raw.version : "",
+      error: typeof raw.error === "string" ? raw.error : "",
+      skipUpdates: raw.skipUpdates === true,
     };
   }
+  return normalized;
+}
 
+function normalizeUpdatesPayload(payload) {
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    return null;
+  }
+  if (typeof payload.error === "string" && payload.error) {
+    return { error: payload.error };
+  }
+  const normalized = {};
+  for (const { id } of TOOL_DEFINITIONS) {
+    const raw = payload[id];
+    normalized[id] = {
+      current:
+        raw && typeof raw.current === "string"
+          ? formatVersion(id, raw.current)
+          : null,
+      latest:
+        raw && typeof raw.latest === "string"
+          ? formatVersion(id, raw.latest)
+          : null,
+      canUpdate: raw?.canUpdate === true,
+      skipUpdates: raw?.skipUpdates === true,
+    };
+  }
+  return normalized;
+}
+
+export function summarizeToolsState(payload) {
+  const normalized = normalizeVersionsPayload(payload) || {};
+  const details = TOOL_DEFINITIONS.map(({ id, displayName }) => {
+    const raw = normalized[id] || {};
+    const version = raw.ok ? formatVersion(id, raw.version) || null : null;
+    return {
+      id: id === "ytDlp" ? "yt" : id === "ffmpeg" ? "ff" : "deno",
+      toolId: id,
+      label: displayName,
+      ok: raw.ok && !!raw.path,
+      version,
+      skip: raw.skipUpdates,
+    };
+  });
+  const missing = details.filter((item) => !item.ok).map((item) => item.label);
   return {
-    state: "error",
-    hasAll: false,
+    state: missing.length ? "error" : "ok",
+    hasAll: missing.length === 0,
     missing,
-    text: t("tools.summary.missingList", { items: missing.join(", ") }),
-    versions,
+    text: missing.length
+      ? t("tools.summary.missingList", { items: missing.join(", ") })
+      : t("tools.summary.ok"),
+    versions: {
+      yt: details[0].version,
+      ff: details[1].version,
+      deno: details[2].version,
+    },
     details,
   };
 }
 
 export function resolvePendingToolUpdates(currentVersions, updatesPayload) {
-  const ytCurrentFromPayload = normVer(updatesPayload?.ytDlp?.current || "");
-  const ffCurrentFromPayload = normVer(updatesPayload?.ffmpeg?.current || "");
-
-  const ytCurrentLocal = normVer(
-    firstLine(currentVersions?.ytDlp?.version || "").replace(/^v/i, ""),
-  );
-  const ffCurrentLocal = normVer(
-    firstLine(currentVersions?.ffmpeg?.version || "")
-      .replace(/^ffmpeg version\s*/i, "")
-      .split(" ")[0],
-  );
-
-  const ytCurrent = ytCurrentLocal || ytCurrentFromPayload || "";
-  const ffCurrent = ffCurrentLocal || ffCurrentFromPayload || "";
-  const ytLatest = normVer(updatesPayload?.ytDlp?.latest || "");
-  const ffSkip = !!updatesPayload?.ffmpeg?.skipUpdates;
-  const ffLatest = ffSkip
-    ? ffCurrent
-    : normVer(updatesPayload?.ffmpeg?.latest || "");
-
-  const ytCmp = ytCurrent && ytLatest ? cmpYtDlp(ytLatest, ytCurrent) : null;
-  const ffCmp =
-    !ffSkip && ffCurrent && ffLatest ? cmpFfSemver(ffLatest, ffCurrent) : null;
-
+  const versions = normalizeVersionsPayload(currentVersions) || {};
+  const updates = normalizeUpdatesPayload(updatesPayload) || {};
   return {
-    yt: ytCmp === 1,
-    ff: !ffSkip && ffCmp === 1,
+    yt:
+      updates.ytDlp?.canUpdate === true ||
+      hasUpdate(
+        "ytDlp",
+        formatVersion("ytDlp", versions.ytDlp?.version),
+        updates.ytDlp?.latest,
+      ),
+    ff:
+      updates.ffmpeg?.skipUpdates !== true &&
+      (updates.ffmpeg?.canUpdate === true ||
+        hasUpdate(
+          "ffmpeg",
+          formatVersion("ffmpeg", versions.ffmpeg?.version),
+          updates.ffmpeg?.latest,
+        )),
+    deno:
+      updates.deno?.canUpdate === true ||
+      hasUpdate(
+        "deno",
+        formatVersion("deno", versions.deno?.version),
+        updates.deno?.latest,
+      ),
   };
-}
-
-function emitToolsStatus(res) {
-  try {
-    const summary = summarizeToolsState(res || {});
-    window.dispatchEvent(
-      new CustomEvent("tools:status", { detail: { summary, raw: res } }),
-    );
-  } catch (e) {
-    console.warn("[toolsInfo] emitToolsStatus failed:", e);
-  }
 }
 
 export async function installAllTools(options = {}) {
   if (!window.electron?.tools?.installAll) {
     throw new Error(t("tools.error.installUnavailable"));
   }
-  return window.electron.tools.installAll({
-    force: true,
-    ...options,
-  });
+  return window.electron.tools.installAll(options);
 }
 
-const TOOL_LINKS = {
-  yt: "https://github.com/yt-dlp/yt-dlp",
-  ff: "https://ffmpeg.org",
-  deno: "https://deno.com",
-};
-
-const TOOLS_REFRESH_STALE_MS = 20_000;
-const UPDATES_CACHE_TTL_MS = 5 * 60 * 1000;
-const ACTION_COOLDOWN_MS = 350;
-const updatesCheckCache = {
-  ts: 0,
-  versionsSignature: "",
-  payload: null,
-  etag: "",
-};
-
-function buildVersionsSignature(res) {
-  const yt = normVer(firstLine(res?.ytDlp?.version || "").replace(/^v/i, ""));
-  const ff = normVer(
-    firstLine(res?.ffmpeg?.version || "")
-      .replace(/^ffmpeg version\s*/i, "")
-      .split(" ")[0],
-  );
-  const dn = formatDenoVersion(res?.deno?.version || "");
-  return `${yt}|${ff}|${dn}`;
+function createIcon(className) {
+  const icon = document.createElement("i");
+  icon.className = className;
+  icon.setAttribute("aria-hidden", "true");
+  return icon;
 }
 
-function getCachedUpdates(versionsSignature) {
-  const now = Date.now();
-  if (
-    !updatesCheckCache.payload ||
-    !updatesCheckCache.ts ||
-    now - updatesCheckCache.ts > UPDATES_CACHE_TTL_MS
-  ) {
-    return null;
+function createButton({
+  id,
+  className = "",
+  icon,
+  labelKey,
+  titleKey = labelKey,
+}) {
+  const button = document.createElement("button");
+  button.type = "button";
+  if (id) button.id = id;
+  if (className) button.className = className;
+  if (icon) button.appendChild(createIcon(icon));
+  if (labelKey) {
+    const label = document.createElement("span");
+    label.dataset.i18n = labelKey;
+    label.textContent = t(labelKey);
+    button.appendChild(label);
   }
-  if (updatesCheckCache.versionsSignature !== versionsSignature) return null;
-  return updatesCheckCache.payload;
-}
-
-function setCachedUpdates(versionsSignature, payload) {
-  if (!payload) return;
-  updatesCheckCache.ts = Date.now();
-  updatesCheckCache.versionsSignature = versionsSignature;
-  updatesCheckCache.payload = payload;
-  updatesCheckCache.etag = String(payload?.etag || "");
-}
-
-function startDotsAnimator(labelEl, base) {
-  let dots = 0;
-  const id = setInterval(() => {
-    dots = (dots + 1) % 4;
-    labelEl.textContent = base + ".".repeat(dots);
-  }, 400);
-  return { stop: () => clearInterval(id) };
-}
-
-function applyNetworkState(buttons = [], isInstalling, isChecking) {
-  const offline = !navigator.onLine;
-  buttons.forEach((btn) => {
-    if (!btn) return;
-    btn.disabled = offline || isInstalling || isChecking;
-  });
-}
-
-function setSummaryState(el, state = "neutral", text = "") {
-  const dotClass = ["tools-panel__dot", `tools-panel__dot--${state}`].join(" ");
-  if (el.panel) {
-    el.panel.setAttribute("data-summary-state", state);
+  if (titleKey) {
+    button.dataset.i18nTitle = titleKey;
+    button.dataset.i18nAria = titleKey;
+    button.title = t(titleKey);
+    button.setAttribute("aria-label", t(titleKey));
   }
-  if (el.summaryDotEl) el.summaryDotEl.className = dotClass;
-  if (el.summaryStatusEl) el.summaryStatusEl.textContent = text || "—";
-  if (el.summaryBadgeEl) {
-    el.summaryBadgeEl.className = `tools-panel__badge tools-panel__badge--${state}`;
-    const badgeKey =
-      state === "ok"
-        ? "tools.summary.ok"
-        : state === "update"
-          ? "tools.summary.update"
-          : state === "missing"
-            ? "tools.summary.missing"
-            : state === "checking"
-              ? "tools.summary.checking"
-              : state === "offline"
-                ? "tools.summary.offline"
-                : state === "busy"
-                  ? "tools.summary.busy"
-                  : state === "error"
-                    ? "tools.summary.error"
-                    : null;
-    el.summaryBadgeEl.textContent = badgeKey ? t(badgeKey) : "—";
+  return button;
+}
+
+function renderSkeleton(section) {
+  section.replaceChildren();
+
+  const page = document.createElement("div");
+  page.id = "tools-panel";
+  page.className = "dependency-manager";
+  page.dataset.summaryState = "not_checked";
+
+  const live = document.createElement("div");
+  live.className = "tools-sr-only";
+  live.id = "tools-live-status";
+  live.setAttribute("role", "status");
+  live.setAttribute("aria-live", "polite");
+  live.setAttribute("aria-atomic", "true");
+
+  const header = document.createElement("header");
+  header.className = "dependency-manager__header";
+  const heading = document.createElement("div");
+  heading.className = "dependency-manager__heading";
+  const mark = document.createElement("span");
+  mark.className = "dependency-manager__heading-icon";
+  mark.appendChild(createIcon("fa-solid fa-download"));
+  const headingCopy = document.createElement("div");
+  const title = document.createElement("h2");
+  title.dataset.i18n = "tools.dependencies.title";
+  title.textContent = t("tools.dependencies.title");
+  const description = document.createElement("p");
+  description.dataset.i18n = "tools.dependencies.description";
+  description.textContent = t("tools.dependencies.description");
+  headingCopy.append(title, description);
+  heading.append(mark, headingCopy);
+  const checkButton = createButton({
+    id: "tools-check-btn",
+    className: "dependency-manager__check",
+    icon: "fa-solid fa-rotate",
+    labelKey: "tools.button.check",
+    titleKey: "tools.button.checkTooltip",
+  });
+  header.append(heading, checkButton);
+
+  const summary = document.createElement("section");
+  summary.className = "dependency-summary";
+  summary.setAttribute("aria-labelledby", "tools-summary-title");
+  const summaryIcon = document.createElement("span");
+  summaryIcon.id = "tools-summary-icon";
+  summaryIcon.className = "dependency-summary__icon";
+  summaryIcon.appendChild(createIcon("fa-solid fa-circle-minus"));
+  const summaryCopy = document.createElement("div");
+  summaryCopy.className = "dependency-summary__copy";
+  const summaryTitle = document.createElement("h3");
+  summaryTitle.id = "tools-summary-title";
+  const summaryDescription = document.createElement("p");
+  summaryDescription.id = "tools-summary-description";
+  summaryCopy.append(summaryTitle, summaryDescription);
+  const checked = document.createElement("div");
+  checked.className = "dependency-summary__checked";
+  const checkedLabel = document.createElement("span");
+  checkedLabel.dataset.i18n = "tools.summary.lastChecked";
+  checkedLabel.textContent = t("tools.summary.lastChecked");
+  const checkedValue = document.createElement("strong");
+  checkedValue.id = "tools-last-checked";
+  checked.append(checkedLabel, checkedValue);
+  const badge = document.createElement("span");
+  badge.id = "tools-summary-badge";
+  badge.className = "dependency-status-badge";
+  summary.append(summaryIcon, summaryCopy, checked, badge);
+
+  const listSection = document.createElement("section");
+  listSection.className = "dependency-list-section";
+  const listTitle = document.createElement("h3");
+  listTitle.dataset.i18n = "tools.dependencies.installedTitle";
+  listTitle.textContent = t("tools.dependencies.installedTitle");
+  const list = document.createElement("div");
+  list.id = "tools-status-cards";
+  list.className = "dependency-list";
+  list.setAttribute("role", "list");
+  listSection.append(listTitle, list);
+
+  const location = document.createElement("section");
+  location.className = "dependency-location";
+  const locationTitle = document.createElement("h3");
+  locationTitle.dataset.i18n = "tools.location.title";
+  locationTitle.textContent = t("tools.location.title");
+  const locationSurface = document.createElement("div");
+  locationSurface.className = "dependency-location__surface";
+  const pathWrap = document.createElement("div");
+  pathWrap.className = "dependency-location__path";
+  pathWrap.appendChild(createIcon("fa-regular fa-folder"));
+  const pathValue = document.createElement("span");
+  pathValue.id = "ti-tools-location-path";
+  pathWrap.appendChild(pathValue);
+  const locationActions = document.createElement("div");
+  locationActions.className = "dependency-location__actions";
+  const openButton = createButton({
+    id: "ti-tools-location-open",
+    icon: "fa-regular fa-folder-open",
+    labelKey: "tools.location.openShort",
+    titleKey: "tools.location.open",
+  });
+  const revealButton = createButton({
+    id: "ti-tools-location-reveal",
+    icon: "fa-solid fa-folder-tree",
+    labelKey: "tools.location.reveal.generic",
+    titleKey: "tools.location.reveal.generic",
+  });
+  const copyButton = createButton({
+    id: "ti-tools-location-copy",
+    icon: "fa-regular fa-copy",
+    labelKey: "tools.location.copy",
+    titleKey: "tools.location.copy",
+  });
+  locationActions.append(openButton, revealButton, copyButton);
+  locationSurface.append(pathWrap, locationActions);
+  const locationError = document.createElement("p");
+  locationError.id = "tools-location-error";
+  locationError.className = "dependency-location__error";
+  locationError.hidden = true;
+  location.append(locationTitle, locationSurface, locationError);
+
+  const advanced = document.createElement("section");
+  advanced.className = "dependency-advanced";
+  const advancedToggle = createButton({
+    id: "tools-advanced-toggle",
+    className: "dependency-advanced__toggle",
+    titleKey: "tools.advanced.toggle",
+  });
+  advancedToggle.setAttribute("aria-expanded", "false");
+  advancedToggle.setAttribute("aria-controls", "tools-advanced-panel");
+  const advancedCopy = document.createElement("span");
+  advancedCopy.className = "dependency-advanced__copy";
+  const advancedTitle = document.createElement("strong");
+  advancedTitle.dataset.i18n = "tools.more";
+  advancedTitle.textContent = t("tools.more");
+  const advancedDescription = document.createElement("small");
+  advancedDescription.dataset.i18n = "tools.advanced.description";
+  advancedDescription.textContent = t("tools.advanced.description");
+  advancedCopy.append(advancedTitle, advancedDescription);
+  advancedToggle.append(advancedCopy, createIcon("fa-solid fa-chevron-down"));
+  const advancedPanel = document.createElement("div");
+  advancedPanel.id = "tools-advanced-panel";
+  advancedPanel.className = "dependency-advanced__panel";
+  advancedPanel.hidden = true;
+  const chooseButton = createButton({
+    id: "ti-tools-location-choose",
+    icon: "fa-solid fa-folder-plus",
+    labelKey: "tools.location.choose",
+  });
+  const resetButton = createButton({
+    id: "ti-tools-location-reset",
+    icon: "fa-solid fa-rotate-left",
+    labelKey: "tools.location.reset",
+  });
+  const reinstallAll = createButton({
+    id: "tools-install-btn",
+    icon: "fa-solid fa-arrow-rotate-right",
+    labelKey: "tools.button.force",
+  });
+  advancedPanel.append(chooseButton, resetButton, reinstallAll);
+  advanced.append(advancedToggle, advancedPanel);
+
+  page.append(live, header, summary, listSection, location, advanced);
+  section.appendChild(page);
+}
+
+function createToolRow(definition) {
+  const row = document.createElement("article");
+  row.className = "dependency-row";
+  row.dataset.tool = definition.id;
+  row.setAttribute("role", "listitem");
+
+  const icon = document.createElement("span");
+  icon.className = "dependency-row__icon";
+  icon.appendChild(createIcon(definition.iconClass));
+  const identity = document.createElement("div");
+  identity.className = "dependency-row__identity";
+  const name = document.createElement("strong");
+  name.textContent = definition.displayName;
+  const version = document.createElement("span");
+  version.className = "dependency-row__version";
+  identity.append(name, version);
+  const status = document.createElement("span");
+  status.className = "dependency-status-badge dependency-row__status";
+  const menuButton = createButton({
+    className: "dependency-row__menu-button",
+    icon: "fa-solid fa-ellipsis",
+    titleKey: "tools.menu.open",
+  });
+  menuButton.dataset.toolMenuTrigger = definition.id;
+  menuButton.setAttribute("aria-haspopup", "menu");
+  menuButton.setAttribute("aria-expanded", "false");
+  const menu = document.createElement("div");
+  menu.className = "dependency-row__menu";
+  menu.dataset.toolMenu = definition.id;
+  menu.setAttribute("role", "menu");
+  menu.hidden = true;
+  const error = document.createElement("p");
+  error.className = "dependency-row__error";
+  error.hidden = true;
+  row.append(icon, identity, status, menuButton, menu, error);
+  return row;
+}
+
+function getOverallState(tools, forcedState = null) {
+  if (forcedState) return forcedState;
+  if (tools.some((tool) => tool.isChecking || tool.isUpdating)) {
+    return "checking";
+  }
+  if (tools.some((tool) => tool.status === "error")) return "error";
+  if (tools.some((tool) => tool.status === "missing")) return "missing";
+  if (tools.some((tool) => tool.status === "unknown_version")) return "error";
+  if (tools.some((tool) => tool.status === "update_available")) {
+    return "updates_available";
+  }
+  if (tools.every((tool) => tool.status === "installed")) return "ready";
+  return "not_checked";
+}
+
+const OVERALL_COPY = Object.freeze({
+  not_checked: {
+    title: "tools.summary.notCheckedTitle",
+    description: "tools.summary.notCheckedDescription",
+    badge: "tools.summary.notChecked",
+    icon: "fa-solid fa-circle-minus",
+  },
+  checking: {
+    title: "tools.summary.checkingTitle",
+    description: "tools.summary.checkingDescription",
+    badge: "tools.summary.checking",
+    icon: "fa-solid fa-circle-notch fa-spin",
+  },
+  ready: {
+    title: "tools.summary.readyText",
+    description: "tools.summary.readyDescription",
+    badge: "tools.summary.ok",
+    icon: "fa-solid fa-circle-check",
+  },
+  updates_available: {
+    title: "tools.summary.updatesTitle",
+    description: "tools.summary.updatesDescription",
+    badge: "tools.summary.update",
+    icon: "fa-solid fa-circle-arrow-up",
+  },
+  missing: {
+    title: "tools.summary.missingTitle",
+    description: "tools.summary.missingDescription",
+    badge: "tools.summary.missing",
+    icon: "fa-solid fa-circle-exclamation",
+  },
+  error: {
+    title: "tools.summary.errorTitle",
+    description: "tools.summary.errorDescription",
+    badge: "tools.summary.error",
+    icon: "fa-solid fa-triangle-exclamation",
+  },
+  offline: {
+    title: "tools.summary.offlineTitle",
+    description: "tools.summary.offlineDescription",
+    badge: "tools.summary.offline",
+    icon: "fa-solid fa-wifi",
+  },
+});
+
+function formatCheckedAt(value) {
+  if (!value) return t("tools.summary.neverChecked");
+  try {
+    return new Intl.DateTimeFormat(getLanguage() === "en" ? "en" : "ru", {
+      dateStyle: "medium",
+      timeStyle: "short",
+    }).format(new Date(value));
+  } catch {
+    return t("tools.summary.neverChecked");
   }
 }
 
-function buildToolsCardItems(summary, overrides = {}) {
-  return (summary?.details || []).map((detail) => {
-    let state = detail.ok ? "ok" : "missing";
-    if (overrides[detail.id] === "update") state = "update";
-    return {
-      ...detail,
-      state,
-      version: detail.version || (detail.ok ? "—" : t("tools.version.missing")),
-    };
-  });
-}
-
-function buildSingleToolCardMarkup({ id, label, version, state }) {
-  return `
-    <div class="tool-card tool-card--${state}" data-tool="${id}" role="listitem">
-      <span class="tool-card__dot"></span>
-      <div class="tool-card__label">
-        ${label}
-        ${
-          TOOL_LINKS[id]
-            ? `<span
-                 class="tool-external-link"
-                 data-tool="${id}"
-                 title="${t("tools.link.openSite")}"
-                 data-i18n-title="tools.link.openSite"
-               ><i class="fa-solid fa-arrow-up-right-from-square"></i></span>`
-            : ""
-        }
-      </div>
-      <div class="tool-card__version">${version || "—"}</div>
-    </div>`;
-}
-
-function patchToolCards(container, items = []) {
-  if (!container) return;
-  const nextIds = new Set(items.map((item) => item.id));
-
-  container.querySelectorAll(".tool-card[data-tool]").forEach((card) => {
-    const id = card.getAttribute("data-tool");
-    if (!nextIds.has(id)) {
-      card.remove();
-    }
-  });
-
-  items.forEach((item) => {
-    let card = container.querySelector(`.tool-card[data-tool="${item.id}"]`);
-    if (!card) {
-      container.insertAdjacentHTML(
-        "beforeend",
-        buildSingleToolCardMarkup(item),
-      );
-      return;
-    }
-    card.className = `tool-card tool-card--${item.state}`;
-    const versionEl = card.querySelector(".tool-card__version");
-    if (versionEl) versionEl.textContent = item.version || "—";
-  });
-}
-
-function renderToolsInfoSkeleton(section) {
-  section.innerHTML = `
-    <section class="tools-panel tools-panel--static" id="tools-panel" data-tools-state="compact" aria-live="polite">
-      <div class="tools-panel__body" id="tools-panel-body">
-        <div class="tools-dashboard">
-          <section class="tools-panel-hero">
-            <section class="tools-panel-quick">
-              <div class="tools-panel-quick__state">
-                <span class="tools-panel__dot tools-panel__dot--neutral" id="tools-summary-dot" aria-hidden="true"></span>
-                <span class="tools-panel-quick__icon" aria-hidden="true">
-                  <i class="fa-solid fa-circle-check"></i>
-                </span>
-                <div class="tools-panel-quick__copy">
-                  <div class="tools-panel-quick__eyebrow">
-                    <span data-i18n="tools.title">${t("tools.title")}</span>
-                  </div>
-                  <strong id="tools-summary-status" aria-live="polite">${t("tools.summary.checkingText")}</strong>
-                  <small id="tools-status" class="muted"></small>
-                </div>
-              </div>
-              <div class="tools-panel-quick-actions">
-                <span id="tools-summary-badge" class="tools-panel__badge tools-panel__badge--neutral">${t("tools.summary.checking")}</span>
-                <button id="tools-check-btn" type="button" title="${t("tools.button.check")}" data-i18n-title="tools.button.check">
-                  <i class="fa-solid fa-rotate" id="tools-check-icon"></i>
-                  <span id="tools-check-label" data-i18n="tools.button.check">${t("tools.button.check")}</span>
-                </button>
-                <button id="tools-update-btn" type="button" title="${t("tools.button.update")}" data-i18n-title="tools.button.update" style="display:none;">
-                  <i class="fa-solid fa-download" id="tools-update-icon"></i>
-                  <span id="tools-update-label" data-i18n="tools.button.update">${t("tools.button.update")}</span>
-                </button>
-                <button id="tools-install-btn" type="button" style="display:none;">
-                  <i class="fa-solid fa-download"></i>
-                  <span data-i18n="tools.button.install">${t("tools.button.install")}</span>
-                </button>
-                <button id="tools-quick-open-location-btn" type="button" title="${t("tools.quick.openLocation")}" data-i18n-title="tools.quick.openLocation" style="display:none;" aria-hidden="true" tabindex="-1">
-                  <i class="fa-solid fa-folder-open"></i>
-                  <span data-i18n="tools.quick.openLocation">${t("tools.quick.openLocation")}</span>
-                </button>
-                <button id="tools-quick-retry-btn" type="button" title="${t("tools.quick.retry")}" data-i18n-title="tools.quick.retry" style="display:none;">
-                  <i class="fa-solid fa-rotate-right"></i>
-                  <span data-i18n="tools.quick.retry">${t("tools.quick.retry")}</span>
-                </button>
-              </div>
-            </section>
-          </section>
-
-          <div class="tools-status-cards" id="tools-status-cards" role="list">
-            <div class="tool-card tool-card--neutral" data-tool="yt" role="listitem">
-              <span class="tool-card__dot"></span>
-              <div class="tool-card__label">yt-dlp</div>
-              <div class="tool-card__version">—</div>
-            </div>
-            <div class="tool-card tool-card--neutral" data-tool="ff" role="listitem">
-              <span class="tool-card__dot"></span>
-              <div class="tool-card__label">ffmpeg</div>
-              <div class="tool-card__version">—</div>
-            </div>
-            <div class="tool-card tool-card--neutral" data-tool="deno" role="listitem">
-              <span class="tool-card__dot"></span>
-              <div class="tool-card__label">Deno</div>
-              <div class="tool-card__version">—</div>
-            </div>
-          </div>
-
-          <section class="tools-location-block" aria-live="polite">
-            <div class="tools-location-block__header">
-              <h3 data-i18n="tools.location.title">${t("tools.location.title")}</h3>
-            </div>
-            <div id="tools-location-host">
-              <div class="tools-location module">
-                <label for="ti-tools-location-path" class="tools-sr-only">
-                  <span data-i18n="tools.location.title">${t("tools.location.title")}</span>
-                </label>
-                <div class="tools-location-row">
-                  <input id="ti-tools-location-path" type="text" readonly />
-                  <button id="ti-tools-location-choose" data-bs-toggle="tooltip" title="${t("tools.location.choose")}" data-i18n-title="tools.location.choose"><i class="fa-solid fa-folder-open"></i></button>
-                  <button id="ti-tools-location-open" data-bs-toggle="tooltip" title="${t("tools.location.open")}" data-i18n-title="tools.location.open"><i class="fa-regular fa-folder"></i></button>
-                  <button id="ti-tools-location-reset" data-bs-toggle="tooltip" title="${t("tools.location.reset")}" data-i18n-title="tools.location.reset"><i class="fa-solid fa-rotate-left"></i></button>
-                </div>
-              </div>
-            </div>
-            <div class="tools-location-block__meta">
-              <small id="ti-tools-location-info" class="muted"></small>
-              <small id="tools-hint" class="muted"></small>
-            </div>
-          </section>
-
-          <section class="tools-advanced-strip" id="tools-advanced-section" role="region" aria-labelledby="tools-advanced-title">
-            <h3 id="tools-advanced-title" class="tools-advanced-strip__title" data-i18n="tools.more">${t("tools.more")}</h3>
-            <div class="tools-actions" id="tools-actions"></div>
-            <div id="tools-more" class="tools-more">
-              <button id="tools-more-btn" class="tools-more-btn" title="${t("tools.more")}" aria-label="${t("tools.more")}" aria-expanded="false" data-i18n-title="tools.more" data-i18n-aria="tools.more">
-                <i class="fa-solid fa-ellipsis"></i>
-              </button>
-              <div id="tools-more-menu" class="tools-more-menu" role="menu" aria-label="${t("tools.moreMenu")}" data-i18n-aria="tools.moreMenu">
-                <button id="tools-force-btn" type="button" title="${t("tools.button.force")}" data-bs-toggle="tooltip" data-i18n-title="tools.button.force">
-                  <i class="fa-solid fa-arrow-rotate-right"></i>
-                  <span data-i18n="tools.button.force">${t("tools.button.force")}</span>
-                </button>
-              </div>
-            </div>
-          </section>
-        </div>
-      </div>
-    </section>
-  `;
-}
-
-function getElements(section) {
+function toolStatusKey(tool) {
+  if (tool.isUpdating) return "tools.toolStatus.updating";
+  if (tool.isChecking) return "tools.toolStatus.checking";
   return {
+    installed: "tools.toolStatus.installed",
+    update_available: "tools.toolStatus.updateAvailable",
+    missing: "tools.toolStatus.missing",
+    error: "tools.toolStatus.error",
+    unknown_version: "tools.toolStatus.unknownVersion",
+    not_checked: "tools.toolStatus.notChecked",
+  }[tool.status];
+}
+
+function createContext(section) {
+  renderSkeleton(section);
+  const snapshot = readSnapshot();
+  const savedById = new Map(
+    (snapshot?.tools || [])
+      .filter((tool) => TOOL_IDS.has(tool?.id))
+      .map((tool) => [tool.id, tool]),
+  );
+  const tools = TOOL_DEFINITIONS.map((definition) =>
+    createToolState(definition, savedById.get(definition.id)),
+  );
+  const elements = {
     panel: section.querySelector("#tools-panel"),
-    panelBody: section.querySelector("#tools-panel-body"),
-    statusCardsEl: section.querySelector("#tools-status-cards"),
-    summaryDotEl: section.querySelector("#tools-summary-dot"),
-    summaryStatusEl: section.querySelector("#tools-summary-status"),
-    summaryBadgeEl: section.querySelector("#tools-summary-badge"),
-    statusEl: section.querySelector("#tools-status"),
-    hintEl: section.querySelector("#tools-hint"),
-    locationHost: section.querySelector("#tools-location-host"),
-    checkBtn: section.querySelector("#tools-check-btn"),
-    checkIcon: section.querySelector("#tools-check-icon"),
-    checkLabel: section.querySelector("#tools-check-label"),
-    updateBtn: section.querySelector("#tools-update-btn"),
-    updateLabel: section.querySelector("#tools-update-label"),
-    quickRetryBtn: section.querySelector("#tools-quick-retry-btn"),
-    quickOpenLocationBtn: section.querySelector(
-      "#tools-quick-open-location-btn",
-    ),
-    installBtn: section.querySelector("#tools-install-btn"),
-    moreWrap: section.querySelector("#tools-more"),
-    moreBtn: section.querySelector("#tools-more-btn"),
-    moreMenu: section.querySelector("#tools-more-menu"),
-    forceBtn: section.querySelector("#tools-force-btn"),
-    locInput: section.querySelector("#ti-tools-location-path"),
-    locChoose: section.querySelector("#ti-tools-location-choose"),
-    locOpen: section.querySelector("#ti-tools-location-open"),
-    locReset: section.querySelector("#ti-tools-location-reset"),
+    live: section.querySelector("#tools-live-status"),
+    checkButton: section.querySelector("#tools-check-btn"),
+    summaryTitle: section.querySelector("#tools-summary-title"),
+    summaryDescription: section.querySelector("#tools-summary-description"),
+    summaryIcon: section.querySelector("#tools-summary-icon"),
+    summaryBadge: section.querySelector("#tools-summary-badge"),
+    lastChecked: section.querySelector("#tools-last-checked"),
+    list: section.querySelector("#tools-status-cards"),
+    locationPath: section.querySelector("#ti-tools-location-path"),
+    locationError: section.querySelector("#tools-location-error"),
+    locationOpen: section.querySelector("#ti-tools-location-open"),
+    locationReveal: section.querySelector("#ti-tools-location-reveal"),
+    locationCopy: section.querySelector("#ti-tools-location-copy"),
+    locationChoose: section.querySelector("#ti-tools-location-choose"),
+    locationReset: section.querySelector("#ti-tools-location-reset"),
+    reinstallAll: section.querySelector("#tools-install-btn"),
+    advancedToggle: section.querySelector("#tools-advanced-toggle"),
+    advancedPanel: section.querySelector("#tools-advanced-panel"),
   };
-}
+  TOOL_DEFINITIONS.forEach((definition) =>
+    elements.list.appendChild(createToolRow(definition)),
+  );
 
-function setText(el, value = "") {
-  if (el) el.textContent = value;
-}
-
-function initContext(section) {
-  renderToolsInfoSkeleton(section);
-
-  const el = getElements(section);
   const state = {
-    isChecking: false,
-    isInstalling: false,
-    pendingUpdate: { yt: false, ff: false },
+    tools,
+    location: "",
+    defaultLocation: "",
+    platform: "",
+    isDefaultLocation: true,
+    forcedOverallState: null,
+    refreshPromise: null,
+    checkPromise: null,
     requestId: 0,
     lastRefreshedAt: 0,
-    versions: null,
-    actionLocks: new Map(),
+    active: true,
+    disposed: false,
+    cooldowns: new Map(),
+    openMenuId: null,
+    menuTrigger: null,
+  };
+  const cleanups = [];
+  const on = (target, type, listener, options) => {
+    target?.addEventListener(type, listener, options);
+    cleanups.push(() => target?.removeEventListener(type, listener, options));
   };
 
-  const ctx = {
-    section,
-    el,
-    state,
-    refresh: async () => {},
+  const announce = (message) => {
+    if (!state.active || !elements.live) return;
+    elements.live.textContent = "";
+    const schedule =
+      typeof window.requestAnimationFrame === "function"
+        ? window.requestAnimationFrame.bind(window)
+        : (callback) => window.setTimeout(callback, 0);
+    schedule(() => {
+      if (state.active && elements.live) elements.live.textContent = message;
+    });
   };
 
-  const allButtons = [
-    el.checkBtn,
-    el.updateBtn,
-    el.quickRetryBtn,
-    el.quickOpenLocationBtn,
-    el.installBtn,
-    el.forceBtn,
-    el.locChoose,
-    el.locOpen,
-    el.locReset,
-  ];
-
-  const setStatusText = (text = "") => {
-    const next = String(text || "").trim();
-    const summaryText = String(el.summaryStatusEl?.textContent || "").trim();
-    setText(el.statusEl, next && next !== summaryText ? next : "");
+  const setLocationError = (message = "") => {
+    elements.locationError.textContent = message;
+    elements.locationError.hidden = !message;
   };
 
-  const setHintText = (text = "") => {
-    setText(el.hintEl, text);
-  };
-
-  const isActionLocked = (key, cooldownMs = ACTION_COOLDOWN_MS) => {
-    const now = Date.now();
-    const nextAllowedAt = state.actionLocks.get(key) || 0;
-    if (nextAllowedAt > now) return true;
-    state.actionLocks.set(key, now + cooldownMs);
-    return false;
-  };
-
-  const setQuickActionsVisibility = ({ showRetry = false } = {}) => {
-    if (el.quickRetryBtn) {
-      el.quickRetryBtn.style.display = showRetry ? "" : "none";
-    }
-    if (el.quickOpenLocationBtn) {
-      el.quickOpenLocationBtn.style.display = "none";
-    }
-  };
-
-  const setQuickState = (
-    summaryState,
-    text,
-    { showRetry = false, showOpenLocation = false } = {},
-  ) => {
-    setSummaryState(el, summaryState, text);
-    setStatusText(text);
-    setQuickActionsVisibility({ showRetry, showOpenLocation });
-  };
-
-  const updateStatusCards = (summary, overrides = {}, options = {}) => {
-    if (!summary) {
-      setSummaryState(
-        el,
-        options.customState || "error",
-        options.customText || t("tools.error.getVersions"),
-      );
-      if (el.statusCardsEl) patchToolCards(el.statusCardsEl, []);
-      return;
-    }
-    const cardItems = buildToolsCardItems(summary, overrides);
-    if (el.statusCardsEl) patchToolCards(el.statusCardsEl, cardItems);
-
-    const items = cardItems.map((item) => item.state);
-    const derivedState = items.includes("update")
-      ? "update"
-      : items.every((x) => x === "ok")
-        ? "ok"
-        : "missing";
-
-    const overallState = options.customState || derivedState;
-    const summaryText =
-      options.customText ||
-      (overallState === "ok"
-        ? t("tools.summary.readyText")
-        : summary.text ||
-          (overallState === "update"
-            ? t("tools.status.updatesFound")
-            : t("tools.summary.problemText")));
-
-    setSummaryState(el, overallState, summaryText);
-  };
-
-  const syncActionVisibility = (missing) => {
-    if (el.installBtn) el.installBtn.style.display = missing ? "" : "none";
-    if (el.checkBtn) el.checkBtn.style.display = missing ? "none" : "";
-    if (el.updateBtn && missing) el.updateBtn.style.display = "none";
-  };
-
-  const refreshLocationUI = async () => {
-    try {
-      const info = await window.electron?.tools?.getLocation?.();
-      if (!info?.success) return;
-      if (el.locInput) {
-        el.locInput.value = info.path || "";
-        el.locInput.setAttribute("title", info.path || "");
-      }
-      if (el.locReset) {
-        el.locReset.disabled = !!info.isDefault;
-        const pathSuffix = info.defaultPath ? `: ${info.defaultPath}` : "";
-        const title = info.isDefault
-          ? t("tools.location.defaultTitle", { path: pathSuffix })
-          : t("tools.location.resetTitle", { path: pathSuffix });
-        el.locReset.setAttribute("title", title);
-      }
-    } catch (error) {
-      console.error("[toolsInfo] getLocation error:", error);
-    }
-  };
-
-  const chooseDirDialog = async () => {
-    try {
-      const res = await window.electron.invoke("dialog:choose-tools-dir");
-      if (res && res.filePaths && res.filePaths[0]) return res.filePaths[0];
-      if (typeof res === "string") return res;
-      if (res && res.canceled === false && res.paths && res.paths[0]) {
-        return res.paths[0];
-      }
-    } catch {
-      // noop
-    }
-    return null;
-  };
-
-  const runInstallAll = async ({
-    statusText = t("tools.status.installing"),
-  } = {}) => {
-    if (isActionLocked("install-all")) return;
-    if (!navigator.onLine) {
-      setQuickState("offline", t("tools.status.noNetwork"), {
-        showRetry: true,
-        showOpenLocation: true,
-      });
-      return;
-    }
-    let dots;
-    try {
-      state.isInstalling = true;
-      applyNetworkState(allButtons, state.isInstalling, state.isChecking);
-      setQuickState("busy", statusText);
-      const labelEl = el.installBtn?.querySelector("span") || el.checkLabel;
-      if (labelEl) dots = startDotsAnimator(labelEl, statusText);
-      await window.electron?.tools?.installAll?.();
-      await window.electron?.invoke?.(
-        "toast",
-        t("tools.toast.installSuccess"),
-        "success",
-      );
-      await ctx.refresh({ force: true, reason: "install" });
-    } catch (error) {
-      console.error("[toolsInfo] installAll failed:", error);
-      setQuickState("error", t("tools.error.install"), {
-        showRetry: true,
-        showOpenLocation: true,
-      });
-      await window.electron?.invoke?.(
-        "toast",
-        t("tools.toast.installError"),
-        "error",
-      );
-    } finally {
-      state.isInstalling = false;
-      applyNetworkState(allButtons, state.isInstalling, state.isChecking);
-      try {
-        dots?.stop?.();
-      } catch {
-        // noop
-      }
-    }
-  };
-
-  const checkUpdates = async () => {
-    if (state.isChecking || isActionLocked("check-updates")) return;
-    if (!navigator.onLine) {
-      if (!navigator.onLine) setStatusText(t("tools.status.noNetwork"));
-      setQuickState("offline", t("tools.status.noNetwork"), {
-        showRetry: true,
-        showOpenLocation: true,
-      });
-      return;
-    }
-
-    const cur =
-      (await window.electron?.tools?.getVersions?.()) || state.versions;
-    if (!cur) return;
-    const versionsSignature = buildVersionsSignature(cur);
-    const cachedUpdates = getCachedUpdates(versionsSignature);
-
-    const summaryBase = summarizeToolsState(cur);
-    updateStatusCards(
-      summaryBase,
-      {},
-      {
-        customState: "checking",
-        customText: t("tools.status.checkingUpdates"),
-      },
+  const closeMenu = ({ restoreFocus = false } = {}) => {
+    if (!state.openMenuId) return;
+    const menu = elements.list.querySelector(
+      `[data-tool-menu="${state.openMenuId}"]`,
     );
-    setQuickState("busy", t("tools.status.checkingUpdates"));
+    const trigger = state.menuTrigger;
+    menu.hidden = true;
+    trigger?.setAttribute("aria-expanded", "false");
+    state.openMenuId = null;
+    state.menuTrigger = null;
+    if (restoreFocus) trigger?.focus();
+  };
 
-    const prevIconClass = el.checkIcon?.className;
-    if (el.checkIcon) el.checkIcon.classList.add("fa-spin");
+  const addMenuItem = (menu, { action, icon, labelKey, disabled = false }) => {
+    const item = createButton({
+      className: "dependency-row__menu-item",
+      icon,
+      labelKey,
+      titleKey: null,
+    });
+    item.dataset.toolAction = action;
+    item.setAttribute("role", "menuitem");
+    item.disabled = disabled;
+    menu.appendChild(item);
+  };
 
-    let dots;
-    try {
-      state.isChecking = true;
-      applyNetworkState(allButtons, state.isInstalling, state.isChecking);
-      const labelEl = el.checkLabel || el.checkBtn?.querySelector("span");
-      if (labelEl)
-        dots = startDotsAnimator(labelEl, t("tools.status.checkingUpdates"));
-
-      const upd =
-        cachedUpdates ||
-        (await window.electron?.tools?.checkUpdates?.({
-          noCache: false,
-          forceFetch: false,
-          etag: updatesCheckCache.etag || undefined,
-        }));
-      if (!cachedUpdates) {
-        setCachedUpdates(versionsSignature, upd);
-      }
-
-      const dCurUpd = formatDenoVersion(upd?.deno?.current || "");
-      state.pendingUpdate = resolvePendingToolUpdates(cur, upd);
-
-      const anyUpdate = state.pendingUpdate.yt || state.pendingUpdate.ff;
-      const overrides = {
-        yt: state.pendingUpdate.yt ? "update" : undefined,
-        ff: state.pendingUpdate.ff ? "update" : undefined,
-      };
-      updateStatusCards(summaryBase, overrides, {
-        customState: anyUpdate ? "update" : undefined,
-        customText: anyUpdate
-          ? t("tools.status.updatesFound")
-          : t("tools.status.upToDate"),
+  const rebuildMenu = (tool, menu) => {
+    menu.replaceChildren();
+    addMenuItem(menu, {
+      action: "check",
+      icon: "fa-solid fa-rotate",
+      labelKey: "tools.menu.check",
+      disabled: tool.isChecking || tool.isUpdating || !navigator.onLine,
+    });
+    if (!tool.installed) {
+      addMenuItem(menu, {
+        action: "install",
+        icon: "fa-solid fa-download",
+        labelKey: "tools.menu.install",
+        disabled: tool.isUpdating || !navigator.onLine,
       });
-      setQuickState(
-        anyUpdate ? "update" : "ok",
-        anyUpdate ? t("tools.status.updatesFound") : t("tools.status.upToDate"),
-        { showOpenLocation: true },
-      );
-      if (el.updateBtn) el.updateBtn.style.display = anyUpdate ? "" : "none";
-      if (dCurUpd) setHintText(`${t("tools.label.deno")}: ${dCurUpd}`);
-    } catch (error) {
-      console.error("[toolsInfo] check updates failed:", error);
-      updateStatusCards(
-        summaryBase,
-        {},
-        {
-          customState: "error",
-          customText: t("tools.error.update"),
-        },
-      );
-      setQuickState("error", t("tools.error.update"), {
-        showRetry: true,
-        showOpenLocation: true,
+    } else if (tool.updateAvailable && !tool.skipUpdates) {
+      addMenuItem(menu, {
+        action: "update",
+        icon: "fa-solid fa-arrow-up",
+        labelKey: "tools.menu.update",
+        disabled: tool.isUpdating || !navigator.onLine,
       });
-      await window.electron?.invoke?.(
-        "toast",
-        t("tools.error.update"),
-        "error",
-      );
-    } finally {
-      state.isChecking = false;
-      applyNetworkState(allButtons, state.isInstalling, state.isChecking);
-      if (el.checkIcon && prevIconClass) el.checkIcon.className = prevIconClass;
+    }
+    if (tool.installed) {
+      addMenuItem(menu, {
+        action: "reinstall",
+        icon: "fa-solid fa-arrow-rotate-right",
+        labelKey: "tools.menu.reinstall",
+        disabled: tool.isUpdating || !navigator.onLine,
+      });
+      addMenuItem(menu, {
+        action: "reveal",
+        icon: "fa-regular fa-folder-open",
+        labelKey: "tools.menu.reveal",
+        disabled: !tool.executablePath,
+      });
+      addMenuItem(menu, {
+        action: "copy-version",
+        icon: "fa-regular fa-copy",
+        labelKey: "tools.menu.copyVersion",
+        disabled: !tool.currentVersion,
+      });
+    }
+    addMenuItem(menu, {
+      action: "site",
+      icon: "fa-solid fa-arrow-up-right-from-square",
+      labelKey: "tools.link.openSite",
+    });
+  };
+
+  const render = () => {
+    if (state.disposed) return;
+    const overall = getOverallState(state.tools, state.forcedOverallState);
+    const copy = OVERALL_COPY[overall] || OVERALL_COPY.error;
+    elements.panel.dataset.summaryState = overall;
+    elements.summaryTitle.textContent = t(copy.title);
+    elements.summaryDescription.textContent = t(copy.description);
+    elements.summaryBadge.textContent = t(copy.badge);
+    elements.summaryBadge.dataset.status = overall;
+    elements.summaryIcon.dataset.status = overall;
+    elements.summaryIcon.replaceChildren(createIcon(copy.icon));
+    const lastCheckedAt = Math.max(
+      0,
+      ...state.tools.map((tool) => Number(tool.lastCheckedAt) || 0),
+    );
+    elements.lastChecked.textContent = formatCheckedAt(lastCheckedAt);
+
+    state.tools.forEach((tool) => {
+      const row = elements.list.querySelector(`[data-tool="${tool.id}"]`);
+      if (!row) return;
+      row.dataset.status = tool.isUpdating ? "updating" : tool.status;
+      const version = row.querySelector(".dependency-row__version");
+      version.textContent = tool.currentVersion
+        ? t("tools.version.current", { version: tool.currentVersion })
+        : t("tools.version.unavailable");
+      const status = row.querySelector(".dependency-row__status");
+      const statusKey = toolStatusKey(tool);
+      status.textContent = t(statusKey || "tools.toolStatus.error");
+      status.dataset.status = tool.isUpdating ? "updating" : tool.status;
+      const error = row.querySelector(".dependency-row__error");
+      error.textContent = tool.error ? t("tools.toolStatus.errorHint") : "";
+      error.hidden = !tool.error;
+      const menu = row.querySelector(`[data-tool-menu="${tool.id}"]`);
+      rebuildMenu(tool, menu);
+      row.querySelector("[data-tool-menu-trigger]").disabled =
+        tool.isUpdating || tool.isChecking;
+    });
+
+    const pathAvailable = !!state.location;
+    elements.locationPath.textContent =
+      state.location || t("tools.location.unavailable");
+    elements.locationPath.title = state.location || "";
+    elements.locationOpen.disabled = !pathAvailable;
+    elements.locationReveal.disabled = !pathAvailable;
+    elements.locationCopy.disabled = !pathAvailable;
+    elements.locationReset.disabled =
+      !pathAvailable || state.isDefaultLocation;
+    elements.checkButton.disabled =
+      !!state.checkPromise ||
+      state.tools.some((tool) => tool.isUpdating || tool.isChecking) ||
+      !navigator.onLine;
+    elements.checkButton.classList.toggle(
+      "is-loading",
+      !!state.checkPromise || state.tools.some((tool) => tool.isChecking),
+    );
+  };
+
+  const applyVersions = (payload, checkedAt = Date.now()) => {
+    const normalized = normalizeVersionsPayload(payload);
+    if (!normalized) return false;
+    state.tools.forEach((tool) => {
+      const raw = normalized[tool.id];
+      tool.installed = raw.ok && !!raw.path;
+      tool.currentVersion = tool.installed
+        ? formatVersion(tool.id, raw.version) || null
+        : null;
+      tool.latestVersion = null;
+      tool.updateAvailable = false;
+      tool.executablePath = raw.path || null;
+      tool.lastCheckedAt = checkedAt;
+      tool.error = raw.error || null;
+      tool.skipUpdates = raw.skipUpdates;
+      tool.status = !tool.installed
+        ? raw.error && raw.error !== "missing"
+          ? "error"
+          : "missing"
+        : tool.currentVersion
+          ? "installed"
+          : "unknown_version";
+    });
+    saveSnapshot(state.tools);
+    return true;
+  };
+
+  const refreshLocation = async () => {
+    const result = await window.electron?.tools?.getLocation?.();
+    if (!result || result.success !== true || typeof result.path !== "string") {
+      state.location = "";
+      setLocationError(t("tools.location.unavailableDescription"));
+      return;
+    }
+    state.location = result.path;
+    state.defaultLocation =
+      typeof result.defaultPath === "string" ? result.defaultPath : "";
+    state.isDefaultLocation = result.isDefault === true;
+    setLocationError("");
+  };
+
+  const refreshPlatform = async () => {
+    const info =
+      typeof window.electron?.getPlatformInfo === "function"
+        ? await window.electron.getPlatformInfo().catch(() => null)
+        : null;
+    state.platform = String(info?.platform || "");
+    const key =
+      state.platform === "darwin"
+        ? "tools.location.reveal.darwin"
+        : state.platform === "win32"
+          ? "tools.location.reveal.win32"
+          : "tools.location.reveal.linux";
+    const label = elements.locationReveal.querySelector("span");
+    if (label) {
+      label.dataset.i18n = key;
+      label.textContent = t(key);
+    }
+    elements.locationReveal.dataset.i18nTitle = key;
+    elements.locationReveal.dataset.i18nAria = key;
+    elements.locationReveal.title = t(key);
+    elements.locationReveal.setAttribute("aria-label", t(key));
+  };
+
+  const refresh = async ({ force = false } = {}) => {
+    if (state.disposed) return;
+    if (state.refreshPromise) return state.refreshPromise;
+    if (!force && Date.now() - state.lastRefreshedAt < 1200) return;
+    const requestId = ++state.requestId;
+    state.tools.forEach((tool) => {
+      tool.isChecking = true;
+    });
+    state.forcedOverallState = "checking";
+    render();
+    state.refreshPromise = (async () => {
       try {
-        dots?.stop?.();
-      } catch {
-        // noop
+        const [versions] = await Promise.all([
+          window.electron?.tools?.getVersions?.(),
+          refreshLocation(),
+          refreshPlatform(),
+        ]);
+        if (
+          state.disposed ||
+          !state.active ||
+          requestId !== state.requestId
+        ) {
+          return;
+        }
+        if (!applyVersions(versions)) {
+          throw new Error("Invalid versions response");
+        }
+        state.forcedOverallState = navigator.onLine ? null : "offline";
+        state.lastRefreshedAt = Date.now();
+        window.dispatchEvent(
+          new CustomEvent("tools:status", {
+            detail: { summary: summarizeToolsState(versions), raw: versions },
+          }),
+        );
+      } catch (error) {
+        if (requestId !== state.requestId || state.disposed) return;
+        state.tools.forEach((tool) => {
+          tool.status = "error";
+          tool.error = error?.message || "refresh-failed";
+          tool.lastCheckedAt = Date.now();
+        });
+        state.forcedOverallState = "error";
+      } finally {
+        state.tools.forEach((tool) => {
+          tool.isChecking = false;
+        });
+        state.refreshPromise = null;
+        if (
+          requestId === state.requestId &&
+          !state.disposed &&
+          state.active
+        ) {
+          applyI18n(section);
+          render();
+          initTooltips();
+        }
       }
-    }
+    })();
+    return state.refreshPromise;
   };
 
-  const updateAvailableTools = async () => {
-    if (isActionLocked("update-tools")) return;
-    if (!navigator.onLine) {
-      setQuickState("offline", t("tools.status.noNetwork"), {
-        showRetry: true,
-        showOpenLocation: true,
+  const checkUpdates = async (toolId = null) => {
+    if (state.checkPromise || !navigator.onLine || state.disposed) return;
+    const selected = toolId
+      ? state.tools.filter((tool) => tool.id === toolId)
+      : state.tools;
+    selected.forEach((tool) => {
+      tool.isChecking = true;
+      tool.error = null;
+    });
+    state.forcedOverallState = "checking";
+    render();
+    const requestId = ++state.requestId;
+    state.checkPromise = (async () => {
+      try {
+        const payload = await window.electron?.tools?.checkUpdates?.({
+          noCache: true,
+          forceFetch: true,
+          ...(toolId ? { toolId } : {}),
+        });
+        const updates = normalizeUpdatesPayload(payload);
+        if (!updates || updates.error) {
+          throw new Error(updates?.error || "Invalid updates response");
+        }
+        if (
+          state.disposed ||
+          !state.active ||
+          requestId !== state.requestId
+        ) {
+          return;
+        }
+        selected.forEach((tool) => {
+          const update = updates[tool.id];
+          if (!update) return;
+          if (update.current) tool.currentVersion = update.current;
+          tool.latestVersion = update.latest;
+          tool.skipUpdates = update.skipUpdates;
+          tool.updateAvailable =
+            !tool.skipUpdates &&
+            (update.canUpdate ||
+              hasUpdate(tool.id, tool.currentVersion, tool.latestVersion));
+          if (tool.installed) {
+            tool.status = tool.updateAvailable
+              ? "update_available"
+              : tool.currentVersion
+                ? "installed"
+                : "unknown_version";
+          }
+          tool.lastCheckedAt = Date.now();
+        });
+        state.forcedOverallState = null;
+        saveSnapshot(state.tools);
+        announce(
+          state.tools.some((tool) => tool.updateAvailable)
+            ? t("tools.status.updatesFound")
+            : t("tools.status.upToDate"),
+        );
+      } catch (error) {
+        selected.forEach((tool) => {
+          tool.status = "error";
+          tool.error = error?.message || "check-failed";
+          tool.lastCheckedAt = Date.now();
+        });
+        state.forcedOverallState = "error";
+        announce(t("tools.error.update"));
+      } finally {
+        selected.forEach((tool) => {
+          tool.isChecking = false;
+        });
+        state.checkPromise = null;
+        if (!state.disposed && state.active) render();
+      }
+    })();
+    return state.checkPromise;
+  };
+
+  const runToolAction = async (tool, action) => {
+    if (!tool || tool.isUpdating || !navigator.onLine) return;
+    const cooldownKey = `${tool.id}:${action}`;
+    const now = Date.now();
+    if ((state.cooldowns.get(cooldownKey) || 0) > now) return;
+    state.cooldowns.set(cooldownKey, now + ACTION_COOLDOWN_MS);
+
+    if (action === "reinstall") {
+      const confirmed = await showConfirmationDialog({
+        title: t("tools.confirm.single.title", { tool: tool.displayName }),
+        subtitle: t("tools.confirm.force.subtitle"),
+        message: t("tools.confirm.single.message", {
+          tool: tool.displayName,
+        }),
+        confirmText: t("tools.confirm.force.confirm"),
+        cancelText: t("tools.confirm.force.cancel"),
+        tone: "danger",
       });
-      return;
+      if (!confirmed) return;
     }
 
+    tool.isUpdating = true;
+    tool.error = null;
+    render();
     try {
-      state.isInstalling = true;
-      applyNetworkState(allButtons, state.isInstalling, state.isChecking);
-      setQuickState("busy", t("tools.status.installing"));
-      if (state.pendingUpdate.yt) await window.electron?.tools?.updateYtDlp?.();
-      if (state.pendingUpdate.ff)
-        await window.electron?.tools?.updateFfmpeg?.();
-      await ctx.refresh({ force: true, reason: "update" });
-    } catch (error) {
-      console.error("[toolsInfo] selective update failed:", error);
-      setQuickState("error", t("tools.error.update"), {
-        showRetry: true,
-        showOpenLocation: true,
+      const result = await window.electron?.tools?.runDependencyAction?.({
+        id: tool.id,
+        action,
       });
-      await window.electron?.invoke?.(
-        "toast",
-        t("tools.error.update"),
-        "error",
+      if (!result || result.success !== true) {
+        throw new Error(result?.error || "Dependency action failed");
+      }
+      announce(
+        t("tools.action.success", {
+          tool: tool.displayName,
+        }),
       );
+      await refresh({ force: true });
+    } catch (error) {
+      tool.status = "error";
+      tool.error = error?.message || "action-failed";
+      announce(t("tools.action.error", { tool: tool.displayName }));
     } finally {
-      state.isInstalling = false;
-      applyNetworkState(allButtons, state.isInstalling, state.isChecking);
+      tool.isUpdating = false;
+      render();
     }
   };
 
-  const maybeConfirmForceInstall = async () => {
-    if (typeof showConfirmationDialog !== "function") {
-      await runInstallAll();
+  const chooseDirectory = async () => {
+    try {
+      const dialogResult = await window.electron?.invoke?.(
+        "dialog:choose-tools-dir",
+      );
+      const selected =
+        dialogResult?.filePaths?.[0] ||
+        dialogResult?.paths?.[0] ||
+        (typeof dialogResult === "string" ? dialogResult : "");
+      if (!selected) return;
+      const result = await window.electron?.tools?.setLocation?.(selected);
+      if (result?.success !== true) throw new Error(result?.error);
+      await refresh({ force: true });
+    } catch {
+      setLocationError(t("tools.location.setError"));
+    }
+  };
+
+  const setAdvancedOpen = (open) => {
+    elements.advancedToggle.setAttribute("aria-expanded", String(open));
+    elements.advancedPanel.hidden = !open;
+    if ("inert" in elements.advancedPanel) {
+      elements.advancedPanel.inert = !open;
+    }
+    try {
+      sessionStorage.setItem(ADVANCED_SESSION_KEY, open ? "1" : "0");
+    } catch {}
+  };
+
+  on(elements.checkButton, "click", () => checkUpdates());
+  on(elements.advancedToggle, "click", () => {
+    setAdvancedOpen(
+      elements.advancedToggle.getAttribute("aria-expanded") !== "true",
+    );
+  });
+  on(elements.locationOpen, "click", async () => {
+    const result = await window.electron?.tools?.openLocation?.();
+    if (result?.success !== true) {
+      setLocationError(t("tools.location.openError"));
+    }
+  });
+  on(elements.locationReveal, "click", async () => {
+    const result = await window.electron?.tools?.showInFolder?.(state.location);
+    if (result?.success !== true) {
+      setLocationError(t("tools.location.revealError"));
+    }
+  });
+  on(elements.locationCopy, "click", async () => {
+    try {
+      await navigator.clipboard.writeText(state.location);
+      announce(t("tools.location.copied"));
+    } catch {
+      announce(t("tools.location.copyError"));
+    }
+  });
+  on(elements.locationChoose, "click", chooseDirectory);
+  on(elements.locationReset, "click", async () => {
+    const result = await window.electron?.tools?.resetLocation?.();
+    if (result?.success !== true) {
+      setLocationError(t("tools.location.resetError"));
       return;
     }
+    await refresh({ force: true });
+  });
+  on(elements.reinstallAll, "click", async () => {
     const confirmed = await showConfirmationDialog({
       title: t("tools.confirm.force.title"),
       subtitle: t("tools.confirm.force.subtitle"),
@@ -818,253 +1113,187 @@ function initContext(section) {
       cancelText: t("tools.confirm.force.cancel"),
       tone: "danger",
     });
-    if (confirmed) {
-      await runInstallAll();
-    }
-  };
-
-  el.installBtn?.addEventListener("click", () => {
-    runInstallAll();
-  });
-  el.checkBtn?.addEventListener("click", () => {
-    checkUpdates();
-  });
-  el.updateBtn?.addEventListener("click", () => {
-    updateAvailableTools();
-  });
-  el.quickRetryBtn?.addEventListener("click", () => {
-    if (isActionLocked("quick-retry")) return;
-    ctx.refresh({ force: true, reason: "quick-retry" });
-  });
-  el.quickOpenLocationBtn?.addEventListener("click", async () => {
-    if (isActionLocked("quick-open-location")) return;
-    const r = await window.electron?.tools?.openLocation?.();
-    if (!r?.success) {
-      setQuickState("error", t("tools.location.openError"), {
-        showRetry: true,
-        showOpenLocation: true,
-      });
-      await window.electron?.invoke?.(
-        "toast",
-        t("tools.location.openError"),
-        "error",
-      );
-    }
-  });
-  el.forceBtn?.addEventListener("click", () => {
-    maybeConfirmForceInstall();
-  });
-
-  el.locChoose?.addEventListener("click", async () => {
-    const dir = await chooseDirDialog();
-    if (!dir) return;
-    const r = await window.electron?.tools?.setLocation?.(dir);
-    if (!r?.success) {
-      setStatusText(t("tools.location.setError"));
-      await window.electron?.invoke?.(
-        "toast",
-        t("tools.location.setError"),
-        "error",
-      );
-      return;
-    }
-    setStatusText(t("tools.location.updated"));
-    await ctx.refresh({ force: true, reason: "set-location" });
-  });
-
-  el.locOpen?.addEventListener("click", async () => {
-    const r = await window.electron?.tools?.openLocation?.();
-    if (!r?.success) {
-      setQuickState("error", t("tools.location.openError"), {
-        showRetry: true,
-        showOpenLocation: true,
-      });
-      await window.electron?.invoke?.(
-        "toast",
-        t("tools.location.openError"),
-        "error",
-      );
-    }
-  });
-
-  el.locReset?.addEventListener("click", async () => {
-    const r = await window.electron?.tools?.resetLocation?.();
-    if (!r?.success) {
-      setStatusText(t("tools.location.resetError"));
-      await window.electron?.invoke?.(
-        "toast",
-        t("tools.location.resetError"),
-        "error",
-      );
-      return;
-    }
-    setStatusText(t("tools.location.resetSuccess"));
-    await ctx.refresh({ force: true, reason: "reset-location" });
-  });
-
-  el.locInput?.addEventListener("dblclick", async () => {
-    try {
-      await navigator.clipboard.writeText(el.locInput.value || "");
-      setStatusText(t("tools.location.copied"));
-    } catch {
-      // noop
-    }
-  });
-
-  if (el.moreWrap && el.moreBtn && el.moreMenu) {
-    window.__toolsInfoOverlayCleanup?.();
-    const closeMenu = () => {
-      if (!el.moreWrap.classList.contains("is-open")) return;
-      el.moreWrap.classList.remove("is-open");
-      el.moreBtn.setAttribute("aria-expanded", "false");
-    };
-    const toggleMenu = (ev) => {
-      ev.stopPropagation();
-      const willOpen = !el.moreWrap.classList.contains("is-open");
-      closeDismissibleOverlays("tools-more-menu");
-      el.moreWrap.classList.toggle("is-open", willOpen);
-      el.moreBtn.setAttribute("aria-expanded", String(willOpen));
-    };
-    el.moreBtn.addEventListener("click", toggleMenu);
-    window.__toolsInfoOverlayCleanup = registerDismissibleOverlay({
-      id: "tools-more-menu",
-      panel: el.moreMenu,
-      isOpen: () => el.moreWrap.classList.contains("is-open"),
-      close: closeMenu,
-      isInsideEvent: (target) => el.moreWrap.contains(target),
+    if (!confirmed) return;
+    state.tools.forEach((tool) => {
+      tool.isUpdating = true;
     });
-  }
-
-  el.statusCardsEl?.addEventListener("click", (event) => {
-    const trigger = event.target.closest?.(".tool-external-link");
-    if (!trigger) return;
-    event.preventDefault();
-    event.stopPropagation();
-    const url = TOOL_LINKS[trigger.dataset.tool];
-    if (url) window.electron?.openExternal?.(url);
-  });
-
-  if (window.__toolsInfoNetHandlers) {
-    window.removeEventListener("online", window.__toolsInfoNetHandlers.on);
-    window.removeEventListener("offline", window.__toolsInfoNetHandlers.off);
-  }
-  window.__toolsInfoNetHandlers = {
-    on: () => {
-      applyNetworkState(allButtons, state.isInstalling, state.isChecking);
-      if (el.statusEl?.textContent === t("tools.status.noNetwork")) {
-        setQuickState("checking", t("tools.summary.checkingText"));
-      }
-      if (el.hintEl?.textContent === t("tools.status.noNetwork"))
-        setHintText("");
-    },
-    off: () => {
-      applyNetworkState(allButtons, state.isInstalling, state.isChecking);
-      setQuickState("offline", t("tools.status.noNetwork"), {
-        showRetry: true,
-        showOpenLocation: true,
-      });
-      setHintText(t("tools.status.noNetwork"));
-    },
-  };
-  window.addEventListener("online", window.__toolsInfoNetHandlers.on);
-  window.addEventListener("offline", window.__toolsInfoNetHandlers.off);
-
-  ctx.refresh = async ({ force = false } = {}) => {
-    if (!force && Date.now() - state.lastRefreshedAt < 1200) return;
-
-    const requestId = ++state.requestId;
-    applyNetworkState(allButtons, state.isInstalling, state.isChecking);
-    setQuickState("checking", t("tools.summary.checkingText"));
-
+    render();
     try {
-      const [versionsRes] = await Promise.all([
-        window.electron?.tools?.getVersions?.(),
-        refreshLocationUI(),
-      ]);
-
-      if (requestId !== state.requestId) return;
-
-      if (!versionsRes) {
-        updateStatusCards(null);
-        setQuickState("error", t("tools.error.getVersions"), {
-          showRetry: true,
-          showOpenLocation: true,
-        });
+      const result = await installAllTools();
+      if (result?.success !== true) throw new Error(result?.error);
+      await refresh({ force: true });
+    } catch {
+      state.forcedOverallState = "error";
+      announce(t("tools.toast.installError"));
+    } finally {
+      state.tools.forEach((tool) => {
+        tool.isUpdating = false;
+      });
+      render();
+    }
+  });
+  on(elements.list, "click", async (event) => {
+    const trigger = event.target.closest?.("[data-tool-menu-trigger]");
+    if (trigger) {
+      event.stopPropagation();
+      const toolId = trigger.dataset.toolMenuTrigger;
+      if (state.openMenuId === toolId) {
+        closeMenu();
         return;
       }
-
-      state.versions = versionsRes;
-      state.pendingUpdate = { yt: false, ff: false };
-      if (el.updateBtn) el.updateBtn.style.display = "none";
-
-      const summary = summarizeToolsState(versionsRes);
-      updateStatusCards(summary);
-
-      const missing =
-        !versionsRes?.ytDlp?.ok ||
-        !versionsRes?.ffmpeg?.ok ||
-        !versionsRes?.deno?.ok;
-      syncActionVisibility(missing);
-      setHintText(missing ? t("tools.hint.missing") : "");
-      setQuickState(
-        missing ? "missing" : "ok",
-        missing
-          ? summary.text || t("tools.summary.problemText")
-          : t("tools.summary.readyText"),
-        { showOpenLocation: true },
-      );
-
-      emitToolsStatus(versionsRes);
-      state.lastRefreshedAt = Date.now();
-    } catch (error) {
-      if (requestId !== state.requestId) return;
-      console.error("[toolsInfo] refresh failed:", error);
-      updateStatusCards(
-        null,
-        {},
-        { customState: "error", customText: t("tools.error.getVersions") },
-      );
-      setHintText(t("tools.error.getVersions"));
-      setQuickState("error", t("tools.error.getVersions"), {
-        showRetry: true,
-        showOpenLocation: true,
-      });
-      emitToolsStatus(null);
-    } finally {
-      if (requestId === state.requestId) {
-        applyI18n(section);
-        initTooltips();
-      }
+      closeMenu();
+      const menu = elements.list.querySelector(`[data-tool-menu="${toolId}"]`);
+      state.openMenuId = toolId;
+      state.menuTrigger = trigger;
+      menu.hidden = false;
+      trigger.setAttribute("aria-expanded", "true");
+      menu.querySelector('[role="menuitem"]:not(:disabled)')?.focus();
+      return;
     }
-  };
+    const actionButton = event.target.closest?.("[data-tool-action]");
+    if (!actionButton) return;
+    const row = actionButton.closest("[data-tool]");
+    const tool = state.tools.find((entry) => entry.id === row?.dataset.tool);
+    const action = actionButton.dataset.toolAction;
+    closeMenu({ restoreFocus: true });
+    if (!tool) return;
+    if (action === "check") await checkUpdates(tool.id);
+    else if (["install", "update", "reinstall"].includes(action)) {
+      await runToolAction(tool, action);
+    } else if (action === "reveal" && tool.executablePath) {
+      await window.electron?.tools?.showInFolder?.(tool.executablePath);
+    } else if (action === "copy-version" && tool.currentVersion) {
+      await navigator.clipboard.writeText(tool.currentVersion).catch(() => {});
+      announce(t("tools.version.copied"));
+    } else if (action === "site") {
+      const definition = TOOL_DEFINITIONS.find(({ id }) => id === tool.id);
+      window.electron?.openExternal?.(definition?.site);
+    }
+  });
+  on(document, "click", (event) => {
+    if (!state.openMenuId) return;
+    const insideCurrentMenu = event.target.closest?.(
+      `[data-tool-menu="${state.openMenuId}"], [data-tool-menu-trigger="${state.openMenuId}"]`,
+    );
+    if (!insideCurrentMenu) closeMenu();
+  });
+  on(document, "keydown", (event) => {
+    const isEscape =
+      event.key === "Escape" ||
+      event.key === "Esc" ||
+      event.code === "Escape";
+    if (isEscape && state.openMenuId) {
+      event.preventDefault();
+      event.stopPropagation();
+      closeMenu({ restoreFocus: true });
+      return;
+    }
+    if (
+      state.openMenuId &&
+      ["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)
+    ) {
+      const menu = elements.list.querySelector(
+        `[data-tool-menu="${state.openMenuId}"]`,
+      );
+      const items = Array.from(
+        menu?.querySelectorAll('[role="menuitem"]:not(:disabled)') || [],
+      );
+      if (!items.length) return;
+      event.preventDefault();
+      event.stopPropagation();
+      const currentIndex = items.indexOf(document.activeElement);
+      const nextIndex =
+        event.key === "Home"
+          ? 0
+          : event.key === "End"
+            ? items.length - 1
+            : event.key === "ArrowUp"
+              ? (currentIndex - 1 + items.length) % items.length
+              : (currentIndex + 1) % items.length;
+      items[nextIndex].focus();
+    }
+  }, true);
+  on(window, "online", () => {
+    state.forcedOverallState = null;
+    render();
+  });
+  on(window, "offline", () => {
+    state.forcedOverallState = "offline";
+    closeMenu();
+    render();
+  });
+  on(window, "i18n:changed", () => {
+    applyI18n(section);
+    render();
+  });
 
+  const ctx = {
+    state,
+    refresh,
+    activate() {
+      state.active = true;
+      render();
+    },
+    deactivate() {
+      state.active = false;
+      state.requestId += 1;
+      closeMenu();
+    },
+    destroy() {
+      if (state.disposed) return;
+      state.disposed = true;
+      state.active = false;
+      state.requestId += 1;
+      closeMenu();
+      cleanups.splice(0).reverse().forEach((cleanup) => cleanup());
+      contexts.delete(ctx);
+      delete section.__toolsInfoCtx;
+    },
+  };
+  contexts.add(ctx);
   section.__toolsInfoCtx = ctx;
+
+  let advancedOpen = false;
+  try {
+    advancedOpen = sessionStorage.getItem(ADVANCED_SESSION_KEY) === "1";
+  } catch {}
+  setAdvancedOpen(advancedOpen);
+  render();
+  applyI18n(section);
+  initTooltips();
   return ctx;
 }
 
 export async function refreshToolsInfoState(options = {}) {
   const section = document.getElementById("tools-info");
   if (!section) return;
-  const ctx = section.__toolsInfoCtx || initContext(section);
-  await ctx.refresh(options);
+  const context = section.__toolsInfoCtx || createContext(section);
+  context.activate();
+  await context.refresh(options);
 }
 
 export async function renderToolsInfo(options = {}) {
-  const section = document.getElementById("tools-info");
-  if (!section) return;
-  const ctx = section.__toolsInfoCtx || initContext(section);
-  await ctx.refresh(options);
+  return refreshToolsInfoState(options);
 }
 
 export function isToolsInfoStale(maxAgeMs = TOOLS_REFRESH_STALE_MS) {
   const section = document.getElementById("tools-info");
-  const ts = section?.__toolsInfoCtx?.state?.lastRefreshedAt || 0;
-  return Date.now() - ts > maxAgeMs;
+  const timestamp = section?.__toolsInfoCtx?.state?.lastRefreshedAt || 0;
+  return Date.now() - timestamp > maxAgeMs;
+}
+
+export function deactivateToolsInfo() {
+  document.getElementById("tools-info")?.__toolsInfoCtx?.deactivate();
+}
+
+export function destroyToolsInfo() {
+  document.getElementById("tools-info")?.__toolsInfoCtx?.destroy();
 }
 
 export function __resetToolsInfoForTests() {
-  updatesCheckCache.ts = 0;
-  updatesCheckCache.versionsSignature = "";
-  updatesCheckCache.payload = null;
-  updatesCheckCache.etag = "";
+  Array.from(contexts).forEach((context) => context.destroy());
+  try {
+    localStorage.removeItem(SNAPSHOT_KEY);
+    sessionStorage.removeItem(ADVANCED_SESSION_KEY);
+  } catch {}
 }

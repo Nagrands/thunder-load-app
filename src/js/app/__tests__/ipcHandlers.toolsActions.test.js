@@ -96,6 +96,9 @@ jest.mock("../backupManager", () => ({
 }));
 
 jest.mock("../toolsPaths", () => ({
+  getExecName: jest.fn((tool) =>
+    process.platform === "win32" ? `${tool}.exe` : tool,
+  ),
   getDefaultToolsDir: jest.fn(() => "/tmp/tools"),
   getEffectiveToolsDir: jest.fn(() => "/tmp/tools"),
   ensureToolsDir: jest.fn(async (v) => v || "/tmp/tools"),
@@ -1417,14 +1420,9 @@ describe("ipcHandlers tools quick actions", () => {
   test("tools:updateYtDlp keeps current binary if temp install fails", async () => {
     const { CHANNELS } = require("../../ipc/channels");
     const download = require("../../scripts/download.js");
-    const toolsVersions = require("../toolsVersions");
-
     initHandlers();
     const existingPath = path.join(toolsDir, "yt-dlp");
     fs.writeFileSync(existingPath, "old-binary", "utf8");
-    toolsVersions.getToolsVersions.mockResolvedValueOnce({
-      ytDlp: { ok: true, path: existingPath },
-    });
     download.installYtDlp.mockRejectedValueOnce(new Error("install failed"));
 
     const result = await handlers[CHANNELS.TOOLS_UPDATEYTDLP]();
@@ -1445,7 +1443,7 @@ describe("ipcHandlers tools quick actions", () => {
     const existingPath = path.join(toolsDir, "yt-dlp");
     fs.writeFileSync(existingPath, "old-binary", "utf8");
     toolsVersions.getToolsVersions.mockResolvedValueOnce({
-      ytDlp: { ok: true, path: existingPath },
+      ytDlp: { ok: true, path: existingPath, version: "2026.07.29" },
     });
     download.installYtDlp.mockImplementationOnce(async ({ targetPath }) => {
       fs.writeFileSync(targetPath, "new-binary", "utf8");
@@ -1455,6 +1453,89 @@ describe("ipcHandlers tools quick actions", () => {
 
     expect(result).toMatchObject({ success: true });
     expect(fs.readFileSync(existingPath, "utf8")).toBe("new-binary");
+  });
+
+  test("tools:runDependencyAction rejects unsupported ids and actions", async () => {
+    const { CHANNELS } = require("../../ipc/channels");
+
+    initHandlers();
+
+    await expect(
+      handlers[CHANNELS.TOOLS_RUN_DEPENDENCY_ACTION](null, {
+        id: "../ytDlp",
+        action: "update",
+      }),
+    ).resolves.toEqual({
+      success: false,
+      error: "Invalid dependency action payload",
+    });
+    await expect(
+      handlers[CHANNELS.TOOLS_RUN_DEPENDENCY_ACTION](null, {
+        id: "deno",
+        action: "delete",
+      }),
+    ).resolves.toEqual({
+      success: false,
+      error: "Invalid dependency action payload",
+    });
+  });
+
+  test("tools:checkUpdates resolves the latest Deno release and validates options", async () => {
+    const https = require("https");
+    const { CHANNELS } = require("../../ipc/channels");
+    const { getToolsVersions } = require("../toolsVersions");
+    getToolsVersions.mockResolvedValueOnce({
+      ytDlp: { ok: true, version: "2026.07.01" },
+      ffmpeg: { ok: true, version: "ffmpeg version 8.0" },
+      deno: { ok: true, version: "deno 2.3.0" },
+    });
+    const requestedUrls = [];
+    const getSpy = jest.spyOn(https, "get").mockImplementation(
+      (url, _options, callback) => {
+        requestedUrls.push(String(url));
+        const request = new EventEmitter();
+        request.setTimeout = jest.fn();
+        request.destroy = jest.fn();
+        const response = new EventEmitter();
+        const payload = String(url).includes("denoland/deno")
+          ? { tag_name: "v2.4.0" }
+          : String(url).includes("FFmpeg/FFmpeg")
+            ? [{ name: "n8.0" }]
+            : { tag_name: "2026.07.29" };
+        queueMicrotask(() => {
+          callback(response);
+          response.emit("data", JSON.stringify(payload));
+          response.emit("end");
+        });
+        return request;
+      },
+    );
+
+    try {
+      initHandlers();
+      const result = await handlers[CHANNELS.TOOLS_CHECKUPDATES](null, {
+        noCache: "true",
+        forceFetch: 1,
+      });
+
+      expect(result.deno).toMatchObject({
+        current: "2.3.0",
+        latest: "2.4.0",
+        canUpdate: true,
+        unknownLatest: false,
+      });
+      expect(
+        requestedUrls.find((url) => url.includes("denoland/deno")),
+      ).not.toContain("?t=");
+
+      await expect(
+        handlers[CHANNELS.TOOLS_CHECKUPDATES](null, {
+          toolId: "../../deno",
+        }),
+      ).resolves.toMatchObject({ error: "Invalid toolId" });
+    } finally {
+      getSpy.mockRestore();
+    }
   });
 
   test("hashCalculate returns SHA-256 hash and match", async () => {

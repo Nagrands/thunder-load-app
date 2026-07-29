@@ -118,6 +118,7 @@ const CHANNELS = Object.freeze({
   TOOLS_GET_AVAILABILITY: "tools:getAvailability",
   TOOLS_GETVERSIONS: "tools:getVersions",
   TOOLS_INSTALLALL: "tools:installAll",
+  TOOLS_RUN_DEPENDENCY_ACTION: "tools:runDependencyAction",
   TOOLS_SHOWINFOLDER: "tools:showInFolder",
   TOOLS_UPDATEFFMPEG: "tools:updateFfmpeg",
   TOOLS_UPDATEYTDLP: "tools:updateYtDlp",

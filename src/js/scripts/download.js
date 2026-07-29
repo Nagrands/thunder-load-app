@@ -29,7 +29,7 @@
 
 // src/js/scripts/download.js
 
-const { spawn } = require("child_process");
+const { execFileSync, spawn } = require("child_process");
 const https = require("https");
 const fs = require("fs");
 const path = require("path");
@@ -1032,9 +1032,8 @@ async function installYtDlp(token = null) {
         log.info(`Set executable permissions for yt-dlp: ${ytDlpPath}`);
 
         if (process.platform === "darwin") {
-          const { execSync } = require("child_process");
           try {
-            execSync(`xattr -d com.apple.quarantine "${ytDlpPath}"`);
+            execFileSync("xattr", ["-d", "com.apple.quarantine", ytDlpPath]);
             log.info("Removed quarantine attribute from yt-dlp (macOS).");
           } catch (xattrErr) {
             log.warn(
@@ -1047,7 +1046,7 @@ async function installYtDlp(token = null) {
           const isExecutable = (stats.mode & 0o111) !== 0;
           log.info(`yt-dlp is executable: ${isExecutable}`);
           if (!isExecutable) {
-            execSync(`chmod +x "${ytDlpPath}"`);
+            fs.chmodSync(ytDlpPath, 0o755);
             log.info("Used chmod +x to set executable permissions");
           }
         }

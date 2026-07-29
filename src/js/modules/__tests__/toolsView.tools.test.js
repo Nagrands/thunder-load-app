@@ -11,6 +11,8 @@ jest.mock("../tooltipInitializer", () => ({
 }));
 
 jest.mock("../toolsInfo", () => ({
+  deactivateToolsInfo: jest.fn(),
+  destroyToolsInfo: jest.fn(),
   refreshToolsInfoState: jest.fn().mockResolvedValue(undefined),
   renderToolsInfo: jest.fn().mockResolvedValue(undefined),
 }));
@@ -392,11 +394,11 @@ describe("toolsView quick actions", () => {
     ).not.toBeNull();
   });
 
-  test("renders combined header with breadcrumbs and tools section header", async () => {
+  test("renders the launcher inside the tools sidebar shell", async () => {
     const el = await renderView();
     const header = el.querySelector("#tools-launcher-header");
-    const nav = el.querySelector("#tools-nav");
-    const breadcrumbs = el.querySelector(".tools-breadcrumbs");
+    const sidebar = el.querySelector(".tools-sidebar");
+    const nav = el.querySelector("#tools-sidebar-navigation");
     const hero = header?.querySelector(".tools-hero");
     const heroArt = hero?.querySelector(".tools-hero__art");
     const heroImage = heroArt?.querySelector("img");
@@ -412,10 +414,13 @@ describe("toolsView quick actions", () => {
     expect(heroImage?.getAttribute("alt")).toBe("");
     expect(heroImage?.getAttribute("draggable")).toBe("false");
     expect(el.querySelector("#tools-breadcrumb-home")).toBeNull();
-    expect(breadcrumbs).not.toBeNull();
-    expect(header?.contains(breadcrumbs)).toBe(false);
-    expect(nav?.contains(breadcrumbs)).toBe(true);
-    expect(breadcrumbs?.firstElementChild?.id).toBe("tools-breadcrumb-tools");
+    expect(sidebar).not.toBeNull();
+    expect(nav).not.toBeNull();
+    expect(
+      nav
+        ?.querySelector('[data-tool-nav="launcher"]')
+        ?.getAttribute("aria-current"),
+    ).toBe("page");
     expect(header?.dataset.ui).toBe("tools-entrance-header");
     expect(el.querySelector("#tools-launcher-section-header")?.dataset.ui).toBe(
       "tools-entrance-header",
@@ -442,12 +447,12 @@ describe("toolsView quick actions", () => {
         .querySelector(".tools-launcher-unavailable-title")
         ?.textContent?.trim(),
     ).toBe("tools.launcher.unavailableTitle");
-    expect(el.querySelector("#tools-back-btn")?.getAttribute("title")).toBe(
-      "tools.nav.back",
-    );
     expect(
-      el.querySelector(".tools-breadcrumbs")?.getAttribute("aria-label"),
-    ).toBe("tools.launcher.breadcrumbs.aria");
+      el.querySelector(".tools-sidebar")?.getAttribute("aria-label"),
+    ).toBe("tools.sidebar.aria");
+    expect(
+      el.querySelector("#tools-sidebar-toggle")?.getAttribute("aria-expanded"),
+    ).toBe("false");
   });
 
   test("shows total tools counter for macos", async () => {
@@ -469,8 +474,10 @@ describe("toolsView quick actions", () => {
     ).toBe(false);
     expect(el.querySelectorAll("#tools-info")).toHaveLength(1);
     expect(
-      el.querySelector("#tools-breadcrumb-current")?.textContent?.trim(),
-    ).toBe("tools.nav.current.downloaderTools");
+      el
+        .querySelector('[data-tool-nav="downloader-tools"]')
+        ?.getAttribute("aria-current"),
+    ).toBe("page");
     expect(renderToolsInfo).toHaveBeenCalledTimes(1);
   });
 
@@ -504,8 +511,10 @@ describe("toolsView quick actions", () => {
     ).toBe(false);
     expect(el.querySelector("#converter-pick-file")).not.toBeNull();
     expect(
-      el.querySelector("#tools-breadcrumb-current")?.textContent?.trim(),
-    ).toBe("tools.nav.current.mediaConverter");
+      el
+        .querySelector('[data-tool-nav="media-converter"]')
+        ?.getAttribute("aria-current"),
+    ).toBe("page");
   });
 
   test("picks a converter source file and enables conversion", async () => {
@@ -733,8 +742,10 @@ describe("toolsView quick actions", () => {
       el.querySelector('[data-tool-view="hash"]')?.classList.contains("hidden"),
     ).toBe(false);
     expect(
-      el.querySelector("#tools-back-btn")?.classList.contains("hidden"),
-    ).toBe(false);
+      el
+        .querySelector('[data-tool-nav="hash"]')
+        ?.getAttribute("aria-current"),
+    ).toBe("page");
   });
 
   test("falls back to launcher when last view power is unavailable", async () => {
@@ -1730,7 +1741,7 @@ describe("toolsView quick actions", () => {
     expect(el.textContent).not.toContain("quickActions.soon");
   });
 
-  test("opens WG view from launcher and shows back button", async () => {
+  test("opens WG view from launcher and marks its sidebar item current", async () => {
     const el = await renderView();
     await openTool(el, "wg");
     expect(
@@ -1740,53 +1751,47 @@ describe("toolsView quick actions", () => {
       el.querySelector('[data-tool-view="wg"]')?.classList.contains("hidden"),
     ).toBe(false);
     expect(
-      el.querySelector("#tools-back-btn")?.classList.contains("hidden"),
-    ).toBe(false);
+      el.querySelector('[data-tool-nav="wg"]')?.getAttribute("aria-current"),
+    ).toBe("page");
   });
 
-  test("back button returns to launcher", async () => {
+  test("all tools sidebar item returns to launcher", async () => {
     const el = await renderView();
     await openTool(el, "hash");
-    el.querySelector("#tools-back-btn")?.click();
+    el.querySelector('[data-tool-nav="launcher"]')?.click();
     await nextTick();
     expect(
       el.querySelector("#tools-launcher")?.classList.contains("hidden"),
     ).toBe(false);
   });
 
-  test("breadcrumbs stay visible and return to launcher", async () => {
+  test("keeps the sidebar visible and hides the launcher hero in a tool", async () => {
     const el = await renderView();
     await openTool(el, "wg");
     expect(
       el.querySelector("#tools-launcher-header")?.classList.contains("hidden"),
-    ).toBe(false);
+    ).toBe(true);
     expect(
       el
-        .querySelector("#tools-breadcrumb-current")
-        ?.classList.contains("hidden"),
-    ).toBe(false);
-    expect(
-      el.querySelector("#tools-breadcrumb-current")?.textContent?.trim(),
-    ).toBe("tools.nav.current.wg");
-    el.querySelector("#tools-breadcrumb-tools")?.click();
+        .querySelector('[data-tool-nav="wg"]')
+        ?.getAttribute("aria-current"),
+    ).toBe("page");
+    el.querySelector('[data-tool-nav="launcher"]')?.click();
     await nextTick();
     expect(
       el.querySelector("#tools-launcher")?.classList.contains("hidden"),
     ).toBe(false);
   });
 
-  test("shows backup as current breadcrumb after opening Backup", async () => {
+  test("shows backup as the current sidebar item after opening Backup", async () => {
     const el = await renderView();
     await openTool(el, "backup");
 
     expect(
-      el.querySelector("#tools-breadcrumb-current")?.textContent?.trim(),
-    ).toBe("tools.nav.current.backup");
-    expect(
       el
-        .querySelector("#tools-breadcrumb-current")
-        ?.classList.contains("hidden"),
-    ).toBe(false);
+        .querySelector('[data-tool-nav="backup"]')
+        ?.getAttribute("aria-current"),
+    ).toBe("page");
   });
 
   test("escape in tool view returns to launcher", async () => {
@@ -1799,6 +1804,25 @@ describe("toolsView quick actions", () => {
     await nextTick();
     expect(
       el.querySelector("#tools-launcher")?.classList.contains("hidden"),
+    ).toBe(false);
+  });
+
+  test("escape closes an open dependency menu without leaving its view", async () => {
+    const el = await renderView();
+    await openTool(el, "downloader-tools");
+    const openMenu = document.createElement("div");
+    openMenu.dataset.toolMenu = "ytDlp";
+    el.querySelector('[data-tool-view="downloader-tools"]')?.append(openMenu);
+
+    el.querySelector("#wireguard-view")?.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+    );
+    await nextTick();
+
+    expect(
+      el
+        .querySelector('[data-tool-view="downloader-tools"]')
+        ?.classList.contains("hidden"),
     ).toBe(false);
   });
 

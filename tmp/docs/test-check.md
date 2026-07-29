@@ -1,8 +1,8 @@
 ## Автотесты (Jest)
 
 - Автосборка списка: `npm run test-check:sync-tests`
-- Найдено файлов: 139
-- Найдено тест-кейсов (test/it): 1234
+- Найдено файлов: 141
+- Найдено тест-кейсов (test/it): 1244
 
 <!-- AUTO-JEST-TESTS:START -->
 
@@ -12,6 +12,10 @@
 
 ### `src/js/__tests__/preload.nowPlaying.test.js` (1)
 - [ ] exposes typed wrappers for all Now Playing invokes
+
+### `src/js/__tests__/preload.toolsDependencies.test.js` (2)
+- [ ] exposes the validated dependency action channel
+- [ ] preserves legacy dependency methods
 
 ### `src/js/app/__tests__/appPreferencesIpcHandlers.test.js` (8)
 - [ ] registers preference channels
@@ -57,6 +61,12 @@
 - [ ] does not start when open-on-copy is disabled
 - [ ] does not expand window for invalid or unsupported URLs
 
+### `src/js/app/__tests__/dependencyActions.test.js` (4)
+- [ ] accepts only supported ids and actions
+- [ ] deduplicates simultaneous operations for the same tool
+- [ ] rejects malformed payloads without running an installer
+- [ ] keeps ffmpeg update disabled on macOS while allowing reinstall
+
 ### `src/js/app/__tests__/downloaderBackgroundPreview.test.js` (8)
 - [ ] selects a moderate playable YouTube mp4/webm source
 - [ ] returns null for live YouTube videos
@@ -98,7 +108,7 @@
 - [ ] delete-history-preview removes only files inside preview cache
 - [ ] ensurePreviewCacheDir creates preview cache directory
 
-### `src/js/app/__tests__/ipcHandlers.toolsActions.test.js` (84)
+### `src/js/app/__tests__/ipcHandlers.toolsActions.test.js` (86)
 - [ ] set-open-on-copy-url-status toggles clipboard monitor and persists state
 - [ ] hashPickFile returns selected path
 - [ ] mediaInspectorPickFile returns selected path
@@ -143,6 +153,8 @@
 - [ ] get-video-info maps rate limits with retryAfterMinutes
 - [ ] tools:updateYtDlp keeps current binary if temp install fails
 - [ ] tools:updateYtDlp swaps in temp binary after successful install
+- [ ] tools:runDependencyAction rejects unsupported ids and actions
+- [ ] tools:checkUpdates resolves the latest Deno release and validates options
 - [ ] hashCalculate returns SHA-256 hash and match
 - [ ] hashCalculate emits progress events when requestId is provided
 - [ ] hashInspectFile returns readable file metadata
@@ -1228,27 +1240,28 @@
 - [ ] cancel removes frames, listeners, classes, variables, and timers
 - [ ] cancels safely when the root is detached before playback
 
-### `src/js/modules/__tests__/toolsInfo.test.js` (16)
-- [ ] renders dynamic tools UI with ti- prefixed ids
-- [ ] shows tools version summary when all tools exist
-- [ ] keeps checking copy split between eyebrow, badge and detailed status
-- [ ] install button downloads when tools are missing
-- [ ] shows install progress text on install button while downloading tools
-- [ ] check button reveals update flow when updates are available
-- [ ] force reinstall from overflow menu triggers installAll
-- [ ] updates summary after successful install
-- [ ] does not recreate root DOM on repeated refresh
-- [ ] keeps single-bound handlers across multiple refreshes
-- [ ] ignores stale refresh response and keeps latest state
-- [ ] reuses existing tool card nodes on refresh (partial update)
-- [ ] uses cached checkUpdates result within TTL
-- [ ] shows explicit offline summary state and quick actions
-- [ ] keeps overflow menu and force action in the compact footer row
-- [ ] throws localized error when installAll bridge is unavailable
+### `src/js/modules/__tests__/toolsInfo.test.js` (17)
+- [ ] renders all dependencies as one structured list with real versions
+- [ ] shows missing, unknown-version and error states without marking ready
+- [ ] does not install, update, or perform a network update check on open
+- [ ] shows cached state first and refreshes existing row nodes in place
+- [ ] checks updates once, blocks repeated clicks, and shows an update
+- [ ] isolates a failed update check and exposes an error summary
+- [ ] shows an explicit offline state without discarding local versions
+- [ ] runs an individual update and reads the factual version again
+- [ ] offers install only for a missing dependency
+- [ ] closes context menu on Escape and restores trigger focus
+- [ ] moves through context-menu actions with arrow keys
+- [ ] copies the tool path and exposes the full value as a tooltip
+- [ ] persists the advanced disclosure within the session with ARIA
+- [ ] uses button and menu semantics for keyboard-accessible actions
+- [ ] removes handlers and ignores late async responses after deactivation
+- [ ] does not recreate the root during an explicit local refresh
+- [ ] keeps the legacy installAll export and reports a missing bridge
 
-### `src/js/modules/__tests__/toolsView.tools.test.js` (95)
+### `src/js/modules/__tests__/toolsView.tools.test.js` (96)
 - [ ] opens launcher by default and keeps power tool unavailable on macos
-- [ ] renders combined header with breadcrumbs and tools section header
+- [ ] renders the launcher inside the tools sidebar shell
 - [ ] uses localized launcher strings in initial markup
 - [ ] shows total tools counter for macos
 - [ ] opens downloader dependencies tool view from launcher
@@ -1289,11 +1302,12 @@
 - [ ] keeps open-folder action available after analyze failure
 - [ ] open-folder failure does not hide a rendered report
 - [ ] does not render converter placeholder card
-- [ ] opens WG view from launcher and shows back button
-- [ ] back button returns to launcher
-- [ ] breadcrumbs stay visible and return to launcher
-- [ ] shows backup as current breadcrumb after opening Backup
+- [ ] opens WG view from launcher and marks its sidebar item current
+- [ ] all tools sidebar item returns to launcher
+- [ ] keeps the sidebar visible and hides the launcher hero in a tool
+- [ ] shows backup as the current sidebar item after opening Backup
 - [ ] escape in tool view returns to launcher
+- [ ] escape closes an open dependency menu without leaving its view
 - [ ] Esc key variant in tool view returns to launcher
 - [ ] launcher arrow navigation moves focus to next tool
 - [ ] launcher arrow navigation supports reverse wrap

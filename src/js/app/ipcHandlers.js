@@ -44,6 +44,7 @@ const { registerToolsHashIpcHandlers } = require("./toolsHashIpcHandlers");
 const {
   registerToolsVersionsIpcHandlers,
 } = require("./toolsVersionsIpcHandlers");
+const { createDependencyActions } = require("./dependencyActions");
 const { registerUiSettingsIpcHandlers } = require("./uiSettingsIpcHandlers");
 const { registerUpdateDevIpcHandlers } = require("./updateDevIpcHandlers");
 const { registerWhatsNewIpcHandlers } = require("./whatsNewIpcHandlers");
@@ -70,7 +71,6 @@ const {
   setSharedStore,
 } = require("../scripts/download.js");
 const { isValidUrl, normalizeUrl } = require("./utils.js");
-const { getEffectiveToolsDir, ensureToolsDir } = require("./toolsPaths");
 const {
   getRuntimeFfmpegPath,
   getRuntimeFfprobePath,
@@ -755,6 +755,14 @@ function setupIpcHandlers(dependencies) {
   } catch (e) {
     log.warn("Unable to set shared store for tools paths:", e);
   }
+  const dependencyActions = createDependencyActions({
+    store,
+    installYtDlp,
+    installFfmpeg,
+    installDeno,
+    getToolsVersions,
+    log,
+  });
   try {
     store.delete("autoShutdownEnabled");
     store.delete("autoShutdownSeconds");
@@ -2641,6 +2649,11 @@ function setupIpcHandlers(dependencies) {
     return m ? m[1] : String(vstr).split(/\s+/)[0];
   }
 
+  function normalizeDenoVersion(vstr) {
+    if (!vstr) return null;
+    return String(vstr).replace(/^deno\s+/i, "").replace(/^v/i, "").trim();
+  }
+
   function parseSemver(v) {
     // принимает "7.1.1", "6.0", "6", "7.1.1-rc1" → [major, minor, patch]
     if (!v) return null;
@@ -2692,7 +2705,26 @@ function setupIpcHandlers(dependencies) {
 
   // Handler for checking tool updates, reading actual versions from disk and honoring noCache/forceFetch
   ipcMain.handle(CHANNELS.TOOLS_CHECKUPDATES, async (_event, opts = {}) => {
-    // Accepts options: { noCache, forceFetch }
+    const rawOptions =
+      opts && typeof opts === "object" && !Array.isArray(opts) ? opts : {};
+    const requestedToolId =
+      rawOptions.toolId === undefined ? null : String(rawOptions.toolId);
+    if (
+      requestedToolId !== null &&
+      !["ytDlp", "ffmpeg", "deno"].includes(requestedToolId)
+    ) {
+      return {
+        ytDlp: { current: null, latest: null, canUpdate: false },
+        ffmpeg: { current: null, latest: null, canUpdate: false },
+        deno: { current: null, latest: null, canUpdate: false },
+        error: "Invalid toolId",
+      };
+    }
+    const safeOptions = {
+      noCache: rawOptions.noCache === true,
+      forceFetch: rawOptions.forceFetch === true,
+      toolId: requestedToolId,
+    };
     try {
       // Берём текущие версии из выбранной пользователем папки (через electron-store)
       const tools = await getToolsVersions(store);
@@ -2734,7 +2766,9 @@ function setupIpcHandlers(dependencies) {
 
       // When fetching latest versions from GitHub, honor opts.noCache/forceFetch by appending a timestamp query to URLs
       const ts =
-        opts && (opts.noCache || opts.forceFetch) ? `?t=${Date.now()}` : "";
+        safeOptions.noCache || safeOptions.forceFetch
+          ? `?t=${Date.now()}`
+          : "";
       // --- yt-dlp latest (with fallbacks) ---
       let ytLatest = null;
       try {
@@ -2827,8 +2861,17 @@ function setupIpcHandlers(dependencies) {
       }
 
       const denoCurrent = tools?.deno?.ok
-        ? (tools.deno.version || "").split("\n")[0]
+        ? normalizeDenoVersion((tools.deno.version || "").split("\n")[0])
         : null;
+      let denoLatest = null;
+      try {
+        const denoRelease = await fetchJson(
+          `https://api.github.com/repos/denoland/deno/releases/latest${ts}`,
+        );
+        denoLatest = normalizeDenoVersion(denoRelease?.tag_name);
+      } catch (e) {
+        log.warn("Deno latest fetch failed:", e.message || e);
+      }
 
       const isMac = process.platform === "darwin";
       const result = {
@@ -2847,9 +2890,9 @@ function setupIpcHandlers(dependencies) {
         },
         deno: {
           current: denoCurrent || null,
-          latest: null,
-          canUpdate: false,
-          unknownLatest: true,
+          latest: denoLatest || null,
+          canUpdate: canUpdate(denoCurrent, denoLatest),
+          unknownLatest: !denoLatest,
         },
       };
 
@@ -2866,66 +2909,45 @@ function setupIpcHandlers(dependencies) {
       return {
         ytDlp: { current: null, latest: null, canUpdate: false },
         ffmpeg: { current: null, latest: null, canUpdate: false },
+        deno: { current: null, latest: null, canUpdate: false },
         error: e.message || String(e),
       };
     }
   });
 
-  // Ручная установка зависимостей по запросу из UI (чистая переустановка: удаляет старые бинарники)
+  ipcMain.handle(CHANNELS.TOOLS_RUN_DEPENDENCY_ACTION, async (_event, payload) =>
+    dependencyActions.run(payload),
+  );
+
+  // Ручная установка зависимостей по запросу из UI.
   ipcMain.handle(CHANNELS.TOOLS_INSTALLALL, async () => {
     try {
-      const tools = await getToolsVersions(store);
-
-      // --- deno: remove old runtime to force overwrite ---
-      const denoInfo = tools?.deno;
-      if (denoInfo?.ok && denoInfo?.path) {
-        try {
-          log.info(
-            `[tools:installAll] Removing existing Deno at ${denoInfo.path}`,
-          );
-          await fsPromises.unlink(denoInfo.path);
-        } catch (e) {
-          log.warn(`[tools:installAll] Could not remove Deno: ${e.message}`);
-        }
-      }
       if (mainWindow && mainWindow.webContents) {
         mainWindow.webContents.send("status-message", "Скачиваю Deno…");
       }
-      await installDeno();
+      const denoResult = await dependencyActions.run({
+        id: "deno",
+        action: "reinstall",
+      });
+      if (!denoResult.success) throw new Error(denoResult.error);
 
-      // --- yt-dlp: remove old binary if exists to force overwrite ---
-      const ytDlpInfo = tools?.ytDlp;
-      if (ytDlpInfo?.ok && ytDlpInfo?.path) {
-        try {
-          log.info(
-            `[tools:installAll] Removing existing yt-dlp at ${ytDlpInfo.path}`,
-          );
-          await fsPromises.unlink(ytDlpInfo.path);
-        } catch (e) {
-          log.warn(`[tools:installAll] Could not remove yt-dlp: ${e.message}`);
-        }
-      }
       if (mainWindow && mainWindow.webContents) {
         mainWindow.webContents.send("status-message", "Скачиваю yt-dlp…");
       }
-      await installYtDlp();
+      const ytDlpResult = await dependencyActions.run({
+        id: "ytDlp",
+        action: "reinstall",
+      });
+      if (!ytDlpResult.success) throw new Error(ytDlpResult.error);
 
-      // --- ffmpeg: remove old binary if exists to force overwrite ---
-      const ffmpegInfo = tools?.ffmpeg;
-      if (ffmpegInfo?.ok && ffmpegInfo?.path) {
-        try {
-          log.info(
-            `[tools:installAll] Removing existing ffmpeg at ${ffmpegInfo.path}`,
-          );
-          await fsPromises.unlink(ffmpegInfo.path);
-        } catch (e) {
-          log.warn(`[tools:installAll] Could not remove ffmpeg: ${e.message}`);
-        }
-      }
       if (mainWindow && mainWindow.webContents) {
         mainWindow.webContents.send("status-message", "Скачиваю ffmpeg…");
       }
-      await installFfmpeg();
+      const ffmpegResult = await dependencyActions.run({
+        id: "ffmpeg",
+        action: "reinstall",
+      });
+      if (!ffmpegResult.success) throw new Error(ffmpegResult.error);
 
       if (mainWindow && mainWindow.webContents) {
         mainWindow.webContents.send(
@@ -2956,96 +2978,12 @@ function setupIpcHandlers(dependencies) {
     }
   });
 
-  // --- tools:updateYtDlp ---
   ipcMain.handle(CHANNELS.TOOLS_UPDATEYTDLP, async () => {
-    try {
-      log.info("tools:updateYtDlp: Checking current yt-dlp version...");
-      const tools = await getToolsVersions(store);
-      const ytDlpInfo = tools?.ytDlp;
-      const toolsDir = await ensureToolsDir(getEffectiveToolsDir(store));
-      const ytDlpFileName =
-        process.platform === "win32" ? "yt-dlp.exe" : "yt-dlp";
-      const finalPath = ytDlpInfo?.path || path.join(toolsDir, ytDlpFileName);
-      const tempPath = `${finalPath}.tmp-${Date.now()}`;
-      const backupPath = `${finalPath}.bak-${Date.now()}`;
-
-      log.info("tools:updateYtDlp: Installing yt-dlp to temporary path...", {
-        finalPath,
-        tempPath,
-      });
-      await installYtDlp({ targetPath: tempPath });
-
-      let backupCreated = false;
-      try {
-        if (fs.existsSync(finalPath)) {
-          log.info(
-            `tools:updateYtDlp: Moving current yt-dlp to backup ${backupPath}`,
-          );
-          await fsPromises.rename(finalPath, backupPath);
-          backupCreated = true;
-        }
-        await fsPromises.rename(tempPath, finalPath);
-        if (backupCreated) {
-          await fsPromises.unlink(backupPath).catch(() => {});
-        }
-      } catch (swapError) {
-        if (fs.existsSync(tempPath)) {
-          await fsPromises.unlink(tempPath).catch(() => {});
-        }
-        if (
-          backupCreated &&
-          fs.existsSync(backupPath) &&
-          !fs.existsSync(finalPath)
-        ) {
-          await fsPromises.rename(backupPath, finalPath).catch(() => {});
-        }
-        throw swapError;
-      }
-
-      log.info("tools:updateYtDlp: yt-dlp installed successfully.", {
-        finalPath,
-      });
-      return { success: true };
-    } catch (error) {
-      log.error("tools:updateYtDlp: Error updating yt-dlp:", error);
-      return { success: false, error: error.message || String(error) };
-    }
+    return dependencyActions.run({ id: "ytDlp", action: "update" });
   });
 
-  // --- tools:updateFfmpeg ---
   ipcMain.handle(CHANNELS.TOOLS_UPDATEFFMPEG, async () => {
-    try {
-      log.info("tools:updateFfmpeg: Checking current ffmpeg version...");
-      // Учитываем пользовательскую папку инструментов
-      const tools = await getToolsVersions(store);
-      const ffmpegInfo = tools?.ffmpeg;
-      if (ffmpegInfo?.ok && ffmpegInfo?.path) {
-        log.info(
-          `tools:updateFfmpeg: Removing existing ffmpeg binary at ${ffmpegInfo.path}`,
-        );
-        try {
-          await fsPromises.unlink(ffmpegInfo.path);
-          log.info("tools:updateFfmpeg: Existing ffmpeg binary removed.");
-        } catch (e) {
-          log.error(
-            "tools:updateFfmpeg: Failed to remove existing ffmpeg binary:",
-            e,
-          );
-          // Continue anyway
-        }
-      } else {
-        log.info(
-          "tools:updateFfmpeg: No existing ffmpeg binary detected, proceeding with install.",
-        );
-      }
-      log.info("tools:updateFfmpeg: Installing ffmpeg...");
-      await installFfmpeg();
-      log.info("tools:updateFfmpeg: ffmpeg installed successfully.");
-      return { success: true };
-    } catch (error) {
-      log.error("tools:updateFfmpeg: Error updating ffmpeg:", error);
-      return { success: false, error: error.message || String(error) };
-    }
+    return dependencyActions.run({ id: "ffmpeg", action: "update" });
   });
 
   registerBackupIpcHandlers({

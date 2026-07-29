@@ -5,7 +5,12 @@ import { showConfirmationDialog } from "../modals.js";
 import { initTooltips } from "../tooltipInitializer.js";
 import { applyI18n, getLanguage, t } from "../i18n.js";
 import { consumeRequestedToolsView } from "../toolsNavigation.js";
-import { refreshToolsInfoState, renderToolsInfo } from "../toolsInfo.js";
+import {
+  deactivateToolsInfo,
+  destroyToolsInfo,
+  refreshToolsInfoState,
+  renderToolsInfo,
+} from "../toolsInfo.js";
 import renderBackup from "./backupView.js";
 import {
   initMediaConverterSection,
@@ -135,6 +140,7 @@ export default function renderToolsView() {
   const POWER_HOWTO_SCROLL_LOCK_OWNER = "tools-howto-power";
 
   const disposeView = () => {
+    destroyToolsInfo();
     releaseDocumentScrollLock(WG_HOWTO_SCROLL_LOCK_OWNER);
     releaseDocumentScrollLock(POWER_HOWTO_SCROLL_LOCK_OWNER);
     tipsIntervalId = cleanup.clearInterval(tipsIntervalId);
@@ -307,8 +313,7 @@ export default function renderToolsView() {
   ).join("");
 
   view.innerHTML = `
-    <div class="tools-shell" data-ui="tools-entrance-root">
-      <header
+  <header
         id="tools-launcher-header"
         class="tools-shell-header"
         data-ui="tools-entrance-header"
@@ -334,40 +339,79 @@ export default function renderToolsView() {
           </div>
         </div>
       </header>
-
-      <div id="tools-nav" class="tools-nav">
-        <button
-          id="tools-back-btn"
-          type="button"
-          class="small-button hidden"
-          data-i18n-title="tools.nav.back"
-          data-i18n-aria="tools.nav.back"
-          title="${t("tools.nav.back")}"
-          aria-label="${t("tools.nav.back")}"
-        >
-          <i class="fa-solid fa-arrow-left"></i>
-        </button>
-        <div class="tools-breadcrumbs" aria-label="${t("tools.launcher.breadcrumbs.aria")}" data-i18n-aria="tools.launcher.breadcrumbs.aria">
+    <div class="tools-shell" data-ui="tools-entrance-root">
+      <aside class="tools-sidebar" aria-label="${t("tools.sidebar.aria")}">
+        <div class="tools-sidebar__brand">
+          <span class="tools-sidebar__brand-icon" aria-hidden="true">
+            <i class="fa-solid fa-screwdriver-wrench"></i>
+          </span>
+          <div>
+            <strong data-i18n="tools.title">${t("tools.title")}</strong>
+          </div>
           <button
-            id="tools-breadcrumb-tools"
+            id="tools-sidebar-toggle"
             type="button"
-            class="tools-breadcrumbs__item tools-breadcrumbs__link is-active"
-            data-i18n-aria="tools.launcher.breadcrumbs.tools"
-            aria-label="${t("tools.launcher.breadcrumbs.tools")}"
+            class="tools-sidebar__toggle"
+            aria-expanded="false"
+            aria-controls="tools-sidebar-navigation"
+            data-i18n-title="tools.sidebar.toggle"
+            data-i18n-aria="tools.sidebar.toggle"
+            title="${t("tools.sidebar.toggle")}"
+            aria-label="${t("tools.sidebar.toggle")}"
           >
-            <span data-i18n="tools.launcher.breadcrumbs.tools">${t("tools.launcher.breadcrumbs.tools")}</span>
+            <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
           </button>
-          <i
-            id="tools-breadcrumb-current-sep"
-            class="fa-solid fa-chevron-right tools-breadcrumbs__sep hidden"
-            aria-hidden="true"
-          ></i>
-          <span
-            id="tools-breadcrumb-current"
-            class="tools-breadcrumbs__item tools-breadcrumbs__item--current hidden"
-          ></span>
         </div>
-      </div>
+        <nav id="tools-sidebar-navigation" class="tools-sidebar__navigation">
+          <button type="button" class="tools-sidebar__item is-active" data-tool-nav="launcher" aria-current="page">
+            <i class="fa-solid fa-grip" aria-hidden="true"></i>
+            <span data-i18n="tools.sidebar.all">${t("tools.sidebar.all")}</span>
+          </button>
+          <button type="button" class="tools-sidebar__item" data-tool-nav="downloader-tools">
+            <i class="fa-solid fa-download" aria-hidden="true"></i>
+            <span data-i18n="tools.nav.current.downloaderTools">${t("tools.nav.current.downloaderTools")}</span>
+          </button>
+          <button type="button" class="tools-sidebar__item" data-tool-nav="wg">
+            <i class="fa-solid fa-globe" aria-hidden="true"></i>
+            <span data-i18n="tools.nav.current.wg">${t("tools.nav.current.wg")}</span>
+          </button>
+          <button type="button" class="tools-sidebar__item" data-tool-nav="hash">
+            <i class="fa-solid fa-fingerprint" aria-hidden="true"></i>
+            <span data-i18n="tools.nav.current.hash">${t("tools.nav.current.hash")}</span>
+          </button>
+          <button type="button" class="tools-sidebar__item" data-tool-nav="media-converter">
+            <i class="fa-solid fa-right-left" aria-hidden="true"></i>
+            <span data-i18n="tools.nav.current.mediaConverter">${t("tools.nav.current.mediaConverter")}</span>
+          </button>
+          <button type="button" class="tools-sidebar__item" data-tool-nav="media-inspector">
+            <i class="fa-solid fa-film" aria-hidden="true"></i>
+            <span data-i18n="tools.nav.current.mediaInspector">${t("tools.nav.current.mediaInspector")}</span>
+          </button>
+          <button type="button" class="tools-sidebar__item" data-tool-nav="backup">
+            <i class="fa-solid fa-box-archive" aria-hidden="true"></i>
+            <span data-i18n="tools.nav.current.backup">${t("tools.nav.current.backup")}</span>
+          </button>
+          <button type="button" class="tools-sidebar__item" data-tool-nav="sorter">
+            <i class="fa-solid fa-folder-tree" aria-hidden="true"></i>
+            <span data-i18n="tools.nav.current.sorter">${t("tools.nav.current.sorter")}</span>
+          </button>
+          <button type="button" class="tools-sidebar__item" data-tool-nav="power">
+            <i class="fa-solid fa-power-off" aria-hidden="true"></i>
+            <span data-i18n="tools.nav.current.power">${t("tools.nav.current.power")}</span>
+          </button>
+        </nav>
+        <div class="tools-sidebar__feedback">
+          <i class="fa-solid fa-rocket" aria-hidden="true"></i>
+          <strong data-i18n="tools.sidebar.feedbackTitle">${t("tools.sidebar.feedbackTitle")}</strong>
+          <p data-i18n="tools.sidebar.feedbackDescription">${t("tools.sidebar.feedbackDescription")}</p>
+          <button id="tools-sidebar-feedback" type="button">
+            <span data-i18n="tools.sidebar.feedbackAction">${t("tools.sidebar.feedbackAction")}</span>
+            <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+          </button>
+        </div>
+      </aside>
+
+      <main class="tools-workspace">
 
       <div
         id="tools-launcher-section-header"
@@ -825,6 +869,7 @@ export default function renderToolsView() {
           aria-label="${t("tools.nav.current.backup")}"
         ></section>
       </section>
+      </main>
     </div>
   `;
 
@@ -891,11 +936,9 @@ export default function renderToolsView() {
     const shell = view.querySelector(".tools-shell");
     const launcher = getEl("tools-launcher", view);
     const launcherSectionHeader = getEl("tools-launcher-section-header", view);
-    const breadcrumbCurrentSep = getEl("tools-breadcrumb-current-sep", view);
-    const breadcrumbCurrent = getEl("tools-breadcrumb-current", view);
-    const toolsNav = getEl("tools-nav", view);
-    const backBtn = getEl("tools-back-btn", view);
-    const title = getEl("tools-view-title", view);
+    const launcherHeader = getEl("tools-launcher-header", view);
+    const sidebarNavigation = getEl("tools-sidebar-navigation", view);
+    const sidebarToggle = getEl("tools-sidebar-toggle", view);
     const requested = String(nextView || "launcher");
     const targetView = isToolAvailable(requested) ? requested : "launcher";
     toolState.setCurrentToolView(targetView);
@@ -904,7 +947,7 @@ export default function renderToolsView() {
     shell?.classList.toggle("is-launcher", showLauncher);
     launcher?.classList.toggle("hidden", !showLauncher);
     launcherSectionHeader?.classList.toggle("hidden", !showLauncher);
-    toolsNav?.classList.toggle("hidden", showLauncher);
+    launcherHeader?.classList.toggle("hidden", !showLauncher);
     updateLauncherToolsCount();
 
     view.querySelectorAll(".tools-view[data-tool-view]").forEach((section) => {
@@ -914,30 +957,20 @@ export default function renderToolsView() {
       section.classList.toggle("is-active", active);
     });
 
-    backBtn?.classList.toggle("hidden", showLauncher);
-
-    const titleKey = showLauncher
-      ? "tools.launcher.title"
-      : targetView === "wg"
-        ? "tools.nav.current.wg"
-        : targetView === "hash"
-          ? "tools.nav.current.hash"
-          : targetView === "downloader-tools"
-            ? "tools.nav.current.downloaderTools"
-            : targetView === "media-inspector"
-              ? "tools.nav.current.mediaInspector"
-              : targetView === "media-converter"
-                ? "tools.nav.current.mediaConverter"
-                : targetView === "power"
-                  ? "tools.nav.current.power"
-                  : targetView === "backup"
-                    ? "tools.nav.current.backup"
-                    : "tools.nav.current.sorter";
-    if (title) title.textContent = t(titleKey);
-    if (breadcrumbCurrent)
-      breadcrumbCurrent.textContent = showLauncher ? "" : t(titleKey);
-    breadcrumbCurrent?.classList.toggle("hidden", showLauncher);
-    breadcrumbCurrentSep?.classList.toggle("hidden", showLauncher);
+    view.querySelectorAll("[data-tool-nav]").forEach((button) => {
+      const toolView = button.dataset.toolNav;
+      const available =
+        toolView === "launcher" || isToolAvailable(toolView);
+      button.classList.toggle("hidden", !available);
+      button.classList.toggle("is-active", toolView === targetView);
+      if (toolView === targetView) {
+        button.setAttribute("aria-current", "page");
+      } else {
+        button.removeAttribute("aria-current");
+      }
+    });
+    sidebarNavigation?.classList.remove("is-open");
+    sidebarToggle?.setAttribute("aria-expanded", "false");
 
     if (persist && targetView !== "launcher") {
       toolState.persistCurrentToolView(targetView);
@@ -955,6 +988,8 @@ export default function renderToolsView() {
       const forceToolsRefresh = pendingDownloaderToolsRefresh;
       pendingDownloaderToolsRefresh = false;
       ensureDownloaderToolsInfo({ force: forceToolsRefresh });
+    } else {
+      deactivateToolsInfo();
     }
 
     if (showLauncher && focusLauncher) {
@@ -1163,8 +1198,9 @@ export default function renderToolsView() {
     const openPowerBtn = getEl("tools-open-power", view);
     const openBackupBtn = getEl("tools-open-backup", view);
     const openSorterBtn = getEl("tools-open-sorter", view);
-    const backBtn = getEl("tools-back-btn", view);
-    const breadcrumbToolsBtn = getEl("tools-breadcrumb-tools", view);
+    const sidebarToggle = getEl("tools-sidebar-toggle", view);
+    const sidebarNavigation = getEl("tools-sidebar-navigation", view);
+    const sidebarFeedback = getEl("tools-sidebar-feedback", view);
 
     const applyDeveloperToolsAvailability = () => {
       toolState.setDeveloperToolsUnlocked(
@@ -1224,6 +1260,13 @@ export default function renderToolsView() {
         "hidden",
         launcherUnavailableGrid.children.length === 0,
       );
+      view.querySelectorAll("[data-tool-nav]").forEach((button) => {
+        const toolView = button.dataset.toolNav;
+        button.classList.toggle(
+          "hidden",
+          toolView !== "launcher" && !isToolAvailable(toolView),
+        );
+      });
       updateLauncherToolsCount();
     };
 
@@ -1247,12 +1290,27 @@ export default function renderToolsView() {
       if (!isToolAvailable("sorter")) return;
       setToolView("sorter");
     });
-    backBtn?.addEventListener("click", () =>
-      setToolView("launcher", { persist: false, focusLauncher: true }),
-    );
-    breadcrumbToolsBtn?.addEventListener("click", () =>
-      setToolView("launcher", { persist: false, focusLauncher: true }),
-    );
+    view.querySelectorAll("[data-tool-nav]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const nextView = button.dataset.toolNav;
+        if (!isToolAvailable(nextView)) return;
+        if (nextView === "backup") ensureBackupToolView();
+        setToolView(nextView, {
+          persist: nextView !== "launcher",
+          focusLauncher: nextView === "launcher",
+        });
+      });
+    });
+    sidebarToggle?.addEventListener("click", () => {
+      const open = sidebarToggle.getAttribute("aria-expanded") !== "true";
+      sidebarToggle.setAttribute("aria-expanded", String(open));
+      sidebarNavigation?.classList.toggle("is-open", open);
+    });
+    sidebarFeedback?.addEventListener("click", () => {
+      window.electron?.openExternal?.(
+        "https://github.com/Nagrands/thunder-load-app/issues",
+      );
+    });
 
     const isWgHowtoOpen = () => {
       const modal = getEl("wg-howto-modal", view);
@@ -1329,8 +1387,27 @@ export default function renderToolsView() {
       const code = String(e.code || "");
       const isEscapePressed =
         key === "Escape" || key === "Esc" || code === "Escape";
+      const dependenciesSection = view.querySelector(
+        '[data-tool-view="downloader-tools"]',
+      );
+      const dependenciesViewActive =
+        !!dependenciesSection &&
+        !dependenciesSection.classList.contains("hidden");
 
-      if (isEscapePressed && toolState.currentToolView !== "launcher") {
+      if (
+        isEscapePressed &&
+        toolState.currentToolView !== "launcher" &&
+        !dependenciesViewActive
+      ) {
+        if (
+          e.defaultPrevented ||
+          targetEl?.closest(
+            "[data-tool-menu-trigger], [data-tool-menu], [role='menuitem']",
+          ) ||
+          view.querySelector("[data-tool-menu]:not([hidden])")
+        ) {
+          return;
+        }
         e.preventDefault();
         setToolView("launcher", { persist: false, focusLauncher: true });
         return;
