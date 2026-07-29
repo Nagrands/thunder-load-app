@@ -1586,6 +1586,9 @@ describe("Now Playing view", () => {
     const activeMetadata = view.element.querySelector(
       ".now-playing__metadata-slot.is-active",
     );
+    expect(artwork.hidden).toBe(true);
+    expect(artwork.hasAttribute("src")).toBe(false);
+    expect(artwork.classList.contains("is-loaded")).toBe(false);
     expect(
       view.element.querySelector(".now-playing__artwork-stack").hidden,
     ).toBe(false);
