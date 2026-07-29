@@ -176,8 +176,11 @@ export const coreTranslations = {
     "nowPlaying.visualizer.unavailable":
       "Не удалось подключить анализатор — используется статичная визуализация",
     "nowPlaying.unavailable.download": "Загрузка из Плеера пока недоступна",
+    "nowPlaying.add": "Добавить",
+    "nowPlaying.addFile": "Добавить файл",
     "nowPlaying.addFiles": "Добавить файлы",
     "nowPlaying.addFolder": "Добавить папку",
+    "nowPlaying.addYouTubeLink": "Добавить ссылку с YouTube",
     "nowPlaying.clear": "Очистить очередь",
     "nowPlaying.closePlayback": "Закрыть воспроизведение",
     "nowPlaying.remove": "Удалить",
@@ -608,8 +611,11 @@ export const coreTranslations = {
       "The analyser could not be connected; a static visualization is used",
     "nowPlaying.unavailable.download":
       "Downloading from Player is not available yet",
+    "nowPlaying.add": "Add",
+    "nowPlaying.addFile": "Add file",
     "nowPlaying.addFiles": "Add files",
     "nowPlaying.addFolder": "Add folder",
+    "nowPlaying.addYouTubeLink": "Add a YouTube link",
     "nowPlaying.clear": "Clear queue",
     "nowPlaying.closePlayback": "Close playback",
     "nowPlaying.remove": "Remove",

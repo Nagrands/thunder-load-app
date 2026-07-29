@@ -211,6 +211,62 @@ describe("Now Playing view", () => {
     view.dispose();
   });
 
+  test("opens the sidebar Add menu with file, folder and YouTube actions", async () => {
+    const dialog = installPlayerDialogFixture();
+    const api = {
+      getState: jest.fn().mockResolvedValue({
+        data: { version: 3, catalog: { tracks: [] }, playlists: [] },
+      }),
+      setState: jest.fn().mockResolvedValue({ success: true }),
+      importFiles: jest.fn(),
+      importFolder: jest.fn().mockResolvedValue({
+        success: true,
+        data: { tracks: [] },
+      }),
+    };
+    const view = createNowPlayingView({ api });
+    document.body.appendChild(view.element);
+    await view.ready;
+    const trigger = view.element.querySelector(
+      '[data-action="toggle-add-menu"]',
+    );
+    const menu = view.element.querySelector('[data-ui="sidebar-add-menu"]');
+
+    expect(trigger.getAttribute("aria-label")).toBe("nowPlaying.add");
+    expect(trigger.getAttribute("aria-haspopup")).toBe("menu");
+    trigger.click();
+    expect(menu.hidden).toBe(false);
+    expect(trigger.getAttribute("aria-expanded")).toBe("true");
+    expect(
+      [...menu.querySelectorAll('[role="menuitem"]')].map(
+        (item) => item.dataset.action,
+      ),
+    ).toEqual(["add-files", "add-folder", "open-youtube-dialog"]);
+    expect(document.activeElement.dataset.action).toBe("add-files");
+
+    document.activeElement.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }),
+    );
+    expect(document.activeElement.dataset.action).toBe("add-folder");
+    document.activeElement.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+    );
+    expect(menu.hidden).toBe(true);
+    expect(document.activeElement).toBe(trigger);
+
+    trigger.click();
+    menu.querySelector('[data-action="add-folder"]').click();
+    await Promise.resolve();
+    expect(api.importFolder).toHaveBeenCalledTimes(1);
+    expect(menu.hidden).toBe(true);
+
+    trigger.click();
+    menu.querySelector('[data-action="open-youtube-dialog"]').click();
+    expect(dialog.dataset.mode).toBe("youtubeUrl");
+    expect(dialog.getAttribute("aria-hidden")).toBe("false");
+    view.dispose();
+  });
+
   test("opens structured track information with the current poster", async () => {
     const dialog = installPlayerDialogFixture();
     const api = {

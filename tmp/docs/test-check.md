@@ -2,7 +2,7 @@
 
 - Автосборка списка: `npm run test-check:sync-tests`
 - Найдено файлов: 141
-- Найдено тест-кейсов (test/it): 1237
+- Найдено тест-кейсов (test/it): 1238
 
 <!-- AUTO-JEST-TESTS:START -->
 
@@ -921,8 +921,9 @@
 - [ ] keeps insertion order and supports reorder, removal and filtering
 - [ ] never exposes mutable internal items
 
-### `src/js/modules/__tests__/nowPlayingView.test.js` (38)
+### `src/js/modules/__tests__/nowPlayingView.test.js` (39)
 - [ ] renders an accessible player and restores selectedTrackId
+- [ ] opens the sidebar Add menu with file, folder and YouTube actions
 - [ ] opens structured track information with the current poster
 - [ ] opens a non-blocking media library empty state
 - [ ] keeps the library and another playlist track available after an unavailable track error

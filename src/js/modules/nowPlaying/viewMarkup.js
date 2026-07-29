@@ -283,7 +283,30 @@ export function buildNowPlayingMarkup() {
         </div>
 
         <div class="now-playing__sidebar-toolbar" aria-label="${t("nowPlaying.library.actions")}">
-          ${iconButton("add-files", "plus", "nowPlaying.addFiles", "now-playing__sidebar-tool")}
+          <div class="now-playing__sidebar-add">
+            ${iconButton("toggle-add-menu", "plus", "nowPlaying.add", "now-playing__sidebar-tool")}
+            <div
+              class="now-playing__add-menu"
+              id="now-playing-add-menu"
+              data-ui="sidebar-add-menu"
+              role="menu"
+              aria-label="${t("nowPlaying.add")}"
+              hidden
+            >
+              <button type="button" data-action="add-files" role="menuitem">
+                <i data-lucide="file-plus-2" aria-hidden="true"></i>
+                <span data-i18n="nowPlaying.addFile">${t("nowPlaying.addFile")}</span>
+              </button>
+              <button type="button" data-action="add-folder" role="menuitem">
+                <i data-lucide="folder-plus" aria-hidden="true"></i>
+                <span data-i18n="nowPlaying.addFolder">${t("nowPlaying.addFolder")}</span>
+              </button>
+              <button type="button" data-action="open-youtube-dialog" role="menuitem">
+                <i data-lucide="youtube" aria-hidden="true"></i>
+                <span data-i18n="nowPlaying.addYouTubeLink">${t("nowPlaying.addYouTubeLink")}</span>
+              </button>
+            </div>
+          </div>
           ${iconButton("show-library", "list-plus", "nowPlaying.playlists.title", "now-playing__sidebar-tool")}
           ${iconButton("placeholder-download", "download", "nowPlaying.unavailable.download", "now-playing__sidebar-tool now-playing__placeholder-control")}
           ${iconButton("toggle-player-menu", "ellipsis", "nowPlaying.more", "now-playing__sidebar-tool")}

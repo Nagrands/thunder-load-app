@@ -107,6 +107,13 @@ export function createNowPlayingView({
   const currentTime = root.querySelector('[data-ui="current-time"]');
   const duration = root.querySelector('[data-ui="duration"]');
   const playerMenu = root.querySelector('[data-ui="player-menu"]');
+  const addMenu = root.querySelector('[data-ui="sidebar-add-menu"]');
+  const addMenuTrigger = root.querySelector(
+    '[data-action="toggle-add-menu"]',
+  );
+  addMenuTrigger?.setAttribute("aria-haspopup", "menu");
+  addMenuTrigger?.setAttribute("aria-expanded", "false");
+  addMenuTrigger?.setAttribute("aria-controls", "now-playing-add-menu");
   const ambientLayers = Array.from(
     root.querySelectorAll(".now-playing__ambient"),
   );
@@ -1017,6 +1024,29 @@ export function createNowPlayingView({
     return true;
   }
 
+  function closeAddMenu({ restoreFocus = false } = {}) {
+    if (!addMenu || addMenu.hidden) return false;
+    addMenu.hidden = true;
+    addMenuTrigger?.setAttribute("aria-expanded", "false");
+    if (restoreFocus) addMenuTrigger?.focus();
+    return true;
+  }
+
+  function toggleAddMenu() {
+    if (!addMenu) return false;
+    const expanded = addMenu.hidden;
+    addMenu.hidden = !expanded;
+    addMenuTrigger?.setAttribute("aria-expanded", String(expanded));
+    if (expanded) {
+      playerMenu.hidden = true;
+      root
+        .querySelector('[data-action="toggle-player-menu"]')
+        ?.setAttribute("aria-expanded", "false");
+      addMenu.querySelector('[role="menuitem"]')?.focus();
+    }
+    return true;
+  }
+
   async function handleAction(action, target) {
     if (action?.startsWith("placeholder-")) return false;
     const audioAction = audioTracks?.handleAction(action, target);
@@ -1030,6 +1060,7 @@ export function createNowPlayingView({
       return audioAction;
     }
     if (action === "toggle-player-menu") {
+      closeAddMenu();
       playerMenu.hidden = !playerMenu.hidden;
       target.setAttribute("aria-expanded", String(!playerMenu.hidden));
       if (!playerMenu.hidden) {
@@ -1037,6 +1068,8 @@ export function createNowPlayingView({
       }
       return true;
     }
+    if (action === "toggle-add-menu") return toggleAddMenu();
+    if (target.closest('[data-ui="sidebar-add-menu"]')) closeAddMenu();
     const playerCommand = PLAYER_UI_ACTIONS[action];
     if (playerCommand) {
       playerMenu.hidden = true;
@@ -1292,6 +1325,9 @@ export function createNowPlayingView({
     if (!event.target.closest(".now-playing__playlist-select-shell")) {
       libraryView.closeSidebarPlaylistMenu();
     }
+    if (!event.target.closest(".now-playing__sidebar-add")) {
+      closeAddMenu();
+    }
     if (
       !playerMenu.hidden &&
       !event.target.closest('[data-ui="player-menu"]') &&
@@ -1305,6 +1341,35 @@ export function createNowPlayingView({
 
   function onKeydown(event) {
     if (audioTracks?.handleKeydown(event)) return;
+    const addMenuItem = event.target.closest(
+      '[data-ui="sidebar-add-menu"] [role="menuitem"]',
+    );
+    if (addMenuItem && event.key === "Escape") {
+      event.preventDefault();
+      closeAddMenu({ restoreFocus: true });
+      return;
+    }
+    if (
+      addMenuItem &&
+      ["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)
+    ) {
+      event.preventDefault();
+      const items = [
+        ...addMenu.querySelectorAll('[role="menuitem"]:not([disabled])'),
+      ];
+      const current = items.indexOf(addMenuItem);
+      const index =
+        event.key === "Home"
+          ? 0
+          : event.key === "End"
+            ? items.length - 1
+            : (current +
+                (event.key === "ArrowDown" ? 1 : -1) +
+                items.length) %
+              items.length;
+      items[index]?.focus();
+      return;
+    }
     const playlistTrigger = event.target.closest(
       '[data-action="toggle-sidebar-playlist-menu"]',
     );
@@ -1706,6 +1771,7 @@ export function createNowPlayingView({
       controlsVisibility.onHide();
       overlayVisibility.onHide();
       fullscreen.onHide();
+      closeAddMenu();
       libraryView.closeDialog();
       void flushPersistence();
       if (preferences.shouldSuspendInBackground()) controller.suspend();

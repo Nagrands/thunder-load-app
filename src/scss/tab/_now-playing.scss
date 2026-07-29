@@ -3641,6 +3641,65 @@ body.is-mac {
   }
 }
 
+.now-playing__sidebar-add {
+  position: relative;
+  min-width: 0;
+
+  .now-playing__sidebar-tool {
+    width: 100%;
+  }
+}
+
+.now-playing__add-menu {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  z-index: 14;
+  display: grid;
+  width: 246px;
+  padding: 5px;
+  border: 1px solid var(--player-border);
+  border-radius: 12px;
+  background: var(--player-glass-strong);
+  box-shadow: var(--player-shadow);
+  backdrop-filter: blur(12px) saturate(112%);
+  -webkit-backdrop-filter: blur(12px) saturate(112%);
+
+  &[hidden] {
+    display: none;
+  }
+
+  button {
+    display: grid;
+    grid-template-columns: 22px minmax(0, 1fr);
+    min-height: 38px;
+    padding: 0 10px;
+    align-items: center;
+    gap: 8px;
+    border: 0;
+    border-radius: 8px;
+    color: rgba(235, 245, 255, 0.82);
+    background: transparent;
+    font-size: 12px;
+    text-align: left;
+    cursor: pointer;
+
+    > svg,
+    > i {
+      width: 16px;
+      height: 16px;
+      color: var(--thunder-electric);
+    }
+
+    &:hover,
+    &:focus-visible {
+      color: #ffffff;
+      background: rgba(var(--thunder-electric-rgb), 0.11);
+      outline: 0;
+    }
+  }
+}
+
 .now-playing:is(.is-sidebar-visible, .is-sidebar-pinned) .now-playing__dock {
   left: calc(50% + 174px);
   width: min(1040px, calc(100% - 420px));
@@ -4028,6 +4087,7 @@ body.low-effects {
   .now-playing__sidebar,
   .now-playing__player-topbar,
   .now-playing__control--glass,
+  .now-playing__add-menu,
   .now-playing__player-menu,
   .now-playing__audio-menu {
     backdrop-filter: none;
