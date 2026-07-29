@@ -2,7 +2,7 @@
 
 - Автосборка списка: `npm run test-check:sync-tests`
 - Найдено файлов: 141
-- Найдено тест-кейсов (test/it): 1244
+- Найдено тест-кейсов (test/it): 1236
 
 <!-- AUTO-JEST-TESTS:START -->
 
@@ -701,9 +701,8 @@
 - [ ] keeps source filter before history hydration
 - [ ] clears stale source filter after history hydration
 
-### `src/js/modules/__tests__/firstRunModal.test.js` (3)
+### `src/js/modules/__tests__/firstRunModal.test.js` (2)
 - [ ] shows wizard on first run, preserves selections, and applies them
-- [ ] treats Backup as a tool inside Tools in the summary
 - [ ] does not show modal when already completed
 
 ### `src/js/modules/__tests__/footerStatusBar.test.js` (12)
@@ -921,7 +920,7 @@
 - [ ] keeps insertion order and supports reorder, removal and filtering
 - [ ] never exposes mutable internal items
 
-### `src/js/modules/__tests__/nowPlayingView.test.js` (36)
+### `src/js/modules/__tests__/nowPlayingView.test.js` (38)
 - [ ] renders an accessible player and restores selectedTrackId
 - [ ] opens structured track information with the current poster
 - [ ] opens a non-blocking media library empty state
@@ -947,6 +946,8 @@
 - [ ] hides broken artwork while preserving real album metadata
 - [ ] exposes reduced-motion state and commits track visuals immediately
 - [ ] imports files, selects the first new track and persists the queue
+- [ ] shows an error toast when importing files fails
+- [ ] announces only a natural end of the final playlist item
 - [ ] autohides controls only while playing and locks them on interaction
 - [ ] supports row keyboard selection, removal and queue clearing
 - [ ] clears every item from the system Media Library after confirmation
@@ -1099,7 +1100,7 @@
 - [ ] includes Thunder Spark brand lockup in the footer
 - [ ] keeps queue filters in the queue header pills
 - [ ] keeps preview live player trigger on the thumbnail
-- [ ] keeps Backup controls inside Tools and removes separate sidebar tab
+- [ ] removes Tools and Backup preferences from Settings
 - [ ] includes the emerald theme in settings and first-run templates
 - [ ] uses compact appearance panel and preserves control ids
 - [ ] uses accessible tabs and appearance listboxes
@@ -1115,16 +1116,8 @@
 - [ ] includes localized web control settings
 - [ ] builds the standalone notifications lab page
 
-### `src/js/modules/__tests__/settings.test.js` (40)
-- [ ] shows badge and marks button disabled when disabled = true
-- [ ] hides badge and removes disabled class when disabled = false
-- [ ] sets accessibility attrs for wg sidebar badge
-- [ ] updates backup status card without requiring a sidebar tab
-- [ ] silently ignores unknown module keys
-- [ ] shows badge as off when stored flag is true
-- [ ] is disabled by default and persists checkbox changes
+### `src/js/modules/__tests__/settings.test.js` (33)
 - [ ] renders status and wires web-control IPC actions
-- [ ] reads and applies backup toggles inside wgunlock-settings
 - [ ] syncs label and calls setLanguage on click
 - [ ] initializes remember mode from storage and updates summary
 - [ ] switches to audio on click and persists value
@@ -1144,12 +1137,13 @@
 - [ ] applies initial states and persists changes for downloader behavior switches
 - [ ] does not render embedded tools info when downloader settings tab is active
 - [ ] collectCurrentConfig does not expose appearance.showNetworkStatus
-- [ ] does not export the removed Downloader developer preference
+- [ ] does not export removed module, Backup, or WG preferences
 - [ ] exports yt-dlp cookies settings
 - [ ] exports effective shortcut assignments
 - [ ] exports normalized Player preferences
 - [ ] applyConfig clears legacy topbarNetworkStatusVisible key
 - [ ] ignores legacy Downloader config and removes its storage key
+- [ ] ignores removed Tools and Backup fields from legacy imports
 - [ ] applies yt-dlp cookies settings
 - [ ] atomically applies imported Player preferences
 - [ ] uses Player defaults for a legacy imported configuration
@@ -1222,13 +1216,11 @@
 - [ ] removes window listeners and pending timers on dispose
 - [ ] clears intervals through the registry
 
-### `src/js/modules/__tests__/tools.toolViewState.test.js` (6)
-- [ ] resolves remembered tool only when it is available
-- [ ] resolves remembered backup tool and falls back when disabled
+### `src/js/modules/__tests__/tools.toolViewState.test.js` (4)
+- [ ] always starts from the launcher and ignores legacy remembered state
+- [ ] keeps Backup available despite legacy disabled state
 - [ ] tracks developer unlock state for macOS power tools
 - [ ] reads persisted developer unlock state from storage
-- [ ] remembers media-inspector as a valid last tool view
-- [ ] remembers downloader tools as a valid last tool view
 
 ### `src/js/modules/__tests__/toolsEntranceAnimation.test.js` (8)
 - [ ] prepares visible headers and cards in DOM order
@@ -1275,13 +1267,13 @@
 - [ ] cancels an active converter run
 - [ ] does not render launcher hotkey labels
 - [ ] shows Backup as a launcher tool when enabled
-- [ ] hides Backup from launcher when it is disabled
+- [ ] keeps Backup visible despite a legacy disabled flag
 - [ ] renders available and unavailable sections on windows
 - [ ] cleans up ipc listeners when the tools view is hidden
 - [ ] opens launcher by default even if last tool is stored
-- [ ] restores last hash view when remember setting is enabled
+- [ ] ignores the removed remember-last-tool setting
 - [ ] falls back to launcher when last view power is unavailable
-- [ ] restores File Sorter when last view is remembered
+- [ ] does not restore File Sorter from legacy state
 - [ ] shows File Sorter as available tool and opens it
 - [ ] keeps File Sorter available when developer mode is enabled
 - [ ] supports editable rules, mandatory preview, selection, apply, export, and undo

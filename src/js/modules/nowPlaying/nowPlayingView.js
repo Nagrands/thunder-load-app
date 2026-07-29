@@ -2,6 +2,7 @@ import { applyI18n, t } from "../i18n.js";
 import { refreshShortcutLabels } from "../hotkeys.js";
 import { readDeveloperModeEnabled } from "../developerMode.js";
 import { showConfirmationDialog } from "../modals.js";
+import { showToast } from "../toast.js";
 import { initTooltips } from "../tooltipInitializer.js";
 import createControlsVisibility from "./controlsVisibility.js";
 import createFullscreenController from "./fullscreenController.js";
@@ -126,7 +127,6 @@ export function createNowPlayingView({
   let persistenceInFlight = null;
   let persistenceRequested = false;
   let volumeFeedbackTimer = null;
-  let operationFeedbackTimer = null;
   let visualizerSaveVersion = 0;
   let visualizerConnectionVersion = 0;
   let visualizerConnectionFailed = false;
@@ -223,6 +223,16 @@ export function createNowPlayingView({
     root,
     onAction: handleContextAction,
   });
+
+  function showPlayerToast(messageKey, type = "success", params = {}) {
+    return showToast(t(messageKey, params), type);
+  }
+
+  function showPlayerError(error) {
+    const message = error?.message || t("nowPlaying.error");
+    showToast(message, "error");
+    return message;
+  }
 
   function renderTransientQueue(items = transientQueue.getItems()) {
     const queue = root.querySelector('[data-ui="transient-queue"]');
@@ -459,9 +469,7 @@ export function createNowPlayingView({
         });
     }
     if (snapshot.visualizerAnalysisAllowed === false) {
-      visualizerStatus.textContent = t(
-        "nowPlaying.visualizer.staticFallback",
-      );
+      visualizerStatus.textContent = t("nowPlaying.visualizer.staticFallback");
       visualizerStatus.hidden = false;
     } else if (visualizerConnectionFailed) {
       visualizerStatus.textContent = t("nowPlaying.visualizer.unavailable");
@@ -633,6 +641,7 @@ export function createNowPlayingView({
         (track) => importedIds.has(track.id) || !previousIds.has(track.id),
       );
       const addedIds = libraryModel.addTracks(incomingTracks);
+      const newlyAddedIds = addedIds.filter((id) => !previousIds.has(id));
       (imported.playlistImports || []).forEach((playlistImport) => {
         libraryModel.createPlaylist(playlistImport.title, {
           trackIds: playlistImport.trackIds,
@@ -643,51 +652,82 @@ export function createNowPlayingView({
         .getState()
         .catalog.tracks.find((track) => addedIds.includes(track.id));
       if (firstNewTrack) await controller.selectTrack(firstNewTrack.id);
-      status.textContent = imported.warnings?.length
-        ? t("nowPlaying.playlists.youtubeSkipped")
-        : "";
+      const warningCount = imported.warnings?.length || 0;
+      if (warningCount) {
+        showPlayerToast("nowPlaying.toast.importWarning", "warning", {
+          count: newlyAddedIds.length,
+          skipped: warningCount,
+        });
+        status.textContent = t("nowPlaying.playlists.youtubeSkipped");
+      } else if (newlyAddedIds.length) {
+        showPlayerToast(
+          source === "folder"
+            ? "nowPlaying.toast.folderAdded"
+            : "nowPlaying.toast.filesAdded",
+          "success",
+          { count: newlyAddedIds.length },
+        );
+        status.textContent = "";
+      }
     } catch (error) {
-      status.textContent = error?.message || t("nowPlaying.error");
+      status.textContent = showPlayerError(error);
     }
   }
 
   async function importPaths(paths, { autoplay = true } = {}) {
     if (!Array.isArray(paths) || !paths.length || !api?.importPaths)
       return false;
-    const payload = unwrapNowPlayingState(await api.importPaths(paths));
-    const tracks = Array.isArray(payload?.tracks) ? payload.tracks : [];
-    provider.mergeTracks(
-      tracks.filter((track) => track.providerId === "local"),
-    );
-    libraryModel.addTracks(tracks);
-    (payload?.playlistImports || []).forEach((playlistImport) => {
-      libraryModel.createPlaylist(playlistImport.title, {
-        trackIds: playlistImport.trackIds,
+    try {
+      const payload = unwrapNowPlayingState(await api.importPaths(paths));
+      const tracks = Array.isArray(payload?.tracks) ? payload.tracks : [];
+      provider.mergeTracks(
+        tracks.filter((track) => track.providerId === "local"),
+      );
+      const previousIds = new Set(
+        libraryModel.getState().catalog.tracks.map((track) => track.id),
+      );
+      libraryModel.addTracks(tracks);
+      (payload?.playlistImports || []).forEach((playlistImport) => {
+        libraryModel.createPlaylist(playlistImport.title, {
+          trackIds: playlistImport.trackIds,
+        });
       });
-    });
-    syncLibraryQueue();
-    const importedIds = Array.isArray(payload?.importedTrackIds)
-      ? payload.importedTrackIds
-      : tracks.map((track) => track.id);
-    const catalog = libraryModel.getState().catalog.tracks;
-    const importedTracks = importedIds
-      .map((id) => catalog.find((track) => track.id === id))
-      .filter(Boolean);
-    if (payload?.warnings?.length) {
-      status.textContent = t("nowPlaying.playlists.youtubeSkipped");
+      syncLibraryQueue();
+      const importedIds = Array.isArray(payload?.importedTrackIds)
+        ? payload.importedTrackIds
+        : tracks.map((track) => track.id);
+      const catalog = libraryModel.getState().catalog.tracks;
+      const importedTracks = importedIds
+        .map((id) => catalog.find((track) => track.id === id))
+        .filter(Boolean);
+      if (payload?.warnings?.length) {
+        status.textContent = t("nowPlaying.playlists.youtubeSkipped");
+      }
+      if (!importedTracks.length) return false;
+      importedTracks.slice(1).forEach((track) => transientQueue.add(track));
+      await controller.selectTrack(importedTracks[0].id, { autoplay });
+      libraryView.hide();
+      const addedCount = importedTracks.filter(
+        (track) => !previousIds.has(track.id),
+      ).length;
+      if (payload?.warnings?.length) {
+        showPlayerToast("nowPlaying.toast.importWarning", "warning", {
+          count: addedCount,
+          skipped: payload.warnings.length,
+        });
+      } else if (addedCount) {
+        showPlayerToast("nowPlaying.toast.filesAdded", "success", {
+          count: addedCount,
+        });
+      }
+      return true;
+    } catch (error) {
+      status.textContent = showPlayerError(error);
+      return false;
     }
-    if (!importedTracks.length) return false;
-    importedTracks.slice(1).forEach((track) => transientQueue.add(track));
-    await controller.selectTrack(importedTracks[0].id, { autoplay });
-    libraryView.hide();
-    return true;
   }
 
   async function importYouTube(url, qualitySelection) {
-    if (operationFeedbackTimer !== null) {
-      clearTimeout(operationFeedbackTimer);
-      operationFeedbackTimer = null;
-    }
     const loadingMessage = t("nowPlaying.youtube.fetching");
     status.textContent = loadingMessage;
     libraryView.setOperationStatus(loadingMessage, { loading: true });
@@ -695,26 +735,24 @@ export function createNowPlayingView({
       const track = await youtubeProvider.importSource(url, {
         qualitySelection,
       });
-      libraryModel.addTracks([track]);
+      const existingIds = new Set(
+        libraryModel.getState().catalog.tracks.map((item) => item.id),
+      );
+      const addedIds = libraryModel.addTracks([track]);
+      if (!addedIds.some((id) => !existingIds.has(id))) {
+        const duplicateMessage = t("nowPlaying.playlists.alreadyAdded");
+        libraryView.showDialogError(duplicateMessage);
+        libraryView.setOperationStatus(duplicateMessage, { error: true });
+        status.textContent = "";
+        return false;
+      }
       syncLibraryQueue();
-      const addedMessage = t("nowPlaying.youtube.added");
-      status.textContent = addedMessage;
-      libraryView.setOperationStatus(addedMessage);
-      operationFeedbackTimer = window.setTimeout(() => {
-        operationFeedbackTimer = null;
-        if (status.textContent === addedMessage) status.textContent = "";
-        const libraryStatus = root.querySelector(
-          '[data-ui="library-operation-status"]',
-        );
-        if (
-          libraryStatus?.querySelector("span")?.textContent === addedMessage
-        ) {
-          libraryView.setOperationStatus("");
-        }
-      }, 4000);
+      status.textContent = "";
+      libraryView.setOperationStatus("");
+      showPlayerToast("nowPlaying.toast.linkAdded");
       return true;
     } catch (error) {
-      const message = error?.message || t("nowPlaying.error");
+      const message = showPlayerError(error);
       libraryView.showDialogError(message);
       libraryView.setOperationStatus(message, { error: true });
       status.textContent = message;
@@ -746,10 +784,13 @@ export function createNowPlayingView({
       return importYouTube(context.url, quality.selector);
     }
     if (mode === "create") {
-      libraryModel.createPlaylist(value);
+      const playlist = libraryModel.createPlaylist(value);
       libraryView.render(libraryModel.getState(), latestSnapshot);
       initTooltips(root);
       queuePersistence();
+      showPlayerToast("nowPlaying.toast.playlistCreated", "success", {
+        title: playlist.title,
+      });
       return true;
     }
     if (mode === "rename") {
@@ -757,10 +798,13 @@ export function createNowPlayingView({
       if (!activePlaylist || activePlaylist.id === MEDIA_LIBRARY_ID) {
         return false;
       }
-      libraryModel.renamePlaylist(activePlaylist.id, value);
+      if (!libraryModel.renamePlaylist(activePlaylist.id, value)) return false;
       libraryView.render(libraryModel.getState(), latestSnapshot);
       initTooltips(root);
       queuePersistence();
+      showPlayerToast("nowPlaying.toast.playlistRenamed", "success", {
+        title: value,
+      });
       return true;
     }
     if (mode === "addTrack") {
@@ -772,6 +816,7 @@ export function createNowPlayingView({
       libraryView.render(libraryModel.getState(), latestSnapshot);
       initTooltips(root);
       queuePersistence();
+      showPlayerToast("nowPlaying.toast.addedToPlaylist");
       return true;
     }
     if (mode === "renameTrack") {
@@ -779,6 +824,9 @@ export function createNowPlayingView({
       const renamed = libraryModel.renameTrack(context.trackId, value);
       if (!renamed) return false;
       syncLibraryQueue({ selectedTrackId: controller.currentTrack?.id });
+      showPlayerToast("nowPlaying.toast.mediaRenamed", "success", {
+        title: value,
+      });
       return true;
     }
     return false;
@@ -791,13 +839,16 @@ export function createNowPlayingView({
     }
     const wasCurrent = controller.currentTrack?.id === trackId;
     const wasPlaying = controller.isPlaying;
-    libraryModel.removeTrackFromPlaylist(trackId, activePlaylist.id);
+    if (!libraryModel.removeTrackFromPlaylist(trackId, activePlaylist.id)) {
+      return false;
+    }
     syncLibraryQueue();
     if (wasCurrent && controller.currentTrack) {
       void controller.selectTrack(controller.currentTrack.id, {
         autoplay: wasPlaying,
       });
     }
+    showPlayerToast("nowPlaying.toast.removedFromPlaylist");
     return true;
   }
 
@@ -815,7 +866,7 @@ export function createNowPlayingView({
     if (!confirmed) return false;
     const wasCurrent = controller.currentTrack?.id === trackId;
     const wasPlaying = controller.isPlaying;
-    libraryModel.deleteFromCatalog(trackId);
+    if (!libraryModel.deleteFromCatalog(trackId)) return false;
     if (wasCurrent) controller.pause();
     syncLibraryQueue();
     if (wasCurrent && controller.currentTrack) {
@@ -823,6 +874,9 @@ export function createNowPlayingView({
         autoplay: wasPlaying,
       });
     }
+    showPlayerToast("nowPlaying.toast.mediaDeleted", "success", {
+      title: track?.displayTitle || track?.title || "",
+    });
     return true;
   }
 
@@ -935,6 +989,11 @@ export function createNowPlayingView({
       });
       if (!confirmed) return false;
     }
+    const removedCount =
+      activePlaylist.id === MEDIA_LIBRARY_ID
+        ? state.catalog.tracks.length
+        : activePlaylist.trackIds.length;
+    if (!removedCount) return false;
     controller.pause();
     if (activePlaylist?.id === MEDIA_LIBRARY_ID) {
       state.catalog.tracks.forEach((track) =>
@@ -948,6 +1007,13 @@ export function createNowPlayingView({
       );
     }
     syncLibraryQueue();
+    showPlayerToast(
+      activePlaylist.id === MEDIA_LIBRARY_ID
+        ? "nowPlaying.toast.libraryCleared"
+        : "nowPlaying.toast.playlistCleared",
+      "success",
+      { count: removedCount },
+    );
     return true;
   }
 
@@ -1015,9 +1081,17 @@ export function createNowPlayingView({
       });
     }
     if (action === "close-library-dialog") return libraryView.closeDialog();
-    if (action === "clear-transient-queue") return transientQueue.clear();
+    if (action === "clear-transient-queue") {
+      const count = transientQueue.getItems().length;
+      if (!count) return false;
+      transientQueue.clear();
+      showPlayerToast("nowPlaying.toast.queueCleared", "success", { count });
+      return true;
+    }
     if (action === "remove-transient") {
-      return transientQueue.remove(target.dataset.trackId);
+      const removed = transientQueue.remove(target.dataset.trackId);
+      if (removed) showPlayerToast("nowPlaying.toast.removedFromQueue");
+      return removed;
     }
     if (action === "move-transient-up" || action === "move-transient-down") {
       return transientQueue.move(
@@ -1107,7 +1181,7 @@ export function createNowPlayingView({
           libraryModel.deleteFromCatalog(trackId);
         });
       }
-      libraryModel.deletePlaylist(activePlaylist.id);
+      if (!libraryModel.deletePlaylist(activePlaylist.id)) return false;
       syncLibraryQueue();
       if (removeFromLibrary) renderTransientQueue();
       if (currentTrackRemoved && controller.currentTrack) {
@@ -1115,6 +1189,13 @@ export function createNowPlayingView({
           autoplay: wasPlaying,
         });
       }
+      showPlayerToast(
+        removeFromLibrary
+          ? "nowPlaying.toast.playlistAndMediaDeleted"
+          : "nowPlaying.toast.playlistDeleted",
+        "success",
+        { title: activePlaylist.title, count: removedTrackIds.length },
+      );
       return true;
     }
     const row = target.closest(".now-playing__track");
@@ -1145,7 +1226,15 @@ export function createNowPlayingView({
     const track = context?.track;
     if (!track) return false;
     if (action === "play") return controller.selectTrack(track.id);
-    if (action === "queue") return transientQueue.add(track);
+    if (action === "queue") {
+      const added = transientQueue.add(track);
+      if (added) {
+        showPlayerToast("nowPlaying.toast.addedToQueue", "success", {
+          title: track.displayTitle || track.title,
+        });
+      }
+      return added;
+    }
     if (action === "playlist") {
       return libraryView.openDialog("addTrack", { trackId: track.id });
     }
@@ -1462,9 +1551,17 @@ export function createNowPlayingView({
 
   function onMediaEnded(event) {
     if (event.target !== controller.activeMedia) return;
-    if (!transientQueue.getItems().length) return;
-    event.stopImmediatePropagation();
-    void playNextTrack({ fromEnded: true });
+    if (transientQueue.getItems().length) {
+      event.stopImmediatePropagation();
+      void playNextTrack({ fromEnded: true });
+      return;
+    }
+    const isLastTrack = controller.currentIndex === controller.queue.length - 1;
+    const shuffleCanContinue =
+      controller.shuffle && controller.queue.length > 1;
+    if (isLastTrack && controller.repeat === "off" && !shuffleCanContinue) {
+      showPlayerToast("nowPlaying.toast.playlistFinished", "info");
+    }
   }
 
   async function selectPlaylist(playlistId) {
@@ -1639,9 +1736,6 @@ export function createNowPlayingView({
       libraryView.dispose();
       contextMenu.dispose();
       if (volumeFeedbackTimer !== null) clearTimeout(volumeFeedbackTimer);
-      if (operationFeedbackTimer !== null) {
-        clearTimeout(operationFeedbackTimer);
-      }
       if (persistenceTimer !== null) clearTimeout(persistenceTimer);
       root.removeEventListener("click", onClick);
       root.removeEventListener("keydown", onKeydown);

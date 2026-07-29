@@ -1804,9 +1804,9 @@ $wg-max-width: 1200px;
 
 .tools-card__header {
   display: flex;
-  align-items: center;
-  flex-direction: column;
+  flex-direction: row;
   justify-content: space-between;
+  align-items: center;
   gap: 12px;
 
   h2 {

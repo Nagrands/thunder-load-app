@@ -5,8 +5,12 @@ jest.mock("../i18n.js", () => ({
 jest.mock("../modals.js", () => ({
   showConfirmationDialog: jest.fn().mockResolvedValue(true),
 }));
+jest.mock("../toast.js", () => ({
+  showToast: jest.fn(),
+}));
 
 import { showConfirmationDialog } from "../modals.js";
+import { showToast } from "../toast.js";
 import { createNowPlayingView } from "../nowPlaying/nowPlayingView.js";
 import {
   PLAYER_COMMANDS,
@@ -182,16 +186,17 @@ describe("Now Playing view", () => {
     expect(
       view.element.querySelector('[data-ui="player-tab-menu"]'),
     ).not.toBeNull();
-    expect(view.element.querySelector(".now-playing__header-title").textContent)
-      .toBe("tabs.nowPlaying");
+    expect(
+      view.element.querySelector(".now-playing__header-title").textContent,
+    ).toBe("tabs.nowPlaying");
     expect(
       view.element.querySelectorAll(
         '[data-action^="placeholder-subtitles"], [data-action="placeholder-mini-player"], [data-action="placeholder-picture"], [data-action="placeholder-settings"]',
       ),
     ).toHaveLength(0);
-    expect(
-      view.element.querySelectorAll("[data-window-action]"),
-    ).toHaveLength(2);
+    expect(view.element.querySelectorAll("[data-window-action]")).toHaveLength(
+      2,
+    );
     expect(
       view.element.querySelector(".now-playing__sidebar-toolbar"),
     ).not.toBeNull();
@@ -1553,6 +1558,74 @@ describe("Now Playing view", () => {
     expect(api.setState).toHaveBeenCalledWith(
       expect.objectContaining({ selectedTrackId: "demo" }),
     );
+    expect(showToast).toHaveBeenCalledWith(
+      "nowPlaying.toast.filesAdded",
+      "success",
+    );
+    view.dispose();
+  });
+
+  test("shows an error toast when importing files fails", async () => {
+    const api = {
+      getState: jest.fn().mockResolvedValue({
+        data: { version: 3, catalog: { tracks: [] }, playlists: [] },
+      }),
+      setState: jest.fn().mockResolvedValue({ success: true }),
+      importFiles: jest.fn().mockRejectedValue(new Error("Import failed")),
+      importFolder: jest.fn(),
+    };
+    const view = createNowPlayingView({ api });
+    document.body.appendChild(view.element);
+    await view.ready;
+
+    view.element.querySelector('[data-action="add-files"]').click();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(showToast).toHaveBeenCalledWith("Import failed", "error");
+    expect(view.element.querySelector(".now-playing__status").textContent).toBe(
+      "Import failed",
+    );
+    view.dispose();
+  });
+
+  test("announces only a natural end of the final playlist item", async () => {
+    const api = {
+      getState: jest.fn().mockResolvedValue({
+        data: {
+          version: 3,
+          catalog: { tracks: [sampleTrack] },
+          playlists: [],
+          selectedTrackId: sampleTrack.id,
+          repeat: "off",
+        },
+      }),
+      setState: jest.fn().mockResolvedValue({ success: true }),
+      importFiles: jest.fn(),
+      importFolder: jest.fn(),
+    };
+    const view = createNowPlayingView({ api });
+    document.body.appendChild(view.element);
+    await view.ready;
+    showToast.mockClear();
+
+    view.element
+      .querySelectorAll(".now-playing__video")
+      .forEach((media) => media.dispatchEvent(new Event("ended")));
+
+    expect(showToast).toHaveBeenCalledWith(
+      "nowPlaying.toast.playlistFinished",
+      "info",
+    );
+    showToast.mockClear();
+    await view.executeCommand(PLAYER_COMMANDS.NEXT);
+    expect(showToast).not.toHaveBeenCalled();
+
+    await view.executeCommand(PLAYER_COMMANDS.CYCLE_REPEAT);
+    view.element
+      .querySelectorAll(".now-playing__video")
+      .forEach((media) => media.dispatchEvent(new Event("ended")));
+    expect(showToast).not.toHaveBeenCalled();
     view.dispose();
   });
 
@@ -1936,6 +2009,10 @@ describe("Now Playing view", () => {
       .querySelector('[data-action="open-track-context-menu"]')
       .click();
     view.element.querySelector('[data-context-action="queue"]').click();
+    expect(showToast).toHaveBeenCalledWith(
+      "nowPlaying.toast.addedToQueue",
+      "success",
+    );
     expect(
       [
         ...library.querySelectorAll(
@@ -2114,6 +2191,10 @@ describe("Now Playing view", () => {
     expect(
       library.querySelector('.player-library__track[data-track-id="second"]'),
     ).not.toBeNull();
+    expect(showToast).toHaveBeenCalledWith(
+      "nowPlaying.toast.playlistAndMediaDeleted",
+      "success",
+    );
 
     library
       .querySelector(
@@ -2442,6 +2523,10 @@ describe("Now Playing view", () => {
         ]),
       }),
     );
+    expect(showToast).toHaveBeenCalledWith(
+      "nowPlaying.toast.playlistCreated",
+      "success",
+    );
     view.dispose();
   });
 
@@ -2521,16 +2606,10 @@ describe("Now Playing view", () => {
       ),
     ).not.toBeNull();
     expect(api.resolveYouTubeTrack).not.toHaveBeenCalled();
-    expect(
-      view.element.querySelector('[data-ui="library-operation-status"]')
-        .textContent,
-    ).toContain("nowPlaying.youtube.added");
-    expect(view.element.querySelector(".now-playing__status").textContent).toBe(
-      "nowPlaying.youtube.added",
+    expect(showToast).toHaveBeenCalledWith(
+      "nowPlaying.toast.linkAdded",
+      "success",
     );
-
-    jest.advanceTimersByTime(4000);
-
     expect(
       view.element.querySelector('[data-ui="library-operation-status"]').hidden,
     ).toBe(true);
