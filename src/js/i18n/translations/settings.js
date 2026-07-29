@@ -9,6 +9,12 @@ export const settingsTranslations = {
     "settings.tabs.other": "Другое",
     "settings.sections.menu": "Разделы",
     "settings.sections.toggle": "Показать разделы настроек",
+    "settings.search.label": "Поиск по настройкам",
+    "settings.search.placeholder": "Найти настройку…",
+    "settings.search.clear": "Очистить поиск",
+    "settings.search.results": "Результаты поиска по настройкам",
+    "settings.search.empty": "Ничего не найдено",
+    "settings.search.count": "Найдено настроек: {count}",
     "settings.player.title": "Плеер",
     "settings.player.hint":
       "Настройте поведение панели и параметры воспроизведения.",
@@ -39,19 +45,28 @@ export const settingsTranslations = {
     "settings.startup.title": "Настройки запуска",
     "settings.startup.hint":
       "Настройте параметры запуска для удобного использования.",
-    "settings.startup.autolaunch":
-      "<strong>Автоматически запускать</strong> при старте системы",
-    "settings.startup.minimize":
-      "<strong>Сворачивать</strong> приложение при запуске",
+    "settings.startup.autolaunchTitle": "Автоматически запускать",
+    "settings.startup.autolaunchHint":
+      "Thunder запустится при входе в систему.",
+    "settings.startup.minimizeTitle": "Сворачивать при запуске",
+    "settings.startup.minimizeHint":
+      "Thunder продолжит работу в фоновом режиме.",
     "settings.startup.openTab": "При запуске открывать",
     "settings.startup.openTabHint":
       "Выберите вкладку, которая будет открываться по умолчанию при запуске приложения.",
+    "settings.startup.downloaderHint": "Открывать вкладку загрузчика.",
+    "settings.startup.toolsHint": "Открывать вкладку инструментов.",
     "settings.close.title": "Закрытие приложения",
     "settings.close.hint":
       "Выберите, как приложение должно вести себя при закрытии.",
-    "settings.close.toTray": "<strong>Сворачивать</strong> в трей",
-    "settings.close.notify": "<strong>Уведомление</strong> о сворачивании",
-    "settings.close.exit": "<strong>Выйти</strong> из приложения",
+    "settings.close.toTrayTitle": "Сворачивать в трей",
+    "settings.close.toTrayHint": "Thunder продолжит работать в фоне.",
+    "settings.close.notifyTitle": "Уведомлять о сворачивании",
+    "settings.close.notifyHint":
+      "Показывать системное уведомление при переходе в трей.",
+    "settings.close.exitTitle": "Выйти из приложения",
+    "settings.close.exitHint":
+      "Полностью завершать Thunder при закрытии окна.",
     "settings.downloader.title": "Вкладка «Загрузчик»",
     "settings.downloader.profile.open": "При открытии",
     "settings.downloader.profile.title": "Выбор качества загрузки",
@@ -99,7 +114,8 @@ export const settingsTranslations = {
     "settings.web.title": "Веб-интерфейс",
     "settings.web.hint":
       "Управление загрузчиком из браузера на этом компьютере.",
-    "settings.web.enable": "Включить <strong>локальный веб-интерфейс</strong>",
+    "settings.web.enable": "Включить локальный веб-интерфейс",
+    "settings.web.enableHint": "Запустить локальный сервер управления.",
     "settings.web.url": "Адрес на этом компьютере",
     "settings.web.lanUrl": "Адрес для телефона",
     "settings.web.open": "Открыть веб-интерфейс",
@@ -111,13 +127,18 @@ export const settingsTranslations = {
     "settings.web.status.off": "Выключено",
     "settings.web.status.starting": "Запускается",
     "settings.web.status.on": "Работает на порту {port}",
-    "settings.downloader.cookies.title": "YouTube cookies",
     "settings.downloader.cookies.mode": "Режим cookies",
+    "settings.downloader.cookies.modeHint":
+      "Выберите источник данных для авторизации.",
     "settings.downloader.cookies.mode.off": "Выкл.",
     "settings.downloader.cookies.mode.browser": "Из браузера",
     "settings.downloader.cookies.mode.file": "Файл cookies.txt",
     "settings.downloader.cookies.browser": "Браузер",
+    "settings.downloader.cookies.browserHint":
+      "Импортировать cookies из выбранного браузера.",
     "settings.downloader.cookies.file": "Файл cookies.txt",
+    "settings.downloader.cookies.fileHint":
+      "Использовать файл в формате Netscape.",
     "settings.downloader.cookies.file.pick": "Выбрать файл",
     "settings.downloader.cookies.file.empty": "Файл не выбран",
     "settings.downloader.cookies.hint":
@@ -128,6 +149,8 @@ export const settingsTranslations = {
     "settings.downloader.cookies.file.error":
       "Не удалось выбрать файл cookies: {message}",
     "settings.appearance.title": "Внешний вид приложения",
+    "settings.appearance.hint":
+      "Настройте язык, читаемость, тему и визуальные эффекты.",
     "settings.appearance.theme": "Цветовая тема",
     "settings.appearance.theme.system": "Системная",
     "settings.appearance.theme.dark": "Темная",
@@ -137,26 +160,22 @@ export const settingsTranslations = {
     "settings.appearance.theme.violet": "Виолет",
     "settings.appearance.interfaceHint":
       "Язык интерфейса и базовая читаемость.",
+    "settings.appearance.languageHint": "Язык меню, подсказок и сообщений.",
     "settings.appearance.themeHint":
       "Выбор темы и снижение визуальной нагрузки.",
+    "settings.appearance.theme.optionHint":
+      "Выберите цветовую схему приложения.",
     "settings.appearance.theme.reset": "Сбросить тему по умолчанию",
     "settings.appearance.fontSize": "Размер текста",
+    "settings.appearance.fontSize.hint":
+      "Выберите удобный размер текста интерфейса.",
     "settings.appearance.fontSize.reset": "Сбросить размер шрифта по умолчанию",
     "settings.appearance.lowEffects.hint":
-      "Отключает анимации и эффекты размытия",
-    "settings.appearance.lowEffects":
-      "Режим <strong>экономии эффектов</strong>",
-    "settings.about.title": "О приложении",
-    "settings.about.hint":
-      "Краткая информация о Thunder, версии приложения и его runtime.",
-    "settings.about.productTitle": "Thunder",
+      "Отключает анимации и эффекты размытия.",
+    "settings.appearance.lowEffects": "Режим экономии эффектов",
     "settings.about.productHint":
       "Desktop-приложение для загрузки видео и аудио файлов.",
-    "settings.about.appVersion": "Версия приложения",
-    "settings.about.electronVersion": "Версия Electron",
     "settings.about.actionsTitle": "Действия",
-    "settings.about.actionsHint":
-      "Быстрые действия для просмотра изменений, копирования сведений и проверки обновлений.",
     "settings.about.whatsNew": "Что нового",
     "settings.about.copyInfo": "Скопировать информацию",
     "settings.about.checkUpdates": "Проверить обновления",
@@ -165,6 +184,10 @@ export const settingsTranslations = {
     "settings.about.copyError":
       "Не удалось скопировать информацию о приложении",
     "settings.about.updatesError": "Не удалось запустить проверку обновлений",
+    "settings.runtime.title": "Версии",
+    "settings.runtime.hint":
+      "Информация о приложении и среде выполнения.",
+    "settings.runtime.application": "Application",
     "settings.other.title": "Другие настройки",
     "settings.other.hint":
       "Дополнительные параметры для детальной настройки поведения приложения.",
@@ -360,6 +383,12 @@ export const settingsTranslations = {
     "settings.tabs.other": "Other",
     "settings.sections.menu": "Sections",
     "settings.sections.toggle": "Show settings sections",
+    "settings.search.label": "Search settings",
+    "settings.search.placeholder": "Find a setting…",
+    "settings.search.clear": "Clear search",
+    "settings.search.results": "Settings search results",
+    "settings.search.empty": "No settings found",
+    "settings.search.count": "Settings found: {count}",
     "settings.player.title": "Player",
     "settings.player.hint":
       "Configure panel behavior and playback preferences.",
@@ -388,17 +417,28 @@ export const settingsTranslations = {
     "settings.player.saveError": "Could not save Player settings.",
     "settings.startup.title": "Startup settings",
     "settings.startup.hint": "Configure startup behavior for convenience.",
-    "settings.startup.autolaunch":
-      "<strong>Launch automatically</strong> at system startup",
-    "settings.startup.minimize": "<strong>Minimize</strong> the app on launch",
+    "settings.startup.autolaunchTitle": "Launch automatically",
+    "settings.startup.autolaunchHint":
+      "Thunder starts when you sign in to the system.",
+    "settings.startup.minimizeTitle": "Minimize on launch",
+    "settings.startup.minimizeHint":
+      "Thunder continues running in the background.",
     "settings.startup.openTab": "Open on startup",
     "settings.startup.openTabHint":
       "Select the tab that opens by default on app launch.",
+    "settings.startup.downloaderHint": "Open the Downloader tab.",
+    "settings.startup.toolsHint": "Open the Tools tab.",
     "settings.close.title": "App closing behavior",
     "settings.close.hint": "Choose how the app behaves when closing.",
-    "settings.close.toTray": "<strong>Minimize</strong> to tray",
-    "settings.close.notify": "<strong>Notify</strong> on minimize",
-    "settings.close.exit": "<strong>Exit</strong> the app",
+    "settings.close.toTrayTitle": "Minimize to tray",
+    "settings.close.toTrayHint":
+      "Keep Thunder running in the background.",
+    "settings.close.notifyTitle": "Notify on minimize",
+    "settings.close.notifyHint":
+      "Show a system notification when Thunder moves to the tray.",
+    "settings.close.exitTitle": "Exit the app",
+    "settings.close.exitHint":
+      "Close Thunder completely when the window closes.",
     "settings.downloader.title": "Tab “Downloader”",
     "settings.downloader.profile.open": "On open",
     "settings.downloader.profile.title": "Download quality selection",
@@ -445,7 +485,8 @@ export const settingsTranslations = {
     "settings.web.title": "Web interface",
     "settings.web.hint":
       "Control the downloader from a browser on this computer.",
-    "settings.web.enable": "Enable <strong>local web interface</strong>",
+    "settings.web.enable": "Enable local web interface",
+    "settings.web.enableHint": "Start the local control server.",
     "settings.web.url": "Address on this computer",
     "settings.web.lanUrl": "Phone address",
     "settings.web.open": "Open web interface",
@@ -457,13 +498,18 @@ export const settingsTranslations = {
     "settings.web.status.off": "Off",
     "settings.web.status.starting": "Starting",
     "settings.web.status.on": "Running on port {port}",
-    "settings.downloader.cookies.title": "YouTube cookies",
     "settings.downloader.cookies.mode": "Cookies mode",
+    "settings.downloader.cookies.modeHint":
+      "Choose the authentication data source.",
     "settings.downloader.cookies.mode.off": "Off",
     "settings.downloader.cookies.mode.browser": "From browser",
     "settings.downloader.cookies.mode.file": "cookies.txt file",
     "settings.downloader.cookies.browser": "Browser",
+    "settings.downloader.cookies.browserHint":
+      "Import cookies from the selected browser.",
     "settings.downloader.cookies.file": "cookies.txt file",
+    "settings.downloader.cookies.fileHint":
+      "Use a Netscape-format cookies file.",
     "settings.downloader.cookies.file.pick": "Choose file",
     "settings.downloader.cookies.file.empty": "No file selected",
     "settings.downloader.cookies.hint":
@@ -474,6 +520,8 @@ export const settingsTranslations = {
     "settings.downloader.cookies.file.error":
       "Unable to choose cookies file: {message}",
     "settings.appearance.title": "App appearance",
+    "settings.appearance.hint":
+      "Configure language, readability, theme, and visual effects.",
     "settings.appearance.theme": "Color theme",
     "settings.appearance.theme.system": "System",
     "settings.appearance.theme.dark": "Dark",
@@ -483,30 +531,30 @@ export const settingsTranslations = {
     "settings.appearance.theme.violet": "Violet",
     "settings.appearance.interfaceHint":
       "Interface language and baseline readability.",
+    "settings.appearance.languageHint": "Language for menus, hints, and messages.",
     "settings.appearance.themeHint": "Theme choice and reduced visual load.",
+    "settings.appearance.theme.optionHint":
+      "Choose the application's color scheme.",
     "settings.appearance.theme.reset": "Reset theme to default",
     "settings.appearance.fontSize": "Text size",
+    "settings.appearance.fontSize.hint":
+      "Choose a comfortable interface text size.",
     "settings.appearance.fontSize.reset": "Reset font size to default",
     "settings.appearance.lowEffects.hint":
-      "Disables animations and blur effects",
-    "settings.appearance.lowEffects": "<strong>Low‑effects</strong> mode",
-    "settings.about.title": "About app",
-    "settings.about.hint":
-      "Brief information about Thunder, the app version, and its runtime.",
-    "settings.about.productTitle": "Thunder",
+      "Disables animations and blur effects.",
+    "settings.appearance.lowEffects": "Low-effects mode",
     "settings.about.productHint":
       "An Electron desktop app for media downloads and built-in utilities.",
-    "settings.about.appVersion": "App version",
-    "settings.about.electronVersion": "Electron version",
     "settings.about.actionsTitle": "Actions",
-    "settings.about.actionsHint":
-      "Quick actions to review changes, copy app details, and check for updates.",
     "settings.about.whatsNew": "What's new",
     "settings.about.copyInfo": "Copy app info",
     "settings.about.checkUpdates": "Check for updates",
     "settings.about.copySuccess": "App information copied to clipboard",
     "settings.about.copyError": "Failed to copy app information",
     "settings.about.updatesError": "Failed to start update check",
+    "settings.runtime.title": "Versions",
+    "settings.runtime.hint": "Application and runtime information.",
+    "settings.runtime.application": "Application",
     "settings.other.title": "Other settings",
     "settings.other.hint":
       "Additional parameters for fine‑tuning app behavior.",

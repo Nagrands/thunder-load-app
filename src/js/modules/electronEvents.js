@@ -22,19 +22,22 @@ function initElectronEvents() {
     try {
       const el1 = document.getElementById("settings-app-version");
       if (el1) el1.textContent = `v${version}`;
-      const el2 = document.getElementById("settings-tabs-version");
-      if (el2) el2.textContent = `v${version}`;
 
       const runtimeInfo =
         (await window.electron?.getRuntimeInfo?.()) || undefined;
       const electronVersion = runtimeInfo?.electron;
-      const el3 = document.getElementById("settings-tabs-electron-version");
-      if (el3 && electronVersion) {
-        el3.textContent = `v${electronVersion}`;
+      const electronEl = document.getElementById(
+        "settings-about-electron-version",
+      );
+      if (electronEl && electronVersion) {
+        electronEl.textContent = String(electronVersion).split(".")[0];
+        electronEl.title = `v${electronVersion}`;
       }
-      const el4 = document.getElementById("settings-about-electron-version");
-      if (el4 && electronVersion) {
-        el4.textContent = `v${electronVersion}`;
+      const nodeVersion = runtimeInfo?.node;
+      const nodeEl = document.getElementById("settings-about-node-version");
+      if (nodeEl && nodeVersion) {
+        nodeEl.textContent = String(nodeVersion).split(".")[0];
+        nodeEl.title = `v${nodeVersion}`;
       }
     } catch {}
   });

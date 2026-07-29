@@ -53,6 +53,7 @@ describe("settingsModal mobile sections navigation", () => {
         </div>
         <strong id="settings-app-version">—</strong>
         <strong id="settings-about-electron-version">—</strong>
+        <strong id="settings-about-node-version">—</strong>
         <span id="settings-active-section-label"></span>
         <div id="settings-tabs-panel" class="settings-tabs-wrapper" data-open="false">
           <div class="settings-tabs" role="tablist">
@@ -398,7 +399,10 @@ describe("settingsModal mobile sections navigation", () => {
     );
     expect(
       document.getElementById("settings-about-electron-version")?.textContent,
-    ).toBe("v39.0.0");
+    ).toBe("39");
+    expect(
+      document.getElementById("settings-about-node-version")?.textContent,
+    ).toBe("22");
   });
 
   test("copies app info from about section", async () => {
@@ -456,4 +460,5 @@ describe("settingsModal mobile sections navigation", () => {
 
     expect(clickSpy).toHaveBeenCalledTimes(1);
   });
+
 });

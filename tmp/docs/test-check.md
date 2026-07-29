@@ -1,8 +1,8 @@
 ## Автотесты (Jest)
 
 - Автосборка списка: `npm run test-check:sync-tests`
-- Найдено файлов: 141
-- Найдено тест-кейсов (test/it): 1238
+- Найдено файлов: 142
+- Найдено тест-кейсов (test/it): 1245
 
 <!-- AUTO-JEST-TESTS:START -->
 
@@ -921,7 +921,7 @@
 - [ ] keeps insertion order and supports reorder, removal and filtering
 - [ ] never exposes mutable internal items
 
-### `src/js/modules/__tests__/nowPlayingView.test.js` (39)
+### `src/js/modules/__tests__/nowPlayingView.test.js` (40)
 - [ ] renders an accessible player and restores selectedTrackId
 - [ ] opens the sidebar Add menu with file, folder and YouTube actions
 - [ ] opens structured track information with the current poster
@@ -957,6 +957,7 @@
 - [ ] renders the V2 media library, playlists and persistent mini-player
 - [ ] can remove playlist files from the media library when deleting it
 - [ ] loads a video poster eagerly for the current card and library mini-player
+- [ ] keeps the sidebar fallback visible when a generated poster fails
 - [ ] searches the active playlist, composes filters, and renders no-results
 - [ ] switches playlists from the library and sidebar without autoplay
 - [ ] creates a playlist with the accessible library dialog
@@ -1098,13 +1099,14 @@
 - [ ] keeps document overflow lock while a lock owner is still active
 - [ ] clears all scroll locks when tools view is hidden
 
-### `src/js/modules/__tests__/settings.template.test.js` (18)
+### `src/js/modules/__tests__/settings.template.test.js` (19)
 - [ ] includes Thunder Spark brand lockup in the footer
 - [ ] keeps queue filters in the queue header pills
 - [ ] keeps preview live player trigger on the thumbnail
 - [ ] removes Tools and Backup preferences from Settings
 - [ ] includes the emerald theme in settings and first-run templates
-- [ ] uses compact appearance panel and preserves control ids
+- [ ] uses standard appearance cards and preserves control ids
+- [ ] renders a visible state indicator for global shortcuts
 - [ ] uses accessible tabs and appearance listboxes
 - [ ] includes the accessible Player preferences section after Downloader
 - [ ] localizes Player preferences in Russian and English
@@ -1112,7 +1114,7 @@
 - [ ] localizes every shortcut catalog action in Russian and English
 - [ ] moves downloader tools block out of downloader settings
 - [ ] uses compact icon tabs with tooltip titles in the download quality modal
-- [ ] moves about app information into the general settings tab
+- [ ] uses the redesigned settings shell and compact runtime card
 - [ ] includes auto quality modal toggle in downloader settings
 - [ ] includes yt-dlp cookies controls in downloader settings
 - [ ] includes localized web control settings
@@ -1175,6 +1177,13 @@
 - [ ] copies app info from about section
 - [ ] starts update check from about section and closes settings
 - [ ] opens whats new from about section via existing version trigger
+
+### `src/js/modules/__tests__/settingsSearch.test.js` (5)
+- [ ] searches localized titles and descriptions across categories
+- [ ] supports keyboard selection and opens the target details element
+- [ ] Escape closes results without clearing the query
+- [ ] rebuilds the localized index on i18n changes
+- [ ] creates highlights as text nodes without interpreting markup
 
 ### `src/js/modules/__tests__/settingsStore.theme.test.js` (3)
 - [ ] propagates set-theme IPC errors when Electron is available

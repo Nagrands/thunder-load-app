@@ -5,6 +5,8 @@
         role="dialog"
         aria-modal="true"
         aria-labelledby="settings-title"
+        aria-hidden="true"
+        tabindex="-1"
         style="display: none"
       >
         <div class="settings-modal-content">
@@ -15,15 +17,71 @@
           >
             &times;
           </button>
-          <div class="settings-modal-heading">
-            <h1 id="settings-title">
-              <i class="fa-solid fa-gear"></i>
-              <span data-i18n="modal.settings">Настройки</span>
-            </h1>
-          </div>
 
           <div class="settings-layout">
             <aside class="settings-shell-sidebar">
+              <header class="settings-sidebar-header">
+                <span class="settings-sidebar-header__icon" aria-hidden="true">
+                  <i data-lucide="settings-2"></i>
+                </span>
+                <span class="settings-sidebar-header__copy">
+                  <h1 id="settings-title" data-i18n="modal.settings">Настройки</h1>
+                </span>
+              </header>
+
+              <div class="settings-search" role="search">
+                <label class="settings-search__label" for="settings-search-input" data-i18n="settings.search.label">
+                  Поиск по настройкам
+                </label>
+                <div class="settings-search__field">
+                  <span class="settings-search__icon" aria-hidden="true">
+                    <i data-lucide="search"></i>
+                  </span>
+                  <input
+                    id="settings-search-input"
+                    class="settings-search__input"
+                    type="search"
+                    autocomplete="off"
+                    spellcheck="false"
+                    role="combobox"
+                    aria-autocomplete="list"
+                    aria-expanded="false"
+                    aria-controls="settings-search-results"
+                    placeholder="Найти настройку…"
+                    data-i18n-placeholder="settings.search.placeholder"
+                  />
+                  <button
+                    id="settings-search-clear"
+                    class="settings-search__clear"
+                    type="button"
+                    hidden
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="right"
+                    title="Очистить поиск"
+                    data-i18n-title="settings.search.clear"
+                    aria-label="Очистить поиск"
+                    data-i18n-aria="settings.search.clear"
+                  >
+                    <i data-lucide="x" aria-hidden="true"></i>
+                  </button>
+                  <div
+                    id="settings-search-results"
+                    class="settings-search-results"
+                    role="listbox"
+                    aria-label="Результаты поиска"
+                    data-i18n-aria="settings.search.results"
+                    hidden
+                  ></div>
+                </div>
+                <div
+                  id="settings-search-live"
+                  class="visually-hidden"
+                  role="status"
+                  aria-live="polite"
+                  aria-atomic="true"
+                ></div>
+              </div>
+
               <div class="settings-sections-toolbar">
                 <button
                   id="settings-sections-toggle"
@@ -68,7 +126,7 @@
                   aria-controls="general-settings"
                   tabindex="0"
                 >
-                  <i class="fa-solid fa-house"></i>
+                  <i data-lucide="house" aria-hidden="true"></i>
                   <span data-i18n="settings.tabs.general">Общие</span>
                 </button>
                 <button
@@ -81,7 +139,7 @@
                   aria-controls="window-settings"
                   tabindex="-1"
                 >
-                  <i class="fa-solid fa-download"></i>
+                  <i data-lucide="download" aria-hidden="true"></i>
                   <span data-i18n="settings.tabs.downloader">Downloader</span>
                 </button>
                 <button
@@ -94,7 +152,7 @@
                   aria-controls="player-settings"
                   tabindex="-1"
                 >
-                  <i class="fa-solid fa-circle-play"></i>
+                  <i data-lucide="circle-play" aria-hidden="true"></i>
                   <span data-i18n="settings.tabs.player">Плеер</span>
                 </button>
                 <button
@@ -107,7 +165,7 @@
                   aria-controls="appearance-settings"
                   tabindex="-1"
                 >
-                  <i class="fa-solid fa-palette"></i>
+                  <i data-lucide="palette" aria-hidden="true"></i>
                   <span data-i18n="settings.tabs.appearance">Внешний вид</span>
                 </button>
                 <button
@@ -120,7 +178,7 @@
                   aria-controls="shortcuts-settings"
                   tabindex="-1"
                 >
-                  <i class="fa-regular fa-keyboard"></i>
+                  <i data-lucide="keyboard" aria-hidden="true"></i>
                   <span data-i18n="settings.tabs.shortcuts">Горячие клавиши</span>
                 </button>
                 <button
@@ -133,29 +191,12 @@
                   aria-controls="other-settings"
                   tabindex="-1"
                 >
-                  <i class="fa-solid fa-wrench"></i>
+                  <i data-lucide="wrench" aria-hidden="true"></i>
                   <span data-i18n="settings.tabs.other">Другое</span>
                 </button>
-                <div class="tabs-footer">
-                  <div class="tabs-footer-row">
-                    <span class="muted">
-                      <i class="fa-solid fa-bolt"></i>
-                      Thunder
-                    </span>
-                    <strong id="settings-tabs-version" class="muted">—</strong>
-                  </div>
-                  <div class="tabs-footer-row">
-                    <span class="muted">
-                      <i class="fa-solid fa-microchip"></i>
-                      Electron
-                    </span>
-                    <strong id="settings-tabs-electron-version" class="muted"
-                      >—</strong
-                    >
-                  </div>
-                </div>
               </div>
               </div>
+
             </aside>
 
             <!-- Tab Content -->
@@ -167,93 +208,118 @@
                 class="tab-pane active"
                 role="tabpanel"
                 aria-labelledby="settings-section-tab-general"
+                data-settings-category="general-settings"
                 tabindex="0"
               >
-                <div class="settings-pane-header">
-                  <div class="settings-pane-header__copy">
-                    <h2 data-i18n="settings.tabs.general">Общие</h2>
+                <div class="settings-pane-header settings-pane-header--brand">
+                  <div class="settings-pane-header__identity">
+                    <img
+                      class="settings-pane-header__logo"
+                      src="../assets/icons/app/app-icon.png"
+                      alt=""
+                      aria-hidden="true"
+                    />
+                    <div class="settings-pane-header__copy">
+                      <span class="settings-pane-header__eyebrow" data-i18n="settings.tabs.general">
+                        Общие
+                      </span>
+                      <h2>Thunder</h2>
+                      <p data-i18n="settings.about.productHint">
+                        Desktop-приложение для загрузки видео и аудио файлов.
+                      </p>
+                    </div>
+                  </div>
+                  <div
+                    class="settings-pane-header__actions"
+                    role="group"
+                    aria-label="Действия"
+                    data-i18n-aria="settings.about.actionsTitle"
+                  >
+                    <button
+                      id="settings-about-whats-new-button"
+                      class="settings-icon-action"
+                      type="button"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="bottom"
+                      data-bs-delay='{"show":300,"hide":100}'
+                      title="Что нового"
+                      data-i18n-title="settings.about.whatsNew"
+                      aria-label="Что нового"
+                      data-i18n-aria="settings.about.whatsNew"
+                    >
+                      <i data-lucide="sparkles" aria-hidden="true"></i>
+                    </button>
+                    <button
+                      id="settings-about-check-updates-button"
+                      class="settings-icon-action"
+                      type="button"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="bottom"
+                      data-bs-delay='{"show":300,"hide":100}'
+                      title="Проверить обновления"
+                      data-i18n-title="settings.about.checkUpdates"
+                      aria-label="Проверить обновления"
+                      data-i18n-aria="settings.about.checkUpdates"
+                    >
+                      <i data-lucide="refresh-cw" aria-hidden="true"></i>
+                    </button>
+                    <button
+                      id="settings-about-copy-info-button"
+                      class="settings-icon-action"
+                      type="button"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="bottom"
+                      data-bs-delay='{"show":300,"hide":100}'
+                      title="Скопировать информацию"
+                      data-i18n-title="settings.about.copyInfo"
+                      aria-label="Скопировать информацию"
+                      data-i18n-aria="settings.about.copyInfo"
+                    >
+                      <i data-lucide="copy" aria-hidden="true"></i>
+                    </button>
                   </div>
                 </div>
                 <div class="settings-pane-stack settings-pane-stack--general">
-                  <section class="settings-card settings-about-card settings-about-card--compact">
-                    <div class="settings-about-shell">
-                      <div class="settings-card__intro settings-about-intro">
-                        <h3 class="settings-card__title" data-i18n="settings.about.productTitle">
-                          Thunder
-                        </h3>
-                        <p class="settings-card__desc" data-i18n="settings.about.productHint">
-                          Desktop-приложение для загрузки видео и аудио файлов.
-                        </p>
-                      </div>
-
-                      <div class="settings-about-metrics">
-                        <div class="settings-about-metric">
-                          <span class="settings-about-metric__label" data-i18n="settings.about.appVersion">
-                            Версия приложения
-                          </span>
-                          <strong id="settings-app-version" class="settings-about-metric__value muted">—</strong>
-                        </div>
-                        <div class="settings-about-metric">
-                          <span class="settings-about-metric__label" data-i18n="settings.about.electronVersion">
-                            Версия Electron
-                          </span>
-                          <strong id="settings-about-electron-version" class="settings-about-metric__value muted">—</strong>
-                        </div>
-                      </div>
-
-                      <div
-                        class="settings-about-actions"
-                        role="group"
-                        aria-label="Действия"
-                        data-i18n-aria="settings.about.actionsTitle"
-                      >
-                        <button
-                          id="settings-about-whats-new-button"
-                          class="settings-about-action"
-                          type="button"
-                          data-bs-toggle="tooltip"
-                          data-bs-placement="top"
-                          data-bs-delay='{"show":300,"hide":100}'
-                          title="Что нового"
-                          data-i18n-title="settings.about.whatsNew"
-                          aria-label="Что нового"
-                          data-i18n-aria="settings.about.whatsNew"
-                        >
-                          <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>
-                        </button>
-                        <button
-                          id="settings-about-copy-info-button"
-                          class="settings-about-action"
-                          type="button"
-                          data-bs-toggle="tooltip"
-                          data-bs-placement="top"
-                          data-bs-delay='{"show":300,"hide":100}'
-                          title="Скопировать информацию"
-                          data-i18n-title="settings.about.copyInfo"
-                          aria-label="Скопировать информацию"
-                          data-i18n-aria="settings.about.copyInfo"
-                        >
-                          <i class="fa-solid fa-copy" aria-hidden="true"></i>
-                        </button>
-                        <button
-                          id="settings-about-check-updates-button"
-                          class="settings-about-action"
-                          type="button"
-                          data-bs-toggle="tooltip"
-                          data-bs-placement="top"
-                          data-bs-delay='{"show":300,"hide":100}'
-                          title="Проверить обновления"
-                          data-i18n-title="settings.about.checkUpdates"
-                          aria-label="Проверить обновления"
-                          data-i18n-aria="settings.about.checkUpdates"
-                        >
-                          <i class="fa-solid fa-rotate" aria-hidden="true"></i>
-                        </button>
-                      </div>
+                  <section
+                    class="settings-card settings-runtime-card"
+                    data-settings-search-item
+                    data-settings-search-id="runtime"
+                  >
+                    <div class="settings-card__icon" aria-hidden="true">
+                      <i data-lucide="badge-info"></i>
+                    </div>
+                    <div class="settings-card__intro">
+                      <h3 class="settings-card__title" data-i18n="settings.runtime.title">
+                        Версии
+                      </h3>
+                      <p class="settings-card__desc" data-i18n="settings.runtime.hint">
+                        Информация о приложении и среде выполнения.
+                      </p>
+                    </div>
+                    <div class="settings-runtime-card__metrics">
+                      <span class="settings-runtime-metric">
+                        <small data-i18n="settings.runtime.application">Application</small>
+                        <strong id="settings-app-version">—</strong>
+                      </span>
+                      <span class="settings-runtime-metric">
+                        <small>Electron</small>
+                        <strong id="settings-about-electron-version">—</strong>
+                      </span>
+                      <span class="settings-runtime-metric">
+                        <small>Node</small>
+                        <strong id="settings-about-node-version">—</strong>
+                      </span>
                     </div>
                   </section>
 
-                  <section class="settings-card settings-card--section">
+                  <section
+                    class="settings-card settings-card--section"
+                    data-settings-search-item
+                    data-settings-search-id="startup"
+                  >
+                    <div class="settings-card__icon" aria-hidden="true">
+                      <i data-lucide="power"></i>
+                    </div>
                     <div class="settings-card__intro">
                       <h3 class="settings-card__title" data-i18n="settings.startup.title">
                         Настройки запуска
@@ -263,15 +329,19 @@
                       </p>
                     </div>
                     <div class="settings-card__body">
-                      <ul class="module settings-control-list settings-control-list--flat">
+                      <ul class="module settings-control-list settings-control-list--flat settings-control-list--startup">
                         <li class="settings-control settings-control--flat">
                           <input type="checkbox" id="settings-auto-launch-toggle" />
                           <label for="settings-auto-launch-toggle">
-                            <i class="fa-brands fa-windows"></i>
-                            <span data-i18n-html="settings.startup.autolaunch"
-                              ><strong>Автоматически запускать</strong> при старте
-                              системы</span
-                            >
+                            <i data-lucide="monitor-up" aria-hidden="true"></i>
+                            <span class="settings-control__meta">
+                              <strong data-i18n="settings.startup.autolaunchTitle">
+                                Автоматически запускать
+                              </strong>
+                              <small data-i18n="settings.startup.autolaunchHint">
+                                Thunder запустится при входе в систему.
+                              </small>
+                            </span>
                           </label>
                         </li>
                         <li class="settings-control settings-control--flat">
@@ -280,59 +350,80 @@
                             id="settings-minimize-on-launch-toggle"
                           />
                           <label for="settings-minimize-on-launch-toggle">
-                            <i class="fa fa-window-restore"></i>
-                            <span data-i18n-html="settings.startup.minimize"
-                              ><strong>Сворачивать</strong> приложение при
-                              запуске</span
-                            >
-                          </label>
-                        </li>
-                      </ul>
-                    </div>
-                  </section>
-
-                  <section class="settings-card settings-card--section">
-                    <div class="settings-card__intro">
-                      <h3 class="settings-card__title" data-i18n="settings.startup.openTab">
-                        При запуске открывать
-                      </h3>
-                    </div>
-                    <div class="settings-card__body">
-                      <ul class="module default-tab-group settings-control-list settings-control-list--flat settings-control-list--choice settings-control-list--startup-choice">
-                        <li class="custom-theme-select settings-control settings-control--flat">
-                          <input
-                            type="radio"
-                            id="settings-tab-downloader"
-                            name="defaultTab"
-                            value="download"
-                            checked
-                          />
-                          <label for="settings-tab-downloader">
-                            <i class="fa-solid fa-download"></i>
-                            <span class="settings-choice__meta">
-                              <strong data-i18n="tabs.download">Downloader</strong>
-                            </span>
-                          </label>
-                        </li>
-                        <li class="custom-theme-select settings-control settings-control--flat">
-                          <input
-                            type="radio"
-                            id="settings-tab-wgsend"
-                            name="defaultTab"
-                            value="wireguard"
-                          />
-                          <label for="settings-tab-wgsend">
-                            <i class="fa-solid fa-screwdriver-wrench"></i>
-                            <span class="settings-choice__meta">
-                              <strong data-i18n="tabs.tools">Инструменты</strong>
+                            <i data-lucide="panel-top-close" aria-hidden="true"></i>
+                            <span class="settings-control__meta">
+                              <strong data-i18n="settings.startup.minimizeTitle">
+                                Сворачивать при запуске
+                              </strong>
+                              <small data-i18n="settings.startup.minimizeHint">
+                                Thunder продолжит работу в фоновом режиме.
+                              </small>
                             </span>
                           </label>
                         </li>
                       </ul>
+                      <div
+                        class="settings-card__subsection"
+                        data-settings-search-item
+                        data-settings-search-id="default-tab"
+                      >
+                        <div class="settings-card__subsection-heading">
+                          <h4 data-i18n="settings.startup.openTab">
+                            При запуске открывать
+                          </h4>
+                          <p data-i18n="settings.startup.openTabHint">
+                            Выберите вкладку, которая будет открываться по умолчанию при запуске приложения.
+                          </p>
+                        </div>
+                        <ul class="module default-tab-group settings-control-list settings-control-list--flat settings-control-list--choice settings-control-list--startup-choice">
+                          <li class="custom-theme-select settings-control settings-control--flat">
+                            <input
+                              type="radio"
+                              id="settings-tab-downloader"
+                              name="defaultTab"
+                              value="download"
+                              checked
+                            />
+                            <label for="settings-tab-downloader">
+                              <i data-lucide="download" aria-hidden="true"></i>
+                              <span class="settings-choice__meta">
+                                <strong data-i18n="tabs.download">Downloader</strong>
+                                <small data-i18n="settings.startup.downloaderHint">
+                                  Открывать вкладку загрузчика.
+                                </small>
+                              </span>
+                            </label>
+                          </li>
+                          <li class="custom-theme-select settings-control settings-control--flat">
+                            <input
+                              type="radio"
+                              id="settings-tab-wgsend"
+                              name="defaultTab"
+                              value="wireguard"
+                            />
+                            <label for="settings-tab-wgsend">
+                              <i data-lucide="wrench" aria-hidden="true"></i>
+                              <span class="settings-choice__meta">
+                                <strong data-i18n="tabs.tools">Инструменты</strong>
+                                <small data-i18n="settings.startup.toolsHint">
+                                  Открывать вкладку инструментов.
+                                </small>
+                              </span>
+                            </label>
+                          </li>
+                        </ul>
+                      </div>
                     </div>
                   </section>
 
-                  <section class="settings-card settings-card--section">
+                  <section
+                    class="settings-card settings-card--section"
+                    data-settings-search-item
+                    data-settings-search-id="closing"
+                  >
+                    <div class="settings-card__icon" aria-hidden="true">
+                      <i data-lucide="log-out"></i>
+                    </div>
                     <div class="settings-card__intro">
                       <h3 class="settings-card__title" data-i18n="settings.close.title">
                         Закрытие приложения
@@ -342,7 +433,7 @@
                       </p>
                     </div>
                     <div class="settings-card__body">
-                      <ul class="module settings-control-list settings-control-list--flat">
+                      <ul class="module settings-control-list settings-control-list--flat settings-control-list--closing">
                         <li class="settings-control settings-control--flat">
                           <input
                             type="radio"
@@ -350,10 +441,15 @@
                             name="closeOption"
                           />
                           <label for="settings-close-to-tray">
-                            <i class="fa-regular fa-message"></i>
-                            <span data-i18n-html="settings.close.toTray"
-                              ><strong>Сворачивать</strong> в трей</span
-                            >
+                            <i data-lucide="panel-bottom-close" aria-hidden="true"></i>
+                            <span class="settings-choice__meta">
+                              <strong data-i18n="settings.close.toTrayTitle">
+                                Сворачивать в трей
+                              </strong>
+                              <small data-i18n="settings.close.toTrayHint">
+                                Thunder продолжит работать в фоне.
+                              </small>
+                            </span>
                           </label>
                         </li>
                         <li class="submenu settings-control settings-control--flat">
@@ -362,10 +458,15 @@
                             id="settings-close-notification-toggle"
                           />
                           <label for="settings-close-notification-toggle">
-                            <i class="fa-solid fa-bell"></i>
-                            <span data-i18n-html="settings.close.notify"
-                              ><strong>Уведомление</strong> о сворачивании</span
-                            >
+                            <i data-lucide="bell" aria-hidden="true"></i>
+                            <span class="settings-control__meta">
+                              <strong data-i18n="settings.close.notifyTitle">
+                                Уведомлять о сворачивании
+                              </strong>
+                              <small data-i18n="settings.close.notifyHint">
+                                Показывать системное уведомление при переходе в трей.
+                              </small>
+                            </span>
                           </label>
                         </li>
                         <li class="settings-control settings-control--flat">
@@ -375,10 +476,15 @@
                             name="closeOption"
                           />
                           <label for="settings-close-app-radio">
-                            <i class="fa-solid fa-circle-xmark"></i>
-                            <span data-i18n-html="settings.close.exit"
-                              ><strong>Выйти</strong> из приложения</span
-                            >
+                            <i data-lucide="power" aria-hidden="true"></i>
+                            <span class="settings-choice__meta">
+                              <strong data-i18n="settings.close.exitTitle">
+                                Выйти из приложения
+                              </strong>
+                              <small data-i18n="settings.close.exitHint">
+                                Полностью завершать Thunder при закрытии окна.
+                              </small>
+                            </span>
                           </label>
                         </li>
                       </ul>
@@ -393,14 +499,30 @@
                 class="tab-pane"
                 role="tabpanel"
                 aria-labelledby="settings-section-tab-downloader"
+                data-settings-category="window-settings"
                 tabindex="0"
                 hidden
               >
                 <div class="settings-pane-header">
-                  <h2 data-i18n="settings.downloader.title">Вкладка «Downloader»</h2>
+                  <span class="settings-pane-header__section-icon" aria-hidden="true">
+                    <i data-lucide="download"></i>
+                  </span>
+                  <div class="settings-pane-header__copy">
+                    <h2 data-i18n="settings.downloader.title">Вкладка «Downloader»</h2>
+                    <p data-i18n="settings.downloader.layout.hint">
+                      Основные параметры загрузки и поведения окна.
+                    </p>
+                  </div>
                 </div>
                 <div class="settings-grid">
-                  <section class="settings-card settings-card--downloader">
+                  <section
+                    class="settings-card settings-card--downloader"
+                    data-settings-search-item
+                    data-settings-search-id="downloader"
+                  >
+                    <div class="settings-card__icon" aria-hidden="true">
+                      <i data-lucide="download"></i>
+                    </div>
                     <div class="settings-card__intro">
                       <h3 class="settings-card__title" data-i18n="settings.tabs.downloader">Downloader</h3>
                       <p class="settings-card__desc" data-i18n="settings.downloader.layout.hint">
@@ -599,7 +721,7 @@
                         <summary class="settings-advanced__summary">
                           <span class="settings-advanced__heading">
                             <span class="settings-advanced__icon" aria-hidden="true">
-                              <i class="fa-solid fa-cookie-bite"></i>
+                              <i data-lucide="cookie"></i>
                             </span>
                             <span class="settings-advanced__copy">
                               <strong data-i18n="settings.downloader.advanced.title">
@@ -618,19 +740,21 @@
                             >
                               Выкл.
                             </span>
-                            <i class="fa-solid fa-chevron-down settings-advanced__chevron" aria-hidden="true"></i>
+                            <i data-lucide="chevron-down" class="settings-advanced__chevron" aria-hidden="true"></i>
                           </span>
                         </summary>
                         <div class="settings-advanced__content">
-                          <h4 class="settings-control-group__title" data-i18n="settings.downloader.cookies.title">
-                            YouTube cookies
-                          </h4>
-                        <ul class="module settings-control-list settings-cookies-list">
+                          <ul class="module settings-control-list settings-cookies-list">
                           <li class="settings-control settings-cookies-row">
                             <label class="settings-cookies-label" for="settings-ytdlp-cookies-mode">
-                              <i class="fa-solid fa-cookie-bite"></i>
-                              <span data-i18n="settings.downloader.cookies.mode">
-                                Режим cookies
+                              <i data-lucide="sliders-horizontal" aria-hidden="true"></i>
+                              <span class="settings-control__meta">
+                                <strong data-i18n="settings.downloader.cookies.mode">
+                                  Режим cookies
+                                </strong>
+                                <small data-i18n="settings.downloader.cookies.modeHint">
+                                  Выберите источник данных для авторизации.
+                                </small>
                               </span>
                             </label>
                             <div class="settings-cookies-select" data-settings-cookies-select="mode">
@@ -676,9 +800,14 @@
                           </li>
                           <li class="settings-control settings-cookies-row" id="settings-ytdlp-cookies-browser-row">
                             <label class="settings-cookies-label" for="settings-ytdlp-cookies-browser">
-                              <i class="fa-solid fa-globe"></i>
-                              <span data-i18n="settings.downloader.cookies.browser">
-                                Браузер
+                              <i data-lucide="globe-2" aria-hidden="true"></i>
+                              <span class="settings-control__meta">
+                                <strong data-i18n="settings.downloader.cookies.browser">
+                                  Браузер
+                                </strong>
+                                <small data-i18n="settings.downloader.cookies.browserHint">
+                                  Импортировать cookies из выбранного браузера.
+                                </small>
                               </span>
                             </label>
                             <div class="settings-cookies-select" data-settings-cookies-select="browser">
@@ -717,36 +846,45 @@
                           </li>
                           <li class="settings-control settings-cookies-row" id="settings-ytdlp-cookies-file-row">
                             <label class="settings-cookies-label" for="settings-ytdlp-cookies-file-button">
-                              <i class="fa-solid fa-file-lines"></i>
-                              <span data-i18n="settings.downloader.cookies.file">
-                                Файл cookies.txt
+                              <i data-lucide="file-key-2" aria-hidden="true"></i>
+                              <span class="settings-control__meta">
+                                <strong data-i18n="settings.downloader.cookies.file">
+                                  Файл cookies.txt
+                                </strong>
+                                <small data-i18n="settings.downloader.cookies.fileHint">
+                                  Использовать файл в формате Netscape.
+                                </small>
                               </span>
                             </label>
                             <button class="settings-cookies-file-button" type="button" id="settings-ytdlp-cookies-file-button">
-                              <i class="fa-solid fa-folder-open" aria-hidden="true"></i>
+                              <i data-lucide="folder-open" aria-hidden="true"></i>
                               <span data-i18n="settings.downloader.cookies.file.pick">
                                 Выбрать файл
                               </span>
                             </button>
                           </li>
-                          <li class="settings-control settings-cookies-row settings-cookies-row--hint">
-                            <label class="settings-cookies-label">
-                              <i class="fa-solid fa-circle-info"></i>
+                          <li class="settings-cookies-note">
+                            <i data-lucide="info" aria-hidden="true"></i>
+                            <span class="settings-cookies-note__copy">
                               <span data-i18n="settings.downloader.cookies.hint">
                                 Помогает пройти проверку YouTube через cookies браузера или Netscape cookies.txt.
                               </span>
-                            </label>
-                            <span class="settings-cookies-file-label" id="settings-ytdlp-cookies-file-label" data-i18n="settings.downloader.cookies.file.empty">
-                              Файл не выбран
+                              <span class="settings-cookies-file-label" id="settings-ytdlp-cookies-file-label" data-i18n="settings.downloader.cookies.file.empty">
+                                Файл не выбран
+                              </span>
                             </span>
                           </li>
-                        </ul>
+                          </ul>
                         </div>
                       </details>
                     </div>
                   </section>
 
-                  <section class="settings-card settings-card--web-control">
+                  <section
+                    class="settings-card settings-card--web-control"
+                    data-settings-search-item
+                    data-settings-search-id="web-control"
+                  >
                     <details
                       class="settings-control-group settings-control-group--section settings-advanced settings-advanced--web-control"
                       id="settings-web-control-advanced"
@@ -754,7 +892,7 @@
                       <summary class="settings-advanced__summary">
                         <span class="settings-advanced__heading">
                           <span class="settings-advanced__icon" aria-hidden="true">
-                            <i class="fa-solid fa-globe"></i>
+                            <i data-lucide="panel-top"></i>
                           </span>
                           <span class="settings-advanced__copy">
                             <strong data-i18n="settings.web.title">
@@ -773,78 +911,100 @@
                           >
                             Выключено
                           </span>
-                          <i class="fa-solid fa-chevron-down settings-advanced__chevron" aria-hidden="true"></i>
+                          <i data-lucide="chevron-down" class="settings-advanced__chevron" aria-hidden="true"></i>
                         </span>
                       </summary>
                       <div class="settings-advanced__content">
                         <div class="settings-card__body">
-                      <ul class="module settings-control-list">
-                        <li class="settings-control">
-                          <input type="checkbox" id="settings-web-control-toggle" />
-                          <label for="settings-web-control-toggle">
-                            <i class="fa-solid fa-globe"></i>
-                            <span data-i18n-html="settings.web.enable">
-                              Включить <strong>локальный веб-интерфейс</strong>
-                            </span>
-                          </label>
-                        </li>
-                      </ul>
-                      <div class="settings-web-control-panel">
-                        <label class="settings-web-control-panel__label" for="settings-web-control-url" data-i18n="settings.web.url">
-                          Адрес на этом компьютере
-                        </label>
-                        <div class="settings-web-control-panel__row settings-web-control-panel__row--local">
-                          <input id="settings-web-control-url" type="text" readonly value="" />
-                          <button
-                            type="button"
-                            class="small-button"
-                            id="settings-web-control-open"
-                            data-i18n-title="settings.web.open"
-                            title="Открыть"
-                            aria-label="Открыть"
-                          >
-                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                          </button>
-                          <button
-                            type="button"
-                            class="small-button"
-                            id="settings-web-control-restart"
-                            data-i18n-title="settings.web.restart"
-                            title="Перезапустить"
-                            aria-label="Перезапустить"
-                          >
-                            <i class="fa-solid fa-rotate"></i>
-                          </button>
-                        </div>
-                        <label class="settings-web-control-panel__label" for="settings-web-control-lan-url" data-i18n="settings.web.lanUrl">
-                          Адрес для телефона
-                        </label>
-                        <div class="settings-web-control-panel__row settings-web-control-panel__row--lan">
-                          <input id="settings-web-control-lan-url" type="text" readonly value="" />
-                          <button
-                            type="button"
-                            class="small-button"
-                            id="settings-web-control-copy-lan"
-                            data-i18n-title="settings.web.copyLan"
-                            title="Копировать адрес для телефона"
-                            aria-label="Копировать адрес для телефона"
-                          >
-                            <i class="fa-regular fa-copy"></i>
-                          </button>
-                        </div>
-                        <div class="settings-web-control-panel__notice">
-                          <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
-                          <span data-i18n="settings.web.lanWarning">
-                            При включении любое устройство в вашей локальной сети сможет управлять загрузчиком.
-                          </span>
-                        </div>
-                        <div class="settings-web-control-panel__status-row">
-                          <span class="settings-web-control-panel__status-dot" aria-hidden="true"></span>
-                          <span id="settings-web-control-status" class="settings-web-control-panel__status" data-i18n="settings.web.status.off">
-                            Выключено
-                          </span>
-                        </div>
-                      </div>
+                          <ul class="module settings-control-list">
+                            <li class="settings-control settings-control--web-toggle">
+                              <input type="checkbox" id="settings-web-control-toggle" />
+                              <label for="settings-web-control-toggle">
+                                <i data-lucide="radio-tower" aria-hidden="true"></i>
+                                <span class="settings-control__meta">
+                                  <strong data-i18n="settings.web.enable">
+                                    Включить локальный веб-интерфейс
+                                  </strong>
+                                  <small data-i18n="settings.web.enableHint">
+                                    Запустить локальный сервер управления.
+                                  </small>
+                                </span>
+                              </label>
+                            </li>
+                          </ul>
+                          <div class="settings-web-control-panel">
+                            <div class="settings-web-control-panel__endpoint">
+                              <label class="settings-web-control-panel__label" for="settings-web-control-url">
+                                <i data-lucide="monitor" aria-hidden="true"></i>
+                                <span data-i18n="settings.web.url">Адрес на этом компьютере</span>
+                              </label>
+                              <div class="settings-web-control-panel__row settings-web-control-panel__row--local">
+                                <input id="settings-web-control-url" type="text" readonly value="" />
+                                <button
+                                  type="button"
+                                  class="small-button"
+                                  id="settings-web-control-open"
+                                  data-bs-toggle="tooltip"
+                                  data-bs-placement="top"
+                                  data-i18n-title="settings.web.open"
+                                  title="Открыть"
+                                  aria-label="Открыть"
+                                  data-i18n-aria="settings.web.open"
+                                >
+                                  <i data-lucide="external-link" aria-hidden="true"></i>
+                                </button>
+                                <button
+                                  type="button"
+                                  class="small-button"
+                                  id="settings-web-control-restart"
+                                  data-bs-toggle="tooltip"
+                                  data-bs-placement="top"
+                                  data-i18n-title="settings.web.restart"
+                                  title="Перезапустить"
+                                  aria-label="Перезапустить"
+                                  data-i18n-aria="settings.web.restart"
+                                >
+                                  <i data-lucide="refresh-cw" aria-hidden="true"></i>
+                                </button>
+                              </div>
+                            </div>
+                            <div class="settings-web-control-panel__endpoint">
+                              <label class="settings-web-control-panel__label" for="settings-web-control-lan-url">
+                                <i data-lucide="smartphone" aria-hidden="true"></i>
+                                <span data-i18n="settings.web.lanUrl">Адрес для телефона</span>
+                              </label>
+                              <div class="settings-web-control-panel__row settings-web-control-panel__row--lan">
+                                <input id="settings-web-control-lan-url" type="text" readonly value="" />
+                                <button
+                                  type="button"
+                                  class="small-button"
+                                  id="settings-web-control-copy-lan"
+                                  data-bs-toggle="tooltip"
+                                  data-bs-placement="top"
+                                  data-i18n-title="settings.web.copyLan"
+                                  title="Копировать адрес для телефона"
+                                  aria-label="Копировать адрес для телефона"
+                                  data-i18n-aria="settings.web.copyLan"
+                                >
+                                  <i data-lucide="copy" aria-hidden="true"></i>
+                                </button>
+                              </div>
+                            </div>
+                            <div class="settings-web-control-panel__footer">
+                              <div class="settings-web-control-panel__notice">
+                                <i data-lucide="triangle-alert" aria-hidden="true"></i>
+                                <span data-i18n="settings.web.lanWarning">
+                                  При включении любое устройство в вашей локальной сети сможет управлять загрузчиком.
+                                </span>
+                              </div>
+                              <div class="settings-web-control-panel__status-row">
+                                <span class="settings-web-control-panel__status-dot" aria-hidden="true"></span>
+                                <span id="settings-web-control-status" class="settings-web-control-panel__status" data-i18n="settings.web.status.off">
+                                  Выключено
+                                </span>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </details>
@@ -857,10 +1017,14 @@
                 class="tab-pane"
                 role="tabpanel"
                 aria-labelledby="settings-section-tab-player"
+                data-settings-category="player-settings"
                 tabindex="0"
                 hidden
               >
                 <div class="settings-pane-header">
+                  <span class="settings-pane-header__section-icon" aria-hidden="true">
+                    <i data-lucide="circle-play"></i>
+                  </span>
                   <div class="settings-pane-header__copy">
                     <h2 data-i18n="settings.player.title">Плеер</h2>
                     <p data-i18n="settings.player.hint">
@@ -869,7 +1033,14 @@
                   </div>
                 </div>
                 <div class="settings-grid settings-player-grid">
-                  <section class="settings-card">
+                  <section
+                    class="settings-card"
+                    data-settings-search-item
+                    data-settings-search-id="player-behavior"
+                  >
+                    <div class="settings-card__icon" aria-hidden="true">
+                      <i data-lucide="panel-left"></i>
+                    </div>
                     <div class="settings-card__intro">
                       <h3 class="settings-card__title" data-i18n="settings.player.behavior">
                         Поведение
@@ -912,7 +1083,14 @@
                     </div>
                   </section>
 
-                  <section class="settings-card">
+                  <section
+                    class="settings-card"
+                    data-settings-search-item
+                    data-settings-search-id="player-playback"
+                  >
+                    <div class="settings-card__icon" aria-hidden="true">
+                      <i data-lucide="play"></i>
+                    </div>
                     <div class="settings-card__intro">
                       <h3 class="settings-card__title" data-i18n="settings.player.playback">
                         Воспроизведение
@@ -1001,31 +1179,50 @@
                 class="tab-pane"
                 role="tabpanel"
                 aria-labelledby="settings-section-tab-appearance"
+                data-settings-category="appearance-settings"
                 tabindex="0"
                 hidden
               >
                 <div class="settings-pane-header">
+                  <span class="settings-pane-header__section-icon" aria-hidden="true">
+                    <i data-lucide="palette"></i>
+                  </span>
                   <div class="settings-pane-header__copy">
                     <h2 data-i18n="settings.appearance.title">Внешний вид приложения</h2>
+                    <p data-i18n="settings.appearance.hint">
+                      Настройте язык, читаемость, тему и визуальные эффекты.
+                    </p>
                   </div>
                 </div>
                 <div class="settings-grid">
-                  <section class="settings-card settings-card--appearance-panel">
-                    <div class="settings-appearance-section">
-                      <div class="settings-card__intro">
-                        <h3 class="settings-card__title" data-i18n="language.label">
-                          Язык интерфейса
-                        </h3>
-                        <p class="settings-card__desc" data-i18n="settings.appearance.interfaceHint">
-                          Язык интерфейса и базовая читаемость.
-                        </p>
-                      </div>
+                  <section
+                    class="settings-card"
+                    data-settings-search-item
+                    data-settings-search-id="appearance-interface"
+                  >
+                    <div class="settings-card__icon" aria-hidden="true">
+                      <i data-lucide="languages"></i>
+                    </div>
+                    <div class="settings-card__intro">
+                      <h3 class="settings-card__title" data-i18n="language.label">
+                        Язык интерфейса
+                      </h3>
+                      <p class="settings-card__desc" data-i18n="settings.appearance.interfaceHint">
+                        Язык интерфейса и базовая читаемость.
+                      </p>
+                    </div>
+                    <div class="settings-card__body">
                       <ul class="module settings-control-list settings-control-list--appearance">
                         <li class="custom-theme-select settings-control settings-control--split">
                           <div class="settings-control__copy">
                             <label for="language-dropdown-btn">
-                              <i class="fa-solid fa-language"></i>
-                              <span data-i18n="language.label">Язык интерфейса</span>
+                              <i data-lucide="languages" aria-hidden="true"></i>
+                              <span class="settings-control__meta">
+                                <strong data-i18n="language.label">Язык интерфейса</strong>
+                                <small data-i18n="settings.appearance.languageHint">
+                                  Язык меню, подсказок и сообщений.
+                                </small>
+                              </span>
                             </label>
                           </div>
                           <div class="settings-control__actions">
@@ -1070,8 +1267,13 @@
                         <li class="custom-theme-select settings-control settings-control--split">
                           <div class="settings-control__copy">
                             <label for="font-size-dropdown-btn">
-                              <i class="fa-solid fa-text-height"></i>
-                              <span data-i18n="settings.appearance.fontSize">Размер текста</span>
+                              <i data-lucide="type" aria-hidden="true"></i>
+                              <span class="settings-control__meta">
+                                <strong data-i18n="settings.appearance.fontSize">Размер текста</strong>
+                                <small data-i18n="settings.appearance.fontSize.hint">
+                                  Выберите удобный размер текста интерфейса.
+                                </small>
+                              </span>
                             </label>
                           </div>
                           <div class="settings-control__actions">
@@ -1105,6 +1307,8 @@
                               data-bs-placement="top"
                               title="Сбросить размер шрифта по умолчанию"
                               data-i18n-title="settings.appearance.fontSize.reset"
+                              aria-label="Сбросить размер шрифта по умолчанию"
+                              data-i18n-aria="settings.appearance.fontSize.reset"
                               type="button"
                             >
                               <i class="fa-solid fa-rotate-left"></i>
@@ -1113,22 +1317,36 @@
                         </li>
                       </ul>
                     </div>
+                  </section>
 
-                    <div class="settings-appearance-section">
-                      <div class="settings-card__intro">
-                        <h3 class="settings-card__title" data-i18n="settings.appearance.theme">
-                          Цветовая тема
-                        </h3>
-                        <p class="settings-card__desc" data-i18n="settings.appearance.themeHint">
-                          Выбор темы и снижение визуальной нагрузки.
-                        </p>
-                      </div>
+                  <section
+                    class="settings-card"
+                    data-settings-search-item
+                    data-settings-search-id="appearance-theme"
+                  >
+                    <div class="settings-card__icon" aria-hidden="true">
+                      <i data-lucide="swatch-book"></i>
+                    </div>
+                    <div class="settings-card__intro">
+                      <h3 class="settings-card__title" data-i18n="settings.appearance.theme">
+                        Цветовая тема
+                      </h3>
+                      <p class="settings-card__desc" data-i18n="settings.appearance.themeHint">
+                        Выбор темы и снижение визуальной нагрузки.
+                      </p>
+                    </div>
+                    <div class="settings-card__body">
                       <ul class="module settings-control-list settings-control-list--appearance">
                         <li class="custom-theme-select settings-control settings-control--split">
                           <div class="settings-control__copy">
                             <label for="theme-dropdown-btn">
-                              <i class="fa-solid fa-brush"></i>
-                              <span data-i18n="settings.appearance.theme">Цветовая тема</span>
+                              <i data-lucide="palette" aria-hidden="true"></i>
+                              <span class="settings-control__meta">
+                                <strong data-i18n="settings.appearance.theme">Цветовая тема</strong>
+                                <small data-i18n="settings.appearance.theme.optionHint">
+                                  Выберите цветовую схему приложения.
+                                </small>
+                              </span>
                             </label>
                           </div>
                           <div class="settings-control__actions">
@@ -1175,6 +1393,8 @@
                               data-bs-placement="top"
                               title="Сбросить тему по умолчанию"
                               data-i18n-title="settings.appearance.theme.reset"
+                              aria-label="Сбросить тему по умолчанию"
+                              data-i18n-aria="settings.appearance.theme.reset"
                               type="button"
                             >
                               <i class="fa-solid fa-rotate-left"></i>
@@ -1184,20 +1404,20 @@
 
                         <li class="settings-control settings-control--split settings-control--low-effects">
                           <input type="checkbox" id="settings-low-effects-toggle" />
-                          <div class="settings-control__copy">
-                            <label
-                              for="settings-low-effects-toggle"
-                              data-bs-toggle="tooltip"
-                              data-bs-placement="top"
-                              title="Отключает анимации и эффекты размытия"
-                              data-i18n-title="settings.appearance.lowEffects.hint"
-                            >
-                              <i class="fa-solid fa-leaf"></i>
-                              <span data-i18n-html="settings.appearance.lowEffects">
-                                Режим <strong>экономии эффектов</strong>
-                              </span>
-                            </label>
-                          </div>
+                          <label
+                            for="settings-low-effects-toggle"
+                          >
+                            <i data-lucide="leaf" aria-hidden="true"></i>
+                            <span class="settings-control__meta">
+                              <strong data-i18n="settings.appearance.lowEffects">
+                                Режим экономии эффектов
+                              </strong>
+                              <small data-i18n="settings.appearance.lowEffects.hint">
+                                Отключает анимации и эффекты размытия.
+                              </small>
+                            </span>
+                            <span class="settings-switch" aria-hidden="true"></span>
+                          </label>
                         </li>
                       </ul>
                     </div>
@@ -1211,10 +1431,14 @@
                 class="tab-pane"
                 role="tabpanel"
                 aria-labelledby="settings-section-tab-shortcuts"
+                data-settings-category="shortcuts-settings"
                 tabindex="0"
                 hidden
               >
                 <div class="settings-pane-header">
+                  <span class="settings-pane-header__section-icon" aria-hidden="true">
+                    <i data-lucide="keyboard"></i>
+                  </span>
                   <div class="settings-pane-header__copy">
                     <h2 data-i18n="settings.shortcuts.title">Горячие клавиши</h2>
                     <p data-i18n="settings.shortcuts.hint">
@@ -1224,7 +1448,11 @@
                 </div>
 
                 <div class="settings-shortcuts">
-                  <section class="settings-card settings-shortcuts__controls">
+                  <section
+                    class="settings-card settings-shortcuts__controls"
+                    data-settings-search-item
+                    data-settings-search-id="shortcut-controls"
+                  >
                     <div class="settings-shortcuts__search">
                       <label class="settings-shortcuts__search-label" for="shortcuts-search">
                         <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
@@ -1241,7 +1469,11 @@
                       />
                     </div>
 
-                    <section class="settings-card settings-shortcuts__reset">
+                    <section
+                      class="settings-card settings-shortcuts__reset"
+                      data-settings-search-item
+                      data-settings-search-id="shortcut-reset"
+                    >
                       <button
                         id="shortcuts-reset"
                         class="settings-shortcuts__reset-button"
@@ -1298,6 +1530,10 @@
                             Сочетания для перезагрузки и открытия сайтов будут отключены.
                           </small>
                         </span>
+                        <span
+                          class="settings-shortcuts__global-switch"
+                          aria-hidden="true"
+                        ></span>
                       </label>
                     </div>
                   </section>
@@ -1339,16 +1575,30 @@
                 class="tab-pane"
                 role="tabpanel"
                 aria-labelledby="settings-section-tab-other"
+                data-settings-category="other-settings"
                 tabindex="0"
                 hidden
               >
                 <div class="settings-pane-header">
+                  <span class="settings-pane-header__section-icon" aria-hidden="true">
+                    <i data-lucide="wrench"></i>
+                  </span>
                   <div class="settings-pane-header__copy">
                     <h2 data-i18n="settings.other.title">Другие настройки</h2>
+                    <p data-i18n="settings.other.hint">
+                      Дополнительные параметры и управление конфигурацией.
+                    </p>
                   </div>
                 </div>
                 <div class="settings-grid">
-                  <section class="settings-card">
+                  <section
+                    class="settings-card"
+                    data-settings-search-item
+                    data-settings-search-id="developer"
+                  >
+                    <div class="settings-card__icon" aria-hidden="true">
+                      <i data-lucide="code-2"></i>
+                    </div>
                     <div class="settings-card__intro">
                       <h3 class="settings-card__title" data-i18n="settings.developer.title">
                         Для разработчика
@@ -1395,7 +1645,14 @@
                     </div>
                   </section>
 
-                  <section class="settings-card settings-card--stacked">
+                  <section
+                    class="settings-card settings-card--stacked"
+                    data-settings-search-item
+                    data-settings-search-id="configuration"
+                  >
+                    <div class="settings-card__icon" aria-hidden="true">
+                      <i data-lucide="file-cog"></i>
+                    </div>
                     <div class="settings-card__intro">
                       <h3 class="settings-card__title" data-i18n="settings.other.appConfig">Настройки приложения</h3>
                     </div>
@@ -1423,7 +1680,14 @@
                     </div>
                   </section>
 
-                  <section class="settings-card settings-card--stacked settings-card--danger">
+                  <section
+                    class="settings-card settings-card--stacked settings-card--danger"
+                    data-settings-search-item
+                    data-settings-search-id="reset"
+                  >
+                    <div class="settings-card__icon" aria-hidden="true">
+                      <i data-lucide="triangle-alert"></i>
+                    </div>
                     <div class="settings-card__intro">
                       <h3 class="settings-card__title" data-i18n="settings.other.resetTitle">Сброс настроек</h3>
                     </div>

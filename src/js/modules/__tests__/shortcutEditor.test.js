@@ -118,18 +118,33 @@ describe("shortcutEditor", () => {
     await initShortcutEditor();
 
     expect(document.querySelectorAll("[data-action-id]")).toHaveLength(3);
+    expect(document.querySelectorAll("[data-shortcut-category]")).toHaveLength(
+      3,
+    );
     expect(document.querySelector('[data-shortcut-category="player"]')).not.toBeNull();
+    expect(document.querySelectorAll(".shortcut-editor__group-count")).toHaveLength(
+      3,
+    );
     expect(document.querySelector(".shortcut-editor__name").textContent).toBe(
       "action.download",
     );
     expect(document.querySelector("[data-shortcut-value]").textContent).toBe(
       "Ctrl + D",
     );
+    expect(
+      document.querySelector("[data-shortcut-edit]").getAttribute("title"),
+    ).toBe("settings.shortcuts.edit");
+    expect(
+      document.querySelector("[data-shortcut-reset] i.fa-rotate-left"),
+    ).not.toBeNull();
 
     const search = document.getElementById("shortcuts-search");
     search.value = "history";
     search.dispatchEvent(new Event("input"));
     expect(document.querySelectorAll("[data-action-id]")).toHaveLength(1);
+    expect(document.querySelectorAll("[data-shortcut-category]")).toHaveLength(
+      1,
+    );
     expect(document.querySelector("[data-action-id]").dataset.actionId).toBe(
       "history.open",
     );

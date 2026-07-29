@@ -381,15 +381,6 @@ export default function renderToolsView() {
             <span data-i18n="tools.nav.current.power">${t("tools.nav.current.power")}</span>
           </button>
         </nav>
-        <div class="tools-sidebar__feedback">
-          <i class="fa-solid fa-rocket" aria-hidden="true"></i>
-          <strong data-i18n="tools.sidebar.feedbackTitle">${t("tools.sidebar.feedbackTitle")}</strong>
-          <p data-i18n="tools.sidebar.feedbackDescription">${t("tools.sidebar.feedbackDescription")}</p>
-          <button id="tools-sidebar-feedback" type="button">
-            <span data-i18n="tools.sidebar.feedbackAction">${t("tools.sidebar.feedbackAction")}</span>
-            <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
-          </button>
-        </div>
       </aside>
 
       <main class="tools-workspace">
@@ -1177,7 +1168,6 @@ export default function renderToolsView() {
     const openSorterBtn = getEl("tools-open-sorter", view);
     const sidebarToggle = getEl("tools-sidebar-toggle", view);
     const sidebarNavigation = getEl("tools-sidebar-navigation", view);
-    const sidebarFeedback = getEl("tools-sidebar-feedback", view);
 
     const applyDeveloperToolsAvailability = () => {
       toolState.setDeveloperToolsUnlocked(
@@ -1282,11 +1272,6 @@ export default function renderToolsView() {
       const open = sidebarToggle.getAttribute("aria-expanded") !== "true";
       sidebarToggle.setAttribute("aria-expanded", String(open));
       sidebarNavigation?.classList.toggle("is-open", open);
-    });
-    sidebarFeedback?.addEventListener("click", () => {
-      window.electron?.openExternal?.(
-        "https://github.com/Nagrands/thunder-load-app/issues",
-      );
     });
 
     const isWgHowtoOpen = () => {

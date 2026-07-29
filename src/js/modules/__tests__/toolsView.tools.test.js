@@ -414,6 +414,8 @@ describe("toolsView quick actions", () => {
     expect(el.querySelector("#tools-breadcrumb-home")).toBeNull();
     expect(sidebar).not.toBeNull();
     expect(nav).not.toBeNull();
+    expect(sidebar?.querySelector(".tools-sidebar__feedback")).toBeNull();
+    expect(sidebar?.querySelector("#tools-sidebar-feedback")).toBeNull();
     expect(
       nav
         ?.querySelector('[data-tool-nav="launcher"]')

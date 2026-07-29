@@ -1,5 +1,10 @@
 jest.mock("../settingsModal.js", () => ({
   closeSettings: jest.fn(),
+  isSettingsOpen: jest.fn(
+    () =>
+      globalThis.document.getElementById("settings-modal")?.style.display ===
+      "flex",
+  ),
   openSettings: jest.fn(),
   openSettingsWithTab: jest.fn(),
   updateThemeDropdownUI: jest.fn(),

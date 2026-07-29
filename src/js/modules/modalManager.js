@@ -9,6 +9,14 @@ import {
 const SETTINGS_MODAL_SCROLL_LOCK_OWNER = "settings-modal";
 const registeredModals = new Set();
 
+function isModalOpen(modal) {
+  if (!modal) return false;
+  if (modal.id === "settings-modal" && modal.dataset.state) {
+    return ["opening", "open"].includes(modal.dataset.state);
+  }
+  return modal.style.display === "flex" || Boolean(modal.open);
+}
+
 function registerModal(modal) {
   if (!(modal instanceof HTMLElement)) return () => {};
   registeredModals.add(modal);
@@ -53,7 +61,7 @@ function closeRegisteredModal(modal) {
  */
 function closeAllModals(modals) {
   modals.forEach((modal) => {
-    if (modal && modal.style.display === "flex") {
+    if (isModalOpen(modal)) {
       const closeRequest = new CustomEvent("modal:close-request", {
         cancelable: true,
       });

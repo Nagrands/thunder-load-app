@@ -917,10 +917,6 @@ export const toolsTranslations = {
       "Быстрые действия для задач с файлами и сетью",
     "tools.sidebar.toggle": "Показать или скрыть список инструментов",
     "tools.sidebar.all": "Все инструменты",
-    "tools.sidebar.feedbackTitle": "Нужен новый инструмент?",
-    "tools.sidebar.feedbackDescription":
-      "Предложите идею или сообщите о необходимом инструменте.",
-    "tools.sidebar.feedbackAction": "Открыть страницу обратной связи",
     "tools.dependencies.title": "Зависимости загрузчика",
     "tools.dependencies.description":
       "Управление зависимостями, необходимыми для работы загрузчика",
@@ -1966,10 +1962,6 @@ export const toolsTranslations = {
     "tools.sidebar.description": "Quick actions for file and network tasks",
     "tools.sidebar.toggle": "Show or hide the tools list",
     "tools.sidebar.all": "All tools",
-    "tools.sidebar.feedbackTitle": "Need a new tool?",
-    "tools.sidebar.feedbackDescription":
-      "Suggest an idea or request a tool on our feedback page.",
-    "tools.sidebar.feedbackAction": "Open feedback page",
     "tools.dependencies.title": "Downloader Dependencies",
     "tools.dependencies.description":
       "Manage dependencies required by the downloader",

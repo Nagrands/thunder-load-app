@@ -18,10 +18,19 @@ import {
   releaseBodyScrollLock,
 } from "./scrollLockManager.js";
 import { syncAccessibleDropdownSelection } from "./features/settings/accessibleDropdown.js";
+import { initSettingsSearch } from "./features/settings/settingsSearch.js";
 
 let previousFocus = null;
 let trapHandler = null;
+let settingsSearchController = null;
 const SETTINGS_MODAL_SCROLL_LOCK_OWNER = "settings-modal";
+
+export function isSettingsOpen() {
+  if (!settingsModal) return false;
+  const state = settingsModal.dataset.state;
+  if (state) return state === "opening" || state === "open";
+  return settingsModal.style.display === "flex";
+}
 
 function isDownloadQualityModalOpen() {
   return !!document
@@ -39,8 +48,7 @@ function isDropdownHandlingEscape(event) {
 }
 
 function syncModalScrollLock() {
-  const shouldLock =
-    settingsModal?.style.display === "flex" || isDownloadQualityModalOpen();
+  const shouldLock = isSettingsOpen() || isDownloadQualityModalOpen();
   if (shouldLock) acquireBodyScrollLock(SETTINGS_MODAL_SCROLL_LOCK_OWNER);
   else releaseBodyScrollLock(SETTINGS_MODAL_SCROLL_LOCK_OWNER);
 }
@@ -117,6 +125,18 @@ function getTabbables(root) {
   );
 }
 
+function renderSettingsIcons(root = settingsModal) {
+  const api = window?.lucide;
+  if (!root || !api?.createIcons || !api?.icons) return;
+  api.createIcons({ icons: api.icons, root });
+}
+
+function formatMajorVersion(value) {
+  const normalized = String(value || "").trim().replace(/^v/i, "");
+  if (!normalized) return "—";
+  return normalized.split(".")[0] || normalized;
+}
+
 async function populateAboutSection() {
   try {
     const [version, runtimeInfo] = await Promise.all([
@@ -124,15 +144,28 @@ async function populateAboutSection() {
       window.electron?.getRuntimeInfo?.(),
     ]);
 
-    const setText = (id, value, { prefixV = true } = {}) => {
+    const setText = (id, value, { prefixV = true, majorOnly = false } = {}) => {
       const el = document.getElementById(id);
       if (!el) return;
       const normalized = String(value || "").trim();
-      el.textContent = normalized ? `${prefixV ? "v" : ""}${normalized}` : "—";
+      const displayValue = majorOnly ? formatMajorVersion(normalized) : normalized;
+      el.textContent = displayValue
+        ? `${prefixV ? "v" : ""}${displayValue}`
+        : "—";
+      if (normalized && majorOnly) {
+        el.title = `${prefixV ? "v" : ""}${normalized}`;
+      }
     };
 
     setText("settings-app-version", version);
-    setText("settings-about-electron-version", runtimeInfo?.electron);
+    setText("settings-about-electron-version", runtimeInfo?.electron, {
+      prefixV: false,
+      majorOnly: true,
+    });
+    setText("settings-about-node-version", runtimeInfo?.node, {
+      prefixV: false,
+      majorOnly: true,
+    });
   } catch {}
 }
 
@@ -164,13 +197,20 @@ export function openSettings() {
   settingsModal.style.display = "flex";
   settingsModal.style.justifyContent = "center";
   settingsModal.style.alignItems = "center";
+  settingsModal.dataset.state = "opening";
   settingsModal.setAttribute("aria-hidden", "false");
+  settingsModal.removeAttribute("inert");
+  void settingsModal.offsetWidth;
+  settingsModal.classList.add("is-visible");
+  settingsModal.dataset.state = "open";
   syncModalScrollLock();
 
   try {
     window.dispatchEvent(new Event("settings:opened"));
   } catch {}
   populateAboutSection();
+  renderSettingsIcons();
+  settingsSearchController?.rebuild();
   syncActiveSettingsSectionLabel();
   closeSettingsSectionsPanel();
 
@@ -192,6 +232,12 @@ export function openSettings() {
       !isDownloadQualityModalOpen() &&
       !isDropdownHandlingEscape(event)
     ) {
+      if (settingsSearchController?.isResultsOpen()) {
+        event.preventDefault();
+        event.stopPropagation();
+        settingsSearchController.closeResults();
+        return;
+      }
       event.preventDefault();
       event.stopPropagation();
       closeSettings();
@@ -243,19 +289,22 @@ export function openSettingsWithTab(tabId) {
 }
 
 export function closeSettings() {
-  if (!settingsModal) return;
+  if (!settingsModal || !isSettingsOpen()) return;
   const restoreTarget =
     previousFocus instanceof HTMLElement && previousFocus !== document.body
       ? previousFocus
       : settingsTrigger;
   hideAllTooltips();
-  settingsModal.style.display = "none";
+  settingsModal.dataset.state = "closing";
+  settingsModal.classList.remove("is-visible");
   settingsModal.setAttribute("aria-hidden", "true");
+  settingsModal.setAttribute("inert", "");
   if (trapHandler) {
     window.removeEventListener("keydown", trapHandler, true);
     trapHandler = null;
   }
   closeSettingsSectionsPanel();
+  settingsSearchController?.clear();
   syncModalScrollLock();
   try {
     if (restoreTarget instanceof HTMLElement) {
@@ -271,6 +320,21 @@ export function closeSettings() {
     window.dispatchEvent(new Event("settings:closed"));
   } catch {}
   previousFocus = null;
+
+  const finishClosing = () => {
+    if (settingsModal.dataset.state !== "closing") return;
+    settingsModal.style.display = "none";
+    settingsModal.dataset.state = "closed";
+  };
+  const content = settingsModal.querySelector(".settings-modal-content");
+  const animations = content?.getAnimations?.() || [];
+  if (!animations.length) {
+    finishClosing();
+    return;
+  }
+  Promise.allSettled(animations.map((animation) => animation.finished)).then(
+    finishClosing,
+  );
 }
 
 export function updateThemeDropdownUI(theme) {
@@ -341,6 +405,7 @@ export function initSettingsModal() {
     }
 
     const activateTab = (button, { moveFocus = false } = {}) => {
+      if (!button) return;
       const tabId = button.dataset.tab;
       if (!tabId) return;
 
@@ -355,6 +420,16 @@ export function initSettingsModal() {
         const isActive = pane.id === tabId;
         pane.classList.toggle("active", isActive);
         pane.hidden = !isActive;
+        pane.classList.remove("is-entering");
+        if (isActive) {
+          void pane.offsetWidth;
+          pane.classList.add("is-entering");
+          pane.addEventListener(
+            "animationend",
+            () => pane.classList.remove("is-entering"),
+            { once: true },
+          );
+        }
       });
 
       localStorage.setItem("lastSettingsTab", tabId);
@@ -392,6 +467,14 @@ export function initSettingsModal() {
       activateSettingsTab(resolvedTab);
     }
     syncActiveSettingsSectionLabel();
+
+    settingsSearchController = initSettingsSearch({
+      root: settingsModal,
+      activateCategory: (tabId) => activateTab(
+        tabLinks.find((tab) => tab.dataset.tab === tabId),
+      ),
+      renderIcons: renderSettingsIcons,
+    });
   }
 
   if (exportBtn) exportBtn.addEventListener("click", exportConfig);
@@ -480,6 +563,7 @@ export function initSettingsModal() {
 
   initDefaultTabSetting();
   populateAboutSection();
+  renderSettingsIcons();
 
   // --- Логика выбора темы удалена, чтобы избежать конфликта с settings.js ---
   // (См. settings.js для реализации кастомного dropdown выбора темы)

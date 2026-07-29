@@ -1542,6 +1542,11 @@ describe("Now Playing view", () => {
       view.element.querySelector(".now-playing__artwork-fallback"),
     ).not.toBeNull();
     expect(
+      view.element.querySelector(
+        '.now-playing__artwork-fallback [data-lucide="music-2"]',
+      ),
+    ).not.toBeNull();
+    expect(
       activeMetadata.querySelector(".now-playing__track-title").textContent,
     ).toBe("Demo track");
     expect(
@@ -2357,6 +2362,8 @@ describe("Now Playing view", () => {
     const currentPoster = view.element.querySelector(
       '[data-ui="generated-poster"]',
     );
+    expect(currentPoster.hidden).toBe(true);
+    currentPoster.dispatchEvent(new Event("load"));
     expect(currentPoster.hidden).toBe(false);
     expect(currentPoster.src).toBe("data:image/jpeg;base64,eager-poster");
     const miniPoster = view.element.querySelector('[data-ui="mini-artwork"]');
@@ -2376,6 +2383,54 @@ describe("Now Playing view", () => {
     expect(library.querySelector('[data-filter="video"]').hidden).toBe(false);
     expect(library.querySelector('[data-filter="audio"]').hidden).toBe(true);
     expect(library.querySelector('[data-filter="missing"]').hidden).toBe(true);
+    view.dispose();
+  });
+
+  test("keeps the sidebar fallback visible when a generated poster fails", async () => {
+    const videoTrack = {
+      ...sampleTrack,
+      id: "broken-poster-video",
+      sourceRef: "/video/broken-poster.mkv",
+      artworkUrl: "",
+      kind: "video",
+    };
+    const api = {
+      getState: jest.fn().mockResolvedValue({
+        data: {
+          version: 3,
+          catalog: { tracks: [videoTrack] },
+          playlists: [],
+          activePlaylistId: "media-library",
+          selectedTrackId: videoTrack.id,
+        },
+      }),
+      setState: jest.fn().mockResolvedValue({ success: true }),
+      importFiles: jest.fn(),
+      importFolder: jest.fn(),
+      getTimelinePreview: jest.fn().mockResolvedValue({
+        success: true,
+        data: {
+          dataUrl: "data:image/jpeg;base64,broken-poster",
+          timestamp: 2,
+        },
+      }),
+      cancelTimelinePreview: jest.fn(),
+    };
+    const view = createNowPlayingView({ api });
+    document.body.appendChild(view.element);
+    await view.ready;
+    await Promise.resolve();
+    await Promise.resolve();
+
+    const poster = view.element.querySelector('[data-ui="generated-poster"]');
+    poster.dispatchEvent(new Event("error"));
+
+    expect(poster.hidden).toBe(true);
+    expect(poster.hasAttribute("src")).toBe(false);
+    expect(view.element.classList.contains("has-generated-poster")).toBe(false);
+    expect(
+      view.element.querySelector(".now-playing__artwork-fallback").hidden,
+    ).toBe(false);
     view.dispose();
   });
 

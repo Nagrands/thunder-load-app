@@ -104,6 +104,17 @@ History is part of Downloader and supports:
 
 ## Settings
 
+The Settings window separates persistent navigation from an independently
+scrollable content area. Search matches localized titles and descriptions,
+opens the relevant section, expands hidden advanced controls, and highlights
+the selected setting. On narrow windows, navigation becomes a compact
+expandable menu without horizontal scrolling.
+
+Its six sections—General, Downloader, Player, Appearance, Shortcuts, and
+Other—support keyboard navigation, visible focus, and screen readers. General
+also provides compact runtime details, release notes, update checks, and a
+button that copies full diagnostic information.
+
 Settings control:
 
 - interface language and theme;
@@ -119,9 +130,10 @@ Settings control:
 ### Keyboard Shortcuts
 
 The Shortcuts section in Settings lists every application action, its scope,
-and its current key combination. Choose Change on a row and press the new
-combination; `Esc` cancels recording. When a combination is already assigned,
-Thunder lets you cancel or swap the two actions.
+and its current key combination, grouping commands by purpose: interface,
+navigation, downloads, websites, and Player. Choose the edit action on a row
+and press the new combination; `Esc` cancels recording. When a combination is
+already assigned, Thunder lets you cancel or swap the two actions.
 
 The editor accepts combinations containing `Ctrl`/`Cmd` or `Alt`, plus
 `F1`–`F12`. Global shortcuts for reload and websites can be disabled without

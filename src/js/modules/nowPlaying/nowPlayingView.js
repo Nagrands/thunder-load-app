@@ -1816,6 +1816,7 @@ export function createNowPlayingView({
       overlayVisibility.dispose();
       fullscreen.dispose();
       visualTransitions.dispose();
+      presentation.dispose();
       visualizer.destroy();
       timelinePreview.dispose();
       libraryView.dispose();

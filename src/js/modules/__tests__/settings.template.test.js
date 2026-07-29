@@ -74,17 +74,22 @@ describe("settings template structure", () => {
     expect(html).not.toContain('name="first-run-theme" value="light"');
   });
 
-  test("uses compact appearance panel and preserves control ids", () => {
+  test("uses standard appearance cards and preserves control ids", () => {
     const indexPath = path.resolve(process.cwd(), "src/index.html");
     const html = fs.readFileSync(indexPath, "utf8");
     const appearancePaneStart = html.indexOf('id="appearance-settings"');
     const otherPaneStart = html.indexOf('id="other-settings"');
     const appearancePaneHtml = html.slice(appearancePaneStart, otherPaneStart);
 
-    expect(appearancePaneHtml).toContain("settings-card--appearance-panel");
-    expect(appearancePaneHtml).not.toContain("settings-card--appearance-main");
+    expect(appearancePaneHtml).toContain(
+      'data-settings-search-id="appearance-interface"',
+    );
+    expect(appearancePaneHtml).toContain(
+      'data-settings-search-id="appearance-theme"',
+    );
+    expect(appearancePaneHtml).not.toContain("settings-appearance-section");
     expect(appearancePaneHtml).not.toContain(
-      "settings-card--appearance-secondary",
+      "settings-card--appearance-panel",
     );
     [
       "language-dropdown-btn",
@@ -102,6 +107,17 @@ describe("settings template structure", () => {
     ].forEach((id) => {
       expect(appearancePaneHtml).toContain(`id="${id}"`);
     });
+    expect(appearancePaneHtml).toMatch(
+      /id="settings-low-effects-toggle"[^>]*\/>\s*<label/,
+    );
+  });
+
+  test("renders a visible state indicator for global shortcuts", () => {
+    const indexPath = path.resolve(process.cwd(), "src/index.html");
+    const html = fs.readFileSync(indexPath, "utf8");
+
+    expect(html).toContain('id="settings-disable-global-shortcuts-toggle"');
+    expect(html).toContain('class="settings-shortcuts__global-switch"');
   });
 
   test("uses accessible tabs and appearance listboxes", () => {
@@ -118,6 +134,13 @@ describe("settings template structure", () => {
     expect(html).toContain('aria-haspopup="listbox"');
     expect(html).toContain('role="listbox"');
     expect(html).toContain('role="option"');
+
+    const settingsTabsStart = html.indexOf('class="settings-tabs"');
+    const settingsTabsEnd = html.indexOf("</div>", settingsTabsStart);
+    const settingsTabsHtml = html.slice(settingsTabsStart, settingsTabsEnd);
+
+    expect(settingsTabsHtml).not.toContain('data-bs-toggle="tooltip"');
+    expect(settingsTabsHtml).not.toContain("data-i18n-title=");
   });
 
   test("includes the accessible Player preferences section after Downloader", () => {
@@ -268,7 +291,7 @@ describe("settings template structure", () => {
     expect(html).toContain('data-i18n-aria="quality.aria.tab.audio"');
   });
 
-  test("moves about app information into the general settings tab", () => {
+  test("uses the redesigned settings shell and compact runtime card", () => {
     const indexPath = path.resolve(process.cwd(), "src/index.html");
     const html = fs.readFileSync(indexPath, "utf8");
     const generalPaneStart = html.indexOf('id="general-settings"');
@@ -278,18 +301,30 @@ describe("settings template structure", () => {
     expect(html).not.toContain('data-tab="about-settings"');
     expect(html).not.toContain('id="about-settings"');
     expect(html).not.toContain('id="settings-section-tab-about"');
-    expect(generalPaneHtml).toContain("settings-about-card--compact");
+    expect(html).toContain('id="settings-search-input"');
+    expect(html).toContain('id="settings-search-results"');
+    expect(html).toContain('class="settings-search__label"');
+    expect(html).toContain('class="settings-search__field"');
+    expect(html).not.toContain("settings-app-card");
+    expect(html).not.toContain('id="settings-link-github"');
+    expect(html).not.toContain('id="settings-link-documentation"');
+    expect(generalPaneHtml).toContain("settings-runtime-card");
+    expect(generalPaneHtml).toContain('class="settings-card__subsection"');
+    expect(generalPaneHtml).toContain('data-settings-search-id="default-tab"');
+    expect(generalPaneHtml).not.toMatch(
+      /<section[^>]*data-settings-search-id="default-tab"/s,
+    );
     expect(generalPaneHtml).toContain('id="settings-app-version"');
     expect(generalPaneHtml).toContain('id="settings-about-electron-version"');
+    expect(generalPaneHtml).toContain('id="settings-about-node-version"');
     expect(generalPaneHtml).not.toContain('id="settings-about-chrome-version"');
-    expect(generalPaneHtml).not.toContain('id="settings-about-node-version"');
     expect(generalPaneHtml).toContain('id="settings-about-whats-new-button"');
     expect(generalPaneHtml).toContain('id="settings-about-copy-info-button"');
     expect(generalPaneHtml).toContain(
       'id="settings-about-check-updates-button"',
     );
     expect(
-      generalPaneHtml.match(/class="settings-about-action"/g),
+      generalPaneHtml.match(/class="settings-icon-action"/g),
     ).toHaveLength(3);
     expect(
       generalPaneHtml.match(/data-bs-delay='{"show":300,"hide":100}'/g),
@@ -301,13 +336,13 @@ describe("settings template structure", () => {
       'data-i18n-aria="settings.about.copyInfo"',
     );
     expect(generalPaneHtml).toContain(
-      '<i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>',
+      '<i data-lucide="sparkles" aria-hidden="true"></i>',
     );
     expect(generalPaneHtml).toContain(
-      '<i class="fa-solid fa-copy" aria-hidden="true"></i>',
+      '<i data-lucide="copy" aria-hidden="true"></i>',
     );
     expect(generalPaneHtml).toContain(
-      '<i class="fa-solid fa-rotate" aria-hidden="true"></i>',
+      '<i data-lucide="refresh-cw" aria-hidden="true"></i>',
     );
     expect(generalPaneHtml).not.toContain(
       '<span data-i18n="settings.about.whatsNew">',
@@ -345,7 +380,13 @@ describe("settings template structure", () => {
     expect(html).toContain('id="settings-downloader-advanced"');
     expect(html).toContain('class="settings-advanced__summary"');
     expect(html).toContain('id="settings-ytdlp-cookies-summary-state"');
-    expect(html).toContain('data-i18n="settings.downloader.cookies.title"');
+    expect(html).toContain('class="settings-cookies-note"');
+    expect(html).toContain(
+      'data-i18n="settings.downloader.cookies.modeHint"',
+    );
+    expect(html).not.toContain(
+      'data-i18n="settings.downloader.cookies.title"',
+    );
   });
 
   test("includes localized web control settings", () => {
@@ -355,6 +396,7 @@ describe("settings template structure", () => {
       "settings.web.title",
       "settings.web.hint",
       "settings.web.enable",
+      "settings.web.enableHint",
       "settings.web.url",
       "settings.web.lanUrl",
       "settings.web.open",
@@ -374,6 +416,8 @@ describe("settings template structure", () => {
     expect(html).toContain('id="settings-web-control-url"');
     expect(html).toContain('id="settings-web-control-lan-url"');
     expect(html).toContain('id="settings-web-control-status"');
+    expect(html).toContain('class="settings-web-control-panel__endpoint"');
+    expect(html).toContain('class="settings-web-control-panel__footer"');
     keys.forEach((key) => {
       expect(settingsTranslations.ru[key]).toBeTruthy();
       expect(settingsTranslations.en[key]).toBeTruthy();

@@ -8,13 +8,17 @@ import {
   clearFilterInputButton,
   githubButton,
 } from "./domElements.js";
-import { openSettings, closeSettings } from "./settingsModal.js";
+import {
+  openSettings,
+  closeSettings,
+  isSettingsOpen,
+} from "./settingsModal.js";
 import { state } from "./state.js";
 import { filterAndSortHistory } from "./filterAndSortHistory.js";
 
 function initInterfaceHandlers() {
   settingsTrigger?.addEventListener("click", () => {
-    if (settingsModal.style.display === "flex") {
+    if (isSettingsOpen()) {
       closeSettings();
     } else {
       openSettings();

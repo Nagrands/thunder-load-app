@@ -12,6 +12,7 @@ import {
 } from "./domElements.js";
 import {
   closeSettings,
+  isSettingsOpen,
   openSettings,
   openSettingsWithTab,
   updateThemeDropdownUI,
@@ -56,7 +57,7 @@ const updateThemeToggleTooltip = (theme) => {
 };
 
 const toggleSettings = () => {
-  if (settingsModal?.style.display === "flex") {
+  if (isSettingsOpen()) {
     closeSettings();
     return;
   }

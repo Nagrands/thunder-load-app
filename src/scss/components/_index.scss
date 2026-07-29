@@ -30,10 +30,10 @@
 
 // Tabs and settings
 @forward "tabs";
-@forward "settings-sections";
 @forward "settings-shortcuts";
 @forward "settings-tools";
 @forward "web-control-settings";
+@forward "settings-modal";
 
 // Misc pages
 @forward "preloader";

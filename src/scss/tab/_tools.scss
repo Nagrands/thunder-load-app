@@ -1299,7 +1299,6 @@ $wg-max-width: 1200px;
   // top: var(--topbar-safe-space, 72px);
   align-self: start;
   min-width: 0;
-  min-height: min(720px, calc(100vh - var(--topbar-safe-space, 96px) - 30px));
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -1341,8 +1340,7 @@ $wg-max-width: 1200px;
   font-size: 1rem;
 }
 
-.tools-sidebar__brand p,
-.tools-sidebar__feedback p {
+.tools-sidebar__brand p {
   margin: 4px 0 0;
   color: var(--color-quality);
   font-size: 0.72rem;
@@ -1364,14 +1362,14 @@ $wg-max-width: 1200px;
   display: grid;
   grid-template-columns: 24px minmax(0, 1fr);
   align-items: center;
-  gap: 9px;
+  gap: 6px;
   padding: 0 11px;
   border: 1px solid transparent;
   border-radius: 10px;
   background: transparent;
   color: var(--color-quality);
   font: inherit;
-  font-size: 0.78rem;
+  font-size: 0.87rem;
   text-align: left;
   cursor: pointer;
 }
@@ -1400,45 +1398,9 @@ $wg-max-width: 1200px;
 }
 
 .tools-sidebar__item:focus-visible,
-.tools-sidebar__feedback button:focus-visible,
 .tools-sidebar__toggle:focus-visible {
   outline: 2px solid rgba(var(--color-accent-rgb), 0.82);
   outline-offset: 2px;
-}
-
-.tools-sidebar__feedback {
-  display: grid;
-  gap: 6px;
-  margin-top: auto;
-  padding: 13px;
-  border: 1px solid rgba(var(--color-accent-rgb), 0.14);
-  border-radius: 12px;
-  background: rgba(var(--color-accent-rgb), 0.055);
-}
-
-.tools-sidebar__feedback > i {
-  color: var(--color-accent);
-}
-
-.tools-sidebar__feedback strong {
-  font-size: 0.8rem;
-}
-
-.tools-sidebar__feedback button {
-  min-height: 34px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-top: 4px;
-  padding: 0 9px;
-  border: 1px solid rgba(var(--color-accent-rgb), 0.16);
-  border-radius: 8px;
-  background: rgba(var(--color-accent-rgb), 0.1);
-  color: var(--color-accent);
-  font: inherit;
-  font-size: 0.72rem;
-  cursor: pointer;
 }
 
 @media (max-width: 1120px) {
@@ -1501,8 +1463,7 @@ $wg-max-width: 1200px;
     transform: rotate(180deg);
   }
 
-  .tools-sidebar__navigation,
-  .tools-sidebar__feedback {
+  .tools-sidebar__navigation {
     display: none;
   }
 

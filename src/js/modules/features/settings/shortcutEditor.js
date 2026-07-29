@@ -17,6 +17,14 @@ const MODIFIER_KEYS = new Set([
   "Meta",
   "Shift",
 ]);
+const CATEGORY_ICONS = Object.freeze({
+  settings: "fa-sliders",
+  navigation: "fa-compass",
+  downloads: "fa-download",
+  system: "fa-display",
+  sites: "fa-globe",
+  player: "fa-circle-play",
+});
 
 let catalog = [];
 let assignments = {};
@@ -62,6 +70,17 @@ function isPlayerAction(action) {
   return action?.categoryKey === "shortcuts.categories.player";
 }
 
+function getCategoryKey(action) {
+  return action?.categoryKey || "shortcuts.categories.system";
+}
+
+function getCategoryId(categoryKey) {
+  return String(categoryKey || "other")
+    .split(".")
+    .at(-1)
+    .replace(/[^a-z0-9_-]/gi, "-");
+}
+
 function announce(message) {
   const live = getElement(SELECTORS.live);
   if (!live) return;
@@ -88,6 +107,26 @@ function createText(tagName, className, value) {
   element.className = className;
   element.textContent = value;
   return element;
+}
+
+function createIconButton({
+  className,
+  icon,
+  label,
+  dataAttribute,
+}) {
+  const button = document.createElement("button");
+  button.className = className;
+  button.type = "button";
+  button.title = label;
+  button.setAttribute("aria-label", label);
+  button.dataset[dataAttribute] = "";
+  const iconNode = document.createElement("i");
+  iconNode.className = `fa-solid ${icon}`;
+  iconNode.setAttribute("aria-hidden", "true");
+  const copy = createText("span", "visually-hidden", label);
+  button.append(iconNode, copy);
+  return button;
 }
 
 function createConflictBlock(actionId) {
@@ -137,16 +176,14 @@ function createRow(action) {
 
   const copy = document.createElement("div");
   copy.className = "shortcut-editor__copy";
-  copy.append(
-    createText("strong", "shortcut-editor__name", getActionText(action, "name")),
-  );
-  const description = getActionText(action, "description");
-  if (description && !description.endsWith(".description")) {
-    copy.append(
-      createText("span", "shortcut-editor__description", description),
-    );
-  }
-  copy.append(
+  const heading = document.createElement("div");
+  heading.className = "shortcut-editor__heading";
+  heading.append(
+    createText(
+      "strong",
+      "shortcut-editor__name",
+      getActionText(action, "name"),
+    ),
     createText(
       "span",
       "shortcut-editor__scope",
@@ -157,6 +194,13 @@ function createRow(action) {
       ),
     ),
   );
+  copy.append(heading);
+  const description = getActionText(action, "description");
+  if (description && !description.endsWith(".description")) {
+    copy.append(
+      createText("span", "shortcut-editor__description", description),
+    );
+  }
 
   const controls = document.createElement("div");
   controls.className = "shortcut-editor__controls";
@@ -169,15 +213,16 @@ function createRow(action) {
         t("settings.shortcuts.unassigned"),
   );
   value.dataset.shortcutValue = "";
-  const edit = createText(
-    "button",
-    "shortcut-editor__edit",
+  const editLabel =
     recordingActionId === actionId
       ? t("settings.shortcuts.cancel")
-      : t("settings.shortcuts.edit"),
-  );
-  edit.type = "button";
-  edit.dataset.shortcutEdit = "";
+      : t("settings.shortcuts.edit");
+  const edit = createIconButton({
+    className: "shortcut-editor__edit",
+    icon: recordingActionId === actionId ? "fa-xmark" : "fa-pen",
+    label: editLabel,
+    dataAttribute: "shortcutEdit",
+  });
   edit.setAttribute(
     "aria-pressed",
     recordingActionId === actionId ? "true" : "false",
@@ -190,13 +235,13 @@ function createRow(action) {
     if (recordingActionId === actionId) stopRecording({ restoreFocus: true });
     else startRecording(actionId);
   });
-  const reset = createText(
-    "button",
-    "shortcut-editor__reset",
-    t("settings.shortcuts.reset.single"),
-  );
-  reset.type = "button";
-  reset.dataset.shortcutReset = "";
+  const resetLabel = t("settings.shortcuts.reset.single");
+  const reset = createIconButton({
+    className: "shortcut-editor__reset",
+    icon: "fa-rotate-left",
+    label: resetLabel,
+    dataAttribute: "shortcutReset",
+  });
   reset.disabled = assignments[actionId] === action.defaultAccelerator;
   reset.setAttribute(
     "aria-label",
@@ -209,6 +254,53 @@ function createRow(action) {
     row.append(createConflictBlock(actionId));
   }
   return row;
+}
+
+function createGroup(categoryKey, actions) {
+  const categoryId = getCategoryId(categoryKey);
+  const section = document.createElement("section");
+  section.className = `shortcut-editor__group shortcut-editor__group--${categoryId}`;
+  section.dataset.shortcutCategory = categoryId;
+  const headingId = `shortcut-editor-group-${categoryId}`;
+  section.setAttribute("aria-labelledby", headingId);
+
+  const header = document.createElement("header");
+  header.className = "shortcut-editor__group-header";
+  const identity = document.createElement("div");
+  identity.className = "shortcut-editor__group-identity";
+  const icon = document.createElement("i");
+  icon.className = `fa-solid ${CATEGORY_ICONS[categoryId] || "fa-keyboard"}`;
+  icon.setAttribute("aria-hidden", "true");
+  const title = createText(
+    "h3",
+    "shortcut-editor__group-title",
+    t(categoryKey),
+  );
+  title.id = headingId;
+  const count = createText(
+    "span",
+    "shortcut-editor__group-count",
+    String(actions.length),
+  );
+  identity.append(icon, title, count);
+  header.append(identity);
+
+  if (categoryId === "player") {
+    const reset = createIconButton({
+      className: "shortcut-editor__group-reset",
+      icon: "fa-rotate-left",
+      label: t("settings.shortcuts.reset.player"),
+      dataAttribute: "shortcutPlayerReset",
+    });
+    reset.addEventListener("click", () => void resetPlayerShortcuts());
+    header.append(reset);
+  }
+
+  const rows = document.createElement("div");
+  rows.className = "shortcut-editor__group-rows";
+  rows.append(...actions.map(createRow));
+  section.append(header, rows);
+  return section;
 }
 
 function matchesSearch(action, query) {
@@ -232,37 +324,20 @@ function render() {
   const visibleActions = catalog.filter((action) =>
     matchesSearch(action, query),
   );
-  const regularActions = visibleActions.filter((action) => !isPlayerAction(action));
-  const playerActions = visibleActions.filter(isPlayerAction);
-  const content = regularActions.map(createRow);
-  if (playerActions.length) {
-    const section = document.createElement("section");
-    section.className = "shortcut-editor__group shortcut-editor__group--player";
-    section.dataset.shortcutCategory = "player";
-    const header = document.createElement("header");
-    header.className = "shortcut-editor__group-header";
-    header.append(
-      createText(
-        "h3",
-        "shortcut-editor__group-title",
-        t("shortcuts.categories.player"),
-      ),
-    );
-    const reset = createText(
-      "button",
-      "shortcut-editor__group-reset",
-      t("settings.shortcuts.reset.player"),
-    );
-    reset.type = "button";
-    reset.dataset.shortcutPlayerReset = "";
-    reset.addEventListener("click", () => void resetPlayerShortcuts());
-    header.append(reset);
-    section.append(header, ...playerActions.map(createRow));
-    content.push(section);
-  }
+  const groupedActions = new Map();
+  visibleActions.forEach((action) => {
+    const categoryKey = getCategoryKey(action);
+    const group = groupedActions.get(categoryKey) || [];
+    group.push(action);
+    groupedActions.set(categoryKey, group);
+  });
+  const content = Array.from(groupedActions, ([categoryKey, actions]) =>
+    createGroup(categoryKey, actions),
+  );
   list.replaceChildren(...content);
   const empty = getElement(SELECTORS.empty);
   if (empty) empty.hidden = visibleActions.length > 0;
+  window.dispatchEvent(new CustomEvent("settings:search-index-invalidated"));
 }
 
 function applyConflict(actionId, accelerator, conflictingActionId) {

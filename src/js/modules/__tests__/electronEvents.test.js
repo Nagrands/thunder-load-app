@@ -51,9 +51,8 @@ describe("electronEvents", () => {
   test("updates about settings version fields", async () => {
     document.body.innerHTML = `
       <strong id="settings-app-version">—</strong>
-      <strong id="settings-tabs-version">—</strong>
-      <strong id="settings-tabs-electron-version">—</strong>
       <strong id="settings-about-electron-version">—</strong>
+      <strong id="settings-about-node-version">—</strong>
     `;
 
     await jest.isolateModulesAsync(async () => {
@@ -92,6 +91,9 @@ describe("electronEvents", () => {
     );
     expect(
       document.getElementById("settings-about-electron-version")?.textContent,
-    ).toBe("v39.0.0");
+    ).toBe("39");
+    expect(
+      document.getElementById("settings-about-node-version")?.textContent,
+    ).toBe("22");
   });
 });
