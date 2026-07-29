@@ -1,151 +1,110 @@
 function createMarkup(t, { allowPickFile = true, variant = "tools" } = {}) {
   const pickButton = allowPickFile
     ? `
-          <button id="media-inspector-pick-file" type="button" class="small-button media-inspector-primary">
-            <i class="fa-regular fa-file-video"></i>
-            <span data-i18n="tools.mediaInspector.pickFile">${t("tools.mediaInspector.pickFile")}</span>
-          </button>
+        <button id="media-inspector-pick-file" type="button" class="small-button media-inspector-primary">
+          <i class="fa-regular fa-file-video"></i>
+          <span data-i18n="tools.mediaInspector.pickFile">${t("tools.mediaInspector.pickFile")}</span>
+        </button>
         `
     : "";
 
   const titleTag = variant === "tools" ? "h2" : "h3";
   const titleKey = "tools.mediaInspector.title";
   const subtitleKey = "tools.mediaInspector.subtitle";
-  const cardClass =
-    variant === "history"
-      ? "media-inspector-card media-inspector-card--history"
-      : "tools-card tools-detail-card media-inspector-card";
-  const headerMarkup =
-    variant === "history"
-      ? `
-      <div class="media-inspector-inline-header">
-        <div class="media-inspector-inline-header__title-wrap">
-          <${titleTag} class="media-inspector-inline-header__title" data-i18n="${titleKey}">${t(titleKey)}</${titleTag}>
-        </div>
-        <div class="media-inspector-header__actions">
-          ${pickButton}
-          <button
-            id="media-inspector-analyze"
-            type="button"
-            class="small-button media-inspector-secondary"
-            data-bs-toggle="tooltip"
-            data-bs-placement="top"
-            data-i18n-title="tools.mediaInspector.reAnalyze"
-            data-i18n-aria="tools.mediaInspector.reAnalyze"
-            title="${t("tools.mediaInspector.reAnalyze")}"
-            aria-label="${t("tools.mediaInspector.reAnalyze")}"
-            disabled
-          >
-            <i class="fa-solid fa-rotate"></i>
-          </button>
-          <button
-            id="media-inspector-open-folder"
-            type="button"
-            class="small-button media-inspector-secondary"
-            data-bs-toggle="tooltip"
-            data-bs-placement="top"
-            data-i18n-title="tools.mediaInspector.openFolder"
-            data-i18n-aria="tools.mediaInspector.openFolder"
-            title="${t("tools.mediaInspector.openFolder")}"
-            aria-label="${t("tools.mediaInspector.openFolder")}"
-            disabled
-          >
-            <i class="fa-regular fa-folder-open"></i>
-          </button>
-          <button
-            id="media-inspector-copy-report"
-            type="button"
-            class="small-button media-inspector-secondary"
-            data-bs-toggle="tooltip"
-            data-bs-placement="top"
-            data-i18n-title="tools.mediaInspector.copyReport"
-            data-i18n-aria="tools.mediaInspector.copyReport"
-            title="${t("tools.mediaInspector.copyReport")}"
-            aria-label="${t("tools.mediaInspector.copyReport")}"
-            disabled
-          >
-            <i class="fa-regular fa-copy"></i>
-          </button>
-        </div>
-      </div>
-      `
-      : `
-      <div class="tools-card__header media-inspector-header">
-        <div>
-          <${titleTag} data-i18n="${titleKey}">${t(titleKey)}</${titleTag}>
-          <p class="tools-card__hint" data-i18n="${subtitleKey}">${t(subtitleKey)}</p>
-        </div>
-        <div class="media-inspector-header__actions">
-          ${pickButton}
-          <button
-            id="media-inspector-analyze"
-            type="button"
-            class="small-button media-inspector-secondary"
-            data-bs-toggle="tooltip"
-            data-bs-placement="top"
-            data-i18n-title="tools.mediaInspector.reAnalyze"
-            data-i18n-aria="tools.mediaInspector.reAnalyze"
-            title="${t("tools.mediaInspector.reAnalyze")}"
-            aria-label="${t("tools.mediaInspector.reAnalyze")}"
-            disabled
-          >
-            <i class="fa-solid fa-rotate"></i>
-          </button>
-          <button
-            id="media-inspector-open-folder"
-            type="button"
-            class="small-button media-inspector-secondary"
-            data-bs-toggle="tooltip"
-            data-bs-placement="top"
-            data-i18n-title="tools.mediaInspector.openFolder"
-            data-i18n-aria="tools.mediaInspector.openFolder"
-            title="${t("tools.mediaInspector.openFolder")}"
-            aria-label="${t("tools.mediaInspector.openFolder")}"
-            disabled
-          >
-            <i class="fa-regular fa-folder-open"></i>
-          </button>
-          <button
-            id="media-inspector-copy-report"
-            type="button"
-            class="small-button media-inspector-secondary"
-            data-bs-toggle="tooltip"
-            data-bs-placement="top"
-            data-i18n-title="tools.mediaInspector.copyReport"
-            data-i18n-aria="tools.mediaInspector.copyReport"
-            title="${t("tools.mediaInspector.copyReport")}"
-            aria-label="${t("tools.mediaInspector.copyReport")}"
-            disabled
-          >
-            <i class="fa-regular fa-copy"></i>
-          </button>
-        </div>
-      </div>
-      `;
+  const isHistory = variant === "history";
+  const cardClass = isHistory
+    ? "media-inspector-card media-inspector-card--history"
+    : "tools-card tools-detail-card media-inspector-card";
 
   return `
     <article class="${cardClass}">
-      ${headerMarkup}
-
-      <section
-        id="media-inspector-drop-zone"
-        class="media-inspector-path-panel"
-        data-i18n-aria="tools.mediaInspector.pathPanel.aria"
-        aria-label="${t("tools.mediaInspector.pathPanel.aria")}"
-      >
-        <div class="media-inspector-path-panel__row">
-          <span class="media-inspector-path-panel__label" data-i18n="tools.mediaInspector.selectedFileLabel">${t("tools.mediaInspector.selectedFileLabel")}</span>
-          <span id="media-inspector-file-pill" class="media-inspector-file-pill is-empty" data-i18n="tools.mediaInspector.noFile">${t("tools.mediaInspector.noFile")}</span>
+      <header class="media-inspector-header">
+        <div class="media-inspector-header__icon" aria-hidden="true">
+          <i class="fa-solid fa-wave-square"></i>
         </div>
-        ${
-          allowPickFile
-            ? `<span id="media-inspector-drop-hint" class="media-inspector-drop-hint" data-i18n="tools.mediaInspector.dropHint">${t("tools.mediaInspector.dropHint")}</span>`
-            : ""
-        }
-        <span id="media-inspector-status" class="media-inspector-status is-idle" data-i18n="tools.mediaInspector.status.idle">${t("tools.mediaInspector.status.idle")}</span>
-      </section>
+        <div class="media-inspector-header__copy">
+          <span class="media-inspector-header__eyebrow" data-i18n="tools.mediaInspector.eyebrow">${t("tools.mediaInspector.eyebrow")}</span>
+          <${titleTag} data-i18n="${titleKey}">${t(titleKey)}</${titleTag}>
+          ${
+            isHistory
+              ? ""
+              : `<p data-i18n="${subtitleKey}">${t(subtitleKey)}</p>`
+          }
+        </div>
+        <span class="media-inspector-header__engine">ffprobe</span>
+      </header>
 
-      <section id="media-inspector-state" class="media-inspector-state media-inspector-state--empty">
+      <div class="media-inspector-workspace">
+        <section
+          id="media-inspector-drop-zone"
+          class="media-inspector-path-panel is-empty"
+          data-i18n-aria="tools.mediaInspector.pathPanel.aria"
+          aria-label="${t("tools.mediaInspector.pathPanel.aria")}"
+        >
+        <div class="media-inspector-path-panel__icon" aria-hidden="true">
+          <i class="fa-solid fa-film"></i>
+        </div>
+        <div class="media-inspector-path-panel__content">
+          <span class="media-inspector-path-panel__label" data-i18n="tools.mediaInspector.selectedFileLabel">${t("tools.mediaInspector.selectedFileLabel")}</span>
+          <strong id="media-inspector-file-pill" class="media-inspector-file-pill is-empty" data-i18n="tools.mediaInspector.noFile">${t("tools.mediaInspector.noFile")}</strong>
+          <span id="media-inspector-file-path" class="media-inspector-file-path hidden"></span>
+          ${
+            allowPickFile
+              ? `<span id="media-inspector-drop-hint" class="media-inspector-drop-hint" data-i18n="tools.mediaInspector.dropHint">${t("tools.mediaInspector.dropHint")}</span>`
+              : ""
+          }
+        </div>
+        <div class="media-inspector-path-panel__controls">
+          ${pickButton}
+          <span id="media-inspector-status" class="media-inspector-status is-idle" data-i18n="tools.mediaInspector.status.idle">${t("tools.mediaInspector.status.idle")}</span>
+        </div>
+        <div class="media-inspector-header__actions">
+          <button
+            id="media-inspector-analyze"
+            type="button"
+            class="small-button media-inspector-secondary"
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            data-i18n-title="tools.mediaInspector.reAnalyze"
+            data-i18n-aria="tools.mediaInspector.reAnalyze"
+            title="${t("tools.mediaInspector.reAnalyze")}"
+            aria-label="${t("tools.mediaInspector.reAnalyze")}"
+            disabled
+          >
+            <i class="fa-solid fa-rotate"></i>
+          </button>
+          <button
+            id="media-inspector-open-folder"
+            type="button"
+            class="small-button media-inspector-secondary"
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            data-i18n-title="tools.mediaInspector.openFolder"
+            data-i18n-aria="tools.mediaInspector.openFolder"
+            title="${t("tools.mediaInspector.openFolder")}"
+            aria-label="${t("tools.mediaInspector.openFolder")}"
+            disabled
+          >
+            <i class="fa-regular fa-folder-open"></i>
+          </button>
+          <button
+            id="media-inspector-copy-report"
+            type="button"
+            class="small-button media-inspector-secondary"
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            data-i18n-title="tools.mediaInspector.copyReport"
+            data-i18n-aria="tools.mediaInspector.copyReport"
+            title="${t("tools.mediaInspector.copyReport")}"
+            aria-label="${t("tools.mediaInspector.copyReport")}"
+            disabled
+          >
+            <i class="fa-regular fa-copy"></i>
+          </button>
+        </div>
+        </section>
+
+        <section id="media-inspector-state" class="media-inspector-state media-inspector-state--empty hidden">
         <div class="media-inspector-state__surface">
           <div class="media-inspector-state__topline">
             <div id="media-inspector-state-icon" class="media-inspector-state__icon">
@@ -164,38 +123,46 @@ function createMarkup(t, { allowPickFile = true, variant = "tools" } = {}) {
             ${t("tools.mediaInspector.loading.meta")}
           </div>
         </div>
-      </section>
+        </section>
 
-      <section id="media-inspector-report" class="media-inspector-report hidden">
-        <div class="media-inspector-report__header">
-          <div>
-            <h3 data-i18n="tools.mediaInspector.report.title">${t("tools.mediaInspector.report.title")}</h3>
-            <p class="tools-card__hint" data-i18n="tools.mediaInspector.report.subtitle">${t("tools.mediaInspector.report.subtitle")}</p>
+        <section id="media-inspector-report" class="media-inspector-report hidden">
+        <div class="media-inspector-report__overview">
+          <div class="media-inspector-report__header">
+            <div>
+              <span class="media-inspector-report__kicker" data-i18n="tools.mediaInspector.report.kicker">${t("tools.mediaInspector.report.kicker")}</span>
+              <h3 data-i18n="tools.mediaInspector.report.title">${t("tools.mediaInspector.report.title")}</h3>
+              <p data-i18n="tools.mediaInspector.report.subtitle">${t("tools.mediaInspector.report.subtitle")}</p>
+            </div>
+            <span id="media-inspector-copy-feedback" class="hash-copy-feedback muted" aria-live="polite"></span>
           </div>
-          <span id="media-inspector-copy-feedback" class="hash-copy-feedback muted"></span>
-        </div>
 
-        <div class="media-inspector-summary-grid">
-          <article class="media-inspector-metric">
-            <span data-i18n="tools.mediaInspector.summary.container">${t("tools.mediaInspector.summary.container")}</span>
-            <strong id="media-inspector-summary-container">-</strong>
-          </article>
-          <article class="media-inspector-metric">
-            <span data-i18n="tools.mediaInspector.summary.duration">${t("tools.mediaInspector.summary.duration")}</span>
-            <strong id="media-inspector-summary-duration">-</strong>
-          </article>
-          <article class="media-inspector-metric">
-            <span data-i18n="tools.mediaInspector.summary.size">${t("tools.mediaInspector.summary.size")}</span>
-            <strong id="media-inspector-summary-size">-</strong>
-          </article>
-          <article class="media-inspector-metric">
-            <span data-i18n="tools.mediaInspector.summary.bitrate">${t("tools.mediaInspector.summary.bitrate")}</span>
-            <strong id="media-inspector-summary-bitrate">-</strong>
-          </article>
-          <article class="media-inspector-metric">
-            <span data-i18n="tools.mediaInspector.summary.score">${t("tools.mediaInspector.summary.score")}</span>
-            <strong id="media-inspector-summary-score">-</strong>
-          </article>
+          <div class="media-inspector-summary-grid">
+            <article class="media-inspector-metric">
+              <i class="fa-solid fa-box-archive" aria-hidden="true"></i>
+              <span data-i18n="tools.mediaInspector.summary.container">${t("tools.mediaInspector.summary.container")}</span>
+              <strong id="media-inspector-summary-container">-</strong>
+            </article>
+            <article class="media-inspector-metric">
+              <i class="fa-regular fa-clock" aria-hidden="true"></i>
+              <span data-i18n="tools.mediaInspector.summary.duration">${t("tools.mediaInspector.summary.duration")}</span>
+              <strong id="media-inspector-summary-duration">-</strong>
+            </article>
+            <article class="media-inspector-metric">
+              <i class="fa-solid fa-hard-drive" aria-hidden="true"></i>
+              <span data-i18n="tools.mediaInspector.summary.size">${t("tools.mediaInspector.summary.size")}</span>
+              <strong id="media-inspector-summary-size">-</strong>
+            </article>
+            <article class="media-inspector-metric">
+              <i class="fa-solid fa-gauge-high" aria-hidden="true"></i>
+              <span data-i18n="tools.mediaInspector.summary.bitrate">${t("tools.mediaInspector.summary.bitrate")}</span>
+              <strong id="media-inspector-summary-bitrate">-</strong>
+            </article>
+            <article class="media-inspector-metric">
+              <i class="fa-solid fa-microscope" aria-hidden="true"></i>
+              <span data-i18n="tools.mediaInspector.summary.score">${t("tools.mediaInspector.summary.score")}</span>
+              <strong id="media-inspector-summary-score">-</strong>
+            </article>
+          </div>
         </div>
 
         <div class="media-inspector-streams-grid">
@@ -243,7 +210,8 @@ function createMarkup(t, { allowPickFile = true, variant = "tools" } = {}) {
             <div id="media-inspector-subtitle-streams" class="media-inspector-stream-list"></div>
           </section>
         </div>
-      </section>
+        </section>
+      </div>
     </article>
   `;
 }
@@ -412,6 +380,7 @@ export function initMediaInspectorPanel({
   const copyReportBtn = getEl("media-inspector-copy-report", root);
   const dropZoneEl = getEl("media-inspector-drop-zone", root);
   const filePillEl = getEl("media-inspector-file-pill", root);
+  const filePathEl = getEl("media-inspector-file-path", root);
   const statusEl = getEl("media-inspector-status", root);
   const stateEl = getEl("media-inspector-state", root);
   const stateIconEl = getEl("media-inspector-state-icon", root);
@@ -498,6 +467,11 @@ export function initMediaInspectorPanel({
       return;
     }
     reportEl.classList.add("hidden");
+    if (mode === "empty") {
+      stateEl.className =
+        "media-inspector-state media-inspector-state--empty hidden";
+      return;
+    }
     stateEl.className = `media-inspector-state media-inspector-state--${mode}`;
     stateEl.classList.remove("hidden");
     stateTitleEl.textContent = t(titleKey);
@@ -591,18 +565,29 @@ export function initMediaInspectorPanel({
   const setSelectedFile = (filePath) => {
     selectedFilePath = String(filePath || "");
     if (!filePillEl) return;
+    dropZoneEl?.classList.toggle("is-empty", !selectedFilePath);
+    dropZoneEl?.classList.toggle("has-file", !!selectedFilePath);
     filePillEl.classList.toggle("is-empty", !selectedFilePath);
     if (selectedFilePath) {
-      filePillEl.textContent = t("tools.mediaInspector.selectedFile", {
-        fileName: selectedFilePath.split(/[\\/]/).pop() || selectedFilePath,
-      });
+      filePillEl.textContent =
+        selectedFilePath.split(/[\\/]/).pop() || selectedFilePath;
       filePillEl.removeAttribute("data-i18n");
       filePillEl.title = selectedFilePath;
+      if (filePathEl) {
+        filePathEl.textContent = selectedFilePath;
+        filePathEl.title = selectedFilePath;
+        filePathEl.classList.remove("hidden");
+      }
       setStatus("idle", "tools.mediaInspector.status.fileSelected");
     } else {
       filePillEl.textContent = t("tools.mediaInspector.noFile");
       filePillEl.setAttribute("data-i18n", "tools.mediaInspector.noFile");
       filePillEl.title = "";
+      if (filePathEl) {
+        filePathEl.textContent = "";
+        filePathEl.title = "";
+        filePathEl.classList.add("hidden");
+      }
       setStatus("idle", "tools.mediaInspector.status.idle");
     }
     setBusy(busy);

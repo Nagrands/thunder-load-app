@@ -382,6 +382,7 @@ export const toolsTranslations = {
     "tools.converter.error.missingDependency": "ffmpeg недоступен.",
     "tools.converter.error.failed": "Не удалось выполнить конвертацию.",
     "tools.mediaInspector.title": "Media Inspector",
+    "tools.mediaInspector.eyebrow": "Технический анализ",
     "tools.mediaInspector.subtitle":
       "Анализирует локальный медиафайл через ffprobe и показывает практические предупреждения.",
     "tools.mediaInspector.pickFile": "Выбрать файл",
@@ -416,6 +417,7 @@ export const toolsTranslations = {
     "tools.mediaInspector.error.analyzeFailed":
       "Не удалось проанализировать медиафайл.",
     "tools.mediaInspector.report.title": "Отчет об инспекции",
+    "tools.mediaInspector.report.kicker": "Результаты ffprobe",
     "tools.mediaInspector.report.subtitle":
       "Сводка, дорожки и практические предупреждения.",
     "tools.mediaInspector.report.copyHeading": "Отчет Media Inspector",
@@ -1441,6 +1443,7 @@ export const toolsTranslations = {
     "tools.converter.error.missingDependency": "ffmpeg is not available.",
     "tools.converter.error.failed": "Conversion failed.",
     "tools.mediaInspector.title": "Media Inspector",
+    "tools.mediaInspector.eyebrow": "Technical analysis",
     "tools.mediaInspector.subtitle":
       "Inspect a local media file with ffprobe and review practical warnings.",
     "tools.mediaInspector.pickFile": "Choose file",
@@ -1474,6 +1477,7 @@ export const toolsTranslations = {
     "tools.mediaInspector.error.invalidPayload": "Choose a valid local file.",
     "tools.mediaInspector.error.analyzeFailed": "Media inspection failed.",
     "tools.mediaInspector.report.title": "Inspection report",
+    "tools.mediaInspector.report.kicker": "ffprobe results",
     "tools.mediaInspector.report.subtitle":
       "Summary, stream details, and practical warnings.",
     "tools.mediaInspector.report.copyHeading": "Media Inspector report",

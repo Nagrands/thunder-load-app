@@ -1216,6 +1216,17 @@ describe("toolsView quick actions", () => {
         ?.classList.contains("hidden"),
     ).toBe(false);
     expect(el.querySelector("#media-inspector-pick-file")).not.toBeNull();
+    expect(
+      el
+        .querySelector("#media-inspector-drop-zone")
+        ?.classList.contains("is-empty"),
+    ).toBe(true);
+    expect(
+      el.querySelector(".media-inspector-header__engine")?.textContent,
+    ).toBe("ffprobe");
+    expect(
+      el.querySelector("#media-inspector-state")?.classList.contains("hidden"),
+    ).toBe(true);
   });
 
   test("auto-analyzes a selected file and renders media report", async () => {
@@ -1232,6 +1243,17 @@ describe("toolsView quick actions", () => {
     expect(window.electron.tools.analyzeMediaFile).toHaveBeenCalledWith({
       filePath: "/tmp/sample-video.mp4",
     });
+    expect(
+      el
+        .querySelector("#media-inspector-drop-zone")
+        ?.classList.contains("has-file"),
+    ).toBe(true);
+    expect(el.querySelector("#media-inspector-file-path")?.textContent).toBe(
+      "/tmp/sample-video.mp4",
+    );
+    expect(
+      el.querySelector(".media-inspector-report__overview"),
+    ).not.toBeNull();
     expect(
       el.querySelector("#media-inspector-summary-container")?.textContent,
     ).toContain("mov,mp4");
@@ -1749,7 +1771,9 @@ describe("toolsView quick actions", () => {
       el.querySelector('[data-tool-view="wg"]')?.classList.contains("hidden"),
     ).toBe(false);
     expect(
-      el.querySelector('[data-tool-nav="wg"]')?.getAttribute("aria-current"),
+      el
+        .querySelector('[data-tool-nav="wg"]')
+        ?.getAttribute("aria-current"),
     ).toBe("page");
   });
 
@@ -1770,9 +1794,7 @@ describe("toolsView quick actions", () => {
       el.querySelector("#tools-launcher-header")?.classList.contains("hidden"),
     ).toBe(true);
     expect(
-      el
-        .querySelector('[data-tool-nav="wg"]')
-        ?.getAttribute("aria-current"),
+      el.querySelector('[data-tool-nav="wg"]')?.getAttribute("aria-current"),
     ).toBe("page");
     el.querySelector('[data-tool-nav="launcher"]')?.click();
     await nextTick();

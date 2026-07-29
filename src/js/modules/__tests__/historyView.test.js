@@ -501,6 +501,17 @@ describe("Downloader history list", () => {
     expect(
       inspectorSlot.querySelector(".media-inspector-card--history"),
     ).not.toBeNull();
+    expect(
+      inspectorSlot.querySelector("#media-inspector-pick-file"),
+    ).toBeNull();
+    expect(
+      inspectorSlot
+        .querySelector("#media-inspector-drop-zone")
+        ?.classList.contains("has-file"),
+    ).toBe(true);
+    expect(
+      inspectorSlot.querySelector("#media-inspector-file-path")?.textContent,
+    ).toBe("/tmp/video.mp4");
 
     inspectButton.click();
     await Promise.resolve();
