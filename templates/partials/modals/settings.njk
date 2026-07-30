@@ -1065,6 +1065,44 @@
                             </span>
                           </label>
                         </li>
+                        <li class="settings-control settings-player-position-row">
+                          <div class="settings-player-control-copy">
+                            <i class="fa-solid fa-arrows-up-down" aria-hidden="true"></i>
+                            <span>
+                              <strong data-i18n="settings.player.controlsPosition">
+                                Положение панели
+                              </strong>
+                              <small data-i18n="settings.player.controlsPositionHint">
+                                Разместите управление сверху или снизу окна Player.
+                              </small>
+                            </span>
+                          </div>
+                          <div
+                            class="settings-player-segment"
+                            role="radiogroup"
+                            data-i18n-aria="settings.player.controlsPosition"
+                            aria-label="Положение панели"
+                          >
+                            <button
+                              type="button"
+                              role="radio"
+                              aria-checked="true"
+                              data-player-controls-position="top"
+                              data-i18n="settings.player.controlsPosition.top"
+                            >
+                              Сверху
+                            </button>
+                            <button
+                              type="button"
+                              role="radio"
+                              aria-checked="false"
+                              data-player-controls-position="bottom"
+                              data-i18n="settings.player.controlsPosition.bottom"
+                            >
+                              Снизу
+                            </button>
+                          </div>
+                        </li>
                         <li class="settings-control">
                           <input type="checkbox" id="settings-player-background-playback" />
                           <label for="settings-player-background-playback">

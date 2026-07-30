@@ -459,12 +459,11 @@
 
     &.active {
       border-color: rgba(var(--color-accent-rgb), 0.32);
-      background:
-        linear-gradient(
-          90deg,
-          rgba(var(--color-accent-rgb), 0.18),
-          rgba(var(--color-accent-rgb), 0.07)
-        );
+      background: linear-gradient(
+        90deg,
+        rgba(var(--color-accent-rgb), 0.18),
+        rgba(var(--color-accent-rgb), 0.07)
+      );
       color: var(--color-accent);
       box-shadow: inset 3px 0 0 rgba(var(--color-accent-rgb), 0.84);
     }
@@ -514,8 +513,7 @@
   }
 
   &.is-entering {
-    animation: settings-pane-enter var(--settings-duration)
-      var(--settings-ease);
+    animation: settings-pane-enter var(--settings-duration) var(--settings-ease);
   }
 }
 
@@ -1305,6 +1303,7 @@
 }
 
 .settings-parallel-item,
+.settings-player-position-row,
 .settings-player-repeat-row,
 .settings-player-volume-row {
   display: flex;
@@ -1908,7 +1907,6 @@
       clip: rect(0, 0, 0, 0);
     }
   }
-
 }
 
 @media (max-width: 900px) {
@@ -2057,6 +2055,7 @@
   }
 
   .settings-control--split,
+  .settings-player-position-row,
   .settings-player-repeat-row,
   .settings-player-volume-row {
     align-items: stretch;

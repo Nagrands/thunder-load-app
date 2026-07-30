@@ -2,8 +2,8 @@ const AUTOHIDE_DELAY_MS = 2500;
 
 export function createControlsVisibility({
   root,
-  dock,
-  lockRegions = [dock],
+  controlsSurface,
+  lockRegions = [controlsSurface],
   delay = AUTOHIDE_DELAY_MS,
 }) {
   let active = false;

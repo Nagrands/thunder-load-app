@@ -15,7 +15,7 @@ import {
 import createMediaLibraryView from "./mediaLibraryView.js";
 import createMediaSessionManager from "./mediaSessionManager.js";
 import createPlaybackControlsView from "./playbackControlsView.js";
-import { refreshPlayerIcons } from "./playerIcons.js";
+import { refreshPlayerIcons, setPlayerIcon } from "./playerIcons.js";
 import createPlayerPresentationView from "./playerPresentationView.js";
 import createPlayerContextMenu from "./playerContextMenu.js";
 import createPlaylistRenderer from "./playlistRenderer.js";
@@ -73,7 +73,7 @@ export function createNowPlayingView({
   const mediaSession = createMediaSessionManager({ controller });
   const playlist = root.querySelector(".now-playing__playlist");
   const errorPanel = root.querySelector(".now-playing__error");
-  const dock = root.querySelector(".now-playing__dock");
+  const playbackControls = root.querySelector('[data-ui="playback-controls"]');
   const visualizerLayer = root.querySelector('[data-ui="audio-visualizer"]');
   const visualizerCanvas = root.querySelector('[data-ui="visualizer-canvas"]');
   const visualizerPanel = root.querySelector('[data-ui="visualizer-panel"]');
@@ -106,7 +106,6 @@ export function createNowPlayingView({
   const volume = root.querySelector('[data-action="volume"]');
   const volumePercent = root.querySelector('[data-ui="volume-percent"]');
   const status = root.querySelector(".now-playing__status");
-  const brandLabel = root.querySelector('[data-ui="brand-label"]');
   const fullscreenButton = root.querySelector('[data-action="fullscreen"]');
   const playButton = root.querySelector('[data-action="play-pause"]');
   const muteButton = root.querySelector('[data-action="mute"]');
@@ -116,6 +115,16 @@ export function createNowPlayingView({
   const currentTime = root.querySelector('[data-ui="current-time"]');
   const duration = root.querySelector('[data-ui="duration"]');
   const playerMenu = root.querySelector('[data-ui="player-menu"]');
+  const playerMenuTrigger = root.querySelector(
+    '[data-action="toggle-player-menu"]',
+  );
+  const controlsPositionButton = root.querySelector(
+    '[data-action="toggle-controls-position"]',
+  );
+  playerMenuTrigger?.setAttribute("aria-haspopup", "menu");
+  playerMenuTrigger?.setAttribute("aria-expanded", "false");
+  playerMenuTrigger?.setAttribute("aria-controls", "now-playing-player-menu");
+  playerMenu.id = "now-playing-player-menu";
   const addMenu = root.querySelector('[data-ui="sidebar-add-menu"]');
   const addMenuTrigger = root.querySelector('[data-action="toggle-add-menu"]');
   addMenuTrigger?.setAttribute("aria-haspopup", "menu");
@@ -154,8 +163,8 @@ export function createNowPlayingView({
   const renderPlaylist = createPlaylistRenderer(playlist);
   const controlsVisibility = createControlsVisibility({
     root,
-    dock,
-    lockRegions: [dock, visualizerPanel, playerTopbar],
+    controlsSurface: playbackControls,
+    lockRegions: [playerTopbar, visualizerPanel, playerMenu],
   });
   const visualizer = createAudioVisualizerController({
     canvas: visualizerCanvas,
@@ -184,10 +193,39 @@ export function createNowPlayingView({
       status.textContent = error?.message || t("nowPlaying.error");
     },
   });
+  function syncControlsPosition(position) {
+    const nextPosition = position === "bottom" ? "bottom" : "top";
+    const bottom = nextPosition === "bottom";
+    root.dataset.controlsPosition = nextPosition;
+    root.classList.toggle("is-controls-bottom", bottom);
+    const labelKey = bottom
+      ? "nowPlaying.controlsPosition.moveTop"
+      : "nowPlaying.controlsPosition.moveBottom";
+    const label = t(labelKey);
+    controlsPositionButton.dataset.i18nAria = labelKey;
+    controlsPositionButton.setAttribute("aria-label", label);
+    const labelElement = controlsPositionButton.querySelector("span");
+    if (labelElement) {
+      labelElement.dataset.i18n = labelKey;
+      labelElement.textContent = label;
+    }
+    setPlayerIcon(
+      controlsPositionButton,
+      bottom ? "panel-top" : "panel-bottom",
+    );
+    playerTopbar
+      .querySelectorAll('[data-bs-toggle="tooltip"]')
+      .forEach((element) => {
+        element.dataset.bsPlacement = bottom ? "top" : "bottom";
+      });
+    if (initialized) initTooltips(playerTopbar);
+  }
   const preferences = createNowPlayingPreferences({
     backgroundButton: root.querySelector('[data-action="background-playback"]'),
     pinButton: root.querySelector('[data-action="pin-sidebar"]'),
+    positionButton: controlsPositionButton,
     overlayVisibility,
+    onControlsPositionChange: syncControlsPosition,
     onChange: () => {
       queuePersistence();
       publishSettingsState();
@@ -196,7 +234,6 @@ export function createNowPlayingView({
   const updateControls = createPlaybackControlsView({
     root,
     controlsVisibility,
-    brandLabel,
     playButton,
     muteButton,
     shuffleButton,
@@ -206,6 +243,7 @@ export function createNowPlayingView({
     volumePercent,
     currentTime,
     duration,
+    controlsSurface: playbackControls,
   });
   const presentation = createPlayerPresentationView({ root });
   const timelinePreview = createTimelinePreviewController({
@@ -229,9 +267,11 @@ export function createNowPlayingView({
     getNativeAudioTrackState: () => controller.getNativeAudioTrackState(),
     onOpenChange: (open) =>
       controlsVisibility.setLocked(
-        open || dock.contains(document.activeElement),
+        open || playerTopbar.contains(document.activeElement),
       ),
     onSelect: switchAudioTrack,
+    getReturnFocus: (trigger) =>
+      trigger.closest('[data-ui="player-menu"]') ? playerMenuTrigger : trigger,
   });
   const transientQueue = createTransientQueue({
     onChange: renderTransientQueue,
@@ -542,7 +582,7 @@ export function createNowPlayingView({
     const nextControlTooltipKey = `${snapshot.isPlaying}:${snapshot.isLoading}:${snapshot.muted}:${snapshot.repeat}`;
     if (nextControlTooltipKey !== controlTooltipKey) {
       controlTooltipKey = nextControlTooltipKey;
-      initTooltips(dock);
+      initTooltips(playerTopbar);
     }
     count.textContent = String(visiblePlaylistQueue.length);
     root.classList.toggle("is-empty", snapshot.queue.length === 0);
@@ -622,6 +662,7 @@ export function createNowPlayingView({
 
   function onI18nChanged() {
     applyI18n(root);
+    syncControlsPosition(preferences.getState().controlsPosition);
     if (latestSnapshot) {
       updateControls(latestSnapshot);
       presentation.update(latestSnapshot);
@@ -1033,13 +1074,17 @@ export function createNowPlayingView({
     }
     if (commandId === PLAYER_COMMANDS.VOLUME_DOWN) {
       if (!hasTrack) return false;
+      const nextVolume = Math.max(0, snapshot.volume - 0.05);
+      if (!snapshot.muted && nextVolume === snapshot.volume) return false;
       showVolumeFeedback();
-      return controller.setVolume(snapshot.volume - 0.05);
+      return controller.setVolume(nextVolume);
     }
     if (commandId === PLAYER_COMMANDS.VOLUME_UP) {
       if (!hasTrack) return false;
+      const nextVolume = Math.min(1, snapshot.volume + 0.05);
+      if (!snapshot.muted && nextVolume === snapshot.volume) return false;
       showVolumeFeedback();
-      return controller.setVolume(snapshot.volume + 0.05);
+      return controller.setVolume(nextVolume);
     }
     if (commandId === PLAYER_COMMANDS.TOGGLE_SHUFFLE) {
       return hasQueue ? controller.toggleShuffle() : false;
@@ -1101,16 +1146,21 @@ export function createNowPlayingView({
     return true;
   }
 
+  function closePlayerMenu({ restoreFocus = false } = {}) {
+    if (!playerMenu || playerMenu.hidden) return false;
+    playerMenu.hidden = true;
+    playerMenuTrigger?.setAttribute("aria-expanded", "false");
+    if (restoreFocus) playerMenuTrigger?.focus();
+    return true;
+  }
+
   function toggleAddMenu() {
     if (!addMenu) return false;
     const expanded = addMenu.hidden;
     addMenu.hidden = !expanded;
     addMenuTrigger?.setAttribute("aria-expanded", String(expanded));
     if (expanded) {
-      playerMenu.hidden = true;
-      root
-        .querySelector('[data-action="toggle-player-menu"]')
-        ?.setAttribute("aria-expanded", "false");
+      closePlayerMenu();
       addMenu.querySelector('[role="menuitem"]')?.focus();
     }
     return true;
@@ -1118,32 +1168,25 @@ export function createNowPlayingView({
 
   async function handleAction(action, target) {
     if (action?.startsWith("placeholder-")) return false;
-    const audioAction = audioTracks?.handleAction(action, target);
-    if (audioAction !== undefined) {
-      if (action === "toggle-audio-tracks") {
-        playerMenu.hidden = true;
-        root
-          .querySelector('[data-action="toggle-player-menu"]')
-          ?.setAttribute("aria-expanded", "false");
-      }
-      return audioAction;
-    }
     if (action === "toggle-player-menu") {
       closeAddMenu();
-      playerMenu.hidden = !playerMenu.hidden;
-      target.setAttribute("aria-expanded", String(!playerMenu.hidden));
-      if (!playerMenu.hidden) {
-        playerMenu.querySelector("button")?.focus();
+      const expanded = playerMenu.hidden;
+      playerMenu.hidden = !expanded;
+      playerMenuTrigger?.setAttribute("aria-expanded", String(expanded));
+      if (expanded) {
+        playerMenu.querySelector('[role="menuitem"]:not([hidden])')?.focus();
       }
       return true;
     }
+    if (target.closest('[data-ui="player-menu"]')) {
+      closePlayerMenu({ restoreFocus: action !== "toggle-audio-tracks" });
+    }
+    const audioAction = audioTracks?.handleAction(action, target);
+    if (audioAction !== undefined) return audioAction;
     if (action === "toggle-add-menu") return toggleAddMenu();
     if (target.closest('[data-ui="sidebar-add-menu"]')) closeAddMenu();
     const playerCommand = PLAYER_UI_ACTIONS[action];
-    if (playerCommand) {
-      playerMenu.hidden = true;
-      return executeCommand(playerCommand);
-    }
+    if (playerCommand) return executeCommand(playerCommand);
     if (preferences.handleAction(action)) return true;
     if (action === "toggle-visualizer-settings") {
       setVisualizerSettingsExpanded(!visualizerSettingsExpanded);
@@ -1157,7 +1200,6 @@ export function createNowPlayingView({
     if (action === "clear") return clearQueue();
     if (action === "clear-media-library") return clearQueue();
     if (action === "close-playback") {
-      playerMenu.hidden = true;
       const closed = controller.closeCurrent();
       if (closed) showLibrary();
       return closed;
@@ -1398,7 +1440,7 @@ export function createNowPlayingView({
       !event.target.closest('[data-ui="player-menu"]') &&
       actionTarget?.dataset.action !== "toggle-player-menu"
     ) {
-      playerMenu.hidden = true;
+      closePlayerMenu();
     }
     if (!actionTarget || !root.contains(actionTarget)) return;
     void handleAction(actionTarget.dataset.action, actionTarget);
@@ -1406,6 +1448,51 @@ export function createNowPlayingView({
 
   function onKeydown(event) {
     if (audioTracks?.handleKeydown(event)) return;
+    const playerMenuItem = event.target.closest(
+      '[data-ui="player-menu"] [role="menuitem"]',
+    );
+    if (playerMenuItem && event.key === "Escape") {
+      event.preventDefault();
+      event.stopPropagation();
+      closePlayerMenu({ restoreFocus: true });
+      return;
+    }
+    if (
+      playerMenuItem &&
+      ["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)
+    ) {
+      event.preventDefault();
+      const items = [
+        ...playerMenu.querySelectorAll(
+          '[role="menuitem"]:not([disabled]):not([hidden])',
+        ),
+      ];
+      const current = items.indexOf(playerMenuItem);
+      const index =
+        event.key === "Home"
+          ? 0
+          : event.key === "End"
+            ? items.length - 1
+            : (current + (event.key === "ArrowDown" ? 1 : -1) + items.length) %
+              items.length;
+      items[index]?.focus();
+      return;
+    }
+    if (
+      event.target === playerMenuTrigger &&
+      ["ArrowDown", "ArrowUp"].includes(event.key)
+    ) {
+      event.preventDefault();
+      void handleAction("toggle-player-menu", playerMenuTrigger).then(() => {
+        const items = [
+          ...playerMenu.querySelectorAll(
+            '[role="menuitem"]:not([disabled]):not([hidden])',
+          ),
+        ];
+        items[event.key === "ArrowUp" ? items.length - 1 : 0]?.focus();
+      });
+      return;
+    }
     const addMenuItem = event.target.closest(
       '[data-ui="sidebar-add-menu"] [role="menuitem"]',
     );
@@ -1510,7 +1597,9 @@ export function createNowPlayingView({
       return;
     }
     if (event.key === "Escape" && !playerMenu.hidden) {
-      playerMenu.hidden = true;
+      event.preventDefault();
+      event.stopPropagation();
+      closePlayerMenu({ restoreFocus: true });
       return;
     }
     if (!row || !["Enter", " "].includes(event.key)) return;
@@ -1571,8 +1660,13 @@ export function createNowPlayingView({
       controller.seek(event.target.value);
     }
     if (event.target.matches('[data-action="volume"]')) {
+      const nextVolume = Number(event.target.value);
+      const effectiveVolume = latestSnapshot?.muted
+        ? 0
+        : latestSnapshot?.volume;
+      if (nextVolume === effectiveVolume) return;
       showVolumeFeedback();
-      controller.setVolume(event.target.value);
+      controller.setVolume(nextVolume);
     }
   }
 
@@ -1608,7 +1702,6 @@ export function createNowPlayingView({
     }
     event.preventDefault();
     controlsVisibility.show();
-    showVolumeFeedback();
     const currentPercent = Math.round(
       (latestSnapshot?.muted ? 0 : latestSnapshot?.volume || 0) * 100,
     );
@@ -1616,6 +1709,8 @@ export function createNowPlayingView({
       100,
       Math.max(0, currentPercent + (event.deltaY < 0 ? 5 : -5)),
     );
+    if (nextPercent === currentPercent) return;
+    showVolumeFeedback();
     controller.setVolume(nextPercent / 100);
   }
 
@@ -1646,7 +1741,7 @@ export function createNowPlayingView({
       "button, input, select, textarea, a, [role='button'], [contenteditable='true']",
     );
     const overlayTarget = event.target.closest(
-      ".now-playing__sidebar, .now-playing__dock, .now-playing__visualizer-panel, .now-playing__player-topbar, .now-playing__player-menu",
+      ".now-playing__sidebar, .now-playing__visualizer-panel, .now-playing__player-topbar, .now-playing__player-menu",
     );
     const playerStage = event.target.closest('[data-ui="player-stage"]');
     if (

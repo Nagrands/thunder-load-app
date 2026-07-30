@@ -6,6 +6,7 @@ export { DEFAULT_VISUALIZER_SETTINGS };
 export const DEFAULT_PLAYER_SETTINGS = Object.freeze({
   sidebarPinned: false,
   backgroundPlayback: true,
+  controlsPosition: "top",
   shuffle: false,
   repeat: "off",
   volume: 1,

@@ -9,7 +9,7 @@ const setupBootstrapMock = () => {
       this._config = { ...config };
       this.tip = null;
       this.hide = jest.fn();
-      this.dispose = jest.fn();
+      this.dispose = jest.fn(() => instances.delete(el));
       this.setContent = jest.fn();
       this._isShown = jest.fn(() => true);
     }
@@ -100,6 +100,25 @@ describe("tooltipInitializer", () => {
     });
     expect(btn.hasAttribute("title")).toBe(false);
     expect(btn.getAttribute("data-bs-original-title")).toBe("Beta");
+  });
+
+  test("recreates a tooltip when its placement changes", () => {
+    const { MockTooltip, instances } = setupBootstrapMock();
+    document.body.innerHTML =
+      '<button id="a" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Alpha"></button>';
+
+    const btn = document.getElementById("a");
+    initTooltips(document);
+    const first = instances.get(btn);
+
+    btn.dataset.bsPlacement = "top";
+    initTooltips(document);
+
+    expect(first.dispose).toHaveBeenCalled();
+    expect(MockTooltip.getOrCreateInstance).toHaveBeenCalledTimes(2);
+    expect(instances.get(btn)).not.toBe(first);
+    expect(instances.get(btn)._config.placement).toBe("top");
+    expect(btn.dataset.tooltipPlacement).toBe("top");
   });
 
   test("fallback title update without setContent does not force dispose", () => {

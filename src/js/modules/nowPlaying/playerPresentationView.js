@@ -7,18 +7,59 @@ import {
 } from "./viewUtils.js";
 
 export function createPlayerPresentationView({ root }) {
-  const floatingTitle = root.querySelector('[data-ui="floating-title"]');
-  const floatingButton = floatingTitle?.closest("button");
+  const topbarTitle = root.querySelector('[data-ui="topbar-title"]');
+  const topbarArtist = root.querySelector('[data-ui="topbar-artist"]');
+  const topbarMetadata = root.querySelector(".now-playing__topbar-metadata");
+  const topbarArtwork = root.querySelector('[data-ui="topbar-artwork"]');
+  const topbarArtworkFallback = root.querySelector(
+    '[data-ui="topbar-artwork-fallback"]',
+  );
   const badges = root.querySelector('[data-ui="media-badges"]');
   const size = root.querySelector('[data-ui="media-size"]');
   const caption = root.querySelector('[data-ui="playlist-caption"]');
   const generatedPoster = root.querySelector('[data-ui="generated-poster"]');
-  const artworkFallback = root.querySelector(
-    ".now-playing__artwork-fallback",
-  );
+  const artworkFallback = root.querySelector(".now-playing__artwork-fallback");
   let trackId = "";
   let generatedPosterTrackId = "";
   let generatedPosterSource = "";
+  let currentArtworkSource = "";
+  let topbarArtworkSource = "";
+
+  function setTopbarArtwork(source) {
+    if (!topbarArtwork) return;
+    const nextSource = String(source || "");
+    if (topbarArtworkSource === nextSource) return;
+    topbarArtworkSource = nextSource;
+    topbarArtwork.hidden = true;
+    topbarArtwork
+      .closest(".now-playing__topbar-artwork")
+      ?.classList.remove("has-image");
+    topbarArtwork.removeAttribute("src");
+    if (nextSource) topbarArtwork.src = nextSource;
+  }
+
+  function onTopbarArtworkLoad() {
+    if (
+      !topbarArtwork ||
+      !topbarArtworkSource ||
+      topbarArtwork.getAttribute("src") !== topbarArtworkSource
+    ) {
+      return;
+    }
+    topbarArtwork.hidden = false;
+    topbarArtwork
+      .closest(".now-playing__topbar-artwork")
+      ?.classList.add("has-image");
+  }
+
+  function onTopbarArtworkError() {
+    if (!topbarArtwork) return;
+    topbarArtwork.hidden = true;
+    topbarArtwork.removeAttribute("src");
+    topbarArtwork
+      .closest(".now-playing__topbar-artwork")
+      ?.classList.remove("has-image");
+  }
 
   function clearGeneratedPoster() {
     if (!generatedPoster) return;
@@ -43,15 +84,16 @@ export function createPlayerPresentationView({ root }) {
   }
 
   function onGeneratedPosterError() {
-    if (
-      generatedPoster?.getAttribute("src") === generatedPosterSource
-    ) {
+    if (generatedPoster?.getAttribute("src") === generatedPosterSource) {
       clearGeneratedPoster();
+      setTopbarArtwork(currentArtworkSource);
     }
   }
 
   generatedPoster?.addEventListener("load", onGeneratedPosterLoad);
   generatedPoster?.addEventListener("error", onGeneratedPosterError);
+  topbarArtwork?.addEventListener("load", onTopbarArtworkLoad);
+  topbarArtwork?.addEventListener("error", onTopbarArtworkError);
 
   function renderBadges(track) {
     if (!badges) return;
@@ -79,11 +121,25 @@ export function createPlayerPresentationView({ root }) {
         trackId = nextTrackId;
         clearGeneratedPoster();
       }
-      if (floatingTitle) {
-        floatingTitle.textContent =
+      currentArtworkSource = String(track?.artworkUrl || "");
+      if (topbarTitle) {
+        topbarTitle.textContent =
           track?.displayTitle || track?.title || t("nowPlaying.label");
       }
-      if (floatingButton) floatingButton.disabled = !track;
+      if (topbarArtist) {
+        topbarArtist.textContent = String(track?.artist || "");
+        topbarArtist.hidden = !topbarArtist.textContent;
+      }
+      if (topbarMetadata) topbarMetadata.disabled = !track;
+      setTopbarArtwork(
+        generatedPosterTrackId === trackId && generatedPosterSource
+          ? generatedPosterSource
+          : currentArtworkSource,
+      );
+      setPlayerIcon(
+        topbarArtworkFallback,
+        track?.kind === "audio" ? "music-2" : "clapperboard",
+      );
       setPlayerIcon(
         artworkFallback,
         track?.kind === "audio" ? "music-2" : "clapperboard",
@@ -112,6 +168,7 @@ export function createPlayerPresentationView({ root }) {
       generatedPoster.hidden = true;
       root.classList.remove("has-generated-poster");
       generatedPoster.src = dataUrl;
+      setTopbarArtwork(dataUrl);
     },
     getPosterUrl(track) {
       if (!generatedPoster?.hidden) {
@@ -125,6 +182,9 @@ export function createPlayerPresentationView({ root }) {
     dispose() {
       generatedPoster?.removeEventListener("load", onGeneratedPosterLoad);
       generatedPoster?.removeEventListener("error", onGeneratedPosterError);
+      topbarArtwork?.removeEventListener("load", onTopbarArtworkLoad);
+      topbarArtwork?.removeEventListener("error", onTopbarArtworkError);
+      setTopbarArtwork("");
       clearGeneratedPoster();
     },
   };

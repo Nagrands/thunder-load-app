@@ -24,6 +24,11 @@ export const settingsTranslations = {
     "settings.player.sidebarPinned": "Закрепить боковую панель",
     "settings.player.sidebarPinnedHint":
       "Панель плейлиста всегда остаётся доступной.",
+    "settings.player.controlsPosition": "Положение панели",
+    "settings.player.controlsPositionHint":
+      "Разместите управление сверху или снизу окна Player.",
+    "settings.player.controlsPosition.top": "Сверху",
+    "settings.player.controlsPosition.bottom": "Снизу",
     "settings.player.backgroundPlayback": "Фоновое воспроизведение",
     "settings.player.backgroundPlaybackHint":
       "Продолжать воспроизведение вне вкладки Player.",
@@ -65,8 +70,7 @@ export const settingsTranslations = {
     "settings.close.notifyHint":
       "Показывать системное уведомление при переходе в трей.",
     "settings.close.exitTitle": "Выйти из приложения",
-    "settings.close.exitHint":
-      "Полностью завершать Thunder при закрытии окна.",
+    "settings.close.exitHint": "Полностью завершать Thunder при закрытии окна.",
     "settings.downloader.title": "Вкладка «Загрузчик»",
     "settings.downloader.profile.open": "При открытии",
     "settings.downloader.profile.title": "Выбор качества загрузки",
@@ -185,8 +189,7 @@ export const settingsTranslations = {
       "Не удалось скопировать информацию о приложении",
     "settings.about.updatesError": "Не удалось запустить проверку обновлений",
     "settings.runtime.title": "Версии",
-    "settings.runtime.hint":
-      "Информация о приложении и среде выполнения.",
+    "settings.runtime.hint": "Информация о приложении и среде выполнения.",
     "settings.runtime.application": "Application",
     "settings.other.title": "Другие настройки",
     "settings.other.hint":
@@ -212,8 +215,7 @@ export const settingsTranslations = {
     "settings.shortcuts.search.empty.hint":
       "Попробуйте изменить поисковый запрос.",
     "settings.shortcuts.list.aria": "Назначения горячих клавиш",
-    "settings.shortcuts.global.disable":
-      "Отключить глобальные горячие клавиши",
+    "settings.shortcuts.global.disable": "Отключить глобальные горячие клавиши",
     "settings.shortcuts.global.hint":
       "Сочетания для перезагрузки и открытия сайтов будут отключены.",
     "settings.shortcuts.edit": "Изменить",
@@ -292,8 +294,7 @@ export const settingsTranslations = {
       "Информация о текущем файле",
     "shortcuts.actions.showCurrentMediaInfo.description":
       "Показывает сведения о текущем медиафайле.",
-    "shortcuts.actions.openShortcutSettings.title":
-      "Открыть горячие клавиши",
+    "shortcuts.actions.openShortcutSettings.title": "Открыть горячие клавиши",
     "shortcuts.actions.openShortcutSettings.description":
       "Открывает раздел горячих клавиш в настройках.",
     "shortcuts.actions.openSettings.title": "Открыть настройки",
@@ -314,8 +315,7 @@ export const settingsTranslations = {
     "shortcuts.actions.startDownload.title": "Начать скачивание",
     "shortcuts.actions.startDownload.description":
       "Запускает скачивание ссылки из поля URL.",
-    "shortcuts.actions.openDownloadsFolder.title":
-      "Открыть папку загрузок",
+    "shortcuts.actions.openDownloadsFolder.title": "Открыть папку загрузок",
     "shortcuts.actions.openDownloadsFolder.description":
       "Открывает папку с загруженными файлами.",
     "shortcuts.actions.openHistory.title": "Открыть историю",
@@ -331,14 +331,12 @@ export const settingsTranslations = {
     "shortcuts.actions.openYoutube.description":
       "Открывает YouTube в браузере.",
     "shortcuts.actions.openTwitch.title": "Открыть Twitch",
-    "shortcuts.actions.openTwitch.description":
-      "Открывает Twitch в браузере.",
+    "shortcuts.actions.openTwitch.description": "Открывает Twitch в браузере.",
     "shortcuts.actions.openVkVideo.title": "Открыть VK Видео",
     "shortcuts.actions.openVkVideo.description":
       "Открывает VK Видео в браузере.",
     "shortcuts.actions.openCoub.title": "Открыть Coub",
-    "shortcuts.actions.openCoub.description":
-      "Открывает Coub в браузере.",
+    "shortcuts.actions.openCoub.description": "Открывает Coub в браузере.",
     "settings.other.appConfig": "Настройки приложения",
     "settings.other.export": "Сохранить",
     "settings.other.import": "Загрузить",
@@ -398,12 +396,16 @@ export const settingsTranslations = {
     "settings.player.sidebarPinned": "Pin sidebar",
     "settings.player.sidebarPinnedHint":
       "Keep the playlist panel available at all times.",
+    "settings.player.controlsPosition": "Control bar position",
+    "settings.player.controlsPositionHint":
+      "Place playback controls at the top or bottom of the Player window.",
+    "settings.player.controlsPosition.top": "Top",
+    "settings.player.controlsPosition.bottom": "Bottom",
     "settings.player.backgroundPlayback": "Background playback",
     "settings.player.backgroundPlaybackHint":
       "Continue playback outside the Player tab.",
     "settings.player.playback": "Playback",
-    "settings.player.playbackHint":
-      "Configure order, repeat, and volume.",
+    "settings.player.playbackHint": "Configure order, repeat, and volume.",
     "settings.player.shuffle": "Shuffle",
     "settings.player.shuffleHint": "Play items in random order.",
     "settings.player.repeat": "Repeat",
@@ -431,8 +433,7 @@ export const settingsTranslations = {
     "settings.close.title": "App closing behavior",
     "settings.close.hint": "Choose how the app behaves when closing.",
     "settings.close.toTrayTitle": "Minimize to tray",
-    "settings.close.toTrayHint":
-      "Keep Thunder running in the background.",
+    "settings.close.toTrayHint": "Keep Thunder running in the background.",
     "settings.close.notifyTitle": "Notify on minimize",
     "settings.close.notifyHint":
       "Show a system notification when Thunder moves to the tray.",
@@ -531,7 +532,8 @@ export const settingsTranslations = {
     "settings.appearance.theme.violet": "Violet",
     "settings.appearance.interfaceHint":
       "Interface language and baseline readability.",
-    "settings.appearance.languageHint": "Language for menus, hints, and messages.",
+    "settings.appearance.languageHint":
+      "Language for menus, hints, and messages.",
     "settings.appearance.themeHint": "Theme choice and reduced visual load.",
     "settings.appearance.theme.optionHint":
       "Choose the application's color scheme.",
@@ -584,8 +586,7 @@ export const settingsTranslations = {
     "settings.shortcuts.unassigned": "Not assigned",
     "settings.shortcuts.reset.single": "Reset",
     "settings.shortcuts.reset.player": "Reset player shortcuts",
-    "settings.shortcuts.resetSingleSuccess":
-      "Shortcut restored to its default",
+    "settings.shortcuts.resetSingleSuccess": "Shortcut restored to its default",
     "settings.shortcuts.resetPlayerSuccess":
       "Player shortcuts restored to defaults",
     "settings.shortcuts.recording": "Press a new key combination…",
@@ -626,8 +627,7 @@ export const settingsTranslations = {
     "shortcuts.actions.seekBackward.description":
       "Seeks backward by 10 seconds.",
     "shortcuts.actions.seekForward.title": "Seek forward",
-    "shortcuts.actions.seekForward.description":
-      "Seeks forward by 10 seconds.",
+    "shortcuts.actions.seekForward.description": "Seeks forward by 10 seconds.",
     "shortcuts.actions.toggleMute.title": "Mute / unmute",
     "shortcuts.actions.toggleMute.description":
       "Mutes audio or restores the previous volume.",
@@ -651,8 +651,7 @@ export const settingsTranslations = {
     "shortcuts.actions.cycleRepeat.title": "Repeat mode",
     "shortcuts.actions.cycleRepeat.description":
       "Cycles queue repeat, current-file repeat, and off.",
-    "shortcuts.actions.showCurrentMediaInfo.title":
-      "Current file information",
+    "shortcuts.actions.showCurrentMediaInfo.title": "Current file information",
     "shortcuts.actions.showCurrentMediaInfo.description":
       "Shows information about the current media file.",
     "shortcuts.actions.openShortcutSettings.title": "Open shortcuts",
@@ -670,8 +669,7 @@ export const settingsTranslations = {
     "shortcuts.actions.openTools.title": "Open Tools",
     "shortcuts.actions.openTools.description": "Switches to the Tools section.",
     "shortcuts.actions.openBackup.title": "Open Backup",
-    "shortcuts.actions.openBackup.description":
-      "Opens the backup tool.",
+    "shortcuts.actions.openBackup.description": "Opens the backup tool.",
     "shortcuts.actions.startDownload.title": "Start download",
     "shortcuts.actions.startDownload.description":
       "Starts downloading the link in the URL field.",
@@ -692,8 +690,7 @@ export const settingsTranslations = {
     "shortcuts.actions.openTwitch.title": "Open Twitch",
     "shortcuts.actions.openTwitch.description": "Opens Twitch in a browser.",
     "shortcuts.actions.openVkVideo.title": "Open VK Video",
-    "shortcuts.actions.openVkVideo.description":
-      "Opens VK Video in a browser.",
+    "shortcuts.actions.openVkVideo.description": "Opens VK Video in a browser.",
     "shortcuts.actions.openCoub.title": "Open Coub",
     "shortcuts.actions.openCoub.description": "Opens Coub in a browser.",
     "settings.other.appConfig": "App settings",

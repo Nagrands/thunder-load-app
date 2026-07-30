@@ -956,6 +956,7 @@ describe("network status setting removal", () => {
         data: {
           sidebarPinned: true,
           backgroundPlayback: false,
+          controlsPosition: "bottom",
           shuffle: true,
           repeat: "all",
           volume: 0.45,
@@ -979,6 +980,7 @@ describe("network status setting removal", () => {
     expect(config.player).toEqual({
       sidebarPinned: true,
       backgroundPlayback: false,
+      controlsPosition: "bottom",
       shuffle: true,
       repeat: "all",
       volume: 0.45,
@@ -1097,6 +1099,7 @@ describe("network status setting removal", () => {
       player: {
         sidebarPinned: true,
         backgroundPlayback: false,
+        controlsPosition: "bottom",
         shuffle: true,
         repeat: "one",
         volume: 0.2,
@@ -1116,6 +1119,7 @@ describe("network status setting removal", () => {
     expect(window.electron.nowPlaying.updateSettings).toHaveBeenCalledWith({
       sidebarPinned: true,
       backgroundPlayback: false,
+      controlsPosition: "bottom",
       shuffle: true,
       repeat: "one",
       volume: 0.2,
@@ -1156,6 +1160,7 @@ describe("network status setting removal", () => {
     expect(window.electron.nowPlaying.updateSettings).toHaveBeenCalledWith({
       sidebarPinned: false,
       backgroundPlayback: true,
+      controlsPosition: "top",
       shuffle: false,
       repeat: "off",
       volume: 1,

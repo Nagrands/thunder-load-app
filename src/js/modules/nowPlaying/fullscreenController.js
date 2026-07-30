@@ -31,6 +31,13 @@ export function createFullscreenController({
     );
     button.setAttribute("aria-label", label);
     button.setAttribute("title", label);
+    const text = button.querySelector("span");
+    if (text) {
+      text.dataset.i18n = fullscreen
+        ? "nowPlaying.exitFullscreen"
+        : "nowPlaying.enterFullscreen";
+      text.textContent = label;
+    }
     setPlayerIcon(button, fullscreen ? "minimize" : "maximize");
   }
 

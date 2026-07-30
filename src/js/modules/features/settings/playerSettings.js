@@ -24,6 +24,7 @@ export function normalizePlayerSettings(value = {}) {
       typeof value.backgroundPlayback === "boolean"
         ? value.backgroundPlayback
         : true,
+    controlsPosition: value.controlsPosition === "bottom" ? "bottom" : "top",
     shuffle: value.shuffle === true,
     repeat: ["off", "one", "all"].includes(value.repeat) ? value.repeat : "off",
     volume,
@@ -47,6 +48,9 @@ export function createPlayerSettingsController({
   const backgroundPlayback = root.getElementById(
     "settings-player-background-playback",
   );
+  const controlsPosition = [
+    ...root.querySelectorAll("[data-player-controls-position]"),
+  ];
   const shuffle = root.getElementById("settings-player-shuffle");
   const repeat = [...root.querySelectorAll("[data-player-repeat]")];
   const volume = root.getElementById("settings-player-volume");
@@ -54,6 +58,7 @@ export function createPlayerSettingsController({
   if (
     !sidebarPinned ||
     !backgroundPlayback ||
+    !controlsPosition.length ||
     !shuffle ||
     !repeat.length ||
     !volume ||
@@ -69,6 +74,13 @@ export function createPlayerSettingsController({
     state = normalizePlayerSettings(nextState);
     sidebarPinned.checked = state.sidebarPinned;
     backgroundPlayback.checked = state.backgroundPlayback;
+    controlsPosition.forEach((button) => {
+      const selected =
+        button.dataset.playerControlsPosition === state.controlsPosition;
+      button.classList.toggle("is-active", selected);
+      button.setAttribute("aria-checked", String(selected));
+      button.tabIndex = selected ? 0 : -1;
+    });
     shuffle.checked = state.shuffle;
     repeat.forEach((button) => {
       const selected = button.dataset.playerRepeat === state.repeat;
@@ -129,6 +141,31 @@ export function createPlayerSettingsController({
     "change",
     () => void update({ backgroundPlayback: backgroundPlayback.checked }),
   );
+  controlsPosition.forEach((button) => {
+    button.addEventListener(
+      "click",
+      () =>
+        void update({
+          controlsPosition: button.dataset.playerControlsPosition,
+        }),
+    );
+    button.addEventListener("keydown", (event) => {
+      if (
+        !["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)
+      ) {
+        return;
+      }
+      event.preventDefault();
+      const index = controlsPosition.indexOf(button);
+      const offset = ["ArrowRight", "ArrowDown"].includes(event.key) ? 1 : -1;
+      const nextButton =
+        controlsPosition[
+          (index + offset + controlsPosition.length) % controlsPosition.length
+        ];
+      nextButton?.focus();
+      nextButton?.click();
+    });
+  });
   shuffle.addEventListener(
     "change",
     () => void update({ shuffle: shuffle.checked }),

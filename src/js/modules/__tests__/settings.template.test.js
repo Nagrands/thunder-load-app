@@ -88,9 +88,7 @@ describe("settings template structure", () => {
       'data-settings-search-id="appearance-theme"',
     );
     expect(appearancePaneHtml).not.toContain("settings-appearance-section");
-    expect(appearancePaneHtml).not.toContain(
-      "settings-card--appearance-panel",
-    );
+    expect(appearancePaneHtml).not.toContain("settings-card--appearance-panel");
     [
       "language-dropdown-btn",
       "language-dropdown-menu",
@@ -148,9 +146,7 @@ describe("settings template structure", () => {
     const html = fs.readFileSync(indexPath, "utf8");
     const downloaderTab = html.indexOf('id="settings-section-tab-downloader"');
     const playerTab = html.indexOf('id="settings-section-tab-player"');
-    const appearanceTab = html.indexOf(
-      'id="settings-section-tab-appearance"',
-    );
+    const appearanceTab = html.indexOf('id="settings-section-tab-appearance"');
 
     expect(downloaderTab).toBeLessThan(playerTab);
     expect(playerTab).toBeLessThan(appearanceTab);
@@ -165,6 +161,8 @@ describe("settings template structure", () => {
       "settings-player-volume-value",
     ].forEach((id) => expect(html).toContain(`id="${id}"`));
     expect(html).toContain('role="radiogroup"');
+    expect(html).toContain('data-player-controls-position="top"');
+    expect(html).toContain('data-player-controls-position="bottom"');
     expect(html).toContain('data-player-repeat="off"');
     expect(html).toContain('data-player-repeat="one"');
     expect(html).toContain('data-player-repeat="all"');
@@ -176,6 +174,9 @@ describe("settings template structure", () => {
       "settings.player.title",
       "settings.player.behavior",
       "settings.player.sidebarPinned",
+      "settings.player.controlsPosition",
+      "settings.player.controlsPosition.top",
+      "settings.player.controlsPosition.bottom",
       "settings.player.backgroundPlayback",
       "settings.player.playback",
       "settings.player.shuffle",
@@ -202,9 +203,7 @@ describe("settings template structure", () => {
     expect(html).toContain('id="settings-section-tab-shortcuts"');
     expect(html).toContain('data-tab="shortcuts-settings"');
     expect(html).toContain('id="shortcuts-settings"');
-    expect(html).toContain(
-      'aria-labelledby="settings-section-tab-shortcuts"',
-    );
+    expect(html).toContain('aria-labelledby="settings-section-tab-shortcuts"');
     [
       "shortcuts-search",
       "shortcuts-list",
@@ -244,9 +243,7 @@ describe("settings template structure", () => {
     ["ru", "en"].forEach((locale) => {
       actionKeys.forEach((actionKey) => {
         expect(
-          settingsTranslations[locale][
-            `shortcuts.actions.${actionKey}.title`
-          ],
+          settingsTranslations[locale][`shortcuts.actions.${actionKey}.title`],
         ).toBeTruthy();
         expect(
           settingsTranslations[locale][
@@ -323,9 +320,9 @@ describe("settings template structure", () => {
     expect(generalPaneHtml).toContain(
       'id="settings-about-check-updates-button"',
     );
-    expect(
-      generalPaneHtml.match(/class="settings-icon-action"/g),
-    ).toHaveLength(3);
+    expect(generalPaneHtml.match(/class="settings-icon-action"/g)).toHaveLength(
+      3,
+    );
     expect(
       generalPaneHtml.match(/data-bs-delay='{"show":300,"hide":100}'/g),
     ).toHaveLength(3);
@@ -381,12 +378,8 @@ describe("settings template structure", () => {
     expect(html).toContain('class="settings-advanced__summary"');
     expect(html).toContain('id="settings-ytdlp-cookies-summary-state"');
     expect(html).toContain('class="settings-cookies-note"');
-    expect(html).toContain(
-      'data-i18n="settings.downloader.cookies.modeHint"',
-    );
-    expect(html).not.toContain(
-      'data-i18n="settings.downloader.cookies.title"',
-    );
+    expect(html).toContain('data-i18n="settings.downloader.cookies.modeHint"');
+    expect(html).not.toContain('data-i18n="settings.downloader.cookies.title"');
   });
 
   test("includes localized web control settings", () => {

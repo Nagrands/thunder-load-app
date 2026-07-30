@@ -8,6 +8,10 @@ function renderPlayerSettings() {
   document.body.innerHTML = `
     <input id="settings-player-sidebar-pinned" type="checkbox">
     <input id="settings-player-background-playback" type="checkbox">
+    <div role="radiogroup">
+      <button type="button" role="radio" data-player-controls-position="top"></button>
+      <button type="button" role="radio" data-player-controls-position="bottom"></button>
+    </div>
     <input id="settings-player-shuffle" type="checkbox">
     <div role="radiogroup">
       <button type="button" role="radio" data-player-repeat="off"></button>
@@ -21,6 +25,7 @@ function renderPlayerSettings() {
 const completeState = (overrides = {}) => ({
   sidebarPinned: false,
   backgroundPlayback: true,
+  controlsPosition: "top",
   shuffle: false,
   repeat: "off",
   volume: 1,
@@ -44,6 +49,7 @@ describe("Player settings controller", () => {
         success: true,
         data: completeState({
           sidebarPinned: true,
+          controlsPosition: "bottom",
           repeat: "all",
           volume: 0.64,
         }),
@@ -65,6 +71,11 @@ describe("Player settings controller", () => {
     ).toBe(true);
     expect(
       document
+        .querySelector('[data-player-controls-position="bottom"]')
+        .getAttribute("aria-checked"),
+    ).toBe("true");
+    expect(
+      document
         .querySelector('[data-player-repeat="all"]')
         .getAttribute("aria-checked"),
     ).toBe("true");
@@ -74,6 +85,38 @@ describe("Player settings controller", () => {
         .getElementById("settings-player-volume")
         .getAttribute("aria-valuetext"),
     ).toBe("64%");
+    controller.dispose();
+  });
+
+  test("saves control position and supports radiogroup arrow navigation", async () => {
+    const api = {
+      getState: jest.fn(),
+      updateSettings: jest.fn(async (patch) => ({
+        success: true,
+        data: completeState(patch),
+      })),
+    };
+    const {
+      createPlayerSettingsController,
+    } = require("../features/settings/playerSettings.js");
+    const controller = createPlayerSettingsController({ api });
+    const top = document.querySelector('[data-player-controls-position="top"]');
+    const bottom = document.querySelector(
+      '[data-player-controls-position="bottom"]',
+    );
+
+    top.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }),
+    );
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(api.updateSettings).toHaveBeenCalledWith({
+      controlsPosition: "bottom",
+    });
+    expect(bottom.getAttribute("aria-checked")).toBe("true");
+    expect(bottom.tabIndex).toBe(0);
+    expect(document.activeElement).toBe(bottom);
     controller.dispose();
   });
 
@@ -160,6 +203,7 @@ describe("Player settings controller", () => {
       new CustomEvent("now-playing:settings-state", {
         detail: completeState({
           backgroundPlayback: false,
+          controlsPosition: "bottom",
           shuffle: true,
           repeat: "one",
           volume: 0.8,
@@ -174,6 +218,11 @@ describe("Player settings controller", () => {
     expect(document.getElementById("settings-player-shuffle").checked).toBe(
       true,
     );
+    expect(
+      document
+        .querySelector('[data-player-controls-position="bottom"]')
+        .getAttribute("aria-checked"),
+    ).toBe("true");
     expect(
       document
         .querySelector('[data-player-repeat="one"]')

@@ -177,18 +177,45 @@ describe("Now Playing view", () => {
       ),
     );
     expect(new Set(hintedCommands)).toEqual(new Set(PLAYER_SHORTCUT_COMMANDS));
+    expect(view.element.querySelector('[data-ui="brand-label"]')).toBeNull();
     expect(
-      view.element.querySelector('[data-ui="brand-label"]').textContent,
-    ).toBe("nowPlaying.label");
-    expect(
-      view.element.querySelector('[data-ui="floating-title"]').textContent,
+      view.element.querySelector('[data-ui="topbar-title"]').textContent,
     ).toBe("Demo track");
+    expect(
+      view.element.querySelector('[data-ui="topbar-artist"]').textContent,
+    ).toBe("Thunder");
     expect(
       view.element.querySelector('[data-ui="player-tab-menu"]'),
     ).not.toBeNull();
+    expect(view.element.querySelector(".now-playing__header-title")).toBeNull();
+    expect(view.element.querySelector(".now-playing__dock")).toBeNull();
     expect(
-      view.element.querySelector(".now-playing__header-title").textContent,
-    ).toBe("tabs.nowPlaying");
+      view.element.querySelectorAll(
+        '.now-playing__player-topbar [data-action="play-pause"]',
+      ),
+    ).toHaveLength(1);
+    expect(
+      view.element.querySelectorAll(
+        '.now-playing__player-topbar [data-action="volume"]',
+      ),
+    ).toHaveLength(1);
+    ["shuffle", "repeat", "fullscreen", "toggle-visualizer-settings"].forEach(
+      (action) => {
+        expect(
+          view.element.querySelectorAll(
+            `.now-playing__layout > [data-action="${action}"], .now-playing__player-menu [data-action="${action}"]`,
+          ),
+        ).toHaveLength(1);
+      },
+    );
+    expect(
+      view.element.querySelector('[data-ui="playback-controls"]'),
+    ).not.toBeNull();
+    expect(view.element.dataset.controlsPosition).toBe("top");
+    expect(view.element.classList.contains("is-controls-bottom")).toBe(false);
+    expect(
+      view.element.querySelectorAll('[data-action="toggle-player-menu"]'),
+    ).toHaveLength(1);
     expect(
       view.element.querySelectorAll(
         '[data-action^="placeholder-subtitles"], [data-action="placeholder-mini-player"], [data-action="placeholder-picture"], [data-action="placeholder-settings"]',
@@ -208,6 +235,89 @@ describe("Now Playing view", () => {
     expect(
       view.element.querySelector('[data-ui="media-size"]').textContent,
     ).toBe("3.2 GB");
+    view.dispose();
+  });
+
+  test("provides keyboard navigation and focus restoration for the Player menu", async () => {
+    const api = {
+      getState: jest.fn().mockResolvedValue({
+        data: {
+          playlist: { tracks: [sampleTrack] },
+          selectedTrackId: "demo",
+        },
+      }),
+      setState: jest.fn().mockResolvedValue({ success: true }),
+      importFiles: jest.fn(),
+      importFolder: jest.fn(),
+    };
+    const view = createNowPlayingView({ api });
+    document.body.appendChild(view.element);
+    await view.ready;
+    const trigger = view.element.querySelector(
+      '[data-action="toggle-player-menu"]',
+    );
+    const menu = view.element.querySelector('[data-ui="player-menu"]');
+
+    trigger.click();
+    expect(menu.hidden).toBe(false);
+    expect(trigger.getAttribute("aria-expanded")).toBe("true");
+    const items = [
+      ...menu.querySelectorAll(
+        '[role="menuitem"]:not([disabled]):not([hidden])',
+      ),
+    ];
+    expect(document.activeElement).toBe(items[0]);
+
+    items[0].dispatchEvent(
+      new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }),
+    );
+    expect(document.activeElement).toBe(items[1]);
+    items[1].dispatchEvent(
+      new KeyboardEvent("keydown", { key: "End", bubbles: true }),
+    );
+    expect(document.activeElement).toBe(items.at(-1));
+    items
+      .at(-1)
+      .dispatchEvent(
+        new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+      );
+
+    expect(menu.hidden).toBe(true);
+    expect(trigger.getAttribute("aria-expanded")).toBe("false");
+    expect(document.activeElement).toBe(trigger);
+    view.dispose();
+  });
+
+  test("uses a safe topbar artwork fallback when the cover fails", async () => {
+    const api = {
+      getState: jest.fn().mockResolvedValue({
+        data: {
+          playlist: { tracks: [sampleTrack] },
+          selectedTrackId: "demo",
+        },
+      }),
+      setState: jest.fn().mockResolvedValue({ success: true }),
+      importFiles: jest.fn(),
+      importFolder: jest.fn(),
+    };
+    const view = createNowPlayingView({ api });
+    document.body.appendChild(view.element);
+    await view.ready;
+    const artwork = view.element.querySelector('[data-ui="topbar-artwork"]');
+    const shell = artwork.closest(".now-playing__topbar-artwork");
+
+    expect(artwork.hidden).toBe(true);
+    artwork.dispatchEvent(new Event("load"));
+    expect(artwork.hidden).toBe(false);
+    expect(shell.classList.contains("has-image")).toBe(true);
+
+    artwork.dispatchEvent(new Event("error"));
+    expect(artwork.hidden).toBe(true);
+    expect(artwork.hasAttribute("src")).toBe(false);
+    expect(shell.classList.contains("has-image")).toBe(false);
+    expect(
+      shell.querySelector('[data-ui="topbar-artwork-fallback"]'),
+    ).not.toBeNull();
     view.dispose();
   });
 
@@ -411,9 +521,7 @@ describe("Now Playing view", () => {
     expect(
       view.element.querySelector(".now-playing__topbar-reveal-zone"),
     ).toBeNull();
-    expect(sidebar.querySelector(".now-playing__brand-label").hidden).toBe(
-      true,
-    );
+    expect(sidebar.querySelector(".now-playing__brand-label")).toBeNull();
     expect(sidebar.querySelector(".now-playing__library-title")).not.toBeNull();
     expect(sidebar.querySelector(".now-playing__track-stage").hidden).toBe(
       true,
@@ -483,33 +591,6 @@ describe("Now Playing view", () => {
     expect(view.element.querySelector('[data-ui="mini-player"]').hidden).toBe(
       false,
     );
-    view.dispose();
-  });
-
-  test("updates the brand label from playback state", async () => {
-    const api = {
-      getState: jest.fn().mockResolvedValue({
-        data: {
-          playlist: { tracks: [sampleTrack] },
-          selectedTrackId: "demo",
-        },
-      }),
-      setState: jest.fn().mockResolvedValue({ success: true }),
-      importFiles: jest.fn(),
-      importFolder: jest.fn(),
-    };
-    const view = createNowPlayingView({ api });
-    document.body.appendChild(view.element);
-    view.onShow();
-    await view.ready;
-    expect(
-      view.element.querySelector('[data-ui="brand-label"]').textContent,
-    ).toBe("nowPlaying.label");
-
-    view.element.querySelector('[data-action="play-pause"]').click();
-    expect(
-      view.element.querySelector('[data-ui="brand-label"]').textContent,
-    ).toBe("nowPlaying.label");
     view.dispose();
   });
 
@@ -840,15 +921,12 @@ describe("Now Playing view", () => {
     await view.ready;
     fullscreenChangedHandler(true);
 
-    const brandLabel = view.element.querySelector('[data-ui="brand-label"]');
     const fullscreenButton = view.element.querySelector(
       '[data-action="fullscreen"]',
     );
-    brandLabel.textContent = "stale";
     fullscreenButton.setAttribute("aria-label", "stale");
     window.dispatchEvent(new CustomEvent("i18n:changed"));
 
-    expect(brandLabel.textContent).toBe("nowPlaying.label");
     expect(fullscreenButton.getAttribute("aria-label")).toBe(
       "nowPlaying.exitFullscreen",
     );
@@ -1009,7 +1087,7 @@ describe("Now Playing view", () => {
       view.element.querySelector('[data-ui="audio-visualizer"]').hidden,
     ).toBe(false);
     const visualizerToggle = view.element.querySelector(
-      '.now-playing__dock [data-action="toggle-visualizer-settings"]',
+      '.now-playing__player-menu [data-action="toggle-visualizer-settings"]',
     );
     const visualizerPanel = view.element.querySelector(
       '[data-ui="visualizer-panel"]',
@@ -1144,10 +1222,6 @@ describe("Now Playing view", () => {
     expect(row.classList.contains("is-loading")).toBe(true);
     expect(row.classList.contains("is-playing")).toBe(false);
     expect(row.getAttribute("aria-busy")).toBe("true");
-    expect(
-      view.element.querySelector('[data-ui="brand-label"]').textContent,
-    ).toBe("nowPlaying.label");
-
     resolveYouTube({
       success: true,
       data: {
@@ -1268,7 +1342,7 @@ describe("Now Playing view", () => {
     }
   });
 
-  test("restores and persists background playback and sidebar pin preferences", async () => {
+  test("restores and persists Player panel preferences", async () => {
     jest.useFakeTimers();
     const api = {
       getState: jest.fn().mockResolvedValue({
@@ -1277,6 +1351,7 @@ describe("Now Playing view", () => {
           selectedTrackId: "demo",
           backgroundPlayback: false,
           sidebarPinned: true,
+          controlsPosition: "bottom",
         },
       }),
       setState: jest.fn().mockResolvedValue({ success: true }),
@@ -1291,9 +1366,23 @@ describe("Now Playing view", () => {
       '[data-action="background-playback"]',
     );
     const pinButton = view.element.querySelector('[data-action="pin-sidebar"]');
+    const positionButton = view.element.querySelector(
+      '[data-action="toggle-controls-position"]',
+    );
 
     expect(backgroundButton.getAttribute("aria-pressed")).toBe("false");
     expect(pinButton.getAttribute("aria-pressed")).toBe("true");
+    expect(positionButton.getAttribute("aria-pressed")).toBe("true");
+    expect(positionButton.textContent).toContain(
+      "nowPlaying.controlsPosition.moveTop",
+    );
+    expect(view.element.dataset.controlsPosition).toBe("bottom");
+    expect(view.element.classList.contains("is-controls-bottom")).toBe(true);
+    expect(
+      view.element
+        .querySelector('[data-action="play-pause"]')
+        .getAttribute("data-bs-placement"),
+    ).toBe("top");
     expect(view.element.classList.contains("is-sidebar-pinned")).toBe(true);
     expect(view.element.classList.contains("is-sidebar-visible")).toBe(true);
 
@@ -1305,17 +1394,32 @@ describe("Now Playing view", () => {
     HTMLMediaElement.prototype.pause.mockClear();
     view.onHide();
     expect(HTMLMediaElement.prototype.pause).toHaveBeenCalled();
+    HTMLMediaElement.prototype.pause.mockClear();
     backgroundButton.click();
     pinButton.click();
+    positionButton.click();
+    expect(HTMLMediaElement.prototype.pause).not.toHaveBeenCalled();
     jest.advanceTimersByTime(250);
     await Promise.resolve();
     await Promise.resolve();
     expect(backgroundButton.getAttribute("aria-pressed")).toBe("true");
     expect(pinButton.getAttribute("aria-pressed")).toBe("false");
+    expect(positionButton.getAttribute("aria-pressed")).toBe("false");
+    expect(positionButton.textContent).toContain(
+      "nowPlaying.controlsPosition.moveBottom",
+    );
+    expect(view.element.dataset.controlsPosition).toBe("top");
+    expect(view.element.classList.contains("is-controls-bottom")).toBe(false);
+    expect(
+      view.element
+        .querySelector('[data-action="play-pause"]')
+        .getAttribute("data-bs-placement"),
+    ).toBe("bottom");
     expect(api.setState).toHaveBeenLastCalledWith(
       expect.objectContaining({
         backgroundPlayback: true,
         sidebarPinned: false,
+        controlsPosition: "top",
       }),
     );
     jest.advanceTimersByTime(180);
@@ -1333,6 +1437,7 @@ describe("Now Playing view", () => {
           selectedTrackId: "demo",
           backgroundPlayback: true,
           sidebarPinned: false,
+          controlsPosition: "top",
           shuffle: false,
           repeat: "off",
           volume: 1,
@@ -1356,6 +1461,7 @@ describe("Now Playing view", () => {
         detail: {
           sidebarPinned: true,
           backgroundPlayback: false,
+          controlsPosition: "bottom",
           shuffle: true,
           repeat: "all",
           volume: 0.3,
@@ -1374,6 +1480,12 @@ describe("Now Playing view", () => {
         .querySelector('[data-action="background-playback"]')
         .getAttribute("aria-pressed"),
     ).toBe("false");
+    expect(view.element.classList.contains("is-controls-bottom")).toBe(true);
+    expect(
+      view.element
+        .querySelector('[data-action="toggle-controls-position"]')
+        .getAttribute("aria-pressed"),
+    ).toBe("true");
     expect(
       view.element
         .querySelector('[data-action="shuffle"]')
@@ -1394,6 +1506,7 @@ describe("Now Playing view", () => {
       expect.objectContaining({
         sidebarPinned: true,
         backgroundPlayback: false,
+        controlsPosition: "bottom",
         shuffle: true,
         repeat: "all",
         volume: 0.3,
@@ -1473,7 +1586,7 @@ describe("Now Playing view", () => {
     api.setState.mockClear();
 
     const trigger = view.element.querySelector(
-      '.now-playing__top-actions [data-action="toggle-audio-tracks"]',
+      '.now-playing__player-menu [data-action="toggle-audio-tracks"]',
     );
     trigger.click();
     await Promise.resolve();
@@ -1569,7 +1682,7 @@ describe("Now Playing view", () => {
 
     view.element
       .querySelector(
-        '.now-playing__top-actions [data-action="toggle-audio-tracks"]',
+        '.now-playing__player-menu [data-action="toggle-audio-tracks"]',
       )
       .click();
     await Promise.resolve();
@@ -1610,7 +1723,7 @@ describe("Now Playing view", () => {
     document.body.appendChild(view.element);
     await view.ready;
     const trigger = view.element.querySelector(
-      '.now-playing__top-actions [data-action="toggle-audio-tracks"]',
+      '.now-playing__player-menu [data-action="toggle-audio-tracks"]',
     );
 
     expect(trigger.getAttribute("aria-disabled")).toBe("true");
@@ -1947,13 +2060,13 @@ describe("Now Playing view", () => {
     view.element.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }));
     expect(view.element.classList.contains("is-controls-visible")).toBe(true);
     expect(view.element.classList.contains("is-cursor-hidden")).toBe(false);
-    const dock = view.element.querySelector(".now-playing__dock");
-    dock.dispatchEvent(new MouseEvent("mouseenter"));
+    const topbar = view.element.querySelector(".now-playing__player-topbar");
+    topbar.dispatchEvent(new MouseEvent("mouseenter"));
     jest.advanceTimersByTime(3000);
     expect(view.element.classList.contains("is-controls-visible")).toBe(true);
     expect(view.element.classList.contains("is-controls-locked")).toBe(true);
 
-    dock.dispatchEvent(new MouseEvent("mouseleave"));
+    topbar.dispatchEvent(new MouseEvent("mouseleave"));
     jest.advanceTimersByTime(2500);
     expect(view.element.classList.contains("is-controls-visible")).toBe(false);
     expect(view.element.classList.contains("is-cursor-hidden")).toBe(true);
@@ -2549,6 +2662,12 @@ describe("Now Playing view", () => {
     currentPoster.dispatchEvent(new Event("load"));
     expect(currentPoster.hidden).toBe(false);
     expect(currentPoster.src).toBe("data:image/jpeg;base64,eager-poster");
+    const topbarPoster = view.element.querySelector(
+      '[data-ui="topbar-artwork"]',
+    );
+    expect(topbarPoster.src).toBe("data:image/jpeg;base64,eager-poster");
+    topbarPoster.dispatchEvent(new Event("load"));
+    expect(topbarPoster.hidden).toBe(false);
     const miniPoster = view.element.querySelector('[data-ui="mini-artwork"]');
     expect(miniPoster.hidden).toBe(false);
     expect(miniPoster.src).toBe("data:image/jpeg;base64,eager-poster");
@@ -2606,11 +2725,17 @@ describe("Now Playing view", () => {
     await Promise.resolve();
 
     const poster = view.element.querySelector('[data-ui="generated-poster"]');
+    const topbarPoster = view.element.querySelector(
+      '[data-ui="topbar-artwork"]',
+    );
     poster.dispatchEvent(new Event("error"));
+    topbarPoster.dispatchEvent(new Event("error"));
 
     expect(poster.hidden).toBe(true);
     expect(poster.hasAttribute("src")).toBe(false);
     expect(view.element.classList.contains("has-generated-poster")).toBe(false);
+    expect(topbarPoster.hidden).toBe(true);
+    expect(topbarPoster.hasAttribute("src")).toBe(false);
     expect(
       view.element.querySelector(".now-playing__artwork-fallback").hidden,
     ).toBe(false);
@@ -2764,7 +2889,7 @@ describe("Now Playing view", () => {
     document.body.appendChild(view.element);
     await view.ready;
     const play = view.element.querySelector(
-      '.now-playing__dock [data-action="play-pause"]',
+      '[data-ui="playback-controls"] [data-action="play-pause"]',
     );
     play.click();
     await Promise.resolve();
@@ -2789,10 +2914,6 @@ describe("Now Playing view", () => {
         (row) => row.dataset.trackId,
       ),
     ).toEqual(["second"]);
-    expect(
-      view.element.querySelector('[data-ui="brand-label"]').textContent,
-    ).toBe("nowPlaying.label");
-
     view.element.querySelector('[data-action="show-player"]').click();
     const sidebarSwitcher = view.element.querySelector(
       '[data-ui="sidebar-playlist-switcher"]',

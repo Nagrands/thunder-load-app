@@ -349,6 +349,7 @@ function defaultState() {
     repeat: "off",
     backgroundPlayback: true,
     sidebarPinned: false,
+    controlsPosition: "top",
     visualizer: sanitizeVisualizerSettings(),
   };
 }
@@ -396,6 +397,7 @@ function sanitizeState(value) {
         : true,
     sidebarPinned:
       typeof source.sidebarPinned === "boolean" ? source.sidebarPinned : false,
+    controlsPosition: source.controlsPosition === "bottom" ? "bottom" : "top",
     visualizer: sanitizeVisualizerSettings(source.visualizer),
   };
 }

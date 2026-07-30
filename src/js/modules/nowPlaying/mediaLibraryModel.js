@@ -236,6 +236,7 @@ export function normalizeMediaLibraryState(
         ? source.backgroundPlayback
         : true,
     sidebarPinned: source.sidebarPinned === true,
+    controlsPosition: source.controlsPosition === "bottom" ? "bottom" : "top",
   };
 }
 

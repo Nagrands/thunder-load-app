@@ -77,6 +77,7 @@ function normalizeSettingsPatch(value) {
   const allowed = new Set([
     "sidebarPinned",
     "backgroundPlayback",
+    "controlsPosition",
     "shuffle",
     "repeat",
     "volume",
@@ -102,6 +103,14 @@ function normalizeSettingsPatch(value) {
     }
     patch[key] = value[key];
   });
+  if ("controlsPosition" in value) {
+    if (!["top", "bottom"].includes(value.controlsPosition)) {
+      throw Object.assign(new Error("controlsPosition must be top or bottom"), {
+        code: "INVALID_SETTINGS",
+      });
+    }
+    patch.controlsPosition = value.controlsPosition;
+  }
   if ("repeat" in value) {
     if (!["off", "one", "all"].includes(value.repeat)) {
       throw Object.assign(new Error("repeat must be off, one, or all"), {

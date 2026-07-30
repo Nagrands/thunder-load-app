@@ -28,6 +28,7 @@ describe("Now Playing media library model", () => {
       selectedTrackId: "local-two",
       volume: 0.4,
       backgroundPlayback: false,
+      controlsPosition: "bottom",
     });
 
     expect(state).toMatchObject({
@@ -36,6 +37,7 @@ describe("Now Playing media library model", () => {
       selectedTrackId: "local-two",
       volume: 0.4,
       backgroundPlayback: false,
+      controlsPosition: "bottom",
       playlists: [],
     });
     expect(state.catalog.tracks.map((track) => track.id)).toEqual([
@@ -43,6 +45,12 @@ describe("Now Playing media library model", () => {
       "local-two",
     ]);
     expect(getActiveTracksFromState(state)).toHaveLength(2);
+  });
+
+  test("defaults invalid control positions to top", () => {
+    expect(
+      normalizeMediaLibraryState({ controlsPosition: "left" }).controlsPosition,
+    ).toBe("top");
   });
 
   test("sanitizes broken playlist references and falls back to the library", () => {

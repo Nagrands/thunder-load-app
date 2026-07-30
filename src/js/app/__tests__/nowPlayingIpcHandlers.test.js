@@ -312,6 +312,7 @@ describe("nowPlayingIpcHandlers", () => {
       selectedTrackId: null,
       sidebarPinned: false,
       backgroundPlayback: true,
+      controlsPosition: "top",
       shuffle: false,
       repeat: "off",
       volume: 1,
@@ -320,6 +321,7 @@ describe("nowPlayingIpcHandlers", () => {
 
     const result = await handlers[CHANNELS.NOW_PLAYING_UPDATE_SETTINGS](null, {
       sidebarPinned: true,
+      controlsPosition: "bottom",
       shuffle: true,
       repeat: "all",
       volume: 0.35,
@@ -342,6 +344,7 @@ describe("nowPlayingIpcHandlers", () => {
         selectedTrackId: null,
         sidebarPinned: true,
         backgroundPlayback: true,
+        controlsPosition: "bottom",
         shuffle: true,
         repeat: "all",
         volume: 0.35,
@@ -373,6 +376,7 @@ describe("nowPlayingIpcHandlers", () => {
     [{}],
     [{ unknown: true }],
     [{ sidebarPinned: "yes" }],
+    [{ controlsPosition: "left" }],
     [{ repeat: "queue" }],
     [{ volume: "0.5" }],
     [{ volume: -0.1 }],
@@ -649,16 +653,19 @@ describe("nowPlayingIpcHandlers", () => {
     expect(legacyResult.data).toMatchObject({
       backgroundPlayback: true,
       sidebarPinned: false,
+      controlsPosition: "top",
     });
     expect(invalidResult.data).toMatchObject({
       backgroundPlayback: true,
       sidebarPinned: false,
+      controlsPosition: "top",
     });
     expect(store.set).toHaveBeenCalledWith(
       "nowPlaying.state",
       expect.objectContaining({
         backgroundPlayback: true,
         sidebarPinned: false,
+        controlsPosition: "top",
       }),
     );
   });

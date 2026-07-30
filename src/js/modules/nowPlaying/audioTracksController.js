@@ -87,6 +87,7 @@ export function createAudioTracksController({
   getNativeAudioTrackState,
   onOpenChange = () => {},
   onSelect,
+  getReturnFocus = (trigger) => trigger,
 }) {
   const menu = root.querySelector('[data-ui="audio-track-menu"]');
   const list = root.querySelector('[data-ui="audio-track-list"]');
@@ -199,7 +200,7 @@ export function createAudioTracksController({
       close({ restoreFocus: true });
       return true;
     }
-    returnFocus = trigger;
+    returnFocus = getReturnFocus(trigger) || trigger;
     menu.hidden = false;
     onOpenChange(true);
     setExpanded(true);

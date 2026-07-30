@@ -41,6 +41,7 @@ describe("nowPlayingState", () => {
       version: STATE_VERSION,
       activePlaylistId: "mix",
       selectedTrackId: "song",
+      controlsPosition: "top",
     });
     expect(state.catalog.tracks[0]).toMatchObject({
       displayTitle: "My title",
@@ -55,6 +56,16 @@ describe("nowPlayingState", () => {
         audioCodec: "aac",
       },
     });
+  });
+
+  test("restores supported control positions and defaults invalid values to top", () => {
+    expect(sanitizeState({ controlsPosition: "bottom" }).controlsPosition).toBe(
+      "bottom",
+    );
+    expect(sanitizeState({ controlsPosition: "side" }).controlsPosition).toBe(
+      "top",
+    );
+    expect(sanitizeState({}).controlsPosition).toBe("top");
   });
 
   test("drops unsafe or unsupported persisted audio track ids", () => {

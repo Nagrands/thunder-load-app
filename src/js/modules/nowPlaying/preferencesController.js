@@ -1,6 +1,7 @@
 const DEFAULT_PREFERENCES = Object.freeze({
   backgroundPlayback: true,
   sidebarPinned: false,
+  controlsPosition: "top",
 });
 
 function setPressed(button, pressed) {
@@ -11,7 +12,9 @@ function setPressed(button, pressed) {
 export function createNowPlayingPreferences({
   backgroundButton,
   pinButton,
+  positionButton,
   overlayVisibility,
+  onControlsPositionChange = () => {},
   onChange = () => {},
 }) {
   const state = { ...DEFAULT_PREFERENCES };
@@ -19,7 +22,9 @@ export function createNowPlayingPreferences({
   function render() {
     setPressed(backgroundButton, state.backgroundPlayback);
     setPressed(pinButton, state.sidebarPinned);
+    setPressed(positionButton, state.controlsPosition === "bottom");
     overlayVisibility.setSidebarPinned(state.sidebarPinned);
+    onControlsPositionChange(state.controlsPosition);
   }
 
   function update(key, value, { notify = true } = {}) {
@@ -40,6 +45,8 @@ export function createNowPlayingPreferences({
         typeof savedState.sidebarPinned === "boolean"
           ? savedState.sidebarPinned
           : DEFAULT_PREFERENCES.sidebarPinned;
+      state.controlsPosition =
+        savedState.controlsPosition === "bottom" ? "bottom" : "top";
       render();
     },
     handleAction(action) {
@@ -49,6 +56,13 @@ export function createNowPlayingPreferences({
       }
       if (action === "pin-sidebar") {
         update("sidebarPinned", !state.sidebarPinned);
+        return true;
+      }
+      if (action === "toggle-controls-position") {
+        state.controlsPosition =
+          state.controlsPosition === "bottom" ? "top" : "bottom";
+        render();
+        onChange({ ...state });
         return true;
       }
       return false;
@@ -65,6 +79,13 @@ export function createNowPlayingPreferences({
         state[key] = nextState[key];
         changed = true;
       });
+      if (
+        ["top", "bottom"].includes(nextState.controlsPosition) &&
+        state.controlsPosition !== nextState.controlsPosition
+      ) {
+        state.controlsPosition = nextState.controlsPosition;
+        changed = true;
+      }
       if (!changed) return false;
       render();
       if (notify) onChange({ ...state });

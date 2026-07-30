@@ -5,7 +5,6 @@ import { formatPlaybackTime, setPressedState } from "./viewUtils.js";
 export function createPlaybackControlsView({
   root,
   controlsVisibility,
-  brandLabel,
   playButton,
   muteButton,
   shuffleButton,
@@ -15,12 +14,13 @@ export function createPlaybackControlsView({
   volumePercent,
   currentTime,
   duration,
+  controlsSurface,
 }) {
   let lastCurrentSecond = null;
   let lastDurationSecond = null;
   let lastRemainingSecond = null;
   let lastVolumeKey = "";
-  let dockHideVersion = 0;
+  let controlsHideVersion = 0;
   let hadPlaybackSession = false;
   function setControlLabel(button, label) {
     if (!button) return;
@@ -57,8 +57,13 @@ export function createPlaybackControlsView({
     setPressedState(repeatButton, snapshot.repeat !== "off");
     if (repeatButton) {
       repeatButton.dataset.mode = snapshot.repeat;
-      setControlLabel(repeatButton, t(`nowPlaying.repeat.${snapshot.repeat}`));
-      let indicator = repeatButton.querySelector(".now-playing__repeat-indicator");
+      const repeatLabel = t(`nowPlaying.repeat.${snapshot.repeat}`);
+      setControlLabel(repeatButton, repeatLabel);
+      const repeatText = repeatButton.querySelector("span:not([aria-hidden])");
+      if (repeatText) repeatText.textContent = repeatLabel;
+      let indicator = repeatButton.querySelector(
+        ".now-playing__repeat-indicator",
+      );
       if (!indicator) {
         indicator = document.createElement("span");
         indicator.className = "now-playing__repeat-indicator";
@@ -135,38 +140,35 @@ export function createPlaybackControlsView({
     root.classList.toggle("is-loading", snapshot.isLoading);
     const hasPlaybackSession = Boolean(
       snapshot.currentTrack &&
-        (snapshot.isLoading || snapshot.isPlaying || !snapshot.isStopped),
+      (snapshot.isLoading || snapshot.isPlaying || !snapshot.isStopped),
     );
     root.classList.toggle("has-playback-session", hasPlaybackSession);
-    const dock = root.querySelector(".now-playing__dock");
-    if (dock) {
-      dock.setAttribute("aria-hidden", String(!hasPlaybackSession));
+    if (controlsSurface) {
+      controlsSurface.setAttribute("aria-hidden", String(!hasPlaybackSession));
       if (hasPlaybackSession) {
-        dockHideVersion += 1;
-        dock.removeAttribute("inert");
+        controlsHideVersion += 1;
+        controlsSurface.removeAttribute("inert");
       } else if (hadPlaybackSession) {
-        const hideVersion = ++dockHideVersion;
+        const hideVersion = ++controlsHideVersion;
         const reducedMotion = window.matchMedia?.(
           "(prefers-reduced-motion: reduce)",
         )?.matches;
         setTimeout(
           () => {
             if (
-              hideVersion === dockHideVersion &&
+              hideVersion === controlsHideVersion &&
               !root.classList.contains("has-playback-session")
             ) {
-              dock.setAttribute("inert", "");
+              controlsSurface.setAttribute("inert", "");
             }
           },
           reducedMotion ? 0 : 220,
         );
       } else {
-        dock.setAttribute("inert", "");
+        controlsSurface.setAttribute("inert", "");
       }
     }
     hadPlaybackSession = hasPlaybackSession;
-    brandLabel.textContent = t("nowPlaying.label");
-    brandLabel.hidden = !hasPlaybackSession;
     controlsVisibility.setPlaybackState(snapshot.isPlaying);
   };
 }

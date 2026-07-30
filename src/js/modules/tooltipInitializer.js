@@ -173,10 +173,7 @@ function ensureTooltipSafety() {
 }
 
 function replaceModifiers(text, isMac) {
-  text = text.replace(
-    /\bCommandOrControl\b/g,
-    isMac ? "Meta" : "Ctrl",
-  );
+  text = text.replace(/\bCommandOrControl\b/g, isMac ? "Meta" : "Ctrl");
   if (!isMac) return text;
 
   // Замена конкретных комбинаций
@@ -278,7 +275,16 @@ function resolveTooltipTitle(el) {
 function syncTooltipInstance(el) {
   if (!el || el.disabled) return;
   const title = resolveTooltipTitle(el);
-  const instance = tooltipInstances.get(el);
+  const placement = el.getAttribute("data-bs-placement") || "top";
+  let instance = tooltipInstances.get(el);
+
+  if (instance && el.dataset.tooltipPlacement !== placement) {
+    try {
+      instance.dispose?.();
+    } catch {}
+    tooltipInstances.delete(el);
+    instance = null;
+  }
 
   if (!title) {
     if (instance) {
@@ -290,6 +296,7 @@ function syncTooltipInstance(el) {
     try {
       el.removeAttribute("data-tooltip-managed");
       el.removeAttribute("data-tooltip-title");
+      el.removeAttribute("data-tooltip-placement");
     } catch {}
     return;
   }
@@ -327,6 +334,7 @@ function syncTooltipInstance(el) {
   if (el.dataset.tooltipManaged !== "1") {
     el.dataset.tooltipManaged = "1";
   }
+  el.dataset.tooltipPlacement = placement;
   el.removeAttribute("title");
 }
 

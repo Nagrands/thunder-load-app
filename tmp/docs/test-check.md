@@ -2,7 +2,7 @@
 
 - Автосборка списка: `npm run test-check:sync-tests`
 - Найдено файлов: 142
-- Найдено тест-кейсов (test/it): 1255
+- Найдено тест-кейсов (test/it): 1260
 
 <!-- AUTO-JEST-TESTS:START -->
 
@@ -272,8 +272,9 @@
 - [ ] normalizes equivalent source paths for deduplication
 - [ ] does not traverse a selected symlink directory
 
-### `src/js/app/__tests__/nowPlayingState.test.js` (5)
+### `src/js/app/__tests__/nowPlayingState.test.js` (6)
 - [ ] migrates V2 state to V3 while preserving playlist selection
+- [ ] restores supported control positions and defaults invalid values to top
 - [ ] drops unsafe or unsupported persisted audio track ids
 - [ ] migrates legacy V1 tracks into the media library
 - [ ] sanitizes persisted visualizer settings without changing Player state
@@ -836,8 +837,9 @@
 - [ ] keeps a pinned sidebar visible across pointer leave and restores it
 - [ ] syncs fullscreen state and removes external listeners on dispose
 
-### `src/js/modules/__tests__/nowPlayingMediaLibraryModel.test.js` (9)
+### `src/js/modules/__tests__/nowPlayingMediaLibraryModel.test.js` (10)
 - [ ] migrates the V1 queue into the virtual media library
+- [ ] defaults invalid control positions to top
 - [ ] sanitizes broken playlist references and falls back to the library
 - [ ] deduplicates local paths and YouTube videos by canonical video id
 - [ ] supports playlist CRUD, ordering and catalog deletion
@@ -925,15 +927,16 @@
 - [ ] keeps insertion order and supports reorder, removal and filtering
 - [ ] never exposes mutable internal items
 
-### `src/js/modules/__tests__/nowPlayingView.test.js` (43)
+### `src/js/modules/__tests__/nowPlayingView.test.js` (44)
 - [ ] renders an accessible player and restores selectedTrackId
+- [ ] provides keyboard navigation and focus restoration for the Player menu
+- [ ] uses a safe topbar artwork fallback when the cover fails
 - [ ] opens the sidebar Add menu with file, folder and YouTube actions
 - [ ] offers a folder playlist and opens the created collection
 - [ ] keeps an imported folder only in the library when the choice is closed
 - [ ] opens structured track information with the current poster
 - [ ] opens a non-blocking media library empty state
 - [ ] keeps the library and another playlist track available after an unavailable track error
-- [ ] updates the brand label from playback state
 - [ ] adjusts volume with the mouse wheel and shows the percentage
 - [ ] toggles playback with Space while leaving interactive controls alone
 - [ ] syncs fullscreen controls, Escape and tab hide with preload state
@@ -945,7 +948,7 @@
 - [ ] shows YouTube preparation without a false playing indicator
 - [ ] loads restored media silently and attempts playback on first show
 - [ ] syncs system media commands with playback while the view is active
-- [ ] restores and persists background playback and sidebar pin preferences
+- [ ] restores and persists Player panel preferences
 - [ ] applies Settings changes and publishes Player changes without a loop
 - [ ] lists local audio tracks and persists an exact selection
 - [ ] blocks audio selection when native and probed track counts differ
@@ -975,8 +978,9 @@
 - [ ] switches to backup mode for the backup tool view and returns to tools
 - [ ] tracks settings modal mode without losing current page mode
 
-### `src/js/modules/__tests__/playerSettings.test.js` (6)
+### `src/js/modules/__tests__/playerSettings.test.js` (7)
 - [ ] loads and normalizes current Player state when Settings opens
+- [ ] saves control position and supports radiogroup arrow navigation
 - [ ] saves changes immediately and publishes an apply event
 - [ ] maps zero volume to mute and unmutes above zero
 - [ ] updates from an open Player without saving back or creating a loop
@@ -1370,9 +1374,10 @@
 - [ ] shows creating state and allows clearing last power status
 - [ ] create another clears current power status and returns focus to the last action
 
-### `src/js/modules/__tests__/tooltipInitializer.test.js` (7)
+### `src/js/modules/__tests__/tooltipInitializer.test.js` (8)
 - [ ] repeated initTooltips does not duplicate tooltip instances
 - [ ] updates tooltip content when title changes
+- [ ] recreates a tooltip when its placement changes
 - [ ] fallback title update without setContent does not force dispose
 - [ ] keeps tooltip when Bootstrap stores text in data-bs-original-title
 - [ ] renders and live-updates multiple shortcut hints
