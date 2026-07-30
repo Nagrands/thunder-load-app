@@ -17,12 +17,7 @@ if (assetUrls.size === 0) {
   throw new Error("No direct GitHub release asset links found in download pages.");
 }
 
-const headers = {
-  "user-agent": "thunder-website-smoke",
-  ...(process.env.GITHUB_TOKEN
-    ? { authorization: `Bearer ${process.env.GITHUB_TOKEN}` }
-    : {}),
-};
+const headers = { "user-agent": "thunder-website-smoke" };
 
 const failures = [];
 for (const url of assetUrls) {

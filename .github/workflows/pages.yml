@@ -54,8 +54,6 @@ jobs:
         run: npm run test:links
 
       - name: Smoke direct download links
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run test:downloads
 
       - name: Install Playwright
