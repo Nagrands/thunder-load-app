@@ -5,6 +5,7 @@
 
 ## Завантаження
 
+- Останній інсталятор Windows або macOS доступний в офіційному [центрі завантаження Thunder](https://nagrands.github.io/thunder-load-app/en/download/).
 - Автоматичні релізи публікують Windows NSIS і macOS DMG для Intel та Apple Silicon на сторінці [Releases](https://github.com/Nagrands/thunder-load-app/releases).
 - Linux AppImage збирається командою `npm run build-linux`, але поки не входить до release workflow.
 - Поточні збірки macOS і Windows не підписані.

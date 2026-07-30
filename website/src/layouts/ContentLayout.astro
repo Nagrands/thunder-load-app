@@ -1,0 +1,91 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import type { Locale } from "@/config/site";
+import { localizedUrl } from "@/lib/urls";
+
+interface Props {
+  locale: Locale;
+  title: string;
+  description: string;
+  eyebrow: string;
+  updatedAt?: Date;
+  type?: "website" | "article";
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
+}
+
+const { locale, title, description, eyebrow, updatedAt, type = "article", jsonLd } = Astro.props;
+---
+
+<BaseLayout locale={locale} title={title} description={description} type={type} jsonLd={jsonLd}>
+  <div class="content-shell container">
+    <aside>
+      <a href={localizedUrl(locale, eyebrow === "Blog" ? "blog" : "docs")}>
+        ← {locale === "ru" ? "К списку" : "Back to index"}
+      </a>
+    </aside>
+    <article>
+      <header>
+        <p class="eyebrow">{eyebrow}</p>
+        <h1>{title}</h1>
+        <p>{description}</p>
+        {updatedAt && <time datetime={updatedAt.toISOString()}>{locale === "ru" ? "Обновлено" : "Updated"}: {updatedAt.toLocaleDateString(locale === "ru" ? "ru-RU" : "en-US")}</time>}
+      </header>
+      <div class="prose">
+        <slot />
+      </div>
+    </article>
+  </div>
+</BaseLayout>
+
+<style>
+  .content-shell {
+    display: grid;
+    grid-template-columns: 180px minmax(0, 760px);
+    padding-top: 86px;
+    padding-bottom: 100px;
+    gap: 52px;
+  }
+
+  aside {
+    padding-top: 11px;
+  }
+
+  aside a {
+    color: #7895b5;
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+
+  article header {
+    padding-bottom: 32px;
+    border-bottom: 1px solid rgb(133 201 255 / 0.12);
+  }
+
+  article h1 {
+    margin-bottom: 18px;
+    font-size: clamp(2.4rem, 6vw, 4rem);
+  }
+
+  article header > p:not(.eyebrow) {
+    font-size: 1.08rem;
+  }
+
+  article time {
+    display: inline-block;
+    margin-top: 15px;
+    color: #6e89a8;
+    font-size: 0.78rem;
+  }
+
+  .prose {
+    padding-top: 28px;
+  }
+
+  @media (max-width: 800px) {
+    .content-shell {
+      grid-template-columns: 1fr;
+      padding-top: 54px;
+      gap: 20px;
+    }
+  }
+</style>

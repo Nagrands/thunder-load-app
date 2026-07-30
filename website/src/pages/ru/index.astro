@@ -1,0 +1,15 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import HomePage from "@/components/HomePage.astro";
+import { getReleases } from "@/lib/releases";
+
+const releases = await getReleases();
+---
+
+<BaseLayout
+  locale="ru"
+  title="Thunder"
+  description="Thunder — современный загрузчик видео и аудио, медиаплеер и конвертер для Windows и macOS."
+>
+  <HomePage locale="ru" releases={releases} />
+</BaseLayout>

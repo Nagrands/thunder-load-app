@@ -1,0 +1,7 @@
+dist/
+node_modules/
+.astro/
+.lighthouse-results/
+.lighthouseci/
+playwright-report/
+test-results/

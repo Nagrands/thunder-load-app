@@ -1,0 +1,194 @@
+---
+import { Apple, Check, Download, ExternalLink, MonitorDown } from "@lucide/astro";
+import type { Locale } from "@/config/site";
+import type { Release } from "@/lib/releases";
+import { preferredAsset } from "@/lib/releases";
+import { formatBytes, formatDate } from "@/lib/format";
+import { localizedUrl } from "@/lib/urls";
+
+interface Props {
+  locale: Locale;
+  release: Release;
+  compact?: boolean;
+}
+
+const { locale, release, compact = false } = Astro.props;
+const windows = preferredAsset(release, "windows");
+const macArm = preferredAsset(release, "macos", "arm64");
+const macIntel = preferredAsset(release, "macos", "x64");
+const copy = locale === "ru" ? {
+  title: "Скачать Thunder",
+  lead: "Сайт выберет подходящую версию для вашей системы. Все файлы загружаются напрямую из официального GitHub Release.",
+  windows: "Скачать для Windows",
+  mac: "Скачать для macOS",
+  macArm: "Apple silicon",
+  macIntel: "Intel",
+  linux: "Linux пока планируется",
+  all: "Все варианты загрузки",
+  published: "Дата публикации",
+  secure: "Прямой файл из GitHub"
+} : {
+  title: "Download Thunder",
+  lead: "The site selects the right build for your system. Every file comes directly from the official GitHub Release.",
+  windows: "Download for Windows",
+  mac: "Download for macOS",
+  macArm: "Apple silicon",
+  macIntel: "Intel",
+  linux: "Linux is planned",
+  all: "All download options",
+  published: "Published",
+  secure: "Direct file from GitHub"
+};
+---
+
+<section class:list={["download-panel", "glass", { compact }]} data-download-panel data-platform="unknown">
+  <div class="download-copy">
+    <span class="eyebrow">Thunder {release.version}</span>
+    <h2>{copy.title}</h2>
+    <p>{copy.lead}</p>
+    <div class="release-meta">
+      <span><Check size={15} /> {copy.secure}</span>
+      <span>{copy.published}: {formatDate(release.publishedAt, locale)}</span>
+    </div>
+  </div>
+  <div class="download-actions">
+    {windows && (
+      <a class="button button-primary platform-action" data-platform-action="windows" href={windows.url}>
+        <MonitorDown size={20} /> {copy.windows}
+        <small>{formatBytes(windows.size, locale)}</small>
+      </a>
+    )}
+    {(macArm || macIntel) && (
+      <div class="mac-actions platform-action" data-platform-action="macos">
+        <span><Apple size={18} /> {copy.mac}</span>
+        {macArm && <a class="button button-primary" href={macArm.url}>{copy.macArm}<small>{formatBytes(macArm.size, locale)}</small></a>}
+        {macIntel && <a class="button" href={macIntel.url}>{copy.macIntel}<small>{formatBytes(macIntel.size, locale)}</small></a>}
+      </div>
+    )}
+    <div class="linux-action platform-action" data-platform-action="linux">
+      <Download size={19} />
+      <span>{copy.linux}</span>
+    </div>
+    <a class="button all-downloads" href={localizedUrl(locale, "download")}>
+      {copy.all} <ExternalLink size={17} />
+    </a>
+  </div>
+</section>
+
+<script>
+  import { detectPlatform } from "@/lib/platform";
+
+  const initializeDownloadPanels = () => {
+    const detected = detectPlatform(navigator.userAgent);
+    document.querySelectorAll<HTMLElement>("[data-download-panel]").forEach((panel) => {
+      panel.dataset.platform = detected;
+    });
+  };
+  initializeDownloadPanels();
+  document.addEventListener("astro:page-load", initializeDownloadPanels);
+</script>
+
+<style>
+  .download-panel {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 54px;
+    padding: clamp(30px, 5vw, 58px);
+    border-radius: 28px;
+  }
+
+  .download-panel h2 {
+    margin-bottom: 16px;
+  }
+
+  .download-copy > p {
+    max-width: 600px;
+    font-size: 1.06rem;
+  }
+
+  .release-meta {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 24px;
+    gap: 10px 20px;
+    color: #829dbb;
+    font-size: 0.8rem;
+  }
+
+  .release-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .download-actions {
+    display: grid;
+    align-content: center;
+    gap: 10px;
+  }
+
+  .download-actions small {
+    margin-left: auto;
+    opacity: 0.72;
+    font-size: 0.72rem;
+  }
+
+  .mac-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .mac-actions > span {
+    display: flex;
+    grid-column: 1 / -1;
+    align-items: center;
+    gap: 8px;
+    color: #bcd0e6;
+    font-size: 0.86rem;
+    font-weight: 700;
+  }
+
+  .linux-action {
+    display: flex;
+    min-height: 48px;
+    align-items: center;
+    gap: 9px;
+    padding: 0 18px;
+    border: 1px dashed rgb(255 212 59 / 0.25);
+    border-radius: 13px;
+    color: #c6b977;
+    background: rgb(255 212 59 / 0.035);
+  }
+
+  .download-panel[data-platform="windows"] [data-platform-action="windows"],
+  .download-panel[data-platform="macos"] [data-platform-action="macos"] {
+    order: -2;
+  }
+
+  .download-panel[data-platform="linux"] [data-platform-action="linux"] {
+    order: -2;
+  }
+
+  .compact {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  @media (max-width: 860px) {
+    .download-panel,
+    .compact {
+      grid-template-columns: 1fr;
+      gap: 28px;
+    }
+  }
+
+  @media (max-width: 540px) {
+    .mac-actions {
+      grid-template-columns: 1fr;
+    }
+
+    .mac-actions > span {
+      grid-column: auto;
+    }
+  }
+</style>

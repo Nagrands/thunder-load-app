@@ -1,0 +1,141 @@
+---
+import { Download, ExternalLink } from "@lucide/astro";
+import sanitizeHtml from "sanitize-html";
+import { marked } from "marked";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import type { Locale } from "@/config/site";
+import type { Release } from "@/lib/releases";
+import { downloadableAssets } from "@/lib/releases";
+import { formatBytes, formatDate } from "@/lib/format";
+import { localizedUrl } from "@/lib/urls";
+
+interface Props {
+  locale: Locale;
+  release: Release;
+}
+
+const { locale, release } = Astro.props;
+const isRu = locale === "ru";
+const description = isRu
+  ? `Версия Thunder ${release.version}, опубликованная ${formatDate(release.publishedAt, locale)}.`
+  : `Thunder ${release.version}, published ${formatDate(release.publishedAt, locale)}.`;
+const parsedBody = release.body
+  ? sanitizeHtml(marked.parse(release.body, { async: false }) as string, {
+      allowedTags: sanitizeHtml.defaults.allowedTags,
+      allowedAttributes: { a: ["href", "title"] }
+    })
+  : "";
+const breadcrumb = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Thunder", item: new URL(localizedUrl(locale), Astro.site).toString() },
+    { "@type": "ListItem", position: 2, name: isRu ? "Релизы" : "Releases", item: new URL(localizedUrl(locale, "releases"), Astro.site).toString() },
+    { "@type": "ListItem", position: 3, name: release.version }
+  ]
+};
+---
+
+<BaseLayout locale={locale} title={`Thunder ${release.version}`} description={description} type="article" jsonLd={breadcrumb}>
+  <article class="release-page container">
+    <header>
+      <p class="eyebrow">{release.prerelease ? "Preview" : isRu ? "Стабильный релиз" : "Stable release"}</p>
+      <h1>Thunder {release.version}</h1>
+      <p>{description}</p>
+      <a href={release.url} target="_blank" rel="noreferrer">{isRu ? "Открыть на GitHub" : "Open on GitHub"} <ExternalLink size={16} /></a>
+    </header>
+    {parsedBody ? <div class="prose release-notes" set:html={parsedBody} /> : (
+      <div class="empty-notes glass">
+        <h2>{isRu ? "Заметки к версии" : "Release notes"}</h2>
+        <p>{isRu ? "Для этой публикации подробное описание на GitHub не добавлено." : "No detailed description was added to this GitHub release."}</p>
+      </div>
+    )}
+    <section>
+      <h2>{isRu ? "Установочные файлы" : "Installers"}</h2>
+      <div class="release-assets">
+        {downloadableAssets(release).map((asset) => (
+          <div class="glass">
+            <span>{asset.platform} · {asset.architecture}</span>
+            <strong>{asset.name}</strong>
+            <small>{formatBytes(asset.size, locale)} · {formatDate(asset.updatedAt, locale)}</small>
+            {asset.digest && <code>SHA-256: {asset.digest}</code>}
+            <a class="button" href={asset.url}><Download size={17} /> {isRu ? "Скачать" : "Download"}</a>
+          </div>
+        ))}
+      </div>
+    </section>
+  </article>
+</BaseLayout>
+
+<style>
+  .release-page {
+    padding-top: 88px;
+    padding-bottom: 100px;
+  }
+
+  .release-page > header {
+    max-width: 800px;
+    padding-bottom: 48px;
+  }
+
+  .release-page h1 {
+    margin-bottom: 18px;
+  }
+
+  .release-page header > a {
+    display: inline-flex;
+    margin-top: 16px;
+    align-items: center;
+    gap: 7px;
+    color: #7be7ff;
+    font-weight: 700;
+  }
+
+  .release-notes,
+  .empty-notes {
+    margin: 30px 0 70px;
+  }
+
+  .empty-notes {
+    max-width: 760px;
+    padding: 28px;
+    border-radius: 20px;
+  }
+
+  .release-page section > h2 {
+    font-size: 1.8rem;
+  }
+
+  .release-assets {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+
+  .release-assets > div {
+    display: grid;
+    padding: 22px;
+    gap: 8px;
+    border-radius: 18px;
+  }
+
+  .release-assets span,
+  .release-assets small {
+    color: #7a94b1;
+    font-size: 0.76rem;
+    text-transform: capitalize;
+  }
+
+  .release-assets code {
+    margin: 8px 0;
+    color: #9eb8d6;
+    word-break: break-all;
+    font-size: 0.67rem;
+  }
+
+  @media (max-width: 720px) {
+    .release-assets {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

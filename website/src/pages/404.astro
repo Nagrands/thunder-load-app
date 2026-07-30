@@ -1,0 +1,21 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { localizedUrl } from "@/lib/urls";
+---
+<BaseLayout locale="ru" title="Страница не найдена" description="Запрошенная страница Thunder не существует." noindex>
+  <section class="not-found container">
+    <p class="eyebrow">404 · Page not found</p>
+    <h1>Здесь ничего нет.</h1>
+    <p>Страница могла быть перемещена. Вернитесь на главную или откройте документацию.</p>
+    <div>
+      <a class="button button-primary" href={localizedUrl("ru")}>На главную</a>
+      <a class="button" href={localizedUrl("en")}>English home</a>
+    </div>
+  </section>
+</BaseLayout>
+<style>
+  .not-found { min-height: 70svh; display: grid; align-content: center; padding-block: 80px; }
+  .not-found h1 { margin-bottom: 12px; }
+  .not-found > p:not(.eyebrow) { max-width: 600px; }
+  .not-found > div { display: flex; margin-top: 24px; gap: 10px; }
+</style>

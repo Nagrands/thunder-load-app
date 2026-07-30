@@ -1,0 +1,134 @@
+---
+import { ClientRouter } from "astro:transitions";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import { alternateLocale, useTranslations } from "@/i18n";
+import { switchLocalePath, withBase } from "@/lib/urls";
+import type { Locale } from "@/config/site";
+import "@/styles/global.css";
+
+interface Props {
+  locale: Locale;
+  title: string;
+  description: string;
+  image?: string;
+  type?: "website" | "article";
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
+  noindex?: boolean;
+}
+
+const {
+  locale,
+  title,
+  description,
+  image = withBase("og.png"),
+  type = "website",
+  jsonLd,
+  noindex = false
+} = Astro.props;
+const t = useTranslations(locale);
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const otherLocale = alternateLocale(locale);
+const alternatePath = switchLocalePath(Astro.url.pathname, otherLocale);
+const alternateUrl = new URL(alternatePath, Astro.site);
+const imageUrl = new URL(image, Astro.site);
+const fullTitle = title === "Thunder" ? title : `${title} — Thunder`;
+---
+
+<!doctype html>
+<html lang={locale}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="theme-color" content="#050914" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="description" content={description} />
+    <meta name="generator" content={Astro.generator} />
+    {noindex && <meta name="robots" content="noindex,follow" />}
+    {!noindex && <link rel="canonical" href={canonical} />}
+    {!noindex && <link rel="alternate" hreflang={locale === "ru" ? "ru-RU" : "en-US"} href={canonical} />}
+    {!noindex && <link rel="alternate" hreflang={otherLocale === "ru" ? "ru-RU" : "en-US"} href={alternateUrl} />}
+    {!noindex && <link rel="alternate" hreflang="x-default" href={new URL(withBase("ru/"), Astro.site)} />}
+    <link rel="icon" href={withBase("favicon.svg")} type="image/svg+xml" />
+    <link rel="manifest" href={withBase("manifest.webmanifest")} />
+    <link rel="alternate" type="application/rss+xml" title={`Thunder ${locale.toUpperCase()}`} href={withBase(`${locale}/rss.xml`)} />
+    <meta property="og:type" content={type} />
+    <meta property="og:site_name" content="Thunder" />
+    <meta property="og:locale" content={locale === "ru" ? "ru_RU" : "en_US"} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={imageUrl} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={imageUrl} />
+    <title>{fullTitle}</title>
+    <ClientRouter />
+    {jsonLd && (
+      <script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+    )}
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">{t.skip}</a>
+    <Header locale={locale} fallbackLanguage={noindex} />
+    <main id="main-content">
+      <slot />
+    </main>
+    <Footer locale={locale} />
+    <script>
+      document.documentElement.classList.add("js-ready");
+
+      const setupMotion = async () => {
+        const sections = document.querySelectorAll<HTMLElement>(
+          ".reveal:not([data-motion-ready])"
+        );
+        sections.forEach((section) => {
+          section.dataset.motionReady = "true";
+        });
+
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          return;
+        }
+
+        const { gsap } = await import("gsap");
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (!entry.isIntersecting) return;
+              gsap.from(entry.target, {
+                opacity: 0,
+                y: 18,
+                duration: 0.65,
+                ease: "power2.out",
+              });
+              observer.unobserve(entry.target);
+            });
+          },
+          { rootMargin: "0px 0px -8% 0px" }
+        );
+        sections.forEach((section) => observer.observe(section));
+
+        const heroVisual = document.querySelector<HTMLElement>("[data-parallax]");
+        if (heroVisual && !heroVisual.dataset.parallaxReady) {
+          heroVisual.dataset.parallaxReady = "true";
+          const controller = new AbortController();
+          document.addEventListener("astro:before-swap", () => controller.abort(), {
+            once: true,
+          });
+          window.addEventListener(
+            "scroll",
+            () => {
+              const offset = Math.min(window.scrollY * 0.045, 28);
+              heroVisual.style.transform = `translate3d(0, ${offset}px, 0)`;
+            },
+            { passive: true, signal: controller.signal }
+          );
+        }
+      };
+
+      setupMotion();
+      document.addEventListener("astro:page-load", setupMotion);
+    </script>
+  </body>
+</html>

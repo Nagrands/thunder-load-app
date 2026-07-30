@@ -1,0 +1,89 @@
+---
+import { ArrowUpRight, Download } from "@lucide/astro";
+import type { Locale } from "@/config/site";
+import type { Release } from "@/lib/releases";
+import { downloadableAssets } from "@/lib/releases";
+import { formatDate } from "@/lib/format";
+import { localizedUrl } from "@/lib/urls";
+
+interface Props {
+  locale: Locale;
+  release: Release;
+  featured?: boolean;
+}
+
+const { locale, release, featured = false } = Astro.props;
+const assets = downloadableAssets(release);
+---
+
+<article class:list={["release-card", "glass", { featured }]}>
+  <div>
+    <span class="tag">{release.prerelease ? "Preview" : locale === "ru" ? "Стабильная" : "Stable"}</span>
+    <h3>Thunder {release.version}</h3>
+    <time datetime={release.publishedAt}>{formatDate(release.publishedAt, locale)}</time>
+  </div>
+  <div class="release-actions">
+    <span><Download size={15} /> {assets.length} {locale === "ru" ? "файла" : "files"}</span>
+    <a href={localizedUrl(locale, `releases/${release.tag}`)}>
+      {locale === "ru" ? "О версии" : "Release details"} <ArrowUpRight size={16} />
+    </a>
+  </div>
+</article>
+
+<style>
+  .release-card {
+    display: flex;
+    min-height: 190px;
+    padding: 25px;
+    justify-content: space-between;
+    gap: 18px;
+    border-radius: 20px;
+  }
+
+  .release-card h3 {
+    margin: 18px 0 6px;
+    font-size: 1.35rem;
+  }
+
+  .release-card time,
+  .release-actions span {
+    color: #819ab6;
+    font-size: 0.82rem;
+  }
+
+  .release-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+
+  .release-actions span,
+  .release-actions a {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .release-actions a {
+    color: #7be7ff;
+    font-size: 0.86rem;
+    font-weight: 750;
+  }
+
+  .featured {
+    border-color: rgb(22 216 255 / 0.3);
+    box-shadow: 0 20px 60px rgb(10 139 255 / 0.13);
+  }
+
+  @media (max-width: 480px) {
+    .release-card {
+      flex-direction: column;
+    }
+
+    .release-actions {
+      flex-direction: row;
+      align-items: center;
+    }
+  }
+</style>

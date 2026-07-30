@@ -1,0 +1,155 @@
+---
+import { Picture } from "astro:assets";
+import firstRun from "@/assets/screenshots/thunder-first.png";
+import downloader from "@/assets/screenshots/thunder-download.png";
+import tools from "@/assets/screenshots/thunder-tools.png";
+import type { Locale } from "@/config/site";
+import { mediaGallery } from "@/config/site";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const imageMap = { "thunder-first.png": firstRun, "thunder-download.png": downloader, "thunder-tools.png": tools };
+---
+
+<div class="gallery glass reveal" data-gallery>
+  <div class="gallery-tabs" role="tablist" aria-label={locale === "ru" ? "Разделы приложения" : "Application sections"}>
+    {mediaGallery.map((item, index) => (
+      <button
+        type="button"
+        role="tab"
+        id={`tab-${item.id}`}
+        aria-controls={`panel-${item.id}`}
+        aria-selected={index === 0 ? "true" : "false"}
+        tabindex={index === 0 ? "0" : "-1"}
+        data-gallery-tab={item.id}
+      >
+        {item.labels[locale]}
+      </button>
+    ))}
+  </div>
+  <div class="gallery-stage">
+    {mediaGallery.map((item, index) => (
+      <div
+        role="tabpanel"
+        id={`panel-${item.id}`}
+        aria-labelledby={`tab-${item.id}`}
+        hidden={index !== 0}
+        data-gallery-panel={item.id}
+      >
+        <Picture
+          src={imageMap[item.image]}
+          alt={`${item.labels[locale]} — Thunder`}
+          widths={[640, 960, 1440, 1836]}
+          sizes="(max-width: 720px) 94vw, (max-width: 1200px) 88vw, 1120px"
+          formats={["avif", "webp"]}
+          loading={index === 0 ? "eager" : "lazy"}
+          quality={82}
+        />
+      </div>
+    ))}
+    <div class="stage-glow"></div>
+  </div>
+</div>
+
+<script>
+  const initializeGalleries = () => {
+    document.querySelectorAll<HTMLElement>("[data-gallery]").forEach((gallery) => {
+      if (gallery.dataset.ready === "true") return;
+      gallery.dataset.ready = "true";
+      const tabs = [...gallery.querySelectorAll<HTMLButtonElement>("[data-gallery-tab]")];
+      const panels = [...gallery.querySelectorAll<HTMLElement>("[data-gallery-panel]")];
+
+      const activate = (tab: HTMLButtonElement) => {
+        const id = tab.dataset.galleryTab;
+        tabs.forEach((item) => {
+          const selected = item === tab;
+          item.setAttribute("aria-selected", String(selected));
+          item.tabIndex = selected ? 0 : -1;
+        });
+        panels.forEach((panel) => {
+          panel.hidden = panel.dataset.galleryPanel !== id;
+        });
+      };
+
+      tabs.forEach((tab, index) => {
+        tab.addEventListener("click", () => activate(tab));
+        tab.addEventListener("keydown", (event) => {
+          if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+          event.preventDefault();
+          const nextIndex = event.key === "Home"
+            ? 0
+            : event.key === "End"
+              ? tabs.length - 1
+              : (index + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
+          tabs[nextIndex].focus();
+          activate(tabs[nextIndex]);
+        });
+      });
+    });
+  };
+  initializeGalleries();
+  document.addEventListener("astro:page-load", initializeGalleries);
+</script>
+
+<style>
+  .gallery {
+    padding: 12px;
+    border-radius: 28px;
+  }
+
+  .gallery-tabs {
+    display: flex;
+    padding: 4px 4px 12px;
+    gap: 4px;
+    overflow-x: auto;
+  }
+
+  .gallery-tabs button {
+    flex: 0 0 auto;
+    padding: 10px 16px;
+    border: 0;
+    border-radius: 10px;
+    color: #819bb8;
+    background: transparent;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .gallery-tabs button[aria-selected="true"] {
+    color: #eaf8ff;
+    background: rgb(45 156 255 / 0.14);
+    box-shadow: inset 0 0 0 1px rgb(22 216 255 / 0.16);
+  }
+
+  .gallery-stage {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgb(133 201 255 / 0.12);
+    border-radius: 20px;
+    background: #070b13;
+  }
+
+  .gallery-stage [role="tabpanel"] {
+    position: relative;
+    z-index: 1;
+  }
+
+  .gallery-stage img {
+    display: block;
+    width: 100%;
+  }
+
+  .stage-glow {
+    position: absolute;
+    right: 10%;
+    bottom: -80px;
+    width: 50%;
+    height: 160px;
+    background: #0a8bff;
+    filter: blur(80px);
+    opacity: 0.25;
+  }
+</style>

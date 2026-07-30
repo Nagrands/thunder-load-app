@@ -1,0 +1,120 @@
+---
+import { GitFork } from "@lucide/astro";
+import type { Locale } from "@/config/site";
+import { SITE } from "@/config/site";
+import { useTranslations } from "@/i18n";
+import { localizedUrl, withBase } from "@/lib/urls";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+---
+
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div class="footer-brand">
+      <a href={localizedUrl(locale)} class="brand-row">
+        <img src={withBase("brand/symbol.svg")} alt="" width="42" height="42" loading="lazy" />
+        <span>Thunder</span>
+      </a>
+      <p>{t.footer.note}</p>
+    </div>
+    <div>
+      <h2>{t.footer.product}</h2>
+      <a href={localizedUrl(locale, "download")}>{t.nav.download}</a>
+      <a href={localizedUrl(locale, "releases")}>{t.nav.releases}</a>
+      <a href={localizedUrl(locale, "blog")}>{t.nav.blog}</a>
+    </div>
+    <div>
+      <h2>{t.footer.resources}</h2>
+      <a href={localizedUrl(locale, "docs")}>{t.nav.docs}</a>
+      <a href={localizedUrl(locale, "privacy")}>{t.footer.privacy}</a>
+      <a href={SITE.repository} target="_blank" rel="noreferrer"><GitFork size={15} /> GitHub</a>
+    </div>
+  </div>
+  <div class="container footer-bottom">
+    <span>© {new Date().getFullYear()} {SITE.author}</span>
+    <span>Thunder · {locale === "ru" ? "Без аналитики и трекеров" : "No analytics or trackers"}</span>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    margin-top: 60px;
+    padding: 72px 0 24px;
+    border-top: 1px solid rgb(133 201 255 / 0.1);
+    background: rgb(4 8 19 / 0.6);
+  }
+
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 48px;
+  }
+
+  .footer-grid > div:not(.footer-brand) {
+    display: grid;
+    align-content: start;
+    gap: 10px;
+  }
+
+  .footer-grid h2 {
+    margin-bottom: 8px;
+    color: #7892ae;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .footer-grid a {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: #b6c9df;
+    font-size: 0.9rem;
+  }
+
+  .footer-grid a:hover {
+    color: white;
+  }
+
+  .brand-row {
+    font-family: Orbitron, sans-serif;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .footer-brand p {
+    max-width: 360px;
+    margin-top: 14px;
+  }
+
+  .footer-bottom {
+    display: flex;
+    margin-top: 52px;
+    padding-top: 22px;
+    justify-content: space-between;
+    border-top: 1px solid rgb(133 201 255 / 0.08);
+    color: #6f88a5;
+    font-size: 0.78rem;
+  }
+
+  @media (max-width: 700px) {
+    .footer-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .footer-brand {
+      grid-column: 1 / -1;
+    }
+
+    .footer-bottom {
+      flex-direction: column;
+      gap: 8px;
+    }
+  }
+</style>

@@ -1,0 +1,40 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import PageHero from "@/components/PageHero.astro";
+import ReleaseCard from "@/components/ReleaseCard.astro";
+import type { Locale } from "@/config/site";
+import type { Release } from "@/lib/releases";
+
+interface Props {
+  locale: Locale;
+  releases: Release[];
+}
+
+const { locale, releases } = Astro.props;
+const isRu = locale === "ru";
+const title = isRu ? "Что нового" : "What’s new";
+const description = isRu
+  ? "История опубликованных версий Thunder и ссылки на официальные установщики."
+  : "A history of published Thunder releases with links to official installers.";
+---
+
+<BaseLayout locale={locale} title={title} description={description}>
+  <PageHero eyebrow={isRu ? "Релизы" : "Releases"} title={title} description={description} />
+  <section class="section-tight container release-list">
+    {releases.map((release, index) => <ReleaseCard locale={locale} release={release} featured={index === 0} />)}
+  </section>
+</BaseLayout>
+
+<style>
+  .release-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+
+  @media (max-width: 760px) {
+    .release-list {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

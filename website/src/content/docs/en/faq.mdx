@@ -1,0 +1,33 @@
+---
+title: Frequently asked questions
+description: Installation, supported sites, download safety, and common troubleshooting.
+locale: en
+section: support
+order: 10
+draft: false
+updatedAt: 2026-07-30
+---
+
+## Thunder cannot analyze a link
+
+Check your connection, update `yt-dlp` in the tool manager, and try again. Some sources require cookies or authentication and may change their interfaces without notice.
+
+## Audio or video is missing
+
+Check FFmpeg and ffprobe. Player uses a local HLS fallback for formats Chromium cannot play directly.
+
+## The installer reports an unknown publisher
+
+Current Windows and macOS builds are not signed. Use only files from the official GitHub Release and compare the SHA-256 shown on the download page.
+
+## Where is data stored?
+
+- macOS: `~/Library/Application Support/Thunder Load`
+- Windows: `%APPDATA%/Thunder Load`
+- Linux: `~/.config/Thunder Load`
+
+The historical folder name is preserved for update compatibility.
+
+## How do I report a bug?
+
+Copy diagnostics from Settings and create an issue in the GitHub repository. Remove private paths, links, and cookies before posting.

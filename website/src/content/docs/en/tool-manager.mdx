@@ -1,0 +1,28 @@
+---
+title: Tool manager
+description: Install and update yt-dlp, FFmpeg, ffprobe, and Deno inside Thunder.
+locale: en
+section: tools
+order: 7
+draft: false
+updatedAt: 2026-07-30
+---
+
+## Managed dependencies
+
+Thunder manages `yt-dlp`, `ffmpeg`, `ffprobe`, and Deno. The overall status tells you whether dependencies are ready.
+
+## Operations
+
+- inspect availability and versions;
+- install a missing tool;
+- check for updates;
+- reinstall safely;
+- move the managed directory;
+- reset manager state.
+
+Reinstallation has rollback protection: when a new copy fails validation, Thunder attempts to keep the previous working binary.
+
+## Linux and PATH
+
+On Linux, `ffmpeg` and `ffprobe` may come from the system package manager. Compatible tools can also be resolved through `PATH`.

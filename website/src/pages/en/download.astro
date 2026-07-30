@@ -1,0 +1,6 @@
+---
+import DownloadPage from "@/components/DownloadPage.astro";
+import { getReleases } from "@/lib/releases";
+const releases = await getReleases();
+---
+<DownloadPage locale="en" releases={releases} />

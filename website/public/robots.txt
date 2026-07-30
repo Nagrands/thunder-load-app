@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://nagrands.github.io/thunder-load-app/sitemap-index.xml

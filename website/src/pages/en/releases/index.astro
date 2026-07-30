@@ -1,0 +1,6 @@
+---
+import ReleasesPage from "@/components/ReleasesPage.astro";
+import { getReleases } from "@/lib/releases";
+const releases = await getReleases();
+---
+<ReleasesPage locale="en" releases={releases} />

@@ -1,0 +1,170 @@
+---
+import { GitFork, Menu } from "@lucide/astro";
+import type { Locale } from "@/config/site";
+import { SITE } from "@/config/site";
+import { alternateLocale, useTranslations } from "@/i18n";
+import { localizedUrl, switchLocalePath, withBase } from "@/lib/urls";
+
+interface Props {
+  locale: Locale;
+  fallbackLanguage?: boolean;
+}
+
+const { locale, fallbackLanguage = false } = Astro.props;
+const t = useTranslations(locale);
+const other = alternateLocale(locale);
+const otherPath = fallbackLanguage ? localizedUrl(other) : switchLocalePath(Astro.url.pathname, other);
+const nav = [
+  { label: t.nav.features, href: localizedUrl(locale, "") + "#features" },
+  { label: t.nav.download, href: localizedUrl(locale, "download") },
+  { label: t.nav.releases, href: localizedUrl(locale, "releases") },
+  { label: t.nav.docs, href: localizedUrl(locale, "docs") },
+  { label: t.nav.blog, href: localizedUrl(locale, "blog") }
+];
+---
+
+<header class="site-header">
+  <div class="header-inner container">
+    <a class="brand" href={localizedUrl(locale)} aria-label="Thunder">
+      <img src={withBase("brand/symbol.svg")} width="34" height="34" alt="" />
+      <span>Thunder</span>
+    </a>
+    <nav class="desktop-nav" aria-label={locale === "ru" ? "Основная навигация" : "Main navigation"}>
+      {nav.map((item) => <a href={item.href}>{item.label}</a>)}
+    </nav>
+    <div class="header-actions">
+      <a class="language-link" href={otherPath} hreflang={other} aria-label={other === "ru" ? "Русская версия" : "English version"}>
+        {other.toUpperCase()}
+      </a>
+      <a class="github-link" href={SITE.repository} target="_blank" rel="noreferrer" aria-label="Thunder on GitHub">
+        <GitFork size={19} />
+      </a>
+      <details class="mobile-menu">
+        <summary aria-label={locale === "ru" ? "Открыть меню" : "Open menu"}><Menu size={21} /></summary>
+        <nav aria-label={locale === "ru" ? "Мобильная навигация" : "Mobile navigation"}>
+          {nav.map((item) => <a href={item.href}>{item.label}</a>)}
+        </nav>
+      </details>
+    </div>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    height: var(--header-height);
+    border-bottom: 1px solid rgb(133 201 255 / 0.1);
+    background: rgb(5 9 20 / 0.72);
+    backdrop-filter: blur(20px) saturate(140%);
+  }
+
+  .header-inner {
+    display: flex;
+    height: 100%;
+    align-items: center;
+    justify-content: space-between;
+    gap: 28px;
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: Orbitron, sans-serif;
+    font-size: 0.95rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .brand img {
+    filter: drop-shadow(0 0 12px rgb(22 216 255 / 0.34));
+  }
+
+  .desktop-nav {
+    display: flex;
+    align-items: center;
+    gap: 26px;
+  }
+
+  .desktop-nav a {
+    color: #9eb5d0;
+    font-size: 0.9rem;
+    font-weight: 650;
+    transition: color 160ms ease;
+  }
+
+  .desktop-nav a:hover {
+    color: white;
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .language-link,
+  .github-link,
+  .mobile-menu summary {
+    display: grid;
+    width: 40px;
+    height: 40px;
+    place-items: center;
+    border: 1px solid rgb(133 201 255 / 0.14);
+    border-radius: 11px;
+    color: #cfe1fa;
+    background: rgb(21 29 41 / 0.5);
+    font-size: 0.74rem;
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  .mobile-menu {
+    display: none;
+    position: relative;
+  }
+
+  .mobile-menu summary {
+    list-style: none;
+  }
+
+  .mobile-menu summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .mobile-menu nav {
+    position: absolute;
+    top: 50px;
+    right: 0;
+    display: grid;
+    width: min(280px, calc(100vw - 28px));
+    padding: 12px;
+    border: 1px solid rgb(133 201 255 / 0.16);
+    border-radius: 16px;
+    background: #0d1523;
+    box-shadow: 0 22px 64px rgb(0 0 0 / 0.44);
+  }
+
+  .mobile-menu nav a {
+    padding: 12px;
+    border-radius: 10px;
+    color: #cfe1fa;
+  }
+
+  .mobile-menu nav a:hover {
+    background: rgb(74 168 255 / 0.1);
+  }
+
+  @media (max-width: 850px) {
+    .desktop-nav {
+      display: none;
+    }
+
+    .mobile-menu {
+      display: block;
+    }
+  }
+</style>

@@ -1,0 +1,6 @@
+---
+import { getCollection } from "astro:content";
+import BlogIndex from "@/components/BlogIndex.astro";
+const entries = (await getCollection("blog", ({ data }) => data.locale === "en" && !data.draft)).sort((a, b) => +b.data.publishedAt - +a.data.publishedAt);
+---
+<BlogIndex locale="en" entries={entries} />

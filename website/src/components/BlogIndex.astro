@@ -1,0 +1,97 @@
+---
+import { ArrowRight, CalendarDays } from "@lucide/astro";
+import type { CollectionEntry } from "astro:content";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import PageHero from "@/components/PageHero.astro";
+import type { Locale } from "@/config/site";
+import { contentSlug } from "@/i18n";
+import { formatDate } from "@/lib/format";
+import { localizedUrl } from "@/lib/urls";
+
+interface Props {
+  locale: Locale;
+  entries: CollectionEntry<"blog">[];
+}
+
+const { locale, entries } = Astro.props;
+const isRu = locale === "ru";
+const title = isRu ? "Блог Thunder" : "Thunder blog";
+const description = isRu
+  ? "Новые функции, практические руководства и советы по работе с медиа."
+  : "New features, practical guides, and tips for working with media.";
+---
+
+<BaseLayout locale={locale} title={title} description={description}>
+  <PageHero eyebrow={isRu ? "Новости и руководства" : "News and guides"} title={title} description={description} />
+  <section class="section-tight container blog-grid">
+    {entries.map((entry, index) => (
+      <article class:list={["blog-card", "glass", { featured: index === 0 }]}>
+        <div class="blog-meta">
+          <span class="tag">{entry.data.category}</span>
+          <time datetime={entry.data.publishedAt.toISOString()}><CalendarDays size={14} /> {formatDate(entry.data.publishedAt, locale)}</time>
+        </div>
+        <h2>{entry.data.title}</h2>
+        <p>{entry.data.description}</p>
+        <a href={localizedUrl(locale, `blog/${contentSlug(entry.id)}`)}>
+          {isRu ? "Читать статью" : "Read article"} <ArrowRight size={17} />
+        </a>
+      </article>
+    ))}
+  </section>
+</BaseLayout>
+
+<style>
+  .blog-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+  }
+
+  .blog-card {
+    padding: 30px;
+    border-radius: 22px;
+  }
+
+  .blog-card.featured {
+    grid-column: 1 / -1;
+  }
+
+  .blog-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .blog-meta time {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #7892ae;
+    font-size: 0.76rem;
+  }
+
+  .blog-card h2 {
+    margin: 26px 0 12px;
+    font-size: clamp(1.5rem, 3vw, 2.1rem);
+  }
+
+  .blog-card a {
+    display: inline-flex;
+    margin-top: 15px;
+    align-items: center;
+    gap: 7px;
+    color: #7be7ff;
+    font-weight: 750;
+  }
+
+  @media (max-width: 680px) {
+    .blog-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .blog-card.featured {
+      grid-column: auto;
+    }
+  }
+</style>

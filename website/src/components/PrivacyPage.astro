@@ -1,0 +1,33 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import PageHero from "@/components/PageHero.astro";
+import type { Locale } from "@/config/site";
+
+interface Props { locale: Locale; }
+const { locale } = Astro.props;
+const isRu = locale === "ru";
+const title = isRu ? "Политика конфиденциальности" : "Privacy policy";
+const description = isRu
+  ? "Как официальный сайт Thunder обращается с данными посетителей."
+  : "How the official Thunder website handles visitor data.";
+---
+
+<BaseLayout locale={locale} title={title} description={description}>
+  <PageHero eyebrow={isRu ? "Приватность" : "Privacy"} title={title} description={description} />
+  <article class="container prose privacy">
+    <h2>{isRu ? "Коротко" : "In short"}</h2>
+    <p>{isRu ? "Сайт Thunder не использует аналитику, рекламные пиксели, пользовательские аккаунты или собственные cookies." : "The Thunder website does not use analytics, advertising pixels, user accounts, or first-party cookies."}</p>
+    <h2>{isRu ? "Хостинг" : "Hosting"}</h2>
+    <p>{isRu ? "Сайт размещён на GitHub Pages. GitHub может обрабатывать технические журналы запросов в соответствии со своей политикой конфиденциальности." : "The site is hosted on GitHub Pages. GitHub may process technical request logs under its own privacy policy."}</p>
+    <h2>{isRu ? "Загрузки и внешние ссылки" : "Downloads and external links"}</h2>
+    <p>{isRu ? "Установочные файлы и исходный код загружаются с github.com. После перехода действует политика соответствующего внешнего сервиса." : "Installers and source code are downloaded from github.com. The external service’s own policy applies after you follow a link."}</p>
+    <h2>{isRu ? "Изменения" : "Changes"}</h2>
+    <p>{isRu ? "Если на сайте появятся аналитика, формы обратной связи или другие способы обработки данных, эта страница будет обновлена до их включения." : "If analytics, feedback forms, or other data processing are introduced, this page will be updated before they are enabled."}</p>
+  </article>
+</BaseLayout>
+
+<style>
+  .privacy {
+    padding-bottom: 100px;
+  }
+</style>

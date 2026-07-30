@@ -7,6 +7,7 @@
 <p align="center"><em>Desktop media downloader, player, and utility toolbox</em></p>
 
 <p align="center">
+  <a href="https://nagrands.github.io/thunder-load-app/">Official website</a> ·
   <a href="docs/README.ru.md">Русский</a> · <a href="docs/README.uk.md">Українська</a> · <a href="docs/APP.en.md">Application guide</a>
 </p>
 
@@ -20,7 +21,8 @@
 
 ## Downloads
 
-- Automated releases publish Windows NSIS and macOS DMG installers for Intel and Apple Silicon on the [Releases](https://github.com/Nagrands/thunder-load-app/releases) page.
+- Download the latest Windows or macOS installer from the official [Thunder download center](https://nagrands.github.io/thunder-load-app/en/download/).
+- Automated releases publish Windows NSIS and macOS DMG installers for Intel and Apple Silicon on [GitHub Releases](https://github.com/Nagrands/thunder-load-app/releases).
 - Linux AppImage packaging is available through `npm run build-linux`, but it is not part of the current release workflow.
 - Current macOS and Windows artifacts are unsigned.
 - Windows uses a per-machine NSIS installer with elevation. macOS registers

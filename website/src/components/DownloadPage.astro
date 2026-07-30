@@ -1,0 +1,183 @@
+---
+import { Apple, Download, MonitorDown, Terminal } from "@lucide/astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import PageHero from "@/components/PageHero.astro";
+import DownloadPanel from "@/components/DownloadPanel.astro";
+import type { Locale } from "@/config/site";
+import type { Release } from "@/lib/releases";
+import { downloadableAssets } from "@/lib/releases";
+import { formatBytes, formatDate } from "@/lib/format";
+import { localizedUrl } from "@/lib/urls";
+
+interface Props {
+  locale: Locale;
+  releases: Release[];
+}
+
+const { locale, releases } = Astro.props;
+const latest = releases[0];
+const isRu = locale === "ru";
+const title = isRu ? "Скачать Thunder" : "Download Thunder";
+const description = isRu
+  ? "Официальные установщики Thunder для Windows и macOS, предыдущие версии и проверяемые SHA-256 из GitHub."
+  : "Official Thunder installers for Windows and macOS, previous releases, and verifiable SHA-256 digests from GitHub.";
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "Thunder",
+  applicationCategory: "MultimediaApplication",
+  operatingSystem: "Windows 10, Windows 11, macOS 12 or later",
+  softwareVersion: latest.version,
+  downloadUrl: latest.url,
+  description
+};
+---
+
+<BaseLayout locale={locale} title={title} description={description} jsonLd={jsonLd}>
+  <PageHero eyebrow={isRu ? "Официальная загрузка" : "Official download"} title={title} description={description} />
+  <section class="container">
+    <DownloadPanel locale={locale} release={latest} />
+  </section>
+  <section class="section container">
+    <div class="section-heading">
+      <p class="eyebrow">{isRu ? "Файлы релиза" : "Release files"}</p>
+      <h2>Thunder {latest.version}</h2>
+      <p>{isRu ? "Дата означает время публикации файла в GitHub Release. Текущие сборки не имеют цифровой подписи." : "The date is when the file was published to GitHub Releases. Current builds are not digitally signed."}</p>
+    </div>
+    <div class="asset-list">
+      {downloadableAssets(latest).map((asset) => {
+        const Icon = asset.platform === "windows" ? MonitorDown : asset.platform === "macos" ? Apple : Terminal;
+        const platform = asset.platform === "windows" ? "Windows" : asset.platform === "macos" ? "macOS" : "Linux";
+        return (
+          <article class="asset-card glass">
+            <div class="asset-icon"><Icon size={22} /></div>
+            <div class="asset-info">
+              <h3>{platform} {asset.architecture !== "unknown" ? `· ${asset.architecture}` : ""}</h3>
+              <p>{asset.name}</p>
+              <div class="asset-meta">
+                <span>{formatBytes(asset.size, locale)}</span>
+                <time datetime={asset.updatedAt}>{formatDate(asset.updatedAt, locale)}</time>
+              </div>
+              {asset.digest && (
+                <details>
+                  <summary>SHA-256</summary>
+                  <code>{asset.digest}</code>
+                </details>
+              )}
+            </div>
+            <a class="button button-primary" href={asset.url}><Download size={18} /> {isRu ? "Скачать" : "Download"}</a>
+          </article>
+        );
+      })}
+    </div>
+  </section>
+  <section class="section-tight container older">
+    <h2>{isRu ? "Предыдущие версии" : "Previous releases"}</h2>
+    <div class="older-list">
+      {releases.slice(1, 8).map((release) => (
+        <a class="glass" href={localizedUrl(locale, `releases/${release.tag}`)}>
+          <strong>Thunder {release.version}</strong>
+          <time datetime={release.publishedAt}>{formatDate(release.publishedAt, locale)}</time>
+          <span>→</span>
+        </a>
+      ))}
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .asset-list,
+  .older-list {
+    display: grid;
+    gap: 12px;
+  }
+
+  .asset-card {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    padding: 22px;
+    align-items: center;
+    gap: 18px;
+    border-radius: 18px;
+  }
+
+  .asset-icon {
+    display: grid;
+    width: 46px;
+    height: 46px;
+    place-items: center;
+    border-radius: 14px;
+    color: #7be7ff;
+    background: rgb(45 156 255 / 0.1);
+  }
+
+  .asset-info h3,
+  .asset-info p {
+    margin: 0;
+  }
+
+  .asset-info p {
+    word-break: break-word;
+    font-size: 0.84rem;
+  }
+
+  .asset-meta {
+    display: flex;
+    margin-top: 7px;
+    gap: 14px;
+    color: #738daa;
+    font-size: 0.74rem;
+  }
+
+  .asset-info details {
+    margin-top: 8px;
+    color: #7fa0c3;
+    font-size: 0.75rem;
+  }
+
+  .asset-info summary {
+    cursor: pointer;
+  }
+
+  .asset-info code {
+    display: block;
+    margin-top: 6px;
+    word-break: break-all;
+  }
+
+  .older h2 {
+    font-size: 1.8rem;
+  }
+
+  .older-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .older-list a {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    padding: 18px;
+    align-items: center;
+    gap: 16px;
+    border-radius: 15px;
+  }
+
+  .older-list time {
+    color: #7891ad;
+    font-size: 0.78rem;
+  }
+
+  @media (max-width: 720px) {
+    .asset-card {
+      grid-template-columns: auto 1fr;
+    }
+
+    .asset-card > .button {
+      grid-column: 1 / -1;
+    }
+
+    .older-list {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

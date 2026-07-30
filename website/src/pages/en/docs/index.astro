@@ -1,0 +1,6 @@
+---
+import { getCollection } from "astro:content";
+import DocsIndex from "@/components/DocsIndex.astro";
+const entries = (await getCollection("docs", ({ data }) => data.locale === "en" && !data.draft)).sort((a, b) => a.data.order - b.data.order);
+---
+<DocsIndex locale="en" entries={entries} />

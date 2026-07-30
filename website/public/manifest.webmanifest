@@ -1,0 +1,22 @@
+{
+  "name": "Thunder",
+  "short_name": "Thunder",
+  "description": "Official Thunder website and download center.",
+  "start_url": "/thunder-load-app/ru/",
+  "scope": "/thunder-load-app/",
+  "display": "standalone",
+  "background_color": "#050914",
+  "theme_color": "#050914",
+  "icons": [
+    {
+      "src": "/thunder-load-app/icons/app-icon-256.png",
+      "sizes": "256x256",
+      "type": "image/png"
+    },
+    {
+      "src": "/thunder-load-app/icons/app-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

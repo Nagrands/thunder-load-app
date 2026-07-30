@@ -1,0 +1,26 @@
+---
+import { getCollection, render } from "astro:content";
+import ContentLayout from "@/layouts/ContentLayout.astro";
+import { contentSlug } from "@/i18n";
+
+export async function getStaticPaths() {
+  const entries = await getCollection("blog", ({ data }) => data.locale === "ru" && !data.draft);
+  return entries.map((entry) => ({ params: { slug: contentSlug(entry.id) }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  headline: entry.data.title,
+  description: entry.data.description,
+  datePublished: entry.data.publishedAt.toISOString(),
+  dateModified: (entry.data.updatedAt ?? entry.data.publishedAt).toISOString(),
+  inLanguage: "ru-RU",
+  author: { "@type": "Organization", name: "NGR Software" }
+};
+---
+<ContentLayout locale="ru" title={entry.data.title} description={entry.data.description} eyebrow="Blog" updatedAt={entry.data.updatedAt} jsonLd={jsonLd}>
+  <Content />
+</ContentLayout>

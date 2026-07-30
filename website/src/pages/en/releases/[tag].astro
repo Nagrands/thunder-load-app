@@ -1,0 +1,12 @@
+---
+import ReleasePage from "@/components/ReleasePage.astro";
+import { getReleases } from "@/lib/releases";
+
+export async function getStaticPaths() {
+  const releases = await getReleases();
+  return releases.map((release) => ({ params: { tag: release.tag }, props: { release } }));
+}
+
+const { release } = Astro.props;
+---
+<ReleasePage locale="en" release={release} />

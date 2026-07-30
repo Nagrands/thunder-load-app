@@ -1,0 +1,63 @@
+---
+import { withBase } from "@/lib/urls";
+
+const ruUrl = withBase("ru/");
+const enUrl = withBase("en/");
+---
+
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="theme-color" content="#050914" />
+    <meta name="description" content="Thunder — загрузчик, медиаплеер и конвертер для Windows и macOS." />
+    <link rel="canonical" href={new URL(ruUrl, Astro.site)} />
+    <link rel="alternate" hreflang="ru-RU" href={new URL(ruUrl, Astro.site)} />
+    <link rel="alternate" hreflang="en-US" href={new URL(enUrl, Astro.site)} />
+    <link rel="alternate" hreflang="x-default" href={new URL(ruUrl, Astro.site)} />
+    <link rel="icon" href={withBase("favicon.svg")} />
+    <title>Thunder</title>
+    <script is:inline define:vars={{ ruUrl, enUrl }}>
+      const language = (navigator.language || "ru").toLowerCase();
+      window.location.replace(language.startsWith("en") ? enUrl : ruUrl);
+    </script>
+  </head>
+  <body>
+    <main>
+      <img src={withBase("brand/symbol.svg")} width="88" height="88" alt="" />
+      <h1>Thunder</h1>
+      <p>Выберите язык · Choose your language</p>
+      <nav aria-label="Language">
+        <a href={ruUrl} lang="ru">Русский</a>
+        <a href={enUrl} lang="en">English</a>
+      </nav>
+    </main>
+  </body>
+</html>
+
+<style>
+  :global(*) { box-sizing: border-box; }
+  :global(body) {
+    display: grid;
+    min-height: 100svh;
+    margin: 0;
+    place-items: center;
+    color: #f4f8ff;
+    background: radial-gradient(circle at 50% 35%, #0b4dff33, transparent 35rem), #050914;
+    font-family: Inter, system-ui, sans-serif;
+  }
+  main { text-align: center; }
+  img { filter: drop-shadow(0 0 24px #16d8ff66); }
+  h1 { margin: 16px 0 0; font-size: 3rem; }
+  p { color: #9db5d0; }
+  nav { display: flex; justify-content: center; gap: 10px; }
+  a {
+    padding: 11px 18px;
+    border: 1px solid #85c9ff33;
+    border-radius: 12px;
+    color: #eaf8ff;
+    background: #151d29bb;
+    text-decoration: none;
+  }
+</style>

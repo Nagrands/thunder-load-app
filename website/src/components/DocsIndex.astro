@@ -1,0 +1,79 @@
+---
+import { ArrowRight, BookOpen, Download, Headphones, Settings2, Wrench } from "@lucide/astro";
+import type { CollectionEntry } from "astro:content";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import PageHero from "@/components/PageHero.astro";
+import type { Locale } from "@/config/site";
+import { contentSlug } from "@/i18n";
+import { localizedUrl } from "@/lib/urls";
+
+interface Props {
+  locale: Locale;
+  entries: CollectionEntry<"docs">[];
+}
+
+const { locale, entries } = Astro.props;
+const isRu = locale === "ru";
+const title = isRu ? "Документация Thunder" : "Thunder documentation";
+const description = isRu
+  ? "Пошаговые инструкции по установке, загрузкам, плееру, инструментам и настройкам."
+  : "Step-by-step guides to installation, downloads, the player, tools, and settings.";
+const icons = { "getting-started": BookOpen, downloader: Download, player: Headphones, tools: Wrench, settings: Settings2, support: BookOpen };
+---
+
+<BaseLayout locale={locale} title={title} description={description}>
+  <PageHero eyebrow={isRu ? "Центр помощи" : "Help center"} title={title} description={description} />
+  <section class="section-tight container docs-grid">
+    {entries.map((entry) => {
+      const Icon = icons[entry.data.section];
+      return (
+        <a class="content-card glass" href={localizedUrl(locale, `docs/${contentSlug(entry.id)}`)}>
+          <div class="icon-box"><Icon size={22} /></div>
+          <span class="tag">{entry.data.section.replace("-", " ")}</span>
+          <h2>{entry.data.title}</h2>
+          <p>{entry.data.description}</p>
+          <span class="card-link">{isRu ? "Открыть руководство" : "Open guide"} <ArrowRight size={16} /></span>
+        </a>
+      );
+    })}
+  </section>
+</BaseLayout>
+
+<style>
+  .docs-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+  }
+
+  .content-card h2 {
+    margin: 20px 0 10px;
+    font-size: 1.4rem;
+  }
+
+  .content-card p {
+    min-height: 72px;
+    font-size: 0.9rem;
+  }
+
+  .card-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: #7be7ff;
+    font-size: 0.82rem;
+    font-weight: 750;
+  }
+
+  @media (max-width: 920px) {
+    .docs-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 600px) {
+    .docs-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
