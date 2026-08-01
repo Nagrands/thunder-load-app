@@ -2074,6 +2074,67 @@ describe("Now Playing view", () => {
     view.dispose();
   });
 
+  test.each([
+    ["add-files", "importFiles"],
+    ["add-folder", "importFolder"],
+  ])(
+    "keeps active playback intact when %s dialog is canceled",
+    async (action, method) => {
+      const api = {
+        getState: jest.fn().mockResolvedValue({
+          data: {
+            version: 4,
+            catalog: { tracks: [sampleTrack] },
+            playlists: [],
+            activePlaylistId: "media-library",
+            selectedTrackId: sampleTrack.id,
+            backgroundPlayback: true,
+          },
+        }),
+        setState: jest.fn().mockResolvedValue({ success: true }),
+        importFiles: jest.fn(),
+        importFolder: jest.fn(),
+      };
+      api[method].mockResolvedValue({
+        success: true,
+        data: {
+          canceled: true,
+          tracks: [],
+          state: null,
+          ...(method === "importFolder"
+            ? { folderName: "", folderTrackIds: [] }
+            : {}),
+        },
+      });
+      const view = createNowPlayingView({ api });
+      document.body.appendChild(view.element);
+      view.onShow();
+      await view.ready;
+      await Promise.resolve();
+      const loadCount = HTMLMediaElement.prototype.load.mock.calls.length;
+      const pauseCount = HTMLMediaElement.prototype.pause.mock.calls.length;
+      const playCount = HTMLMediaElement.prototype.play.mock.calls.length;
+      api.setState.mockClear();
+
+      view.element.querySelector(`[data-action="${action}"]`).click();
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(api[method]).toHaveBeenCalledTimes(1);
+      expect(api.setState).not.toHaveBeenCalled();
+      expect(HTMLMediaElement.prototype.load).toHaveBeenCalledTimes(loadCount);
+      expect(HTMLMediaElement.prototype.pause).toHaveBeenCalledTimes(
+        pauseCount,
+      );
+      expect(HTMLMediaElement.prototype.play).toHaveBeenCalledTimes(playCount);
+      expect(
+        view.element.querySelector('[data-ui="topbar-title"]').textContent,
+      ).toBe("Demo track");
+      view.dispose();
+    },
+  );
+
   test("shows an error toast when importing files fails", async () => {
     const api = {
       getState: jest.fn().mockResolvedValue({

@@ -2,7 +2,7 @@
 
 - Автосборка списка: `npm run test-check:sync-tests`
 - Найдено файлов: 142
-- Найдено тест-кейсов (test/it): 1268
+- Найдено тест-кейсов (test/it): 1269
 
 <!-- AUTO-JEST-TESTS:START -->
 
@@ -906,10 +906,11 @@
 - [ ] reports async errors and renders premium track information
 - [ ] omits unknown metadata and falls back for unavailable audio
 
-### `src/js/modules/__tests__/nowPlayingProviders.test.js` (12)
+### `src/js/modules/__tests__/nowPlayingProviders.test.js` (13)
 - [ ] normalizes metadata and deduplicates local paths
 - [ ] normalizes extended video formats and V3 metadata
 - [ ] merges structured import results without replacing the queue
+- [ ] preserves the explicit cancellation result without changing tracks
 - [ ] resolves local files into playback DTOs and rejects missing tracks
 - [ ] routes AVI/MPEG through the protected local HLS session
 - [ ] keeps exact selected audio tracks on the direct local source

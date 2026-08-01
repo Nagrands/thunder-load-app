@@ -146,6 +146,7 @@ export class LocalMusicProvider {
     const playlist = this.mergeTracks(importedTracks);
     return {
       ...playlist,
+      canceled: payload?.canceled === true,
       importedTrackIds: Array.isArray(payload?.importedTrackIds)
         ? payload.importedTrackIds.map(String)
         : importedTracks.map(

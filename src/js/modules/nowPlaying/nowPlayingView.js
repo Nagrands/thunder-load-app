@@ -720,6 +720,7 @@ export function createNowPlayingView({
     try {
       const previousIds = new Set(provider.tracks.map((track) => track.id));
       const imported = await provider.importSource(source);
+      if (imported.canceled) return false;
       const importedIds = new Set(imported.importedTrackIds || []);
       const incomingTracks = imported.tracks.filter(
         (track) => importedIds.has(track.id) || !previousIds.has(track.id),

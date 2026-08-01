@@ -82,6 +82,25 @@ describe("Now Playing providers", () => {
     expect(playlist.importedTrackIds).toEqual(["second"]);
   });
 
+  test("preserves the explicit cancellation result without changing tracks", async () => {
+    const provider = new LocalMusicProvider({
+      importFiles: jest.fn().mockResolvedValue({
+        success: true,
+        data: { canceled: true, tracks: [], state: null },
+      }),
+      importFolder: jest.fn(),
+    });
+    provider.restore({
+      tracks: [{ id: "current", sourceRef: "/music/current.mp3" }],
+    });
+
+    const result = await provider.importSource("files");
+
+    expect(result.canceled).toBe(true);
+    expect(result.tracks.map((track) => track.id)).toEqual(["current"]);
+    expect(result.importedTrackIds).toEqual([]);
+  });
+
   test("resolves local files into playback DTOs and rejects missing tracks", async () => {
     const provider = new LocalMusicProvider({
       importFiles: jest.fn(),
