@@ -176,6 +176,9 @@
     }
   },
   "jest": {
+    "roots": [
+      "<rootDir>/src"
+    ],
     "testEnvironment": "jsdom",
     "transform": {
       "^.+\\.js$": "babel-jest"

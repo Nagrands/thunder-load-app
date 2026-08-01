@@ -2,7 +2,13 @@ const globals = require("globals");
 
 module.exports = [
   {
-    ignores: ["dist/**", "node_modules/**", ".obsidian/**", "assets/vendor/**"],
+    ignores: [
+      "dist/**",
+      "website/dist/**",
+      "node_modules/**",
+      ".obsidian/**",
+      "assets/vendor/**",
+    ],
   },
   {
     files: ["**/*.{js,cjs,mjs}"],
