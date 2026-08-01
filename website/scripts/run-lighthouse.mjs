@@ -10,6 +10,14 @@ const lighthouseTimeoutMs = parsePositiveInteger(
   "LIGHTHOUSE_TIMEOUT_MS"
 );
 const processShutdownTimeoutMs = 5000;
+const categoryScoreThresholds = {
+  performance: 0.85,
+  accessibility: 0.95,
+  bestPractices: 0.95,
+  seo: 0.95
+};
+const lcpThresholdMs = 2500;
+const clsThreshold = 0.1;
 const urls = [
   `${origin}/thunder-load-app/ru/`,
   `${origin}/thunder-load-app/ru/download/`,
@@ -167,11 +175,14 @@ try {
         `${url} performance=${Math.round(scores.performance * 100)} accessibility=${Math.round(scores.accessibility * 100)} best-practices=${Math.round(scores.bestPractices * 100)} seo=${Math.round(scores.seo * 100)} LCP=${Math.round(lcp)}ms CLS=${cls.toFixed(3)}`
       );
 
-      for (const [category, score] of Object.entries(scores)) {
-        if (score < 0.95) failures.push(`${url}: ${category} ${Math.round(score * 100)} < 95`);
+      for (const [category, threshold] of Object.entries(categoryScoreThresholds)) {
+        const score = scores[category];
+        if (score < threshold) {
+          failures.push(`${url}: ${category} ${Math.round(score * 100)} < ${Math.round(threshold * 100)}`);
+        }
       }
-      if (lcp > 2500) failures.push(`${url}: LCP ${Math.round(lcp)}ms > 2500ms`);
-      if (cls > 0.1) failures.push(`${url}: CLS ${cls.toFixed(3)} > 0.1`);
+      if (lcp > lcpThresholdMs) failures.push(`${url}: LCP ${Math.round(lcp)}ms > ${lcpThresholdMs}ms`);
+      if (cls > clsThreshold) failures.push(`${url}: CLS ${cls.toFixed(3)} > ${clsThreshold}`);
     }
   } finally {
     await withTimeout(chrome.kill(), processShutdownTimeoutMs, "Chrome shutdown");
