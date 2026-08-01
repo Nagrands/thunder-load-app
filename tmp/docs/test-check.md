@@ -2,7 +2,7 @@
 
 - Автосборка списка: `npm run test-check:sync-tests`
 - Найдено файлов: 142
-- Найдено тест-кейсов (test/it): 1260
+- Найдено тест-кейсов (test/it): 1261
 
 <!-- AUTO-JEST-TESTS:START -->
 
@@ -927,7 +927,7 @@
 - [ ] keeps insertion order and supports reorder, removal and filtering
 - [ ] never exposes mutable internal items
 
-### `src/js/modules/__tests__/nowPlayingView.test.js` (44)
+### `src/js/modules/__tests__/nowPlayingView.test.js` (45)
 - [ ] renders an accessible player and restores selectedTrackId
 - [ ] provides keyboard navigation and focus restoration for the Player menu
 - [ ] uses a safe topbar artwork fallback when the cover fails
@@ -963,6 +963,7 @@
 - [ ] autohides controls only while playing and locks them on interaction
 - [ ] supports row keyboard selection, removal and queue clearing
 - [ ] clears every item from the system Media Library after confirmation
+- [ ] clears only filtered items from the system Media Library
 - [ ] closes current playback from the mini-player without removing media
 - [ ] renders the V2 media library, playlists and persistent mini-player
 - [ ] can remove playlist files from the media library when deleting it

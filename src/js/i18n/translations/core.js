@@ -238,6 +238,8 @@ export const coreTranslations = {
     "nowPlaying.toast.mediaRenamed": "Медиа переименовано в «{title}»",
     "nowPlaying.toast.mediaDeleted": "«{title}» удалено из медиатеки",
     "nowPlaying.toast.libraryCleared": "Медиатека очищена ({count} элементов)",
+    "nowPlaying.toast.libraryItemsRemoved":
+      "Из медиатеки удалено элементов: {count}",
     "nowPlaying.playback.preparing": "Подготавливаем видео…",
     "nowPlaying.error": "Не удалось выполнить операцию.",
     "nowPlaying.unknownArtist": "Неизвестный исполнитель",
@@ -279,6 +281,9 @@ export const coreTranslations = {
     "nowPlaying.library.clearQueueConfirm":
       "Удалить все элементы ({count}) из Медиатеки и пользовательских плейлистов?",
     "nowPlaying.library.clearQueueAction": "Удалить всё",
+    "nowPlaying.library.clearFilteredQueueConfirm":
+      "Удалить отфильтрованные элементы ({count}) из Медиатеки и пользовательских плейлистов?",
+    "nowPlaying.library.clearFilteredQueueAction": "Удалить отфильтрованные",
     "nowPlaying.library.unknownItem": "Медиафайл",
     "nowPlaying.library.empty.title": "Здесь пока ничего нет",
     "nowPlaying.library.empty.hint":
@@ -682,6 +687,8 @@ export const coreTranslations = {
     "nowPlaying.toast.mediaRenamed": "Media renamed to “{title}”",
     "nowPlaying.toast.mediaDeleted": "“{title}” removed from the media library",
     "nowPlaying.toast.libraryCleared": "Media library cleared ({count} items)",
+    "nowPlaying.toast.libraryItemsRemoved":
+      "Removed {count} items from the media library",
     "nowPlaying.playback.preparing": "Preparing video…",
     "nowPlaying.error": "The operation could not be completed.",
     "nowPlaying.unknownArtist": "Unknown artist",
@@ -723,6 +730,9 @@ export const coreTranslations = {
     "nowPlaying.library.clearQueueConfirm":
       "Delete all items ({count}) from the Media Library and user playlists?",
     "nowPlaying.library.clearQueueAction": "Delete all",
+    "nowPlaying.library.clearFilteredQueueConfirm":
+      "Delete the filtered items ({count}) from the Media Library and user playlists?",
+    "nowPlaying.library.clearFilteredQueueAction": "Delete filtered",
     "nowPlaying.library.unknownItem": "Media item",
     "nowPlaying.library.empty.title": "Nothing here yet",
     "nowPlaying.library.empty.hint":

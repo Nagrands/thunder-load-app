@@ -898,6 +898,12 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
       playerDialog = null;
     },
     getActivePlaylist: () => getActivePlaylist(latestState),
+    getFilteredTracks: () => {
+      const activePlaylist = getActivePlaylist(latestState);
+      return getPlaylistTracks(latestState, activePlaylist).filter((track) =>
+        matchesFilter(track, activeFilter),
+      );
+    },
     getTrackContext,
     hide,
     openDialog,

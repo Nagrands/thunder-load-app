@@ -2203,6 +2203,63 @@ describe("Now Playing view", () => {
     view.dispose();
   });
 
+  test("clears only filtered items from the system Media Library", async () => {
+    const videoTrack = {
+      ...sampleTrack,
+      id: "video",
+      sourceRef: "/video/episode.mkv",
+      title: "Episode",
+      kind: "video",
+    };
+    const api = {
+      getState: jest.fn().mockResolvedValue({
+        data: {
+          version: 3,
+          catalog: { tracks: [sampleTrack, videoTrack] },
+          playlists: [],
+          activePlaylistId: "media-library",
+          selectedTrackId: "demo",
+        },
+      }),
+      setState: jest.fn().mockResolvedValue({ success: true }),
+      importFiles: jest.fn(),
+      importFolder: jest.fn(),
+    };
+    const view = createNowPlayingView({ api });
+    document.body.appendChild(view.element);
+    await view.ready;
+
+    view.element.querySelector('[data-action="show-library"]').click();
+    view.element
+      .querySelector('[data-action="set-library-filter"][data-filter="video"]')
+      .click();
+    view.element.querySelector('[data-action="clear-media-library"]').click();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(showConfirmationDialog).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: "nowPlaying.library.clearFilteredQueueConfirm",
+        confirmText: "nowPlaying.library.clearFilteredQueueAction",
+      }),
+    );
+    expect(
+      view.element.querySelector(
+        '[data-ui="library-tracks"] [data-track-id="video"]',
+      ),
+    ).toBeNull();
+    expect(
+      view.element.querySelector(
+        '[data-ui="library-tracks"] [data-track-id="demo"]',
+      ),
+    ).not.toBeNull();
+    expect(showToast).toHaveBeenCalledWith(
+      "nowPlaying.toast.libraryItemsRemoved",
+      "success",
+    );
+    view.dispose();
+  });
+
   test("closes current playback from the mini-player without removing media", async () => {
     const api = {
       getState: jest.fn().mockResolvedValue({

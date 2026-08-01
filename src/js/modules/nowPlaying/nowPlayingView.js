@@ -1099,29 +1099,49 @@ export function createNowPlayingView({
     const activePlaylist = libraryView.getActivePlaylist();
     if (!activePlaylist) return false;
     const state = libraryModel.getState();
+    const mediaLibraryTracks =
+      activePlaylist.id === MEDIA_LIBRARY_ID
+        ? libraryView.getFilteredTracks()
+        : [];
     if (activePlaylist.id === MEDIA_LIBRARY_ID) {
-      if (!state.catalog.tracks.length) return false;
+      if (!mediaLibraryTracks.length) return false;
+      const clearsEntireLibrary =
+        mediaLibraryTracks.length === state.catalog.tracks.length;
       const confirmed = await showConfirmationDialog({
         title: t("nowPlaying.library.clearQueueTitle"),
-        message: t("nowPlaying.library.clearQueueConfirm", {
-          count: state.catalog.tracks.length,
-        }),
-        confirmText: t("nowPlaying.library.clearQueueAction"),
+        message: t(
+          clearsEntireLibrary
+            ? "nowPlaying.library.clearQueueConfirm"
+            : "nowPlaying.library.clearFilteredQueueConfirm",
+          {
+            count: mediaLibraryTracks.length,
+          },
+        ),
+        confirmText: t(
+          clearsEntireLibrary
+            ? "nowPlaying.library.clearQueueAction"
+            : "nowPlaying.library.clearFilteredQueueAction",
+        ),
       });
       if (!confirmed) return false;
     }
     const removedCount =
       activePlaylist.id === MEDIA_LIBRARY_ID
-        ? state.catalog.tracks.length
+        ? mediaLibraryTracks.length
         : activePlaylist.trackIds.length;
     if (!removedCount) return false;
     controller.pause();
     if (activePlaylist?.id === MEDIA_LIBRARY_ID) {
-      state.catalog.tracks.forEach((track) =>
+      mediaLibraryTracks.forEach((track) =>
         libraryModel.deleteFromCatalog(track.id),
       );
-      provider.clear();
-      youtubeProvider.restore([]);
+      const remainingTracks = libraryModel.getState().catalog.tracks;
+      provider.restore({
+        tracks: remainingTracks.filter((track) => track.providerId === "local"),
+      });
+      youtubeProvider.restore(
+        remainingTracks.filter((track) => track.providerId === "youtube"),
+      );
     } else if (activePlaylist) {
       [...(activePlaylist.trackIds || [])].forEach((trackId) =>
         libraryModel.removeTrackFromPlaylist(trackId, activePlaylist.id),
@@ -1130,7 +1150,9 @@ export function createNowPlayingView({
     syncLibraryQueue();
     showPlayerToast(
       activePlaylist.id === MEDIA_LIBRARY_ID
-        ? "nowPlaying.toast.libraryCleared"
+        ? removedCount === state.catalog.tracks.length
+          ? "nowPlaying.toast.libraryCleared"
+          : "nowPlaying.toast.libraryItemsRemoved"
         : "nowPlaying.toast.playlistCleared",
       "success",
       { count: removedCount },
