@@ -803,7 +803,7 @@ describe("Now Playing playback controller", () => {
     expect(controller.queue.map((track) => track.id)).toEqual(["three", "one"]);
     expect(controller.currentTrack.id).toBe("one");
     expect(controller.getPersistentState()).toMatchObject({
-      version: 3,
+      version: 4,
       activePlaylistId: "favorites",
       selectedTrackId: "one",
       volume: 0.7,
@@ -866,9 +866,9 @@ describe("Now Playing playback controller", () => {
     ]);
     expect(controller.currentTrack.id).toBe("one");
     expect(controller.isPlaying).toBe(true);
-    expect(mediaLayers.every((media) => media.pause.mock.calls.length === 0)).toBe(
-      true,
-    );
+    expect(
+      mediaLayers.every((media) => media.pause.mock.calls.length === 0),
+    ).toBe(true);
 
     await controller.next();
     expect(controller.currentTrack.id).toBe("two");

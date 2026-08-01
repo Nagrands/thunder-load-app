@@ -13,7 +13,7 @@ describe("Now Playing context menu", () => {
       root.querySelectorAll('[data-ui="player-context-menu"] [role="menuitem"]'),
     );
 
-    expect(items).toHaveLength(10);
+    expect(items).toHaveLength(11);
     items.forEach((item) => {
       expect(item.dataset.i18n).toBeUndefined();
       expect(item.querySelector("[data-lucide]")).not.toBeNull();
@@ -27,6 +27,10 @@ describe("Now Playing context menu", () => {
       root.querySelector('[data-context-action="delete"] [data-lucide]').dataset
         .lucide,
     ).toBe("trash-2");
+    expect(
+      root.querySelector('[data-context-action="favorite"] [data-lucide]').dataset
+        .lucide,
+    ).toBe("star");
     menu.dispose();
   });
 

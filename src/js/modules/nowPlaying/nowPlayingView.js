@@ -911,7 +911,7 @@ export function createNowPlayingView({
     }
     if (mode === "rename") {
       const activePlaylist = libraryView.getActivePlaylist();
-      if (!activePlaylist || activePlaylist.id === MEDIA_LIBRARY_ID) {
+      if (!activePlaylist || activePlaylist.isSystem) {
         return false;
       }
       if (!libraryModel.renamePlaylist(activePlaylist.id, value)) return false;
@@ -950,7 +950,7 @@ export function createNowPlayingView({
 
   async function removeFromActivePlaylist(trackId) {
     const activePlaylist = libraryView.getActivePlaylist();
-    if (!activePlaylist || activePlaylist.id === MEDIA_LIBRARY_ID) {
+    if (!activePlaylist || activePlaylist.isSystem) {
       return deleteCatalogTrack(trackId);
     }
     const wasCurrent = controller.currentTrack?.id === trackId;
@@ -1227,6 +1227,12 @@ export function createNowPlayingView({
     }
     if (action === "retry") return controller.retry();
     if (action === "clear-library-search") return libraryView.clearSearch();
+    if (action === "toggle-library-sidebar") {
+      return libraryView.toggleLibrarySidebar(target);
+    }
+    if (action === "close-library-sidebar") {
+      return libraryView.closeLibrarySidebar();
+    }
     if (action === "set-library-filter") {
       return libraryView.setFilter(target.dataset.filter);
     }
@@ -1268,7 +1274,16 @@ export function createNowPlayingView({
       return true;
     }
     if (action === "select-playlist") {
+      libraryView.leavePlaylistBrowser();
+      libraryView.closeLibrarySidebar({ restoreFocus: false });
       return selectPlaylist(target.dataset.playlistId);
+    }
+    if (action === "manage-playlist") {
+      if (!(await selectPlaylist(target.dataset.playlistId))) return false;
+      libraryView.closeLibrarySidebar({ restoreFocus: false });
+      return target.dataset.playlistMode === "rename"
+        ? libraryView.openDialog("rename")
+        : handleAction("delete-playlist", target);
     }
     if (action === "toggle-sidebar-playlist-menu") {
       return libraryView.toggleSidebarPlaylistMenu();
@@ -1305,7 +1320,7 @@ export function createNowPlayingView({
     }
     if (action === "delete-playlist") {
       const activePlaylist = libraryView.getActivePlaylist();
-      if (!activePlaylist || activePlaylist.id === MEDIA_LIBRARY_ID) {
+      if (!activePlaylist || activePlaylist.isSystem) {
         return false;
       }
       const deleteMode = await showConfirmationDialog({
@@ -1398,6 +1413,22 @@ export function createNowPlayingView({
     }
     if (action === "playlist") {
       return libraryView.openDialog("addTrack", { trackId: track.id });
+    }
+    if (action === "favorite") {
+      const favorite = !track.favorite;
+      if (!libraryModel.setTrackFavorite(track.id, favorite)) return false;
+      syncLibraryQueue({
+        selectedTrackId: controller.currentTrack?.id,
+        preservePlayback: Boolean(controller.currentTrack),
+      });
+      showPlayerToast(
+        favorite
+          ? "nowPlaying.toast.favoriteAdded"
+          : "nowPlaying.toast.favoriteRemoved",
+        "success",
+        { title: track.displayTitle || track.title },
+      );
+      return true;
     }
     if (action === "move-up" || action === "move-down") {
       libraryModel.reorderTrack(

@@ -2,7 +2,12 @@ import { normalizeLocalTrack } from "./localMusicProvider.js";
 import { getYouTubeVideoId, normalizeYouTubeTrack } from "./youtubeProvider.js";
 
 export const MEDIA_LIBRARY_ID = "media-library";
-export const MEDIA_LIBRARY_STATE_VERSION = 3;
+export const RECENTLY_ADDED_ID = "smart:recent";
+export const FAVORITES_ID = "smart:favorites";
+export const MEDIA_LIBRARY_STATE_VERSION = 4;
+
+const SMART_COLLECTION_IDS = new Set([RECENTLY_ADDED_ID, FAVORITES_ID]);
+const RECENT_TRACK_LIMIT = 50;
 
 const MAX_TITLE_LENGTH = 160;
 
@@ -78,24 +83,47 @@ function normalizeGenericTrack(track = {}, index = 0) {
   };
 }
 
-function normalizeTrack(track, index) {
+function normalizeAddedAt(value, fallback = 0) {
+  const timestamp = Number(value);
+  return Number.isFinite(timestamp) && timestamp > 0
+    ? Math.trunc(timestamp)
+    : fallback;
+}
+
+function withLibraryMetadata(track, source, fallbackAddedAt = 0) {
+  return {
+    ...track,
+    addedAt: normalizeAddedAt(source?.addedAt, fallbackAddedAt),
+    favorite: source?.favorite === true,
+  };
+}
+
+function normalizeTrack(track, index, { fallbackAddedAt = 0 } = {}) {
   if (track?.providerId === "youtube") {
     const normalized = normalizeYouTubeTrack(track);
-    return {
-      ...normalized,
-      displayTitle: String(track.displayTitle || normalized.title),
-      sizeBytes: normalizeSizeBytes(track.sizeBytes),
-      qualitySelection: normalizeQualitySelection(track.qualitySelection),
-    };
+    return withLibraryMetadata(
+      {
+        ...normalized,
+        displayTitle: String(track.displayTitle || normalized.title),
+        sizeBytes: normalizeSizeBytes(track.sizeBytes),
+        qualitySelection: normalizeQualitySelection(track.qualitySelection),
+      },
+      track,
+      fallbackAddedAt,
+    );
   }
   if (!track?.providerId || track.providerId === "local") {
     const { playback: _playback, ...normalized } = normalizeLocalTrack(
       track,
       index,
     );
-    return normalized;
+    return withLibraryMetadata(normalized, track, fallbackAddedAt);
   }
-  return normalizeGenericTrack(track, index);
+  return withLibraryMetadata(
+    normalizeGenericTrack(track, index),
+    track,
+    fallbackAddedAt,
+  );
 }
 
 function getTrackKey(track) {
@@ -138,6 +166,20 @@ function cloneTrack(track) {
   };
 }
 
+export function getSmartCollectionTrackIds(tracks = [], collectionId) {
+  if (collectionId === RECENTLY_ADDED_ID) {
+    return tracks
+      .filter((track) => track.addedAt > 0)
+      .sort((left, right) => right.addedAt - left.addedAt)
+      .slice(0, RECENT_TRACK_LIMIT)
+      .map((track) => track.id);
+  }
+  if (collectionId === FAVORITES_ID) {
+    return tracks.filter((track) => track.favorite).map((track) => track.id);
+  }
+  return [];
+}
+
 function collectCatalog(sourceTracks) {
   const tracks = [];
   const seen = new Map();
@@ -167,7 +209,12 @@ function normalizePlaylists(playlists, validIds, idMap, now) {
   return (Array.isArray(playlists) ? playlists : []).reduce(
     (result, playlist, index) => {
       const id = String(playlist?.id || `playlist-${index + 1}`);
-      if (id === MEDIA_LIBRARY_ID || seenIds.has(id)) return result;
+      if (
+        id === MEDIA_LIBRARY_ID ||
+        SMART_COLLECTION_IDS.has(id) ||
+        seenIds.has(id)
+      )
+        return result;
       seenIds.add(id);
       const trackIds = [];
       const seenTracks = new Set();
@@ -211,6 +258,7 @@ export function normalizeMediaLibraryState(
       : MEDIA_LIBRARY_ID;
   const activePlaylistId =
     requestedActiveId === MEDIA_LIBRARY_ID ||
+    SMART_COLLECTION_IDS.has(requestedActiveId) ||
     playlists.some((playlist) => playlist.id === requestedActiveId)
       ? requestedActiveId
       : MEDIA_LIBRARY_ID;
@@ -244,6 +292,18 @@ export function getActiveTracksFromState(source = {}) {
   const state = normalizeMediaLibraryState(source);
   if (state.activePlaylistId === MEDIA_LIBRARY_ID) {
     return state.catalog.tracks.map(cloneTrack);
+  }
+  if (SMART_COLLECTION_IDS.has(state.activePlaylistId)) {
+    const tracksById = new Map(
+      state.catalog.tracks.map((track) => [track.id, track]),
+    );
+    return getSmartCollectionTrackIds(
+      state.catalog.tracks,
+      state.activePlaylistId,
+    )
+      .map((trackId) => tracksById.get(trackId))
+      .filter(Boolean)
+      .map(cloneTrack);
   }
   const playlist = state.playlists.find(
     (item) => item.id === state.activePlaylistId,
@@ -289,7 +349,9 @@ export class MediaLibraryModel {
     const addedTrackIds = [];
     tracks.forEach((sourceTrack, index) => {
       try {
-        const track = normalizeTrack(sourceTrack, index);
+        const track = normalizeTrack(sourceTrack, index, {
+          fallbackAddedAt: this.now(),
+        });
         const existing = existingKeys.get(getTrackKey(track));
         const trackId = existing?.id || track.id;
         if (!existing) {
@@ -301,7 +363,10 @@ export class MediaLibraryModel {
         // A malformed item must not prevent importing the remaining media.
       }
     });
-    if (playlistId !== MEDIA_LIBRARY_ID) {
+    if (
+      playlistId !== MEDIA_LIBRARY_ID &&
+      !SMART_COLLECTION_IDS.has(playlistId)
+    ) {
       addedTrackIds.forEach((trackId) =>
         this.addTrackToPlaylist(trackId, playlistId),
       );
@@ -315,6 +380,7 @@ export class MediaLibraryModel {
     let suffix = 2;
     while (
       id === MEDIA_LIBRARY_ID ||
+      SMART_COLLECTION_IDS.has(id) ||
       this.state.playlists.some((playlist) => playlist.id === id)
     ) {
       id = `${baseId}-${suffix}`;
@@ -386,6 +452,7 @@ export class MediaLibraryModel {
   setActivePlaylist(playlistId) {
     if (
       playlistId !== MEDIA_LIBRARY_ID &&
+      !SMART_COLLECTION_IDS.has(playlistId) &&
       !this.state.playlists.some((playlist) => playlist.id === playlistId)
     ) {
       return false;
@@ -467,6 +534,20 @@ export class MediaLibraryModel {
     const track = this.state.catalog.tracks.find((item) => item.id === trackId);
     if (!track) return false;
     track.displayTitle = cleanTitle(displayTitle, track.title);
+    return true;
+  }
+
+  setTrackFavorite(trackId, favorite) {
+    const track = this.state.catalog.tracks.find((item) => item.id === trackId);
+    if (!track) return false;
+    track.favorite = favorite === true;
+    if (
+      this.state.activePlaylistId === FAVORITES_ID &&
+      !track.favorite &&
+      this.state.selectedTrackId === trackId
+    ) {
+      this.state.selectedTrackId = null;
+    }
     return true;
   }
 

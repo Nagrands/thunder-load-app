@@ -559,28 +559,12 @@ export function buildNowPlayingMarkup() {
       aria-labelledby="player-library-title"
       hidden
     >
-      <div class="player-library__backdrop" data-ui="library-backdrop" aria-hidden="true">
-        <img class="player-library__backdrop-cover" data-ui="library-backdrop-cover" alt="" />
-        <div class="player-library__backdrop-overlay"></div>
-      </div>
       <header class="player-library__header">
         <div class="player-library__heading">
           <span class="player-library__eyebrow" data-i18n="tabs.nowPlaying">${t("tabs.nowPlaying")}</span>
           <h1 id="player-library-title" tabindex="-1" data-i18n="nowPlaying.library.title">${t("nowPlaying.library.title")}</h1>
           <p data-i18n="nowPlaying.library.subtitle">${t("nowPlaying.library.subtitle")}</p>
         </div>
-        <button
-          class="player-library__close"
-          type="button"
-          data-action="show-player"
-          data-i18n-aria="nowPlaying.library.close"
-          aria-label="${t("nowPlaying.library.close")}"
-        >
-          <i data-lucide="panel-top-open" aria-hidden="true"></i>
-          <span data-i18n="nowPlaying.library.close">${t("nowPlaying.library.close")}</span>
-        </button>
-      </header>
-      <div class="player-library__command-bar">
         <div class="player-library__search">
           <i data-lucide="search" aria-hidden="true"></i>
           <input
@@ -610,6 +594,19 @@ export function buildNowPlayingMarkup() {
             <i data-lucide="x" aria-hidden="true"></i>
           </button>
         </div>
+        <button
+          class="player-library__close"
+          type="button"
+          data-action="show-player"
+          data-i18n-aria="nowPlaying.library.close"
+          aria-label="${t("nowPlaying.library.close")}"
+        >
+          <i data-lucide="panel-top-open" aria-hidden="true"></i>
+          <span data-i18n="nowPlaying.library.close">${t("nowPlaying.library.close")}</span>
+        </button>
+      </header>
+      <div class="player-library__command-bar">
+        ${libraryIconButton("toggle-library-sidebar", "panel-left", "nowPlaying.library.collections", "player-library__sidebar-toggle")}
         <div class="player-library__filters" role="group" aria-label="${t("nowPlaying.library.filters")}">
           <button type="button" data-action="set-library-filter" data-filter="all" aria-pressed="true">
             <i data-lucide="layout-grid" aria-hidden="true"></i>
@@ -623,11 +620,22 @@ export function buildNowPlayingMarkup() {
             <i data-lucide="music-2" aria-hidden="true"></i>
             <span data-i18n="nowPlaying.library.filter.audio">${t("nowPlaying.library.filter.audio")}</span>
           </button>
-          <button type="button" data-action="set-library-filter" data-filter="missing" aria-pressed="false">
-            <i data-lucide="file-warning" aria-hidden="true"></i>
-            <span data-i18n="nowPlaying.library.filter.missing">${t("nowPlaying.library.filter.missing")}</span>
+          <button type="button" data-action="set-library-filter" data-filter="playlists" aria-pressed="false">
+            <i data-lucide="list-video" aria-hidden="true"></i>
+            <span data-i18n="nowPlaying.library.filter.playlists">${t("nowPlaying.library.filter.playlists")}</span>
           </button>
         </div>
+        <details class="player-library__more-filters" data-ui="library-more-filters">
+          <summary data-i18n-aria="nowPlaying.library.moreFilters" aria-label="${t("nowPlaying.library.moreFilters")}">
+            <i data-lucide="sliders-horizontal" aria-hidden="true"></i>
+          </summary>
+          <div role="group" aria-label="${t("nowPlaying.library.moreFilters")}">
+            <button type="button" data-action="set-library-filter" data-filter="missing" aria-pressed="false">
+              <i data-lucide="file-warning" aria-hidden="true"></i>
+              <span data-i18n="nowPlaying.library.filter.missing">${t("nowPlaying.library.filter.missing")}</span>
+            </button>
+          </div>
+        </details>
         <div class="player-library__header-actions" aria-label="${t("nowPlaying.library.actions")}">
           ${libraryIconButton("add-files", "fa-solid fa-file-audio", "nowPlaying.addFiles")}
           ${libraryIconButton("add-folder", "fa-solid fa-folder-plus", "nowPlaying.addFolder")}
@@ -646,16 +654,24 @@ export function buildNowPlayingMarkup() {
         <span></span>
       </div>
 
+      <button class="player-library__sidebar-scrim" type="button" data-action="close-library-sidebar" data-ui="library-sidebar-scrim" aria-label="${t("nowPlaying.library.closeCollections")}" hidden></button>
       <div class="player-library__body">
-        <nav class="player-library__playlists" aria-labelledby="player-playlists-title">
-          <div class="player-library__section-heading">
-            <div>
-              <span data-i18n="nowPlaying.playlists.kicker">${t("nowPlaying.playlists.kicker")}</span>
-              <h2 id="player-playlists-title" data-i18n="nowPlaying.playlists.title">${t("nowPlaying.playlists.title")}</h2>
+        <nav class="player-library__playlists" data-ui="library-sidebar" aria-label="${t("nowPlaying.library.collections")}">
+          <section class="player-library__sidebar-section" aria-labelledby="player-collections-title">
+            <div class="player-library__section-heading">
+              <h2 id="player-collections-title" data-i18n="nowPlaying.library.collections">${t("nowPlaying.library.collections")}</h2>
             </div>
-            <span class="player-library__count" data-ui="library-playlist-count"></span>
-          </div>
-          <div class="player-library__playlist-grid" data-ui="library-playlists"></div>
+            <div class="player-library__playlist-grid" data-ui="library-collections"></div>
+          </section>
+          <section class="player-library__sidebar-section player-library__sidebar-section--playlists" aria-labelledby="player-playlists-title">
+            <div class="player-library__section-heading">
+              <h2 id="player-playlists-title" data-i18n="nowPlaying.playlists.title">${t("nowPlaying.playlists.title")}</h2>
+              <button type="button" data-action="open-create-playlist-dialog" data-i18n-aria="nowPlaying.playlists.create" aria-label="${t("nowPlaying.playlists.create")}">
+                <i data-lucide="plus" aria-hidden="true"></i>
+              </button>
+            </div>
+            <div class="player-library__playlist-grid" data-ui="library-playlists"></div>
+          </section>
           <section class="player-library__up-next" aria-labelledby="player-up-next-title">
             <div class="player-library__up-next-heading">
               <h3 id="player-up-next-title" data-i18n="nowPlaying.queue.upNext">${t("nowPlaying.queue.upNext")}</h3>
@@ -681,6 +697,7 @@ export function buildNowPlayingMarkup() {
             <span data-ui="active-playlist-summary"></span>
             <span data-ui="library-results-count" role="status" aria-live="polite"></span>
           </div>
+          <div class="player-library__playlist-browser" data-ui="library-playlist-browser" role="list" aria-label="${t("nowPlaying.playlists.title")}" hidden></div>
           <div class="player-library__column-header" aria-hidden="true">
             <span></span>
             <span></span>
@@ -697,15 +714,13 @@ export function buildNowPlayingMarkup() {
             aria-label="${t("nowPlaying.library.items")}"
           ></div>
           <div class="player-library__empty" data-ui="library-empty" hidden>
-            <i data-lucide="circle-play" aria-hidden="true"></i>
-            <h3 data-i18n="nowPlaying.library.empty.title">${t("nowPlaying.library.empty.title")}</h3>
+            <div class="player-library__empty-illustration" aria-hidden="true">
+              <i data-lucide="folder-music"></i>
+              <i data-lucide="play"></i>
+              <i data-lucide="plus"></i>
+            </div>
+            <h3 data-ui="library-empty-title" data-i18n="nowPlaying.library.empty.playlistTitle">${t("nowPlaying.library.empty.playlistTitle")}</h3>
             <p data-i18n="nowPlaying.library.empty.hint">${t("nowPlaying.library.empty.hint")}</p>
-            <ul aria-label="${t("nowPlaying.library.empty.canAdd")}">
-              <li data-i18n="nowPlaying.audio">${t("nowPlaying.audio")}</li>
-              <li data-i18n="nowPlaying.video">${t("nowPlaying.video")}</li>
-              <li data-i18n="nowPlaying.addFolder">${t("nowPlaying.addFolder")}</li>
-              <li>YouTube</li>
-            </ul>
             <div class="player-library__empty-actions">
               ${libraryActionButton("add-files", "fa-solid fa-file-audio", "nowPlaying.addFiles", "player-library__action--primary")}
               ${libraryActionButton("add-folder", "fa-solid fa-folder-plus", "nowPlaying.addFolder")}
@@ -719,6 +734,12 @@ export function buildNowPlayingMarkup() {
             <p data-i18n="nowPlaying.library.noResults.hint">${t("nowPlaying.library.noResults.hint")}</p>
             ${libraryActionButton("clear-library-search", "fa-solid fa-xmark", "nowPlaying.library.noResults.clear")}
           </div>
+          <div class="player-library__empty player-library__no-playlists" data-ui="library-no-playlists" hidden>
+            <i data-lucide="list-plus" aria-hidden="true"></i>
+            <h3 data-i18n="nowPlaying.library.noPlaylists.title">${t("nowPlaying.library.noPlaylists.title")}</h3>
+            <p data-i18n="nowPlaying.library.noPlaylists.hint">${t("nowPlaying.library.noPlaylists.hint")}</p>
+            ${libraryActionButton("open-create-playlist-dialog", "fa-solid fa-plus", "nowPlaying.playlists.create", "player-library__action--primary")}
+          </div>
         </section>
       </div>
 
@@ -730,7 +751,7 @@ export function buildNowPlayingMarkup() {
           </div>
           <div class="player-library__mini-metadata">
             <strong data-ui="mini-title"></strong>
-            <span data-ui="mini-artist"></span>
+            <span><span data-ui="mini-artist"></span><span class="player-library__mini-kind" data-ui="mini-kind"></span></span>
             <span class="player-library__mini-album" data-ui="mini-album"></span>
           </div>
         </div>

@@ -1,8 +1,10 @@
 import {
   createMediaLibraryModel,
+  FAVORITES_ID,
   getActiveTracksFromState,
   MEDIA_LIBRARY_ID,
   normalizeMediaLibraryState,
+  RECENTLY_ADDED_ID,
 } from "../nowPlaying/mediaLibraryModel.js";
 
 const localTracks = [
@@ -32,7 +34,7 @@ describe("Now Playing media library model", () => {
     });
 
     expect(state).toMatchObject({
-      version: 3,
+      version: 4,
       activePlaylistId: MEDIA_LIBRARY_ID,
       selectedTrackId: "local-two",
       volume: 0.4,
@@ -236,7 +238,7 @@ describe("Now Playing media library model", () => {
       activePlaylistId: "streams",
     });
 
-    expect(state.version).toBe(3);
+    expect(state.version).toBe(4);
     expect(state.activePlaylistId).toBe("streams");
     expect(state.catalog.tracks[0]).toMatchObject({
       displayTitle: "Custom video",
@@ -277,5 +279,42 @@ describe("Now Playing media library model", () => {
     expect(model.getState().catalog.tracks[0].qualitySelection.mode).toBe(
       "best",
     );
+  });
+
+  test("persists favorites and exposes them as an active smart collection", () => {
+    const model = createMediaLibraryModel({
+      version: 4,
+      catalog: { tracks: localTracks },
+    });
+
+    expect(model.setTrackFavorite("local-two", true)).toBe(true);
+    expect(model.setActivePlaylist(FAVORITES_ID)).toBe(true);
+    expect(model.getActiveTracks().map((track) => track.id)).toEqual([
+      "local-two",
+    ]);
+    expect(model.getState().catalog.tracks[1].favorite).toBe(true);
+  });
+
+  test("returns at most 50 dated recent imports and keeps duplicate timestamps", () => {
+    const tracks = Array.from({ length: 52 }, (_, index) => ({
+      id: `track-${index}`,
+      providerId: "local",
+      sourceRef: `/media/${index}.mp3`,
+      title: `Track ${index}`,
+      addedAt: index + 1,
+    }));
+    const model = createMediaLibraryModel(
+      { version: 4, catalog: { tracks } },
+      { now: () => 1000 },
+    );
+
+    expect(model.setActivePlaylist(RECENTLY_ADDED_ID)).toBe(true);
+    expect(model.getActiveTracks()).toHaveLength(50);
+    expect(model.getActiveTracks()[0].id).toBe("track-51");
+    model.addTracks([{ ...tracks[0], addedAt: 9999 }]);
+    expect(
+      model.getState().catalog.tracks.find((track) => track.id === "track-0")
+        .addedAt,
+    ).toBe(1);
   });
 });

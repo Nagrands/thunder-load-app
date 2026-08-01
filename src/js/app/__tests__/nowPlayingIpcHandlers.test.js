@@ -166,7 +166,7 @@ describe("nowPlayingIpcHandlers", () => {
     const mediaPath = path.join(root, "movie.mkv");
     fs.writeFileSync(mediaPath, "video");
     storeValues["nowPlaying.state"] = {
-      version: 3,
+      version: 4,
       catalog: {
         tracks: [
           {
@@ -339,7 +339,7 @@ describe("nowPlayingIpcHandlers", () => {
     expect(result).toMatchObject({
       success: true,
       data: {
-        version: 3,
+        version: 4,
         activePlaylistId: "favorites",
         selectedTrackId: null,
         sidebarPinned: true,
@@ -458,7 +458,14 @@ describe("nowPlayingIpcHandlers", () => {
     expect(second.data.added).toHaveLength(0);
     expect(store.set).toHaveBeenCalledWith(
       "nowPlaying.state",
-      expect.objectContaining({ version: 3 }),
+      expect.objectContaining({ version: 4 }),
+    );
+    expect(first.data.added[0]).toMatchObject({
+      favorite: false,
+      addedAt: expect.any(Number),
+    });
+    expect(second.data.state.catalog.tracks[0].addedAt).toBe(
+      first.data.state.catalog.tracks[0].addedAt,
     );
   });
 
@@ -569,7 +576,7 @@ describe("nowPlayingIpcHandlers", () => {
     fs.writeFileSync(existingPath, "existing");
     fs.writeFileSync(newPath, "new");
     storeValues["nowPlaying.state"] = {
-      version: 3,
+      version: 4,
       catalog: {
         tracks: [
           {
@@ -621,7 +628,7 @@ describe("nowPlayingIpcHandlers", () => {
 
     expect(result.success).toBe(true);
     expect(result.data).toMatchObject({
-      version: 3,
+      version: 4,
       activePlaylistId: "media-library",
       selectedTrackId: "gone",
       volume: 1,
@@ -682,7 +689,7 @@ describe("nowPlayingIpcHandlers", () => {
     expect(result).toMatchObject({
       success: true,
       data: {
-        version: 3,
+        version: 4,
         catalog: { tracks: [] },
         activePlaylistId: "broken",
         selectedTrackId: null,
@@ -716,7 +723,7 @@ describe("nowPlayingIpcHandlers", () => {
     const result = await handlers[CHANNELS.NOW_PLAYING_GET_STATE]();
 
     expect(result.data).toMatchObject({
-      version: 3,
+      version: 4,
       activePlaylistId: "media-library",
       selectedTrackId: "legacy",
       volume: 0.4,
@@ -726,7 +733,7 @@ describe("nowPlayingIpcHandlers", () => {
     expect(result.data.playlists).toEqual([]);
     expect(store.set).toHaveBeenCalledWith(
       "nowPlaying.state",
-      expect.objectContaining({ version: 3 }),
+      expect.objectContaining({ version: 4 }),
     );
   });
 

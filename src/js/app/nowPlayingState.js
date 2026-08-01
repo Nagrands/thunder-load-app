@@ -6,8 +6,11 @@ const {
   normalizeSourcePath,
 } = require("./nowPlayingLibrary");
 
-const STATE_VERSION = 3;
+const STATE_VERSION = 4;
 const LIBRARY_PLAYLIST_ID = "media-library";
+const RECENTLY_ADDED_ID = "smart:recent";
+const FAVORITES_ID = "smart:favorites";
+const SMART_COLLECTION_IDS = new Set([RECENTLY_ADDED_ID, FAVORITES_ID]);
 const MAX_TRACKS = 5000;
 const MAX_PLAYLISTS = 500;
 const REPEAT_MODES = new Set(["off", "all", "one"]);
@@ -260,9 +263,19 @@ function sanitizeNetworkTrack(track) {
 
 function sanitizeTrack(track) {
   if (!track || typeof track !== "object") return null;
-  if (track.providerId === "youtube") return sanitizeYouTubeTrack(track);
-  if (track.providerId === "network") return sanitizeNetworkTrack(track);
-  return sanitizeLocalTrack(track);
+  const sanitized =
+    track.providerId === "youtube"
+      ? sanitizeYouTubeTrack(track)
+      : track.providerId === "network"
+        ? sanitizeNetworkTrack(track)
+        : sanitizeLocalTrack(track);
+  return sanitized
+    ? {
+        ...sanitized,
+        addedAt: sanitizeTimestamp(track.addedAt),
+        favorite: track.favorite === true,
+      }
+    : null;
 }
 
 function sanitizeTimestamp(value) {
@@ -300,7 +313,10 @@ function sanitizeTracks(sourceTracks) {
 function sanitizePlaylists(source, tracks) {
   const validTrackIds = new Set(tracks.map((track) => track.id));
   const playlists = [];
-  const seenPlaylistIds = new Set([LIBRARY_PLAYLIST_ID]);
+  const seenPlaylistIds = new Set([
+    LIBRARY_PLAYLIST_ID,
+    ...SMART_COLLECTION_IDS,
+  ]);
   const sourcePlaylists = Array.isArray(source.playlists)
     ? source.playlists
     : [];
@@ -366,14 +382,23 @@ function sanitizeState(value) {
   const requestedPlaylistId = sanitizeText(source.activePlaylistId, 128);
   const activePlaylistId =
     requestedPlaylistId === LIBRARY_PLAYLIST_ID ||
+    SMART_COLLECTION_IDS.has(requestedPlaylistId) ||
     playlists.some((playlist) => playlist.id === requestedPlaylistId)
       ? requestedPlaylistId
       : LIBRARY_PLAYLIST_ID;
   const activeTrackIds =
     activePlaylistId === LIBRARY_PLAYLIST_ID
       ? tracks.map((track) => track.id)
-      : playlists.find((playlist) => playlist.id === activePlaylistId)
-          ?.trackIds || [];
+      : activePlaylistId === RECENTLY_ADDED_ID
+        ? tracks
+            .filter((track) => track.addedAt > 0)
+            .sort((left, right) => right.addedAt - left.addedAt)
+            .slice(0, 50)
+            .map((track) => track.id)
+        : activePlaylistId === FAVORITES_ID
+          ? tracks.filter((track) => track.favorite).map((track) => track.id)
+          : playlists.find((playlist) => playlist.id === activePlaylistId)
+              ?.trackIds || [];
   const requestedTrackId =
     sanitizeText(source.selectedTrackId, 128) ||
     sanitizeText(source.currentTrackId, 128);
@@ -403,8 +428,10 @@ function sanitizeState(value) {
 }
 
 module.exports = {
+  FAVORITES_ID,
   LIBRARY_PLAYLIST_ID,
   MAX_TRACKS,
+  RECENTLY_ADDED_ID,
   STATE_VERSION,
   canonicalizeYouTubeUrl,
   defaultState,

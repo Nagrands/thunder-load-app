@@ -4,6 +4,7 @@ const MENU_ITEMS = [
   ["play", "play", "nowPlaying.context.play"],
   ["queue", "list-end", "nowPlaying.context.queue"],
   ["playlist", "list-plus", "nowPlaying.playlists.addItem"],
+  ["favorite", "star", "nowPlaying.library.favorite.add"],
   ["move-up", "arrow-up", "nowPlaying.playlists.moveUp"],
   ["move-down", "arrow-down", "nowPlaying.playlists.moveDown"],
   ["reveal", "folder-search", "nowPlaying.context.reveal"],
@@ -61,17 +62,32 @@ export function createPlayerContextMenu({ root, onAction }) {
         !available && ["play", "reveal", "open-location"].includes(action);
       item.disabled = disabled;
       item.setAttribute("aria-disabled", String(disabled));
+      if (action === "favorite") {
+        const labelKey = context?.track?.favorite
+          ? "nowPlaying.library.favorite.remove"
+          : "nowPlaying.library.favorite.add";
+        const label = t(labelKey);
+        item.querySelector("span").textContent = label;
+        item.querySelector("span").dataset.i18n = labelKey;
+        item.setAttribute("aria-label", label);
+      }
     });
     menu.hidden = false;
     const bounds = root.getBoundingClientRect();
     const menuBounds = menu.getBoundingClientRect();
     const left = Math.max(
       8,
-      Math.min((point.x ?? bounds.left) - bounds.left, bounds.width - menuBounds.width - 8),
+      Math.min(
+        (point.x ?? bounds.left) - bounds.left,
+        bounds.width - menuBounds.width - 8,
+      ),
     );
     const top = Math.max(
       8,
-      Math.min((point.y ?? bounds.top) - bounds.top, bounds.height - menuBounds.height - 8),
+      Math.min(
+        (point.y ?? bounds.top) - bounds.top,
+        bounds.height - menuBounds.height - 8,
+      ),
     );
     menu.style.left = `${left}px`;
     menu.style.top = `${top}px`;
@@ -105,16 +121,16 @@ export function createPlayerContextMenu({ root, onAction }) {
     if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
     event.preventDefault();
     const items = Array.from(
-      menu.querySelectorAll(
-        '[role="menuitem"]:not([hidden]):not([disabled])',
-      ),
+      menu.querySelectorAll('[role="menuitem"]:not([hidden]):not([disabled])'),
     );
     const current = items.indexOf(document.activeElement);
-    const index = event.key === "Home"
-      ? 0
-      : event.key === "End"
-        ? items.length - 1
-        : (current + (event.key === "ArrowDown" ? 1 : -1) + items.length) % items.length;
+    const index =
+      event.key === "Home"
+        ? 0
+        : event.key === "End"
+          ? items.length - 1
+          : (current + (event.key === "ArrowDown" ? 1 : -1) + items.length) %
+            items.length;
     items[index]?.focus();
   }
 

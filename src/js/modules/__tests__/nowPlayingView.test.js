@@ -474,7 +474,7 @@ describe("Now Playing view", () => {
     expect(dialog.getAttribute("aria-hidden")).toBe("true");
     expect(
       view.element.querySelectorAll(".player-library__playlist-card"),
-    ).toHaveLength(1);
+    ).toHaveLength(3);
     view.dispose();
   });
 
@@ -1044,11 +1044,12 @@ describe("Now Playing view", () => {
     activeVideo.dispatchEvent(new Event("loadedmetadata"));
     await new Promise((resolve) => setTimeout(resolve, 0));
     view.element.querySelector('[data-action="show-library"]').click();
-    const backdrop = view.element.querySelector('[data-ui="library-backdrop"]');
-    expect(backdrop.classList.contains("is-live-video")).toBe(true);
     expect(
-      view.element.querySelector('[data-ui="library-backdrop-cover"]').hidden,
-    ).toBe(true);
+      view.element.querySelector('[data-ui="library-backdrop"]'),
+    ).toBeNull();
+    expect(
+      view.element.querySelector('[data-ui="library-backdrop-cover"]'),
+    ).toBeNull();
     view.dispose();
   });
 
@@ -2449,6 +2450,9 @@ describe("Now Playing view", () => {
     expect(library.querySelector('[data-filter="video"]').hidden).toBe(true);
     expect(library.querySelector('[data-filter="missing"]').hidden).toBe(true);
     expect(
+      library.querySelector('[data-ui="library-more-filters"]').hidden,
+    ).toBe(true);
+    expect(
       library.querySelector('[data-ui="library-search-clear"] [data-lucide]')
         .dataset.lucide,
     ).toBe("x");
@@ -2488,7 +2492,7 @@ describe("Now Playing view", () => {
       [
         ...library.querySelectorAll(".player-library__filters [data-lucide]"),
       ].map((icon) => icon.dataset.lucide),
-    ).toEqual(["layout-grid", "clapperboard", "music-2", "file-warning"]);
+    ).toEqual(["layout-grid", "clapperboard", "music-2", "list-video"]);
     expect(
       library.querySelector('[data-ui="playlist-management-actions"]').hidden,
     ).toBe(false);
@@ -2512,7 +2516,7 @@ describe("Now Playing view", () => {
     ).toEqual(["1080p", "H.264", "AAC"]);
     expect(
       library.querySelectorAll(".player-library__playlist-card"),
-    ).toHaveLength(2);
+    ).toHaveLength(4);
     expect(
       library.querySelector(
         '.player-library__playlist-card[data-playlist-id="media-library"]',
@@ -2527,6 +2531,9 @@ describe("Now Playing view", () => {
     );
     expect(library.querySelector('[data-ui="mini-album"]').textContent).toBe(
       "Local",
+    );
+    expect(library.querySelector('[data-ui="mini-kind"]').textContent).toBe(
+      "nowPlaying.audio",
     );
     expect(library.querySelector(".player-library__return")).toBeNull();
     expect(
@@ -2558,7 +2565,12 @@ describe("Now Playing view", () => {
       [...sidebarPlaylistMenu.querySelectorAll('[role="option"]')].map(
         (option) => option.dataset.playlistId,
       ),
-    ).toEqual(["media-library", "favorites"]);
+    ).toEqual([
+      "media-library",
+      "smart:recent",
+      "smart:favorites",
+      "favorites",
+    ]);
     expect(sidebarSwitcher.dataset.playlistId).toBe("media-library");
     expect(sidebarSwitcher.getAttribute("aria-haspopup")).toBe("listbox");
     const libraryCard = library.querySelector(
@@ -2833,19 +2845,16 @@ describe("Now Playing view", () => {
     expect(miniPoster.hidden).toBe(false);
     expect(miniPoster.src).toBe("data:image/jpeg;base64,eager-poster");
     const library = view.element.querySelector('[data-ui="library-view"]');
-    const libraryCover = library.querySelector(
-      '[data-ui="library-backdrop-cover"]',
-    );
-    expect(libraryCover.hidden).toBe(false);
-    expect(libraryCover.src).toBe("data:image/jpeg;base64,eager-poster");
     expect(
-      library
-        .querySelector('[data-ui="library-backdrop"]')
-        .classList.contains("is-live-video"),
-    ).toBe(false);
+      library.querySelector('[data-ui="library-backdrop-cover"]'),
+    ).toBeNull();
+    expect(library.querySelector('[data-ui="library-backdrop"]')).toBeNull();
     expect(library.querySelector('[data-filter="video"]').hidden).toBe(false);
     expect(library.querySelector('[data-filter="audio"]').hidden).toBe(true);
     expect(library.querySelector('[data-filter="missing"]').hidden).toBe(true);
+    expect(
+      library.querySelector('[data-ui="library-more-filters"]').hidden,
+    ).toBe(true);
     view.dispose();
   });
 
@@ -2954,6 +2963,9 @@ describe("Now Playing view", () => {
     expect(library.querySelector('[data-filter="audio"]').hidden).toBe(false);
     expect(library.querySelector('[data-filter="video"]').hidden).toBe(false);
     expect(library.querySelector('[data-filter="missing"]').hidden).toBe(false);
+    expect(
+      library.querySelector('[data-ui="library-more-filters"]').hidden,
+    ).toBe(false);
 
     search.value = "season one";
     search.dispatchEvent(new Event("input", { bubbles: true }));
@@ -3148,7 +3160,7 @@ describe("Now Playing view", () => {
     ).toBe(true);
     expect(api.setState).toHaveBeenCalledWith(
       expect.objectContaining({
-        version: 3,
+        version: 4,
         activePlaylistId: "media-library",
         playlists: expect.arrayContaining([
           expect.objectContaining({ title: "Road trip" }),
@@ -3250,5 +3262,186 @@ describe("Now Playing view", () => {
     );
     view.dispose();
     jest.useRealTimers();
+  });
+
+  test("browses and searches user playlists from the segmented filter", async () => {
+    const api = {
+      getState: jest.fn().mockResolvedValue({
+        data: {
+          version: 4,
+          catalog: { tracks: [sampleTrack] },
+          playlists: [
+            { id: "road", title: "Road trip", trackIds: [sampleTrack.id] },
+            { id: "focus", title: "Focus", trackIds: [] },
+          ],
+          activePlaylistId: "media-library",
+          selectedTrackId: sampleTrack.id,
+        },
+      }),
+      setState: jest.fn().mockResolvedValue({ success: true }),
+      importFiles: jest.fn(),
+      importFolder: jest.fn(),
+    };
+    const view = createNowPlayingView({ api });
+    document.body.appendChild(view.element);
+    await view.ready;
+    view.element.querySelector('[data-action="show-library"]').click();
+    const library = view.element.querySelector('[data-ui="library-view"]');
+
+    library.querySelector('[data-filter="playlists"]').click();
+    expect(
+      library.querySelectorAll('[data-ui="library-playlist-browser"] > button'),
+    ).toHaveLength(2);
+    const search = library.querySelector('[data-ui="library-search"]');
+    search.value = "road";
+    search.dispatchEvent(new Event("input", { bubbles: true }));
+    expect(
+      library.querySelectorAll('[data-ui="library-playlist-browser"] > button'),
+    ).toHaveLength(1);
+    library
+      .querySelector(
+        '[data-ui="library-playlist-browser"] [data-playlist-id="road"]',
+      )
+      .click();
+    expect(library.querySelector('[data-filter="all"]').ariaPressed).toBe(
+      "true",
+    );
+    expect(
+      library.querySelector('[data-ui="active-playlist-title"]').textContent,
+    ).toBe("Road trip");
+    view.dispose();
+  });
+
+  test("toggles a favorite through the shared track context menu", async () => {
+    const api = {
+      getState: jest.fn().mockResolvedValue({
+        data: {
+          version: 4,
+          catalog: { tracks: [sampleTrack] },
+          playlists: [],
+          activePlaylistId: "media-library",
+          selectedTrackId: sampleTrack.id,
+        },
+      }),
+      setState: jest.fn().mockResolvedValue({ success: true }),
+      importFiles: jest.fn(),
+      importFolder: jest.fn(),
+    };
+    const view = createNowPlayingView({ api });
+    document.body.appendChild(view.element);
+    await view.ready;
+    view.element.querySelector('[data-action="show-library"]').click();
+    view.element
+      .querySelector('[data-action="open-track-context-menu"]')
+      .click();
+    const favoriteAction = view.element.querySelector(
+      '[data-context-action="favorite"]',
+    );
+    expect(favoriteAction.textContent).toContain(
+      "nowPlaying.library.favorite.add",
+    );
+    favoriteAction.click();
+    view.element.querySelector('[data-playlist-id="smart:favorites"]').click();
+    expect(
+      view.element.querySelector(
+        '.player-library__track[data-track-id="demo"]',
+      ),
+    ).not.toBeNull();
+    expect(showToast).toHaveBeenCalledWith(
+      "nowPlaying.toast.favoriteAdded",
+      "success",
+    );
+    view.dispose();
+  });
+
+  test("opens the compact collections drawer and restores focus on Escape", async () => {
+    const originalMatchMedia = window.matchMedia;
+    const mediaQuery = {
+      matches: true,
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+    };
+    window.matchMedia = jest.fn(() => mediaQuery);
+    const api = {
+      getState: jest.fn().mockResolvedValue({
+        data: { version: 4, catalog: { tracks: [] }, playlists: [] },
+      }),
+      setState: jest.fn().mockResolvedValue({ success: true }),
+      importFiles: jest.fn(),
+      importFolder: jest.fn(),
+    };
+    const view = createNowPlayingView({ api });
+    document.body.appendChild(view.element);
+    await view.ready;
+    view.element.querySelector('[data-action="show-library"]').click();
+    const library = view.element.querySelector('[data-ui="library-view"]');
+    const toggle = library.querySelector(
+      '[data-action="toggle-library-sidebar"]',
+    );
+    const sidebar = library.querySelector('[data-ui="library-sidebar"]');
+    expect(library.querySelector('[data-filter="audio"]').hidden).toBe(true);
+    expect(library.querySelector('[data-filter="video"]').hidden).toBe(true);
+    expect(
+      library.querySelector('[data-ui="library-more-filters"]').hidden,
+    ).toBe(true);
+    expect(sidebar.inert).toBe(true);
+
+    toggle.click();
+    expect(library.classList).toContain("is-sidebar-open");
+    expect(sidebar.inert).toBe(false);
+    library.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+    );
+    expect(library.classList).not.toContain("is-sidebar-open");
+    expect(document.activeElement).toBe(toggle);
+    view.dispose();
+    window.matchMedia = originalMatchMedia;
+  });
+
+  test("positions playlist actions as a viewport overlay", async () => {
+    const api = {
+      getState: jest.fn().mockResolvedValue({
+        data: {
+          version: 4,
+          catalog: { tracks: [sampleTrack] },
+          playlists: [
+            { id: "mix", title: "Mix", trackIds: [sampleTrack.id] },
+          ],
+          activePlaylistId: "mix",
+        },
+      }),
+      setState: jest.fn().mockResolvedValue({ success: true }),
+      importFiles: jest.fn(),
+      importFolder: jest.fn(),
+    };
+    const view = createNowPlayingView({ api });
+    document.body.appendChild(view.element);
+    await view.ready;
+    view.element.querySelector('[data-action="show-library"]').click();
+    const menu = view.element.querySelector(
+      ".player-library__playlist-actions",
+    );
+    const summary = menu.querySelector("summary");
+    const popup = menu.querySelector('[role="menu"]');
+    summary.getBoundingClientRect = jest.fn(() => ({
+      top: 100,
+      right: 300,
+      bottom: 128,
+    }));
+    popup.getBoundingClientRect = jest.fn(() => ({ width: 210, height: 82 }));
+
+    menu.open = true;
+    menu.dispatchEvent(new Event("toggle"));
+
+    expect(summary.getAttribute("aria-expanded")).toBe("true");
+    expect(summary.getAttribute("aria-controls")).toBe(popup.id);
+    expect(popup.style.left).not.toBe("");
+    expect(popup.style.top).not.toBe("");
+    expect(popup.dataset.placement).toBe("bottom");
+
+    menu.open = false;
+    menu.dispatchEvent(new Event("toggle"));
+    expect(summary.getAttribute("aria-expanded")).toBe("false");
+    view.dispose();
   });
 });

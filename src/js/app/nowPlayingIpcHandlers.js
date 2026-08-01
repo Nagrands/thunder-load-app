@@ -170,7 +170,7 @@ function resolveToolPath(resolver, store) {
   }
 }
 
-function appendImportedTracks(state, imported) {
+function appendImportedTracks(state, imported, now = Date.now()) {
   const existingByKey = new Map(
     state.catalog.tracks.map((track) => [
       `${track.providerId}:${getTrackKey(track)}`,
@@ -183,7 +183,12 @@ function appendImportedTracks(state, imported) {
       (track) =>
         !existingByKey.has(`${track.providerId}:${getTrackKey(track)}`),
     )
-    .slice(0, availableSlots);
+    .slice(0, availableSlots)
+    .map((track) => ({
+      ...track,
+      addedAt: now,
+      favorite: false,
+    }));
   const addedByKey = new Map(
     added.map((track) => [`${track.providerId}:${getTrackKey(track)}`, track]),
   );
@@ -503,6 +508,8 @@ function registerNowPlayingIpcHandlers({
             ...refreshed.data,
             id: existingTrack.id,
             displayTitle: existingTrack.displayTitle,
+            addedAt: existingTrack.addedAt,
+            favorite: existingTrack.favorite,
           };
         }
         const updatedState = {

@@ -2,7 +2,7 @@
 
 - Автосборка списка: `npm run test-check:sync-tests`
 - Найдено файлов: 142
-- Найдено тест-кейсов (test/it): 1261
+- Найдено тест-кейсов (test/it): 1268
 
 <!-- AUTO-JEST-TESTS:START -->
 
@@ -272,12 +272,13 @@
 - [ ] normalizes equivalent source paths for deduplication
 - [ ] does not traverse a selected symlink directory
 
-### `src/js/app/__tests__/nowPlayingState.test.js` (6)
-- [ ] migrates V2 state to V3 while preserving playlist selection
+### `src/js/app/__tests__/nowPlayingState.test.js` (7)
+- [ ] migrates V2 state to V4 while preserving playlist selection
 - [ ] restores supported control positions and defaults invalid values to top
 - [ ] drops unsafe or unsupported persisted audio track ids
 - [ ] migrates legacy V1 tracks into the media library
 - [ ] sanitizes persisted visualizer settings without changing Player state
+- [ ] sanitizes library metadata and derives smart collection selection
 - [ ] sanitizes YouTube quality selections and network tracks
 
 ### `src/js/app/__tests__/nowPlayingTimelinePreviewService.test.js` (5)
@@ -837,7 +838,7 @@
 - [ ] keeps a pinned sidebar visible across pointer leave and restores it
 - [ ] syncs fullscreen state and removes external listeners on dispose
 
-### `src/js/modules/__tests__/nowPlayingMediaLibraryModel.test.js` (10)
+### `src/js/modules/__tests__/nowPlayingMediaLibraryModel.test.js` (12)
 - [ ] migrates the V1 queue into the virtual media library
 - [ ] defaults invalid control positions to top
 - [ ] sanitizes broken playlist references and falls back to the library
@@ -848,6 +849,8 @@
 - [ ] returns defensive state copies
 - [ ] migrates V2 metadata and keeps the active network playlist
 - [ ] returns defensive copies of quality selections
+- [ ] persists favorites and exposes them as an active smart collection
+- [ ] returns at most 50 dated recent imports and keeps duplicate timestamps
 
 ### `src/js/modules/__tests__/nowPlayingNetworkProvider.test.js` (2)
 - [ ] accepts credential-free HTTP(S) URLs
@@ -927,7 +930,7 @@
 - [ ] keeps insertion order and supports reorder, removal and filtering
 - [ ] never exposes mutable internal items
 
-### `src/js/modules/__tests__/nowPlayingView.test.js` (45)
+### `src/js/modules/__tests__/nowPlayingView.test.js` (49)
 - [ ] renders an accessible player and restores selectedTrackId
 - [ ] provides keyboard navigation and focus restoration for the Player menu
 - [ ] uses a safe topbar artwork fallback when the cover fails
@@ -973,6 +976,10 @@
 - [ ] switches playlists from the library and sidebar without interrupting playback
 - [ ] creates a playlist with the accessible library dialog
 - [ ] imports a single YouTube video from the library dialog
+- [ ] browses and searches user playlists from the segmented filter
+- [ ] toggles a favorite through the shared track context menu
+- [ ] opens the compact collections drawer and restores focus on Escape
+- [ ] positions playlist actions as a viewport overlay
 
 ### `src/js/modules/__tests__/pageBackgroundMode.test.js` (3)
 - [ ] defaults to downloader mode and reacts to tab changes

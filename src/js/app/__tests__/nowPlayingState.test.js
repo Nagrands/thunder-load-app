@@ -1,13 +1,15 @@
 const path = require("path");
 
 const {
+  FAVORITES_ID,
   LIBRARY_PLAYLIST_ID,
+  RECENTLY_ADDED_ID,
   STATE_VERSION,
   sanitizeState,
 } = require("../nowPlayingState");
 
 describe("nowPlayingState", () => {
-  test("migrates V2 state to V3 while preserving playlist selection", () => {
+  test("migrates V2 state to V4 while preserving playlist selection", () => {
     const sourceRef = path.resolve("/media/song.mp3");
     const state = sanitizeState({
       version: 2,
@@ -93,7 +95,7 @@ describe("nowPlayingState", () => {
       currentTrackId: "legacy",
     });
 
-    expect(state.version).toBe(3);
+    expect(state.version).toBe(4);
     expect(state.activePlaylistId).toBe(LIBRARY_PLAYLIST_ID);
     expect(state.selectedTrackId).toBe("legacy");
     expect(state.visualizer).toEqual({
@@ -134,6 +136,50 @@ describe("nowPlayingState", () => {
       particles: false,
       reflection: false,
     });
+  });
+
+  test("sanitizes library metadata and derives smart collection selection", () => {
+    const recentPath = path.resolve("/media/recent.mp3");
+    const favoritePath = path.resolve("/media/favorite.mp3");
+    const state = sanitizeState({
+      version: 4,
+      catalog: {
+        tracks: [
+          {
+            id: "recent",
+            providerId: "local",
+            sourceRef: recentPath,
+            addedAt: 200,
+          },
+          {
+            id: "favorite",
+            providerId: "local",
+            sourceRef: favoritePath,
+            addedAt: -5,
+            favorite: true,
+          },
+        ],
+      },
+      activePlaylistId: FAVORITES_ID,
+      selectedTrackId: "favorite",
+    });
+
+    expect(state.activePlaylistId).toBe(FAVORITES_ID);
+    expect(state.selectedTrackId).toBe("favorite");
+    expect(state.catalog.tracks).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "recent",
+          addedAt: 200,
+          favorite: false,
+        }),
+        expect.objectContaining({ id: "favorite", addedAt: 0, favorite: true }),
+      ]),
+    );
+    expect(
+      sanitizeState({ ...state, activePlaylistId: RECENTLY_ADDED_ID })
+        .activePlaylistId,
+    ).toBe(RECENTLY_ADDED_ID);
   });
 
   test("sanitizes YouTube quality selections and network tracks", () => {

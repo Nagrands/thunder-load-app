@@ -7,7 +7,7 @@
  */
 
 /**
- * @typedef {Object} TrackV3
+ * @typedef {Object} TrackV4
  * @property {string} id
  * @property {"local"|"youtube"|"network"} providerId
  * @property {string} sourceRef
@@ -24,6 +24,8 @@
  * @property {{width?: number, height?: number, container?: string, videoCodec?: string, audioCodec?: string}=} mediaInfo
  * @property {QualitySelection|null} qualitySelection
  * @property {string|null=} selectedAudioTrackId
+ * @property {number} addedAt
+ * @property {boolean} favorite
  */
 
 /**
@@ -57,7 +59,7 @@
 /**
  * @typedef {Object} QueueItem
  * @property {string} id
- * @property {TrackV3} track
+ * @property {TrackV4} track
  * @property {number} addedAt
  */
 
