@@ -165,6 +165,11 @@ describe("whatsNew presentation slides", () => {
 
     modal.querySelector('[data-ui="whats-next"]').click();
     expect(content.textContent).toContain("Первое");
+    const featureBody = content.querySelector(".whats-feature-body");
+    const featureTitle = content.querySelector(".whats-slide--feature h2");
+    expect(featureBody.getAttribute("role")).toBe("region");
+    expect(featureBody.tabIndex).toBe(0);
+    expect(featureBody.getAttribute("aria-labelledby")).toBe(featureTitle.id);
 
     dots[2].click();
     expect(content.textContent).toContain("Второе");

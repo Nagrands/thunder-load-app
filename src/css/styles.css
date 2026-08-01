@@ -21257,8 +21257,8 @@ body.low-effects .player-form-modal__hero, body.low-effects .player-form-modal__
 
 .shortcut-editor__group {
   display: grid;
-  gap: 7px;
-  padding: 9px;
+  gap: 12px;
+  padding: 12px;
   border: 1px solid var(--settings-border);
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.018);
@@ -21288,14 +21288,12 @@ body.low-effects .player-form-modal__hero, body.low-effects .player-form-modal__
   border-radius: 8px;
   background: rgba(var(--color-accent-rgb), 0.11);
   color: var(--color-accent);
-  font-size: 12px;
 }
 
 .shortcut-editor__group-title {
   margin: 0;
   overflow: hidden;
   color: var(--color-text-main);
-  font-size: 13px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -21317,14 +21315,13 @@ body.low-effects .player-form-modal__hero, body.low-effects .player-form-modal__
 .shortcut-editor__group-rows {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 5px;
+  gap: 12px;
 }
 
 .shortcut-editor__row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 7px;
   min-height: 58px;
   padding: 7px 8px;
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -21362,9 +21359,7 @@ body.low-effects .player-form-modal__hero, body.low-effects .player-form-modal__
 
 .shortcut-editor__name {
   margin: 0;
-  color: var(--color-text-main);
-  font-size: 12px;
-  line-height: 1.25;
+  font-size: 14px;
 }
 
 .shortcut-editor__description {
@@ -21373,7 +21368,6 @@ body.low-effects .player-form-modal__hero, body.low-effects .player-form-modal__
   margin: 0;
   color: var(--color-quality);
   font-size: 10px;
-  line-height: 1.3;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -24384,6 +24378,12 @@ body.ready #app-preloader {
   line-height: 1.45;
 }
 
+.whats-slide--feature,
+.whats-slide--fallback {
+  min-height: 0;
+  overflow: hidden;
+}
+
 .whats-slide-kicker {
   color: var(--color-accent);
   font-size: 12px;
@@ -24443,10 +24443,29 @@ body.ready #app-preloader {
 }
 
 .whats-feature-body {
-  max-width: 500px;
+  width: 100%;
+  min-height: 0;
+  padding-right: 10px;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   color: rgba(222, 233, 255, 0.72);
   font-size: 16px;
   line-height: 1.58;
+  scrollbar-color: rgba(var(--color-accent-rgb), 0.42) transparent;
+  scrollbar-gutter: stable;
+}
+.whats-feature-body:focus-visible {
+  outline: 2px solid rgba(var(--color-accent-rgb), 0.62);
+  outline-offset: 3px;
+  border-radius: 8px;
+}
+.whats-feature-body::-webkit-scrollbar {
+  width: 7px;
+}
+.whats-feature-body::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(var(--color-accent-rgb), 0.38);
 }
 .whats-feature-body p,
 .whats-feature-body ul,

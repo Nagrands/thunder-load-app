@@ -203,21 +203,23 @@ function renderOverviewSlide(slide) {
 }
 
 function renderFeatureSlide(slide) {
+  const titleId = `whats-slide-title-${slide.id}`;
   return `
     <article class="whats-slide whats-slide--feature">
       <div class="whats-slide-kicker">${t("modal.whatsNew")}</div>
-      <h2>${slide.titleHtml}</h2>
-      <div class="whats-feature-body">${slide.bodyHtml}</div>
+      <h2 id="${titleId}">${slide.titleHtml}</h2>
+      <div class="whats-feature-body" role="region" aria-labelledby="${titleId}" tabindex="0">${slide.bodyHtml}</div>
     </article>
   `;
 }
 
 function renderFallbackSlide(slide) {
+  const titleId = `whats-slide-title-${slide.id}`;
   return `
     <article class="whats-slide whats-slide--fallback">
       <div class="whats-slide-kicker">${t("modal.whatsNew")}</div>
-      <h2>${slide.titleText}</h2>
-      <div class="whats-feature-body">${slide.bodyHtml}</div>
+      <h2 id="${titleId}">${slide.titleText}</h2>
+      <div class="whats-feature-body" role="region" aria-labelledby="${titleId}" tabindex="0">${slide.bodyHtml}</div>
     </article>
   `;
 }
