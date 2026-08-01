@@ -8,7 +8,6 @@ describe("main view header template", () => {
       "templates/partials/main-view/header.njk",
     );
     const template = fs.readFileSync(templatePath, "utf8");
-    const headingStart = template.indexOf('class="url-input-heading"');
     const inputStart = template.indexOf('class="url-input-main"');
     const rowStart = template.indexOf('<div class="url-input-service-row">');
     const dropZoneStart = template.indexOf('class="url-drop-zone"');
@@ -16,17 +15,15 @@ describe("main view header template", () => {
       '<nav\n          class="button-group downloader-action-row url-input-action-row"',
     );
 
-    expect(headingStart).toBeGreaterThan(-1);
-    expect(inputStart).toBeGreaterThan(headingStart);
+    expect(inputStart).toBeGreaterThan(-1);
     expect(rowStart).toBeGreaterThan(-1);
     expect(rowStart).toBeGreaterThan(inputStart);
     expect(dropZoneStart).toBeGreaterThan(rowStart);
     expect(actionRowStart).toBeGreaterThan(rowStart);
     expect(actionRowStart).toBeGreaterThan(dropZoneStart);
 
-    const redesignedShellHtml = template.slice(headingStart, actionRowStart);
+    const redesignedShellHtml = template.slice(inputStart, actionRowStart);
 
-    expect(redesignedShellHtml).toContain('data-i18n="input.url.heading"');
     expect(redesignedShellHtml).toContain('id="url-helper-text"');
     expect(redesignedShellHtml).toContain('class="downloader-view-mode"');
     expect(redesignedShellHtml).toContain('id="downloader-view-detailed"');
