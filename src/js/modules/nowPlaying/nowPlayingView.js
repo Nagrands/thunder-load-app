@@ -560,6 +560,11 @@ export function createNowPlayingView({
     return nextExpanded;
   }
 
+  function updatePlaylistCount() {
+    const playlists = libraryModel?.getState()?.playlists;
+    count.textContent = String(Array.isArray(playlists) ? playlists.length : 0);
+  }
+
   function render(snapshot) {
     latestSnapshot = snapshot;
     const playlistSnapshot = {
@@ -583,7 +588,7 @@ export function createNowPlayingView({
       controlTooltipKey = nextControlTooltipKey;
       initTooltips(playerTopbar);
     }
-    count.textContent = String(visiblePlaylistQueue.length);
+    updatePlaylistCount();
     root.classList.toggle("is-empty", snapshot.queue.length === 0);
     playlist.hidden = visiblePlaylistQueue.length === 0;
     errorPanel.hidden =
@@ -857,6 +862,7 @@ export function createNowPlayingView({
   } = {}) {
     if (!libraryModel) return;
     visiblePlaylistQueue = libraryModel.getActiveTracks();
+    updatePlaylistCount();
     controller.setLibraryState(libraryModel.getState(), {
       selectedTrackId:
         selectedTrackId || controller.currentTrack?.id || undefined,
@@ -881,6 +887,7 @@ export function createNowPlayingView({
     }
     if (mode === "create") {
       const playlist = libraryModel.createPlaylist(value);
+      updatePlaylistCount();
       libraryView.render(libraryModel.getState(), latestSnapshot);
       initTooltips(root);
       queuePersistence();
@@ -1936,6 +1943,7 @@ export function createNowPlayingView({
       renderVisualizerSettings();
       libraryModel = createMediaLibraryModel(state);
       const libraryState = libraryModel.getState();
+      updatePlaylistCount();
       visiblePlaylistQueue = libraryModel.getActiveTracks();
       provider.restore({
         tracks: libraryState.catalog.tracks.filter(

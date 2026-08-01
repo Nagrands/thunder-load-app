@@ -238,7 +238,7 @@ describe("Now Playing view", () => {
     expect(
       sidebarPlaylistSwitcher.querySelector('[data-ui="playlist-count"]')
         .textContent,
-    ).toBe("1");
+    ).toBe("0");
     expect(sidebarPlaylistSwitcher.lastElementChild.dataset.ui).toBe(
       "playlist-count",
     );
@@ -2438,6 +2438,17 @@ describe("Now Playing view", () => {
 
     view.element.querySelector('[data-action="show-library"]').click();
     const library = view.element.querySelector('[data-ui="library-view"]');
+    const playlistScroller = library.querySelector(
+      '[data-ui="library-playlists"]',
+    );
+    const queueScroller = library.querySelector(
+      '[data-ui="transient-queue"]',
+    );
+    expect(playlistScroller.getAttribute("role")).toBe("region");
+    expect(playlistScroller.tabIndex).toBe(0);
+    expect(queueScroller.classList).toContain("player-library__queue-list");
+    expect(queueScroller.getAttribute("role")).toBe("region");
+    expect(queueScroller.tabIndex).toBe(0);
     expect(library.hidden).toBe(false);
     expect(view.element.classList.contains("is-library-view")).toBe(true);
     expect(
@@ -3171,6 +3182,9 @@ describe("Now Playing view", () => {
       "nowPlaying.toast.playlistCreated",
       "success",
     );
+    expect(
+      view.element.querySelector('[data-ui="playlist-count"]').textContent,
+    ).toBe("1");
     view.dispose();
   });
 

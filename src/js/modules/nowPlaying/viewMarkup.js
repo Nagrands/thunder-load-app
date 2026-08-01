@@ -670,14 +670,26 @@ export function buildNowPlayingMarkup() {
                 <i data-lucide="plus" aria-hidden="true"></i>
               </button>
             </div>
-            <div class="player-library__playlist-grid" data-ui="library-playlists"></div>
+            <div
+              class="player-library__playlist-grid"
+              data-ui="library-playlists"
+              role="region"
+              aria-labelledby="player-playlists-title"
+              tabindex="0"
+            ></div>
           </section>
           <section class="player-library__up-next" aria-labelledby="player-up-next-title">
             <div class="player-library__up-next-heading">
               <h3 id="player-up-next-title" data-i18n="nowPlaying.queue.upNext">${t("nowPlaying.queue.upNext")}</h3>
               <button type="button" data-action="clear-transient-queue" data-i18n="nowPlaying.queue.clear">${t("nowPlaying.queue.clear")}</button>
             </div>
-            <div data-ui="transient-queue"></div>
+            <div
+              class="player-library__queue-list"
+              data-ui="transient-queue"
+              role="region"
+              aria-labelledby="player-up-next-title"
+              tabindex="0"
+            ></div>
           </section>
         </nav>
 
