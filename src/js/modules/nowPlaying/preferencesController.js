@@ -11,7 +11,7 @@ function setPressed(button, pressed) {
 
 export function createNowPlayingPreferences({
   backgroundButton,
-  pinButton,
+  pinButtons = [],
   positionButton,
   overlayVisibility,
   onControlsPositionChange = () => {},
@@ -21,7 +21,7 @@ export function createNowPlayingPreferences({
 
   function render() {
     setPressed(backgroundButton, state.backgroundPlayback);
-    setPressed(pinButton, state.sidebarPinned);
+    pinButtons.forEach((button) => setPressed(button, state.sidebarPinned));
     setPressed(positionButton, state.controlsPosition === "bottom");
     overlayVisibility.setSidebarPinned(state.sidebarPinned);
     onControlsPositionChange(state.controlsPosition);

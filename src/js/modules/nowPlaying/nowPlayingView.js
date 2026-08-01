@@ -222,7 +222,7 @@ export function createNowPlayingView({
   }
   const preferences = createNowPlayingPreferences({
     backgroundButton: root.querySelector('[data-action="background-playback"]'),
-    pinButton: root.querySelector('[data-action="pin-sidebar"]'),
+    pinButtons: [...root.querySelectorAll('[data-action="pin-sidebar"]')],
     positionButton: controlsPositionButton,
     overlayVisibility,
     onControlsPositionChange: syncControlsPosition,
@@ -489,7 +489,6 @@ export function createNowPlayingView({
   function syncVisualizer(snapshot) {
     const eligible =
       Boolean(snapshot.currentTrack) &&
-      snapshot.currentTrack.kind === "audio" &&
       snapshot.mediaReady === true &&
       snapshot.hasVideoTrack === false &&
       snapshot.isLoading !== true &&

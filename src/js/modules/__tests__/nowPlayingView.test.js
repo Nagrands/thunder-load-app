@@ -227,6 +227,21 @@ describe("Now Playing view", () => {
     expect(
       view.element.querySelector(".now-playing__sidebar-toolbar"),
     ).not.toBeNull();
+    const sidebarPlaylistSwitcher = view.element.querySelector(
+      '[data-ui="sidebar-playlist-switcher"]',
+    );
+    expect(
+      sidebarPlaylistSwitcher
+        .closest(".now-playing__playlist-switcher")
+        .querySelector('[data-i18n="nowPlaying.playlists.title"]'),
+    ).not.toBeNull();
+    expect(
+      sidebarPlaylistSwitcher.querySelector('[data-ui="playlist-count"]')
+        .textContent,
+    ).toBe("1");
+    expect(sidebarPlaylistSwitcher.lastElementChild.dataset.ui).toBe(
+      "playlist-count",
+    );
     expect(
       [...view.element.querySelectorAll('[data-ui="media-badges"] span')].map(
         (badge) => badge.textContent,
@@ -614,6 +629,9 @@ describe("Now Playing view", () => {
     const range = view.element.querySelector('[data-action="volume"]');
     const progress = view.element.querySelector('[data-action="seek"]');
     const percent = view.element.querySelector('[data-ui="volume-percent"]');
+    const volumePopover = view.element.querySelector(
+      '[data-ui="volume-popover"]',
+    );
     const mute = view.element.querySelector('[data-action="mute"]');
     jest.useFakeTimers();
 
@@ -626,6 +644,10 @@ describe("Now Playing view", () => {
     expect(range.hasAttribute("title")).toBe(false);
     expect(range.getAttribute("aria-label")).toBe("nowPlaying.volume");
     expect(mute.getAttribute("aria-label")).toBe("nowPlaying.mute");
+    expect(volumePopover.closest(".now-playing__volume")).not.toBeNull();
+    expect(volumePopover.contains(range)).toBe(true);
+    expect(volumePopover.contains(percent)).toBe(true);
+    expect(percent.getAttribute("aria-live")).toBe("polite");
 
     const wheelUp = new WheelEvent("wheel", {
       bubbles: true,
@@ -648,7 +670,23 @@ describe("Now Playing view", () => {
       }),
     );
     expect(percent.textContent).toBe("50%");
-    jest.advanceTimersByTime(1500);
+    jest.advanceTimersByTime(1000);
+    expect(view.element.classList.contains("is-volume-feedback-visible")).toBe(
+      true,
+    );
+    range.dispatchEvent(
+      new WheelEvent("wheel", {
+        bubbles: true,
+        cancelable: true,
+        deltaY: -100,
+      }),
+    );
+    expect(percent.textContent).toBe("55%");
+    jest.advanceTimersByTime(1000);
+    expect(view.element.classList.contains("is-volume-feedback-visible")).toBe(
+      true,
+    );
+    jest.advanceTimersByTime(500);
     expect(view.element.classList.contains("is-volume-feedback-visible")).toBe(
       false,
     );
@@ -698,6 +736,22 @@ describe("Now Playing view", () => {
     expect(sceneWheel.defaultPrevented).toBe(true);
     expect(percent.textContent).toBe("10%");
 
+    range.value = "1";
+    range.dispatchEvent(new Event("input", { bubbles: true }));
+    expect(percent.textContent).toBe("100%");
+    jest.advanceTimersByTime(1500);
+    const boundaryWheel = new WheelEvent("wheel", {
+      bubbles: true,
+      cancelable: true,
+      deltaY: -100,
+    });
+    percent.dispatchEvent(boundaryWheel);
+    expect(boundaryWheel.defaultPrevented).toBe(true);
+    expect(percent.textContent).toBe("100%");
+    expect(view.element.classList.contains("is-volume-feedback-visible")).toBe(
+      false,
+    );
+
     view.element.querySelector('[data-action="show-library"]').click();
     const libraryWheel = new WheelEvent("wheel", {
       bubbles: true,
@@ -708,7 +762,7 @@ describe("Now Playing view", () => {
       .querySelector('[data-ui="library-view"]')
       .dispatchEvent(libraryWheel);
     expect(libraryWheel.defaultPrevented).toBe(false);
-    expect(percent.textContent).toBe("10%");
+    expect(percent.textContent).toBe("100%");
     view.dispose();
     jest.useRealTimers();
   });
@@ -1044,10 +1098,24 @@ describe("Now Playing view", () => {
       title: "Video",
       kind: "video",
     };
+    const opusTrack = {
+      ...sampleTrack,
+      id: "opus-visualizer",
+      sourceRef: "/music/opus-visualizer.webm",
+      title: "Opus audio",
+      kind: "video",
+      mimeType: "audio/webm; codecs=opus",
+      mediaInfo: {
+        width: 0,
+        height: 0,
+        videoCodec: "",
+        audioCodec: "opus",
+      },
+    };
     const api = {
       getState: jest.fn().mockResolvedValue({
         data: {
-          playlist: { tracks: [sampleTrack, videoTrack] },
+          playlist: { tracks: [sampleTrack, videoTrack, opusTrack] },
           selectedTrackId: sampleTrack.id,
           visualizer: {
             colorScheme: "blue",
@@ -1176,6 +1244,28 @@ describe("Now Playing view", () => {
     expect(visualizerPanel.hidden).toBe(true);
     expect(visualizerToggle.getAttribute("aria-expanded")).toBe("false");
     expect(canvasContext.clearRect).toHaveBeenCalled();
+
+    view.element
+      .querySelector('.now-playing__track[data-track-id="opus-visualizer"]')
+      .dispatchEvent(new MouseEvent("dblclick", { bubbles: true }));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const activeOpus = view.element.querySelector(
+      '.now-playing__video[data-track-id="opus-visualizer"]',
+    );
+    Object.defineProperties(activeOpus, {
+      readyState: { configurable: true, value: 1 },
+      videoHeight: { configurable: true, value: 0 },
+      videoWidth: { configurable: true, value: 0 },
+    });
+    activeOpus.dispatchEvent(new Event("loadedmetadata"));
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(
+      view.element.querySelector('[data-ui="audio-visualizer"]').hidden,
+    ).toBe(false);
+    expect(visualizerToggle.hidden).toBe(false);
+    expect(view.element.classList.contains("has-audio-visualizer")).toBe(true);
     view.dispose();
     expect(source.disconnect).toHaveBeenCalled();
   });
@@ -1365,13 +1455,25 @@ describe("Now Playing view", () => {
     const backgroundButton = view.element.querySelector(
       '[data-action="background-playback"]',
     );
-    const pinButton = view.element.querySelector('[data-action="pin-sidebar"]');
+    const pinButtons = [
+      ...view.element.querySelectorAll('[data-action="pin-sidebar"]'),
+    ];
+    const [sidebarPinButton] = pinButtons;
     const positionButton = view.element.querySelector(
       '[data-action="toggle-controls-position"]',
     );
 
     expect(backgroundButton.getAttribute("aria-pressed")).toBe("false");
-    expect(pinButton.getAttribute("aria-pressed")).toBe("true");
+    expect(pinButtons).toHaveLength(2);
+    pinButtons.forEach((button) => {
+      expect(button.getAttribute("aria-pressed")).toBe("true");
+    });
+    expect(
+      sidebarPinButton.closest(".now-playing__sidebar-toolbar"),
+    ).not.toBeNull();
+    expect(sidebarPinButton.getAttribute("aria-label")).toBe(
+      "nowPlaying.pinSidebar",
+    );
     expect(positionButton.getAttribute("aria-pressed")).toBe("true");
     expect(positionButton.textContent).toContain(
       "nowPlaying.controlsPosition.moveTop",
@@ -1396,14 +1498,16 @@ describe("Now Playing view", () => {
     expect(HTMLMediaElement.prototype.pause).toHaveBeenCalled();
     HTMLMediaElement.prototype.pause.mockClear();
     backgroundButton.click();
-    pinButton.click();
+    sidebarPinButton.click();
     positionButton.click();
     expect(HTMLMediaElement.prototype.pause).not.toHaveBeenCalled();
     jest.advanceTimersByTime(250);
     await Promise.resolve();
     await Promise.resolve();
     expect(backgroundButton.getAttribute("aria-pressed")).toBe("true");
-    expect(pinButton.getAttribute("aria-pressed")).toBe("false");
+    pinButtons.forEach((button) => {
+      expect(button.getAttribute("aria-pressed")).toBe("false");
+    });
     expect(positionButton.getAttribute("aria-pressed")).toBe("false");
     expect(positionButton.textContent).toContain(
       "nowPlaying.controlsPosition.moveBottom",

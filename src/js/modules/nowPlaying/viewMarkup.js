@@ -260,27 +260,30 @@ export function buildNowPlayingMarkup() {
         <div class="now-playing__topbar-group now-playing__top-actions" aria-label="${t("nowPlaying.tools")}">
           <div class="now-playing__volume">
             ${iconButton("mute", "fa-solid fa-volume-high", "nowPlaying.mute", "", "bottom")}
-            <input
-              id="now-playing-volume"
-              class="now-playing__volume-range"
-              data-action="volume"
-              type="range"
-              min="0"
-              max="1"
-              step="0.01"
-              value="1"
-              data-i18n-aria="nowPlaying.volume"
-              ${shortcutAttributes([
-                PLAYER_COMMANDS.VOLUME_DOWN,
-                PLAYER_COMMANDS.VOLUME_UP,
-              ])}
-              aria-label="${t("nowPlaying.volume")}"
-            />
-            <output
-              class="now-playing__volume-percent"
-              data-ui="volume-percent"
-              for="now-playing-volume"
-            >100%</output>
+            <div class="now-playing__volume-popover" data-ui="volume-popover">
+              <input
+                id="now-playing-volume"
+                class="now-playing__volume-range"
+                data-action="volume"
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value="1"
+                data-i18n-aria="nowPlaying.volume"
+                ${shortcutAttributes([
+                  PLAYER_COMMANDS.VOLUME_DOWN,
+                  PLAYER_COMMANDS.VOLUME_UP,
+                ])}
+                aria-label="${t("nowPlaying.volume")}"
+              />
+              <output
+                class="now-playing__volume-percent"
+                data-ui="volume-percent"
+                for="now-playing-volume"
+                aria-live="polite"
+              >100%</output>
+            </div>
           </div>
           <span class="now-playing__topbar-divider" aria-hidden="true"></span>
           ${iconButton("toggle-player-menu", "ellipsis-vertical", "nowPlaying.more", "now-playing__control--glass", "bottom")}
@@ -338,7 +341,7 @@ export function buildNowPlayingMarkup() {
 
         <div class="now-playing__library-heading">
           <div class="now-playing__playlist-switcher">
-            <span data-i18n="nowPlaying.playlists.active">${t("nowPlaying.playlists.active")}</span>
+            <span data-i18n="nowPlaying.playlists.title">${t("nowPlaying.playlists.title")}</span>
             <div class="now-playing__playlist-select-shell">
               <button
                 type="button"
@@ -353,7 +356,8 @@ export function buildNowPlayingMarkup() {
               >
                 <i data-lucide="list-video" aria-hidden="true"></i>
                 <span data-ui="sidebar-playlist-label"></span>
-                <i data-lucide="chevron-down" aria-hidden="true"></i>
+                <i class="now-playing__playlist-chevron" data-lucide="chevron-down" aria-hidden="true"></i>
+                <span class="now-playing__library-count" data-ui="playlist-count"></span>
               </button>
               <div
                 class="now-playing__playlist-menu"
@@ -366,7 +370,6 @@ export function buildNowPlayingMarkup() {
               ></div>
             </div>
           </div>
-          <span class="now-playing__library-count" data-ui="playlist-count"></span>
         </div>
 
         <div class="now-playing__playlist-section">
@@ -403,6 +406,7 @@ export function buildNowPlayingMarkup() {
             </div>
           </div>
           ${iconButton("show-library", "list-plus", "nowPlaying.playlists.title", "now-playing__sidebar-tool")}
+          ${iconButton("pin-sidebar", "pin", "nowPlaying.pinSidebar", "now-playing__sidebar-tool now-playing__preference-control")}
           ${iconButton("placeholder-download", "download", "nowPlaying.unavailable.download", "now-playing__sidebar-tool now-playing__placeholder-control")}
         </div>
       </aside>
