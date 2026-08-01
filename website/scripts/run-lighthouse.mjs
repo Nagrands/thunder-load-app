@@ -2,6 +2,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { spawn } from "node:child_process";
 import lighthouse from "lighthouse";
 import * as chromeLauncher from "chrome-launcher";
+import { evaluateLighthouseBudgets } from "./lighthouse-budget-policy.mjs";
 
 const port = 4322;
 const origin = `http://127.0.0.1:${port}`;
@@ -10,14 +11,6 @@ const lighthouseTimeoutMs = parsePositiveInteger(
   "LIGHTHOUSE_TIMEOUT_MS"
 );
 const processShutdownTimeoutMs = 5000;
-const categoryScoreThresholds = {
-  performance: 0.85,
-  accessibility: 0.95,
-  bestPractices: 0.95,
-  seo: 0.95
-};
-const lcpThresholdMs = 2500;
-const clsThreshold = 0.1;
 const urls = [
   `${origin}/thunder-load-app/ru/`,
   `${origin}/thunder-load-app/ru/download/`,
@@ -129,6 +122,7 @@ async function waitForServer() {
 }
 
 const failures = [];
+const warnings = [];
 const resultsDir = ".lighthouse-results";
 mkdirSync(resultsDir, { recursive: true });
 
@@ -175,20 +169,19 @@ try {
         `${url} performance=${Math.round(scores.performance * 100)} accessibility=${Math.round(scores.accessibility * 100)} best-practices=${Math.round(scores.bestPractices * 100)} seo=${Math.round(scores.seo * 100)} LCP=${Math.round(lcp)}ms CLS=${cls.toFixed(3)}`
       );
 
-      for (const [category, threshold] of Object.entries(categoryScoreThresholds)) {
-        const score = scores[category];
-        if (score < threshold) {
-          failures.push(`${url}: ${category} ${Math.round(score * 100)} < ${Math.round(threshold * 100)}`);
-        }
-      }
-      if (lcp > lcpThresholdMs) failures.push(`${url}: LCP ${Math.round(lcp)}ms > ${lcpThresholdMs}ms`);
-      if (cls > clsThreshold) failures.push(`${url}: CLS ${cls.toFixed(3)} > ${clsThreshold}`);
+      const evaluation = evaluateLighthouseBudgets({ url, scores, lcp, cls });
+      failures.push(...evaluation.failures);
+      warnings.push(...evaluation.warnings);
     }
   } finally {
     await withTimeout(chrome.kill(), processShutdownTimeoutMs, "Chrome shutdown");
   }
 } finally {
   await stopProcessTree(server);
+}
+
+if (warnings.length) {
+  console.warn(`Lighthouse budget warnings:\n${warnings.join("\n")}`);
 }
 
 if (failures.length) {
