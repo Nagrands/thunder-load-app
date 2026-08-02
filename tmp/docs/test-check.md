@@ -2,7 +2,7 @@
 
 - Автосборка списка: `npm run test-check:sync-tests`
 - Найдено файлов: 142
-- Найдено тест-кейсов (test/it): 1269
+- Найдено тест-кейсов (test/it): 1270
 
 <!-- AUTO-JEST-TESTS:START -->
 
@@ -455,9 +455,10 @@
 ### `src/js/modules/__tests__/bootstrapRenderer.test.js` (1)
 - [ ] marks body ready after critical init and defers non-critical modules
 
-### `src/js/modules/__tests__/clipboardHandler.test.js` (3)
+### `src/js/modules/__tests__/clipboardHandler.test.js` (4)
 - [ ] does not auto-paste focused clipboard URL when open-on-copy is disabled
 - [ ] auto-pastes focused clipboard URL when open-on-copy is enabled
+- [ ] does not capture a copied URL while the player workspace is active
 - [ ] does not auto-paste focused clipboard URL when yt-dlp is unavailable
 
 ### `src/js/modules/__tests__/compactDownloaderQuality.test.js` (5)

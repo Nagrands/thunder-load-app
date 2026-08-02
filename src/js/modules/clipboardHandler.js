@@ -31,6 +31,8 @@ import { showToast } from "./toast.js";
 import { t } from "./i18n.js";
 import { isDownloaderAvailable } from "./downloaderAvailability.js";
 
+const PLAYER_TAB_ID = "now-playing";
+
 async function isOpenOnCopyUrlEnabled() {
   try {
     return (
@@ -41,8 +43,17 @@ async function isOpenOnCopyUrlEnabled() {
   }
 }
 
+function isPlayerWorkspaceActive() {
+  return (
+    document.body?.classList.contains("is-now-playing-active") ||
+    document.getElementById("main-view")?.dataset.activeTab === PLAYER_TAB_ID
+  );
+}
+
 function initClipboardHandler() {
   window.electron.onWindowFocused(async (clipboardContent) => {
+    if (isPlayerWorkspaceActive()) return;
+
     const openOnCopyUrlEnabled = await isOpenOnCopyUrlEnabled();
     if (!openOnCopyUrlEnabled) return;
     if (!isDownloaderAvailable()) return;
