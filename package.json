@@ -1,7 +1,7 @@
 {
   "name": "thunder-app",
   "productName": "Thunder",
-  "version": "1.5.4",
+  "version": "1.6.0",
   "description": "Thunder Spark",
   "main": "src/js/app.js",
   "private": true,
