@@ -285,6 +285,7 @@ export function buildNowPlayingMarkup() {
               >100%</output>
             </div>
           </div>
+          ${iconButton("fullscreen", "fa-solid fa-expand", "nowPlaying.enterFullscreen", "now-playing__fullscreen-control", "bottom")}
           <span class="now-playing__topbar-divider" aria-hidden="true"></span>
           ${iconButton("toggle-player-menu", "ellipsis-vertical", "nowPlaying.more", "now-playing__control--glass", "bottom")}
           <span class="now-playing__window-divider" aria-hidden="true"></span>
@@ -478,7 +479,6 @@ export function buildNowPlayingMarkup() {
         ${playerMenuButton("toggle-audio-tracks", "audio-lines", "nowPlaying.audioTracks.open", "now-playing__audio-trigger")}
         ${playerMenuButton("shuffle", "fa-solid fa-shuffle", "nowPlaying.shuffle")}
         ${playerMenuButton("repeat", "fa-solid fa-repeat", "nowPlaying.repeat")}
-        ${playerMenuButton("fullscreen", "fa-solid fa-expand", "nowPlaying.enterFullscreen")}
         ${playerMenuButton("toggle-visualizer-settings", "audio-lines", "nowPlaying.visualizer.settings", "now-playing__visualizer-menu-toggle")}
         <span class="now-playing__player-menu-divider" role="separator"></span>
         ${playerMenuButton("toggle-controls-position", "panel-bottom", "nowPlaying.controlsPosition.moveBottom", "now-playing__controls-position-toggle")}

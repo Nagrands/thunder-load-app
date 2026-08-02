@@ -39665,6 +39665,7 @@ body.is-mac .now-playing__sidebar {
 
 .now-playing__volume:hover .now-playing__volume-popover,
 .now-playing__volume:focus-within .now-playing__volume-popover,
+.now-playing.is-volume-hover-visible .now-playing__volume-popover,
 .now-playing.is-volume-feedback-visible .now-playing__volume-popover {
   opacity: 1;
   visibility: visible;
@@ -39686,6 +39687,7 @@ body.is-mac .now-playing__sidebar {
 
 .now-playing.is-controls-bottom .now-playing__volume:hover .now-playing__volume-popover,
 .now-playing.is-controls-bottom .now-playing__volume:focus-within .now-playing__volume-popover,
+.now-playing.is-controls-bottom.is-volume-hover-visible .now-playing__volume-popover,
 .now-playing.is-controls-bottom.is-volume-feedback-visible .now-playing__volume-popover {
   transform: translateY(0) scale(1);
 }

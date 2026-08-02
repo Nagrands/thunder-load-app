@@ -44,6 +44,8 @@ import {
   publishPlayerSettings,
 } from "./settingsEvents.js";
 import YouTubeProvider from "./youtubeProvider.js";
+const VOLUME_HOVER_HIDE_DELAY_MS = 400;
+
 export function createNowPlayingView({
   api = window.electron?.nowPlaying,
   element = null,
@@ -104,6 +106,7 @@ export function createNowPlayingView({
   );
   const progress = root.querySelector('[data-action="seek"]');
   const volume = root.querySelector('[data-action="volume"]');
+  const volumeControl = root.querySelector(".now-playing__volume");
   const volumePercent = root.querySelector('[data-ui="volume-percent"]');
   const status = root.querySelector(".now-playing__status");
   const fullscreenButton = root.querySelector('[data-action="fullscreen"]');
@@ -150,6 +153,7 @@ export function createNowPlayingView({
   let persistenceInFlight = null;
   let persistenceRequested = false;
   let volumeFeedbackTimer = null;
+  let volumeHoverTimer = null;
   let visualizerSaveVersion = 0;
   let visualizerConnectionVersion = 0;
   let visualizerConnectionFailed = false;
@@ -350,6 +354,20 @@ export function createNowPlayingView({
       volumeFeedbackTimer = null;
       root.classList.remove("is-volume-feedback-visible");
     }, 1500);
+  }
+
+  function showVolumeHoverFeedback() {
+    if (volumeHoverTimer !== null) clearTimeout(volumeHoverTimer);
+    volumeHoverTimer = null;
+    root.classList.add("is-volume-hover-visible");
+  }
+
+  function hideVolumeHoverFeedback() {
+    if (volumeHoverTimer !== null) clearTimeout(volumeHoverTimer);
+    volumeHoverTimer = setTimeout(() => {
+      volumeHoverTimer = null;
+      root.classList.remove("is-volume-hover-visible");
+    }, VOLUME_HOVER_HIDE_DELAY_MS);
   }
 
   function queuePersistence({ immediate = false } = {}) {
@@ -1925,6 +1943,8 @@ export function createNowPlayingView({
   root.addEventListener("dragover", onDragOver);
   root.addEventListener("drop", onDrop);
   root.addEventListener("dragend", onDragEnd);
+  volumeControl.addEventListener("pointerenter", showVolumeHoverFeedback);
+  volumeControl.addEventListener("pointerleave", hideVolumeHoverFeedback);
   mediaLayers.forEach((media) =>
     media.addEventListener("ended", onMediaEnded, true),
   );
@@ -2048,6 +2068,8 @@ export function createNowPlayingView({
       libraryView.dispose();
       contextMenu.dispose();
       if (volumeFeedbackTimer !== null) clearTimeout(volumeFeedbackTimer);
+      if (volumeHoverTimer !== null) clearTimeout(volumeHoverTimer);
+      root.classList.remove("is-volume-hover-visible");
       if (persistenceTimer !== null) clearTimeout(persistenceTimer);
       root.removeEventListener("click", onClick);
       root.removeEventListener("keydown", onKeydown);
@@ -2061,6 +2083,8 @@ export function createNowPlayingView({
       root.removeEventListener("dragover", onDragOver);
       root.removeEventListener("drop", onDrop);
       root.removeEventListener("dragend", onDragEnd);
+      volumeControl.removeEventListener("pointerenter", showVolumeHoverFeedback);
+      volumeControl.removeEventListener("pointerleave", hideVolumeHoverFeedback);
       mediaLayers.forEach((media) =>
         media.removeEventListener("ended", onMediaEnded, true),
       );

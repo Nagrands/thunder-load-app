@@ -199,7 +199,7 @@ describe("Now Playing view", () => {
         '.now-playing__player-topbar [data-action="volume"]',
       ),
     ).toHaveLength(1);
-    ["shuffle", "repeat", "fullscreen", "toggle-visualizer-settings"].forEach(
+    ["shuffle", "repeat", "toggle-visualizer-settings"].forEach(
       (action) => {
         expect(
           view.element.querySelectorAll(
@@ -208,6 +208,17 @@ describe("Now Playing view", () => {
         ).toHaveLength(1);
       },
     );
+    const volumeControl = view.element.querySelector(".now-playing__volume");
+    const fullscreenControl = view.element.querySelector(
+      '.now-playing__player-topbar [data-action="fullscreen"]',
+    );
+    expect(fullscreenControl).not.toBeNull();
+    expect(fullscreenControl.previousElementSibling).toBe(volumeControl);
+    expect(
+      view.element.querySelector(
+        '.now-playing__player-menu [data-action="fullscreen"]',
+      ),
+    ).toBeNull();
     expect(
       view.element.querySelector('[data-ui="playback-controls"]'),
     ).not.toBeNull();
@@ -648,6 +659,21 @@ describe("Now Playing view", () => {
     expect(volumePopover.contains(range)).toBe(true);
     expect(volumePopover.contains(percent)).toBe(true);
     expect(percent.getAttribute("aria-live")).toBe("polite");
+
+    const volumeControl = volumePopover.closest(".now-playing__volume");
+    volumeControl.dispatchEvent(new Event("pointerenter"));
+    expect(view.element.classList.contains("is-volume-hover-visible")).toBe(
+      true,
+    );
+    volumeControl.dispatchEvent(new Event("pointerleave"));
+    jest.advanceTimersByTime(399);
+    expect(view.element.classList.contains("is-volume-hover-visible")).toBe(
+      true,
+    );
+    jest.advanceTimersByTime(1);
+    expect(view.element.classList.contains("is-volume-hover-visible")).toBe(
+      false,
+    );
 
     const wheelUp = new WheelEvent("wheel", {
       bubbles: true,
