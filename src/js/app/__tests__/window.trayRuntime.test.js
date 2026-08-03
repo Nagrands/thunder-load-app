@@ -104,6 +104,7 @@ describe("tray runtime behavior", () => {
   let platformDescriptor;
 
   beforeEach(() => {
+    require("electron").BrowserWindow.mockClear();
     Tray.mockClear();
     ipcMain.on.mockClear();
     nativeImage.createFromPath.mockClear();
@@ -156,6 +157,7 @@ describe("tray runtime behavior", () => {
     expect(require("electron").BrowserWindow).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({
+        icon: expect.stringContaining("assets/icons/app/app-icon.ico"),
         webPreferences: expect.objectContaining({
           enableBlinkFeatures: "AudioVideoTracks",
         }),
@@ -191,6 +193,35 @@ describe("tray runtime behavior", () => {
 
     app.emit("thunder-load:tray-refresh");
     expect(tray.setContextMenu).not.toHaveBeenCalled();
+  });
+
+  test("uses the packaged executable icon for the Windows taskbar", () => {
+    setPlatform("win32");
+    const app = new EventEmitter();
+    app.getName = () => "Thunder";
+    app.getVersion = () => "1.6.0";
+    app.getAppPath = () => "/tmp/resources/app.asar";
+    app.quit = jest.fn();
+    app.isPackaged = true;
+    app.isQuitting = false;
+    app.dock = { setIcon: jest.fn(), setMenu: jest.fn() };
+
+    createWindow(
+      false,
+      app,
+      createStore({ downloadPath: "/tmp/downloads" }),
+      "/tmp/downloads",
+      () => "1.6.0",
+      "",
+      "",
+      "",
+      () => true,
+    );
+
+    expect(require("electron").BrowserWindow).toHaveBeenNthCalledWith(
+      1,
+      expect.not.objectContaining({ icon: expect.anything() }),
+    );
   });
 
   test("creates a template tray image on macOS", () => {

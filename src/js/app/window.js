@@ -296,14 +296,18 @@ function createWindow(
   const winIco = resolveIconPathFrom(baseAssetsPath, "APP_ICON_ICO");
 
   // В dev Electron часто не подхватывает .icns → используем PNG; в prod предпочитаем .icns
-  const bwIconCandidates =
-    process.platform === "darwin"
+  // В packaged Windows не задаём icon: Windows возьмёт встроенную иконку Thunder.exe.
+  const usePackagedWindowsExecutableIcon =
+    process.platform === "win32" && app.isPackaged;
+  const bwIconCandidates = usePackagedWindowsExecutableIcon
+    ? []
+    : process.platform === "darwin"
       ? app.isPackaged
         ? [macIcns, macPng]
         : [macPng]
       : [winIco, macPng];
 
-  let iconPath = bwIconCandidates.find((p) => fs.existsSync(p)) || null;
+  const iconPath = bwIconCandidates.find((p) => fs.existsSync(p)) || null;
   console.log("icon candidates:", bwIconCandidates);
   console.log("chosen icon:", iconPath);
 
@@ -315,7 +319,7 @@ function createWindow(
     minHeight: 540,
     width: mainWindowState.width,
     height: mainWindowState.height,
-    icon: iconPath,
+    ...(iconPath ? { icon: iconPath } : {}),
     backgroundColor: "#1e1e1e",
     frame: false,
     show: false,
