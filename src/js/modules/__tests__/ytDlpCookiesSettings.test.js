@@ -76,6 +76,7 @@ describe("yt-dlp cookies settings controls", () => {
       <div id="settings-ytdlp-cookies-file-row"></div>
       <button id="settings-ytdlp-cookies-file-button" type="button"></button>
       <span id="settings-ytdlp-cookies-file-label"></span>
+      <button id="settings-ytdlp-cookies-guide" type="button"></button>
     `;
     window.electron = {
       invoke: jest.fn(async (channel, value) => {
@@ -157,6 +158,21 @@ describe("yt-dlp cookies settings controls", () => {
     expect(window.electron.invoke).toHaveBeenCalledWith(
       "set-ytdlp-cookies-settings",
       expect.objectContaining({ mode: "file", browser: "chrome" }),
+    );
+  });
+
+  test("opens the localized YouTube cookies guide", async () => {
+    document.documentElement.lang = "ru";
+    initYtDlpCookiesSettings();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    document.getElementById("settings-ytdlp-cookies-guide").click();
+    await Promise.resolve();
+
+    expect(window.electron.invoke).toHaveBeenCalledWith(
+      "open-external-link",
+      "https://nagrands.github.io/thunder-load-app/ru/blog/youtube-cookies/",
     );
   });
 

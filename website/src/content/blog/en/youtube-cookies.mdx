@@ -1,0 +1,40 @@
+---
+title: "Accessing YouTube with Cookies in Thunder"
+description: How to use browser cookies or cookies.txt for YouTube videos that require sign-in or additional verification.
+locale: en
+category: guide
+publishedAt: 2026-08-03
+updatedAt: 2026-08-03
+order: 4
+draft: false
+---
+
+YouTube sometimes asks users to confirm a sign-in, age, or that a request is legitimate. In these cases, `yt-dlp` can access the video with cookies from an active browser session. Thunder passes the selected cookie source to the local `yt-dlp`; the Thunder website does not receive or store this data.
+
+## Where to enable Cookies
+
+Open **Settings → Downloader → Advanced: YouTube access** and choose one of these modes:
+
+- **From browser** — Thunder asks `yt-dlp` to read cookies from the selected browser.
+- **cookies.txt file** — Thunder passes a Netscape-format cookies file to `yt-dlp`.
+- **Off** — no cookies are used. This is the safe default for videos that do not require authorization.
+
+The setting applies only to YouTube links.
+
+## Option 1: Cookies from a browser
+
+1. Sign in to YouTube in the selected browser and confirm that the video opens there.
+2. In Thunder, select **From browser** and choose the same browser.
+3. If cookies cannot be read, fully close the browser and try again. On macOS, the system may also request permission to access browser data.
+
+This option is convenient, but import availability depends on the browser, profile, and operating system credential protection.
+
+## Option 2: A cookies.txt file
+
+Export YouTube cookies to a Netscape-format `cookies.txt` file, select **cookies.txt file**, and choose the exported file. If the session expires or YouTube asks you to sign in again, export a fresh file.
+
+## Security
+
+Cookies can grant access to your active YouTube session. Never publish `cookies.txt`, attach it to bug reports, or share it with anyone. Treat the file like a password and delete it when it is no longer needed. Consider using a separate browser profile if you want to isolate this session from your primary account.
+
+Cookies do not grant access to removed, paid, or region-restricted content. Only download content you are legally allowed to access.

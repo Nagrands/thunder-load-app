@@ -1657,7 +1657,7 @@
 
 .settings-cookies-note {
   display: grid;
-  grid-template-columns: 20px minmax(0, 1fr);
+  grid-template-columns: 20px minmax(0, 1fr) 32px;
   gap: 10px;
   padding: 11px 12px;
   border: 1px solid rgba(var(--color-accent-rgb), 0.16);
@@ -1673,6 +1673,40 @@
     height: 17px;
     margin-top: 1px;
     color: var(--color-accent);
+  }
+}
+
+.settings-cookies-guide-button {
+  display: inline-grid;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  place-items: center;
+  align-self: start;
+  border: 1px solid rgba(var(--color-accent-rgb), 0.22);
+  border-radius: 9px;
+  background: rgba(var(--color-accent-rgb), 0.08);
+  color: var(--color-accent);
+  cursor: pointer;
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    transform 0.16s ease;
+
+  &:hover,
+  &:focus-visible {
+    border-color: rgba(var(--color-accent-rgb), 0.42);
+    background: rgba(var(--color-accent-rgb), 0.16);
+    outline: none;
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+
+  > svg {
+    width: 16px;
+    height: 16px;
   }
 }
 

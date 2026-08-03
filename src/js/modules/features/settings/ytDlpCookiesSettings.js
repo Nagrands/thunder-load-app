@@ -1,4 +1,4 @@
-import { t } from "../../i18n.js";
+import { getLanguage, t } from "../../i18n.js";
 import { showToast } from "../../toast.js";
 import { onOpenSettings } from "./openSettingsBus.js";
 
@@ -20,6 +20,13 @@ const YTDLP_COOKIES_BROWSERS = [
   "opera",
 ];
 const CONTROLLERS = new WeakMap();
+const YOUTUBE_COOKIES_GUIDE_URL =
+  "https://nagrands.github.io/thunder-load-app";
+
+function getYouTubeCookiesGuideUrl() {
+  const locale = getLanguage() === "en" ? "en" : "ru";
+  return `${YOUTUBE_COOKIES_GUIDE_URL}/${locale}/blog/youtube-cookies/`;
+}
 
 export function normalizeYtDlpCookiesSettings(value) {
   const raw = value && typeof value === "object" ? value : {};
@@ -202,6 +209,9 @@ export function initYtDlpCookiesSettings() {
   const summaryState = document.getElementById(
     "settings-ytdlp-cookies-summary-state",
   );
+  const guideButton = document.getElementById(
+    "settings-ytdlp-cookies-guide",
+  );
   if (!modeSelect || !browserSelect || !fileButton || !fileLabel) return;
 
   const existingController = CONTROLLERS.get(modeSelect);
@@ -330,6 +340,16 @@ export function initYtDlpCookiesSettings() {
           "error",
         );
       }
+    });
+    guideButton?.addEventListener("click", async () => {
+      try {
+        const result = await window.electron.invoke(
+          "open-external-link",
+          getYouTubeCookiesGuideUrl(),
+        );
+        if (result?.success !== false) return;
+      } catch {}
+      showToast(t("external.open.error"), "error");
     });
     document.addEventListener("click", (event) => {
       if (event.target?.closest?.("[data-settings-cookies-select]")) return;

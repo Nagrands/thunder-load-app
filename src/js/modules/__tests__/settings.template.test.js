@@ -378,6 +378,8 @@ describe("settings template structure", () => {
     expect(html).toContain('class="settings-advanced__summary"');
     expect(html).toContain('id="settings-ytdlp-cookies-summary-state"');
     expect(html).toContain('class="settings-cookies-note"');
+    expect(html).toContain('id="settings-ytdlp-cookies-guide"');
+    expect(html).toContain('data-lucide="book-open"');
     expect(html).toContain('data-i18n="settings.downloader.cookies.modeHint"');
     expect(html).not.toContain('data-i18n="settings.downloader.cookies.title"');
   });

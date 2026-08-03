@@ -147,6 +147,8 @@ export const settingsTranslations = {
     "settings.downloader.cookies.file.empty": "Файл не выбран",
     "settings.downloader.cookies.hint":
       "Помогает пройти проверку YouTube через cookies браузера или Netscape cookies.txt. Для импорта из браузера может потребоваться закрыть браузер или выдать доступ macOS.",
+    "settings.downloader.cookies.guide":
+      "Подробнее о Cookies для YouTube",
     "settings.downloader.cookies.saved": "Настройки cookies сохранены",
     "settings.downloader.cookies.saveError":
       "Не удалось сохранить настройки cookies: {message}",
@@ -515,6 +517,8 @@ export const settingsTranslations = {
     "settings.downloader.cookies.file.empty": "No file selected",
     "settings.downloader.cookies.hint":
       "Helps pass YouTube checks through browser cookies or a Netscape cookies.txt file. Browser import may require closing the browser or granting macOS access.",
+    "settings.downloader.cookies.guide":
+      "Learn more about Cookies for YouTube",
     "settings.downloader.cookies.saved": "Cookies settings saved",
     "settings.downloader.cookies.saveError":
       "Unable to save cookies settings: {message}",
