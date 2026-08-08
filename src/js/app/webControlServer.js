@@ -14,6 +14,7 @@ const HOST = "0.0.0.0";
 const LOCAL_HOST = "127.0.0.1";
 const DEFAULT_PORT = 0;
 const REQUEST_TIMEOUT_MS = 8000;
+const PREVIEW_REQUEST_TIMEOUT_MS = 45000;
 const SPA_ROUTES = new Set(["/downloader", "/settings"]);
 const STORE_KEYS = Object.freeze({
   enabled: "webControl.enabled",
@@ -177,13 +178,28 @@ function createWebControlServer({ appPath, store, diagnosticsLogger = null }) {
     assertRendererReady();
     const requestId = `web-${Date.now()}-${requestCounter++}`;
     return new Promise((resolve, reject) => {
+      const timeoutMs =
+        command === "preview:get"
+          ? PREVIEW_REQUEST_TIMEOUT_MS
+          : REQUEST_TIMEOUT_MS;
       const timeout = setTimeout(() => {
         pendingRequests.delete(requestId);
-        webLog?.warning("renderer-request-timeout", { requestId, command });
+        cancelRendererRequest(requestId, command, payload, "timeout");
+        webLog?.warning("renderer-request-timeout", {
+          requestId,
+          command,
+          timeoutMs,
+        });
         reject(new Error("Renderer request timed out"));
-      }, REQUEST_TIMEOUT_MS);
+      }, timeoutMs);
 
-      pendingRequests.set(requestId, { resolve, reject, timeout });
+      pendingRequests.set(requestId, {
+        resolve,
+        reject,
+        timeout,
+        command,
+        payload,
+      });
       mainWindow.webContents.send(CHANNELS.WEB_RENDERER_REQUEST, {
         requestId,
         command,
@@ -192,9 +208,32 @@ function createWebControlServer({ appPath, store, diagnosticsLogger = null }) {
     });
   }
 
+  function cancelRendererRequest(
+    requestId,
+    command,
+    payload,
+    reason = "cancelled",
+  ) {
+    if (!mainWindow || mainWindow.isDestroyed?.() || !mainWindow.webContents) {
+      return;
+    }
+    mainWindow.webContents.send(CHANNELS.WEB_RENDERER_CANCEL, {
+      requestId,
+      command,
+      payload,
+      reason,
+    });
+  }
+
   function rejectPendingRequests(code, message) {
     for (const [requestId, pending] of pendingRequests) {
       clearTimeout(pending.timeout);
+      cancelRendererRequest(
+        requestId,
+        pending.command,
+        pending.payload,
+        code,
+      );
       const error = Object.assign(new Error(message), {
         code,
         correlationId: requestId,

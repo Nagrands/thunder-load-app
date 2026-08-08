@@ -232,9 +232,10 @@ describe("webControlServer", () => {
       appPath: path.resolve(__dirname, "../../../.."),
       store,
     });
+    const webContents = { send: jest.fn() };
     server.setMainWindow({
       isDestroyed: () => false,
-      webContents: { send: jest.fn() },
+      webContents,
     });
     await server.startIfEnabled();
     const pending = server.requestRenderer("snapshot");
@@ -242,6 +243,47 @@ describe("webControlServer", () => {
     await expect(pending).rejects.toMatchObject({
       code: "WEB_CONTROL_STOPPED",
     });
+    expect(webContents.send).toHaveBeenCalledWith(
+      CHANNELS.WEB_RENDERER_CANCEL,
+      expect.objectContaining({
+        command: "snapshot",
+        reason: "WEB_CONTROL_STOPPED",
+      }),
+    );
+  });
+
+  it("allows preview analysis to exceed the default renderer timeout", async () => {
+    jest.useFakeTimers();
+    const store = createStore();
+    server = createWebControlServer({
+      appPath: path.resolve(__dirname, "../../../.."),
+      store,
+    });
+    const webContents = { send: jest.fn() };
+    server.setMainWindow({
+      isDestroyed: () => false,
+      webContents,
+    });
+
+    const pending = server.requestRenderer("preview:get", {
+      url: "https://example.com/video",
+    });
+    const stopped = expect(pending).rejects.toMatchObject({
+      code: "WEB_CONTROL_STOPPED",
+    });
+    jest.advanceTimersByTime(8000);
+    await server.stop();
+    await stopped;
+
+    expect(webContents.send).toHaveBeenCalledWith(
+      CHANNELS.WEB_RENDERER_CANCEL,
+      expect.objectContaining({
+        command: "preview:get",
+        payload: { url: "https://example.com/video" },
+        reason: "WEB_CONTROL_STOPPED",
+      }),
+    );
+    jest.useRealTimers();
   });
 
   it("serializes concurrent start requests", async () => {

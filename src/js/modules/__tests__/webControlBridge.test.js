@@ -86,6 +86,44 @@ describe("webControlBridge", () => {
     });
   });
 
+  it("cancels preview analysis when main stops or times out the request", () => {
+    const cancelVideoInfoRequest = jest.fn();
+    jest.doMock("../downloadManager.js", () => ({
+      getWebControlSnapshot: jest.fn(),
+      handleWebControlDownloaderAction: jest.fn(),
+    }));
+    jest.doMock("../videoInfoBroker.js", () => ({
+      cancelVideoInfoRequest,
+      getVideoInfo: jest.fn(),
+    }));
+    jest.doMock("../settingsStore.js", () => ({
+      getTheme: jest.fn(),
+      setTheme: jest.fn(),
+      getFontSize: jest.fn(),
+      setFontSize: jest.fn(),
+    }));
+    jest.doMock("../i18n.js", () => ({
+      getLanguage: jest.fn(),
+      setLanguagePreview: jest.fn(),
+    }));
+
+    const { initWebControlBridge } = require("../webControlBridge.js");
+    initWebControlBridge();
+    const cancelListener = window.electron.on.mock.calls.find(
+      ([channel]) => channel === "web:rendererCancel",
+    )[1];
+    cancelListener({
+      requestId: "req-preview",
+      command: "preview:get",
+      payload: { url: "https://example.com/video" },
+      reason: "timeout",
+    });
+
+    expect(cancelVideoInfoRequest).toHaveBeenCalledWith(
+      "https://example.com/video",
+    );
+  });
+
   it("returns serializable compact quality options for preview requests", async () => {
     jest.doMock("../downloadManager.js", () => ({
       getWebControlSnapshot: jest.fn(),

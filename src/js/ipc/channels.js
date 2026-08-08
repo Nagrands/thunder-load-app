@@ -82,6 +82,7 @@ const CHANNELS = Object.freeze({
   WEB_OPEN: "web:open",
   WEB_RENDERER_REQUEST: "web:rendererRequest",
   WEB_RENDERER_RESPONSE: "web:rendererResponse",
+  WEB_RENDERER_CANCEL: "web:rendererCancel",
   LOAD_HISTORY: "load-history",
   OPEN_CONFIG_FOLDER: "open-config-folder",
   OPEN_DOWNLOAD_FOLDER: "open-download-folder",

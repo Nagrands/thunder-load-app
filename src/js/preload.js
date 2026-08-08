@@ -112,6 +112,7 @@ try {
     "web:open",
     "web:rendererRequest",
     "web:rendererResponse",
+    "web:rendererCancel",
     "load-history",
     "open-config-folder",
     "open-download-folder",

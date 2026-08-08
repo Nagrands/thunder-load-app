@@ -13,11 +13,16 @@ import {
   QUALITY_PROFILE_DEFAULT,
   QUALITY_PROFILE_KEY,
 } from "./features/settings/defaults.js";
-import { getVideoInfo } from "./videoInfoBroker.js";
+import {
+  cancelVideoInfoRequest,
+  getVideoInfo,
+} from "./videoInfoBroker.js";
 import { buildWebCompactQualityOptions } from "./downloadQualityOptions.js";
 
 const RESPONSE_CHANNEL = "web:rendererResponse";
 const REQUEST_CHANNEL = "web:rendererRequest";
+const CANCEL_CHANNEL = "web:rendererCancel";
+let disposeActiveBridge = null;
 
 const BOOLEAN_SETTINGS = new Set([
   "openOnCopyUrl",
@@ -250,23 +255,47 @@ async function handleWebControlRequest(message = {}) {
 }
 
 export function initWebControlBridge() {
-  window.electron?.on?.(REQUEST_CHANNEL, async (message = {}) => {
-    const requestId = String(message.requestId || "");
-    try {
-      const result = await handleWebControlRequest(message);
-      window.electron.send(RESPONSE_CHANNEL, {
-        requestId,
-        success: true,
-        result,
-      });
-    } catch (error) {
-      window.electron.send(RESPONSE_CHANNEL, {
-        requestId,
-        success: false,
-        error: error.message || String(error),
-      });
-    }
-  });
+  disposeActiveBridge?.();
+
+  const disposeRequest = window.electron?.on?.(
+    REQUEST_CHANNEL,
+    async (message = {}) => {
+      const requestId = String(message.requestId || "");
+      try {
+        const result = await handleWebControlRequest(message);
+        window.electron.send(RESPONSE_CHANNEL, {
+          requestId,
+          success: true,
+          result,
+        });
+      } catch (error) {
+        window.electron.send(RESPONSE_CHANNEL, {
+          requestId,
+          success: false,
+          error: error.message || String(error),
+        });
+      }
+    },
+  );
+  const disposeCancel = window.electron?.on?.(
+    CANCEL_CHANNEL,
+    (message = {}) => {
+      if (message.command !== "preview:get") return;
+      const url = String(message.payload?.url || "").trim();
+      if (url) void cancelVideoInfoRequest(url);
+    },
+  );
+
+  let disposed = false;
+  const dispose = () => {
+    if (disposed) return;
+    disposed = true;
+    disposeRequest?.();
+    disposeCancel?.();
+    if (disposeActiveBridge === dispose) disposeActiveBridge = null;
+  };
+  disposeActiveBridge = dispose;
+  return dispose;
 }
 
 export {
