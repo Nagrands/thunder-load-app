@@ -76,6 +76,20 @@
 - **Исправление:** lifecycle сериализован, pending requests получают `WEB_CONTROL_STOPPED`/`RENDERER_UNAVAILABLE`, SSE timers очищаются сразу, ошибки имеют correlation ID.
 - **Доказательство:** `webControlServer.test.js` проверяет конкурентный start и остановку pending request.
 
+### Высокий риск: Web Control обрывал штатный preview
+
+- **Сценарий воспроизведения:** запросить форматы YouTube через packaged Web Control. Main ожидал renderer 8 секунд, тогда как два последовательных шага `get-video-info` завершались примерно за 15 секунд.
+- **Причина:** общий `REQUEST_TIMEOUT_MS` применялся к быстрым snapshot/settings и к внешнему `preview:get`; после timeout main забывал request, но renderer-owned `yt-dlp` продолжал работу и отправлял поздний ответ.
+- **Исправление:** для `preview:get` установлен ограниченный 45-секундный timeout. Timeout и stop отправляют `web:rendererCancel`; renderer отменяет соответствующий video-info job. Bridge повторно инициализируется идемпотентно и возвращает disposer.
+- **Доказательство:** профильные server/bridge тесты подтверждают работу preview дольше 8 секунд и propagation отмены. В повторном packaged smoke тот же URL вернул полный список форматов примерно за 15 секунд.
+
+### Высокий риск: Downloader перезаписывал одноимённый файл
+
+- **Сценарий воспроизведения:** скачать тот же title в другом качестве в папку, где уже существует финальный файл.
+- **Причина:** `safeMoveFile()` сначала безусловно удалял destination, затем переименовывал временный artifact.
+- **Исправление:** финализация выбирает первое свободное имя `name (N).ext` и никогда не удаляет существующий destination. Правило применяется к combined/direct/audio/subtitle outputs.
+- **Доказательство:** `download.selectFormats.test.js` сохраняет исходный и уже существующий `name (1)`, затем подтверждает перенос нового результата в `name (2)`.
+
 ### Системный риск: разрозненные процессы и журналы
 
 - **Причина:** Downloader, Converter, Backup, Media Library и Player использовали независимые `spawn/execFile`; stderr записывался как `error` даже при штатном прогрессе.
@@ -104,7 +118,8 @@ Renderer Settings/Downloader/Web Control ошибки проходят чере�
 - Выполнено десять последовательных запусков финальной сборки: median `main window created and IPC ready` — 213,8 мс, median `renderer finished load` — 416,55 мс. Относительно десяти прогонов непосредственно до удаления фонового update-check это +0,7% и −1,3% соответственно, то есть регрессии critical time-to-ready нет. В журнале до всей стабилизации нет десяти однородных baseline-запусков, поэтому сравнение со старой архитектурой не заявляется.
 - macOS packaged smoke подтвердил idle quit и quit при активном Player/HLS. Playback-owned FFmpeg завершён контролируемым fallback `SIGKILL`; полный shutdown занял 1,527 с, оставшихся Thunder/yt-dlp/FFmpeg/ffprobe процессов нет.
 - Отдельный macOS packaged smoke подтвердил цикл close → activate → recreate: после закрытия окна application process остался жив, повторная активация создала рабочее окно, а финальный quit выполнил единственную последовательность coordinator cleanup за 7 мс. После выхода не осталось Thunder/yt-dlp/FFmpeg/ffprobe процессов; packaged ICNS повторно прошёл валидатор.
-- macOS Downloader и Web Control active-operation smoke остаются отдельными ручными пунктами.
+- macOS Web Control packaged smoke подтвердил `/downloader`, `/settings`, status/state/settings API, SSE `ready/state`, 15-секундный preview и реальный запуск Downloader. При quit активный Downloader-owned `yt-dlp` получил `SIGTERM`, Web Control остановился, весь shutdown занял 577 мс; оставшихся Thunder/yt-dlp/FFmpeg/ffprobe процессов нет.
+- После smoke Web Control выключен, download path, очередь и история возвращены к исходному состоянию, тестовая временная папка удалена. Пользовательский файл, затронутый найденной collision-проблемой, восстановлен до исходного размера 160 307 238 байт.
 - Windows packaged smoke должен проверить tree termination yt-dlp/FFmpeg и повторное создание окна.
 
 Ручные packaged-пункты являются release gate и не считаются выполненными только по результатам Jest.

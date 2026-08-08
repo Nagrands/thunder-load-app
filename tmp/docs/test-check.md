@@ -2,7 +2,7 @@
 
 - Автосборка списка: `npm run test-check:sync-tests`
 - Найдено файлов: 150
-- Найдено тест-кейсов (test/it): 1295
+- Найдено тест-кейсов (test/it): 1298
 
 <!-- AUTO-JEST-TESTS:START -->
 
@@ -396,11 +396,12 @@
 - [ ] accepts http/https URLs
 - [ ] rejects unsupported schemes and invalid strings
 
-### `src/js/app/__tests__/webControlServer.test.js` (7)
+### `src/js/app/__tests__/webControlServer.test.js` (8)
 - [ ] is disabled by default and binds to LAN when enabled
 - [ ] allows API requests without a token in LAN mode
 - [ ] forwards API actions to the renderer bridge
 - [ ] rejects pending renderer requests when the server stops
+- [ ] allows preview analysis to exceed the default renderer timeout
 - [ ] serializes concurrent start requests
 - [ ] normalizes one URL and requests its preview from the renderer
 - [ ] forwards a partial settings patch and returns the canonical snapshot
@@ -1527,9 +1528,10 @@
 ### `src/js/modules/__tests__/videoInfoCache.test.js` (1)
 - [ ] stores full video info for quality modal reuse
 
-### `src/js/modules/__tests__/webControlBridge.test.js` (6)
+### `src/js/modules/__tests__/webControlBridge.test.js` (7)
 - [ ] returns settings snapshot for the web UI
 - [ ] subscribes to main-process web requests and sends responses
+- [ ] cancels preview analysis when main stops or times out the request
 - [ ] returns serializable compact quality options for preview requests
 - [ ] validates the complete settings patch before applying any setting
 - [ ] propagates a structured download path failure
@@ -1570,7 +1572,8 @@
 - [ ] opens the localized YouTube cookies guide
 - [ ] ignores a stale load response after a newer save
 
-### `src/js/scripts/__tests__/download.selectFormats.test.js` (29)
+### `src/js/scripts/__tests__/download.selectFormats.test.js` (30)
+- [ ] preserves existing files and moves output to the next available name
 - [ ] normalizes cookies settings and defaults to off
 - [ ] does not add cookies args by default
 - [ ] adds browser cookies args to info and preview calls
