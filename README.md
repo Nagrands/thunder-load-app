@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/icons/app/app-icon.png" alt="Thunder Logo" width="120" />
+  <img src="assets/brand/svg/favicon.svg" alt="Thunder Logo" width="120" />
 </p>
 
 <h1 align="center">Thunder</h1>
@@ -7,7 +7,7 @@
 <p align="center"><em>Desktop media downloader, player, and utility toolbox</em></p>
 
 <p align="center">
-  <a href="https://nagrands.github.io/thunder-load-app/">Official website</a> ·
+  <a href="https://nagrands.github.io/thunder-load-app/">Website</a> ·
   <a href="docs/README.ru.md">Русский</a> · <a href="docs/README.uk.md">Українська</a> · <a href="docs/APP.en.md">Application guide</a>
 </p>
 
@@ -16,8 +16,6 @@
     <img src="https://github.com/Nagrands/thunder-load-app/actions/workflows/release.yml/badge.svg" alt="Build Status" />
   </a>
 </p>
-
----
 
 ## Downloads
 
@@ -28,7 +26,6 @@
 - Windows uses a per-machine NSIS installer with elevation. macOS registers
   supported media as alternate Open With types without taking them by default.
 
----
 
 ## Features
 
@@ -55,15 +52,11 @@ See the [application guide](docs/APP.en.md) for section details and platform lim
 ## Screenshots
 
 <p align="center">
-  <img src="assets/screenshots/thunder_first.png" alt="First-run setup" width="45%" />
-</p>
-
-<p align="center">
   <img src="assets/screenshots/thunder_download.png" alt="Downloader section" width="45%" />
   <img src="assets/screenshots/thunder_tools.png" alt="Tools section" width="45%" />
+  <img src="assets/screenshots/thunder_player.png" alt="Player section" width="45%" />
+  <img src="assets/screenshots/thunder_medialibrary.png" alt="Settings" width="45%" />
 </p>
-
----
 
 ## Tech Stack & Tooling
 
@@ -95,7 +88,6 @@ See the [application guide](docs/APP.en.md) for section details and platform lim
 | `npm run whats-new:watch`                   | Watch & rebuild release notes            |
 | `npm run format`                            | Format sources with Prettier             |
 
----
 
 ## Development
 
@@ -115,8 +107,6 @@ npm run dev
 
 If you edit templates, styles, or release notes, run the matching build scripts
 or use the `*:watch` commands.
-
----
 
 ## Configuration
 

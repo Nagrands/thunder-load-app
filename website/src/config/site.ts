@@ -45,11 +45,6 @@ export const platforms = [
 
 export const mediaGallery = [
   {
-    id: "first-run",
-    image: "thunder-first.png",
-    labels: { ru: "Первый запуск", en: "First launch" }
-  },
-  {
     id: "downloader",
     image: "thunder-download.png",
     labels: { ru: "Загрузчик", en: "Downloader" }
@@ -58,6 +53,11 @@ export const mediaGallery = [
     id: "tools",
     image: "thunder-tools.png",
     labels: { ru: "Инструменты", en: "Tools" }
+  },
+  {
+    id: "player",
+    image: "thunder-player.png",
+    labels: { ru: "Плеер", en: "Player"}
   }
 ] as const;
 

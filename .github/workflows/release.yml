@@ -46,6 +46,9 @@ jobs:
           # CSC_KEY_PASSWORD: ${{ secrets.MAC_CERT_PASSWORD }}
         run: npx electron-builder --mac --publish always
 
+      - name: Verify packaged macOS icons
+        run: npm run icons:verify:packaged -- --mac
+
   build-windows:
     needs: build-macos
     if: ${{ !cancelled() }}
@@ -75,3 +78,7 @@ jobs:
           # CSC_LINK: ${{ secrets.WIN_CERT_PFX_BASE64 }}
           # CSC_KEY_PASSWORD: ${{ secrets.WIN_CERT_PASSWORD }}
         run: npx electron-builder --win --publish always
+
+      - name: Verify packaged Windows icons
+        shell: pwsh
+        run: npm run icons:verify:packaged -- --win

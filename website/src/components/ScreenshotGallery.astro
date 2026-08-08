@@ -1,8 +1,8 @@
 ---
 import { Picture } from "astro:assets";
-import firstRun from "@/assets/screenshots/thunder-first.png";
 import downloader from "@/assets/screenshots/thunder-download.png";
 import tools from "@/assets/screenshots/thunder-tools.png";
+import player from "@/assets/screenshots/thunder-player.png";
 import type { Locale } from "@/config/site";
 import { mediaGallery } from "@/config/site";
 
@@ -11,7 +11,7 @@ interface Props {
 }
 
 const { locale } = Astro.props;
-const imageMap = { "thunder-first.png": firstRun, "thunder-download.png": downloader, "thunder-tools.png": tools };
+const imageMap = { "thunder-download.png": downloader, "thunder-tools.png": tools, "thunder-player.png": player };
 ---
 
 <div class="gallery glass reveal" data-gallery>

@@ -450,23 +450,30 @@ def create_macos_template(size: int, state: str = "idle") -> Image.Image:
 
 
 def save_ico(images: list[Image.Image], path: Path) -> None:
-    """Package independently rendered PNG frames into a Windows ICO container."""
+    """Encode a standards-compliant multi-resolution Windows icon with Pillow."""
+    largest = max(images, key=lambda image: image.width)
+    sizes = [image.size for image in images]
+    path.parent.mkdir(parents=True, exist_ok=True)
+    largest.save(path, format="ICO", sizes=sizes)
+
+
+def save_tray_ico(images: list[Image.Image], path: Path) -> None:
+    """Keep independently rendered small tray frames in their ICO container."""
     png_frames: list[bytes] = []
     for image in images:
         output = io.BytesIO()
         image.save(output, format="PNG", optimize=True)
         png_frames.append(output.getvalue())
 
-    header_size = 6 + 16 * len(images)
-    offset = header_size
+    offset = 6 + 16 * len(images)
     directory = bytearray(struct.pack("<HHH", 0, 1, len(images)))
     for image, png_data in zip(images, png_frames):
         width, height = image.size
         directory.extend(
             struct.pack(
                 "<BBBBHHII",
-                0 if width == 256 else width,
-                0 if height == 256 else height,
+                width,
+                height,
                 0,
                 0,
                 1,
@@ -493,7 +500,7 @@ def build_tray_icons() -> None:
             )
 
         frames = [create_windows_tray_icon(size, state) for size in WINDOWS_TRAY_SIZES]
-        save_ico(frames, TRAY_DIR / WINDOWS_TRAY_NAMES[state])
+        save_tray_ico(frames, TRAY_DIR / WINDOWS_TRAY_NAMES[state])
 
 
 def save_png(image: Image.Image, path: Path, size: int | None = None) -> None:
@@ -509,27 +516,8 @@ def build_iconset() -> None:
 
 
 def build_icns() -> None:
-    """Package the complete 1x/2x iconset into a deterministic ICNS file."""
-    chunk_types = {
-        "icon_16x16.png": b"icp4",
-        "icon_16x16@2x.png": b"ic11",
-        "icon_32x32.png": b"icp5",
-        "icon_32x32@2x.png": b"ic12",
-        "icon_128x128.png": b"ic07",
-        "icon_128x128@2x.png": b"ic13",
-        "icon_256x256.png": b"ic08",
-        "icon_256x256@2x.png": b"ic14",
-        "icon_512x512.png": b"ic09",
-        "icon_512x512@2x.png": b"ic10",
-    }
-    chunks = []
-    for filename, _size in ICONSET_SPECS:
-        png_data = (ICONSET_DIR / filename).read_bytes()
-        chunks.append(chunk_types[filename] + struct.pack(">I", len(png_data) + 8) + png_data)
-    payload = b"".join(chunks)
-    (MACOS_DIR / "app-icon.icns").write_bytes(
-        b"icns" + struct.pack(">I", len(payload) + 8) + payload,
-    )
+    """Encode the macOS icon with Pillow's system-compatible ICNS writer."""
+    create_app_icon().save(MACOS_DIR / "app-icon.icns", format="ICNS")
 
 
 def main() -> None:

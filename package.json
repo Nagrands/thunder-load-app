@@ -18,6 +18,7 @@
     "whats-new:watch": "nodemon --watch whats-new.md --watch whats-new.en.md --ext md --exec \"npm run whats-new:build\"",
     "css:build": "sass src/scss:src/css",
     "tray-icons:build": "electron scripts/generate-windows-tray-icons.cjs",
+    "icons:verify:packaged": "node scripts/verify-packaged-icons.cjs",
     "css:watch": "sass --watch src/scss:src/css",
     "sass": "npm run css:watch",
     "fa:copy": "copyfiles -f node_modules/@fortawesome/fontawesome-free/webfonts/* src/assets/webfonts",
