@@ -1,4 +1,5 @@
 const fs = require("fs");
+const path = require("path");
 const { EventEmitter } = require("events");
 
 const createNativeImageMock = () => {
@@ -222,7 +223,7 @@ describe("tray runtime behavior", () => {
     expect(require("electron").BrowserWindow).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({
-        icon: expect.stringContaining("assets/icons/app/app-icon.ico"),
+        icon: path.join(path.dirname(app.getAppPath()), "app-icon.ico"),
       }),
     );
   });

@@ -81,6 +81,10 @@
     "asar": true,
     "extraResources": [
       {
+        "from": "assets/icons/app/app-icon.ico",
+        "to": "app-icon.ico"
+      },
+      {
         "from": "assets/icons/",
         "to": "usr/share/icons/hicolor/256x256/apps"
       }
@@ -149,7 +153,11 @@
       "icon": "assets/icons/app/app-icon.ico"
     },
     "nsis": {
-      "perMachine": true
+      "perMachine": true,
+      "installerIcon": "assets/icons/app/app-icon.ico",
+      "uninstallerIcon": "assets/icons/app/app-icon.ico",
+      "installerHeaderIcon": "assets/icons/app/app-icon.ico",
+      "include": "scripts/windows-installer.nsh"
     },
     "linux": {
       "target": [

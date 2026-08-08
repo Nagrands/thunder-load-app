@@ -17,6 +17,13 @@ const SOURCE_ICNS = path.join(
   "app-icon.icns",
 );
 const SOURCE_ICO = path.join(ROOT, "assets", "icons", "app", "app-icon.ico");
+const ELECTRON_EXECUTABLE = path.join(
+  ROOT,
+  "node_modules",
+  "electron",
+  "dist",
+  "electron.exe",
+);
 
 function fail(message) {
   throw new Error(`Packaged icon verification failed: ${message}`);
@@ -128,6 +135,18 @@ function verifyMac() {
 
 function verifyWindows() {
   if (process.platform !== "win32") fail("--win must run on Windows");
+  const physicalIcon = path.join(
+    DIST_DIR,
+    "win-unpacked",
+    "resources",
+    "app-icon.ico",
+  );
+  if (!fs.existsSync(physicalIcon)) {
+    fail(`physical BrowserWindow icon was not found at ${physicalIcon}`);
+  }
+  if (sha256(physicalIcon) !== sha256(SOURCE_ICO)) {
+    fail("physical BrowserWindow icon differs from the approved Thunder ICO");
+  }
   const script = path.join(__dirname, "verify-packaged-icons.ps1");
   execFileSync(
     "powershell.exe",
@@ -139,8 +158,8 @@ function verifyWindows() {
       script,
       "-DistDir",
       DIST_DIR,
-      "-SourceIco",
-      SOURCE_ICO,
+      "-ElectronExecutable",
+      ELECTRON_EXECUTABLE,
     ],
     { stdio: "inherit" },
   );

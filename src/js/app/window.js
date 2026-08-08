@@ -305,6 +305,10 @@ function createWindow(
   const macIcns = resolveIconPathFrom(baseAssetsPath, "APP_ICON_ICNS");
   const macPng = resolveIconPathFrom(baseAssetsPath, "APP_ICON_PNG");
   const winIco = resolveIconPathFrom(baseAssetsPath, "APP_ICON_ICO");
+  const packagedWinIco = path.join(
+    process.resourcesPath || path.dirname(baseAssetsPath),
+    "app-icon.ico",
+  );
 
   // В dev Electron часто не подхватывает .icns → используем PNG; в prod предпочитаем .icns.
   // Windows всегда получает Thunder ICO явно, включая packaged-окно.
@@ -313,7 +317,9 @@ function createWindow(
       ? app.isPackaged
         ? [macIcns, macPng]
         : [macPng]
-      : [winIco, macPng];
+      : app.isPackaged && process.platform === "win32"
+        ? [packagedWinIco, winIco, macPng]
+        : [winIco, macPng];
 
   const iconPath = bwIconCandidates.find((p) => fs.existsSync(p)) || null;
   windowLogger.debug?.("window-icon-selected", {

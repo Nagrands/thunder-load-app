@@ -1,6 +1,6 @@
 param(
   [Parameter(Mandatory = $true)][string]$DistDir,
-  [Parameter(Mandatory = $true)][string]$SourceIco
+  [Parameter(Mandatory = $true)][string]$ElectronExecutable
 )
 
 $ErrorActionPreference = "Stop"
@@ -25,36 +25,26 @@ function Get-BitmapHash {
   }
 }
 
-function Assert-ThunderIcon {
+function Get-EmbeddedIconHash {
   param([string]$Executable)
 
-  $embeddedIcon = [System.Drawing.Icon]::ExtractAssociatedIcon($Executable)
-  if ($null -eq $embeddedIcon) {
+  $icon = [System.Drawing.Icon]::ExtractAssociatedIcon($Executable)
+  if ($null -eq $icon) {
     throw "No embedded icon found in $Executable"
   }
-
   try {
-    $sourceIcon = [System.Drawing.Icon]::new(
-      $SourceIco,
-      $embeddedIcon.Width,
-      $embeddedIcon.Height
-    )
-    try {
-      $embeddedBitmap = $embeddedIcon.ToBitmap()
-      $sourceBitmap = $sourceIcon.ToBitmap()
-      try {
-        if ((Get-BitmapHash $embeddedBitmap) -ne (Get-BitmapHash $sourceBitmap)) {
-          throw "Embedded icon in $Executable does not match the Thunder ICO"
-        }
-      } finally {
-        $embeddedBitmap.Dispose()
-        $sourceBitmap.Dispose()
-      }
-    } finally {
-      $sourceIcon.Dispose()
-    }
+    $bitmap = $icon.ToBitmap()
+    try { return Get-BitmapHash -Bitmap $bitmap }
+    finally { $bitmap.Dispose() }
   } finally {
-    $embeddedIcon.Dispose()
+    $icon.Dispose()
+  }
+}
+function Assert-ThunderIcon {
+  param([string]$Executable, [string]$ExpectedHash)
+
+  if ((Get-EmbeddedIconHash -Executable $Executable) -ne $ExpectedHash) {
+    throw "Embedded icon in $Executable does not match packaged Thunder.exe"
   }
 }
 
@@ -72,8 +62,14 @@ if (-not ($executables | Where-Object Name -like "Thunder Setup*.exe")) {
   throw "Thunder NSIS installer was not found under $DistDir"
 }
 
+$applicationExecutable = $executables | Where-Object Name -eq "Thunder.exe" | Select-Object -First 1
+$expectedIconHash = Get-EmbeddedIconHash -Executable $applicationExecutable.FullName
+$electronIconHash = Get-EmbeddedIconHash -Executable $ElectronExecutable
+if ($expectedIconHash -eq $electronIconHash) {
+  throw "Packaged Thunder.exe still contains the Electron icon"
+}
 foreach ($executable in $executables) {
-  Assert-ThunderIcon -Executable $executable.FullName
+  Assert-ThunderIcon -Executable $executable.FullName -ExpectedHash $expectedIconHash
 }
 
 Write-Host "Verified Thunder ICO in $($executables.Count) packaged Windows executable(s)."
