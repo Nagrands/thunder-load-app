@@ -29,9 +29,39 @@ const {
   _getPersistentPreviewMetadata,
   _normalizeSubtitleDownloadOptions,
   _normalizeYtDlpCookiesSettings,
+  _resolveAvailableOutputPath,
+  _safeMoveFile,
   _setPersistentPreviewMetadata,
   setSharedStore,
 } = require("../download.js");
+
+describe("download output collisions", () => {
+  it("preserves existing files and moves output to the next available name", () => {
+    const tempDir = fs.mkdtempSync(
+      path.join(os.tmpdir(), "thunder-output-collision-"),
+    );
+    try {
+      const target = path.join(tempDir, "video.mkv");
+      const firstCollision = path.join(tempDir, "video (1).mkv");
+      const source = path.join(tempDir, "combined.tmp.mkv");
+      fs.writeFileSync(target, "original");
+      fs.writeFileSync(firstCollision, "previous-copy");
+      fs.writeFileSync(source, "new-download");
+
+      expect(_resolveAvailableOutputPath(target)).toBe(
+        path.join(tempDir, "video (2).mkv"),
+      );
+      const movedPath = _safeMoveFile(source, target);
+
+      expect(movedPath).toBe(path.join(tempDir, "video (2).mkv"));
+      expect(fs.readFileSync(target, "utf8")).toBe("original");
+      expect(fs.readFileSync(firstCollision, "utf8")).toBe("previous-copy");
+      expect(fs.readFileSync(movedPath, "utf8")).toBe("new-download");
+    } finally {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+});
 
 describe("yt-dlp cookies args", () => {
   afterEach(() => {

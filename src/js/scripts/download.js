@@ -2580,15 +2580,25 @@ const isCancelError = (err) =>
     : false;
 
 function safeMoveFile(src, dest) {
-  if (!fs.existsSync(src)) return;
-  try {
-    if (fs.existsSync(dest)) {
-      fs.unlinkSync(dest);
-    }
-  } catch (err) {
-    log.warn(`Failed to remove existing file ${dest}:`, err.message);
+  if (!fs.existsSync(src)) return dest;
+  const resolvedDest = resolveAvailableOutputPath(dest);
+  fs.renameSync(src, resolvedDest);
+  return resolvedDest;
+}
+
+function resolveAvailableOutputPath(targetPath) {
+  if (!fs.existsSync(targetPath)) return targetPath;
+  const parsed = path.parse(targetPath);
+  let index = 1;
+  let candidate = targetPath;
+  while (fs.existsSync(candidate)) {
+    candidate = path.join(
+      parsed.dir,
+      `${parsed.name} (${index})${parsed.ext}`,
+    );
+    index += 1;
   }
-  fs.renameSync(src, dest);
+  return candidate;
 }
 
 function emitDownloadProgress(event, progress, options = {}) {
@@ -2761,7 +2771,7 @@ async function downloadMedia(
         downloadPath,
         `${tempPrefix}.%(ext)s`,
       );
-      const finalSubtitlePath = path.join(
+      let finalSubtitlePath = path.join(
         downloadPath,
         `${sanitizedFilename}.${subtitleOptions.lang}.${SUBTITLE_OUTPUT_EXT}`,
       );
@@ -2832,8 +2842,9 @@ async function downloadMedia(
       if (
         path.extname(producedPath).toLowerCase() === `.${SUBTITLE_OUTPUT_EXT}`
       ) {
-        safeMoveFile(producedPath, finalSubtitlePath);
+        finalSubtitlePath = safeMoveFile(producedPath, finalSubtitlePath);
       } else {
+        finalSubtitlePath = resolveAvailableOutputPath(finalSubtitlePath);
         await convertSubtitleToSrt(producedPath, finalSubtitlePath, {
           token,
           processKey: "videoDownload",
@@ -2852,7 +2863,9 @@ async function downloadMedia(
     if (isAudioOnlyQuality(quality, videoFormat, audioFormat)) {
       if (url.includes("twitch.tv")) {
         // Для Twitch: извлекаем аудио и конвертируем в mp3
-        const audioOutput = path.join(downloadPath, `${sanitizedFilename}.mp3`);
+        const audioOutput = resolveAvailableOutputPath(
+          path.join(downloadPath, `${sanitizedFilename}.mp3`),
+        );
         let lastLogged = 0;
         const updateProgress = (progress) => {
           if (progress - lastLogged >= 5 || progress >= 100) {
@@ -2986,16 +2999,16 @@ async function downloadMedia(
           }
           throw err;
         }
-        safeMoveFile(tempAudioPath, finalAudioPath);
+        const resolvedAudioPath = safeMoveFile(tempAudioPath, finalAudioPath);
         if (shouldExtractMp3 && fs.existsSync(tempSourceAudioPath)) {
           try {
             await fs.promises.unlink(tempSourceAudioPath);
           } catch {}
         }
         clearResumeState(downloadPath, resumeKey);
-        log.info(`Audio downloaded: ${finalAudioPath}`);
+        log.info(`Audio downloaded: ${resolvedAudioPath}`);
         emitDownloadProgress(event, 100, { jobId, phase: "download" });
-        return finalAudioPath;
+        return resolvedAudioPath;
       }
     }
 
@@ -3061,11 +3074,14 @@ async function downloadMedia(
         }
         throw err;
       }
-      safeMoveFile(tempMergedOutput, finalMergedOutput);
+      const resolvedMergedOutput = safeMoveFile(
+        tempMergedOutput,
+        finalMergedOutput,
+      );
       clearResumeState(downloadPath, resumeKey);
       emitDownloadProgress(event, 100, { jobId, phase: "download" });
-      log.info(`[download] Combined stream saved as ${finalMergedOutput}`);
-      return finalMergedOutput;
+      log.info(`[download] Combined stream saved as ${resolvedMergedOutput}`);
+      return resolvedMergedOutput;
     }
 
     const directFormat = videoFormat || audioFormat;
@@ -3115,11 +3131,11 @@ async function downloadMedia(
       }
       throw err;
     }
-    safeMoveFile(tempOutput, finalOutput);
+    const resolvedOutput = safeMoveFile(tempOutput, finalOutput);
     clearResumeState(downloadPath, resumeKey);
     emitDownloadProgress(event, 100, { jobId, phase: "download" });
-    log.info(`[download] Direct stream saved as ${finalOutput}`);
-    return finalOutput;
+    log.info(`[download] Direct stream saved as ${resolvedOutput}`);
+    return resolvedOutput;
   } catch (error) {
     const classified = classifyYtDlpErrorMessage(error?.message || error);
     if (classified) {
@@ -3233,6 +3249,8 @@ module.exports = {
   _getPersistentPreviewMetadata: getPersistentPreviewMetadata,
   _setPersistentPreviewMetadata: setPersistentPreviewMetadata,
   _resolveUsableYtDlpBinary: resolveUsableYtDlpBinary,
+  _resolveAvailableOutputPath: resolveAvailableOutputPath,
+  _safeMoveFile: safeMoveFile,
   _resetYtDlpBinaryCache: () => {
     cachedYtDlpBinary = null;
   },
