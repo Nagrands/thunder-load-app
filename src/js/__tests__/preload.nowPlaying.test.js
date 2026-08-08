@@ -94,4 +94,27 @@ describe("preload Now Playing API", () => {
     });
     expect(api.nowPlaying.getDroppedFilePath(file)).toBe("");
   });
+
+  test("exposes safe diagnostics wrappers", async () => {
+    const api = mockExposeInMainWorld.mock.calls[0][1];
+    mockInvoke
+      .mockResolvedValueOnce({ ok: true, data: "debug" })
+      .mockResolvedValueOnce({ ok: true, data: "info" })
+      .mockResolvedValueOnce({ ok: true, data: { filePath: "/tmp/logs.zip" } });
+
+    await expect(api.diagnostics.getLevel()).resolves.toBe("debug");
+    await expect(api.diagnostics.setLevel("info")).resolves.toBe("info");
+    await expect(api.diagnostics.export()).resolves.toMatchObject({ ok: true });
+    api.diagnostics.log("Player", "debug", "created", { sessionId: "one" });
+
+    expect(mockInvoke).toHaveBeenCalledWith("diagnostics:get-level");
+    expect(mockInvoke).toHaveBeenCalledWith("diagnostics:set-level", "info");
+    expect(mockInvoke).toHaveBeenCalledWith("diagnostics:export");
+    expect(mockSend).toHaveBeenCalledWith("diagnostics:log", {
+      scope: "Player",
+      level: "debug",
+      event: "created",
+      context: { sessionId: "one" },
+    });
+  });
 });

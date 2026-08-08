@@ -45,6 +45,7 @@ try {
     "delete-file",
     "download-update",
     "download-video",
+    "status-message",
     // main -> renderer events (subscribed via window.electron.on)
     "download-complete",
     "download-path-changed",
@@ -76,6 +77,10 @@ try {
     "get-theme",
     "get-version",
     "get-whats-new",
+    "diagnostics:get-level",
+    "diagnostics:set-level",
+    "diagnostics:export",
+    "diagnostics:log",
     "now-playing:import-files",
     "now-playing:import-folder",
     "now-playing:import-paths",
@@ -554,6 +559,21 @@ try {
     onPasteNotification: (cb) => safeOn("paste-notification", cb),
     onToast: (cb) => safeOn("toast", cb),
     openExternal: (url) => safeInvoke("open-external", url),
+
+    diagnostics: {
+      getLevel: async () => {
+        const response = await safeInvoke("diagnostics:get-level");
+        return response?.ok ? response.data : "info";
+      },
+      setLevel: async (level) => {
+        const response = await safeInvoke("diagnostics:set-level", level);
+        if (!response?.ok) throw new Error(response?.error?.message || "Unable to set diagnostics level");
+        return response.data;
+      },
+      export: () => safeInvoke("diagnostics:export"),
+      log: (scope, level, event, context = {}) =>
+        safeSend("diagnostics:log", { scope, level, event, context }),
+    },
 
     // Прямой прокси IPC
     ipcRenderer: {

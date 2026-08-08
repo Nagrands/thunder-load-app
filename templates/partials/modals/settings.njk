@@ -1730,6 +1730,38 @@
                   </section>
 
                   <section
+                    class="settings-card settings-card--stacked"
+                    data-settings-search-item
+                    data-settings-search-id="diagnostics"
+                  >
+                    <div class="settings-card__icon" aria-hidden="true">
+                      <i data-lucide="file-chart-column"></i>
+                    </div>
+                    <div class="settings-card__intro">
+                      <h3 class="settings-card__title" data-i18n="settings.diagnostics.title">Диагностика</h3>
+                      <p class="settings-card__hint" data-i18n="settings.diagnostics.hint">Локальные журналы помогают найти причину технических сбоев.</p>
+                    </div>
+                    <div class="settings-card__body">
+                      <div class="module">
+                        <input type="checkbox" id="settings-diagnostics-debug-toggle" />
+                        <label for="settings-diagnostics-debug-toggle">
+                          <i class="fa-solid fa-bug" aria-hidden="true"></i>
+                          <span>
+                            <strong data-i18n="settings.diagnostics.debug">Подробное логирование</strong>
+                            <small data-i18n="settings.diagnostics.debugHint">Записывать отладочные события до ручного отключения.</small>
+                          </span>
+                        </label>
+                      </div>
+                      <div class="module settings-action-group">
+                        <button id="settings-diagnostics-export" type="button">
+                          <i class="fa-solid fa-file-zipper"></i>
+                          <span data-i18n="settings.diagnostics.export">Экспортировать диагностику</span>
+                        </button>
+                      </div>
+                    </div>
+                  </section>
+
+                  <section
                     class="settings-card settings-card--stacked settings-card--danger"
                     data-settings-search-item
                     data-settings-search-id="reset"

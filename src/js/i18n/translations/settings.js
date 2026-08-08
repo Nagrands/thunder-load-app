@@ -343,6 +343,19 @@ export const settingsTranslations = {
     "settings.other.export": "Сохранить",
     "settings.other.import": "Загрузить",
     "settings.other.openFolder": "Папка настроек",
+    "settings.diagnostics.title": "Диагностика",
+    "settings.diagnostics.hint":
+      "Локальные журналы помогают найти причину технических сбоев.",
+    "settings.diagnostics.debug": "Подробное логирование",
+    "settings.diagnostics.debugHint":
+      "Записывать отладочные события до ручного отключения.",
+    "settings.diagnostics.export": "Экспортировать диагностику",
+    "settings.diagnostics.exported": "Диагностический пакет сохранён.",
+    "settings.diagnostics.exportError":
+      "Не удалось сохранить диагностический пакет.",
+    "settings.diagnostics.levelSaved": "Уровень журналирования сохранён.",
+    "settings.diagnostics.levelError":
+      "Не удалось изменить уровень журналирования.",
     "settings.other.resetTitle": "Сброс настроек",
     "settings.other.reset": "Настройки по умолчанию",
     "settings.other.firstRun": "Первичная настройка",
@@ -701,6 +714,17 @@ export const settingsTranslations = {
     "settings.other.export": "Save",
     "settings.other.import": "Load",
     "settings.other.openFolder": "Settings folder",
+    "settings.diagnostics.title": "Diagnostics",
+    "settings.diagnostics.hint":
+      "Local logs help identify the cause of technical failures.",
+    "settings.diagnostics.debug": "Detailed logging",
+    "settings.diagnostics.debugHint":
+      "Record debug events until you turn this option off.",
+    "settings.diagnostics.export": "Export diagnostics",
+    "settings.diagnostics.exported": "Diagnostics package saved.",
+    "settings.diagnostics.exportError": "Could not save the diagnostics package.",
+    "settings.diagnostics.levelSaved": "Logging level saved.",
+    "settings.diagnostics.levelError": "Could not change the logging level.",
     "settings.other.resetTitle": "Reset settings",
     "settings.other.reset": "Defaults",
     "settings.other.firstRun": "First-run setup",

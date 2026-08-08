@@ -47,6 +47,7 @@ import {
   YTDLP_COOKIES_DEFAULT,
 } from "./ytDlpCookiesSettings.js";
 import { initWebControlSettings } from "./webControlSettings.js";
+import { initDiagnosticsSettings } from "./diagnosticsSettings.js";
 import {
   initPlayerSettings,
   normalizePlayerSettings,
@@ -164,6 +165,7 @@ async function initSettings() {
 
   initYtDlpCookiesSettings();
   initWebControlSettings();
+  initDiagnosticsSettings();
 
   const fontSizeDropdownBtn = document.getElementById("font-size-dropdown-btn");
   const fontSizeDropdownMenu = document.getElementById(

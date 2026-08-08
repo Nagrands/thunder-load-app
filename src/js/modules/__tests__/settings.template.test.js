@@ -64,6 +64,18 @@ describe("settings template structure", () => {
     expect(html).not.toContain('id="backup-log-toggle"');
   });
 
+  test("includes localized diagnostics controls", () => {
+    const indexPath = path.resolve(process.cwd(), "src/index.html");
+    const html = fs.readFileSync(indexPath, "utf8");
+
+    expect(html).toContain('id="settings-diagnostics-debug-toggle"');
+    expect(html).toContain('id="settings-diagnostics-export"');
+    ["ru", "en"].forEach((language) => {
+      expect(settingsTranslations[language]["settings.diagnostics.title"]).toBeTruthy();
+      expect(settingsTranslations[language]["settings.diagnostics.export"]).toBeTruthy();
+    });
+  });
+
   test("includes the emerald theme in settings and first-run templates", () => {
     const indexPath = path.resolve(process.cwd(), "src/index.html");
     const html = fs.readFileSync(indexPath, "utf8");
