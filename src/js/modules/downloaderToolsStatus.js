@@ -1,18 +1,19 @@
 // src/js/modules/downloaderToolsStatus.js
 
 import { hideAllTooltips, initTooltips } from "./tooltipInitializer.js";
-import {
-  installAllTools,
-  resolvePendingToolUpdates,
-  summarizeToolsState,
-} from "./toolsInfo.js";
+import { installAllTools, summarizeToolsState } from "./toolsInfo.js";
 import { t } from "./i18n.js";
 
 let isInitialized = false;
 let isLoading = false;
 let isActionRunning = false;
 let currentAction = null;
-let pendingUpdate = { yt: false, ff: false };
+
+function logError(event, error) {
+  window.electron?.diagnostics?.log?.("Downloader", "error", event, {
+    message: error?.message || String(error),
+  });
+}
 
 const el = {
   container: null,
@@ -53,26 +54,19 @@ function hideAction() {
 
 function setAction(action) {
   if (!el.action || !el.actionLabel || !el.actionIcon) return;
-  currentAction = action;
-  if (!action) {
+  if (action !== "install") {
     hideAction();
     return;
   }
-
-  const labelKey =
-    action === "install" ? "tools.button.install" : "tools.button.update";
-  const titleKey =
-    action === "install"
-      ? "downloader.tools.installTitle"
-      : "downloader.tools.updateTitle";
-  const iconClass =
-    action === "install" ? "fa-solid fa-download" : "fa-solid fa-arrows-rotate";
+  currentAction = action;
+  const labelKey = "tools.button.install";
+  const titleKey = "downloader.tools.installTitle";
   const label = t(labelKey);
   const title = t(titleKey);
 
   el.actionLabel.textContent = label;
   el.actionLabel.setAttribute("data-i18n", labelKey);
-  el.actionIcon.className = iconClass;
+  el.actionIcon.className = "fa-solid fa-download";
   el.action.classList.remove("hidden");
   el.action.classList.toggle("is-busy", isActionRunning);
   el.action.disabled = isActionRunning;
@@ -90,12 +84,10 @@ function setActionBusy(isBusy, action = currentAction) {
   if (!action) return;
   el.actionIcon.className = isBusy
     ? "fa-solid fa-circle-notch fa-spin"
-    : action === "install"
-      ? "fa-solid fa-download"
-      : "fa-solid fa-arrows-rotate";
+    : "fa-solid fa-download";
   el.actionLabel.textContent = isBusy
     ? t("tools.status.installing")
-    : t(action === "install" ? "tools.button.install" : "tools.button.update");
+    : t("tools.button.install");
 }
 
 const setState = (state, message, details = [], action = null) => {
@@ -134,27 +126,6 @@ async function showToast(message, tone) {
   await window.electron?.invoke?.("toast", message, tone);
 }
 
-async function resolveUpdateAction(versionsRes, summary) {
-  if (!window.electron?.tools?.checkUpdates) {
-    setState("error", t("tools.error.update"), summary.details);
-    return;
-  }
-
-  setState("loading", t("tools.status.checkingUpdates"), summary.details);
-  const updates = await window.electron.tools.checkUpdates({
-    noCache: false,
-    forceFetch: false,
-  });
-  pendingUpdate = resolvePendingToolUpdates(versionsRes, updates);
-
-  if (pendingUpdate.yt || pendingUpdate.ff) {
-    setState("ok", t("tools.status.updatesFound"), summary.details, "update");
-    return;
-  }
-
-  setState("ok", t("tools.status.ready"), summary.details);
-}
-
 async function fetchStatus() {
   if (!window.electron?.tools?.getVersions) {
     setState("error", t("tools.status.bridgeMissing"));
@@ -166,16 +137,15 @@ async function fetchStatus() {
   try {
     const res = await window.electron.tools.getVersions();
     const summary = summarizeToolsState(res);
-    pendingUpdate = { yt: false, ff: false };
-
     if (summary.state !== "ok") {
       setState("error", summary.text, summary.details, "install");
       return;
     }
-
-    await resolveUpdateAction(res, summary);
+    // Version/update network checks belong to the explicitly opened Tools view.
+    // The Downloader footer only needs the local availability snapshot.
+    setState("ok", t("tools.status.ready"), summary.details);
   } catch (error) {
-    console.error("[downloaderToolsStatus] getVersions failed:", error);
+    logError("tools-status-refresh-failed", error);
     setState("error", t("tools.status.error"));
   } finally {
     isLoading = false;
@@ -184,7 +154,7 @@ async function fetchStatus() {
 
 async function runAction() {
   const action = currentAction;
-  if (!action || isActionRunning) return;
+  if (action !== "install" || isActionRunning) return;
   if (!navigator.onLine) {
     setState("error", t("tools.status.noNetwork"), [], action);
     return;
@@ -195,18 +165,12 @@ async function runAction() {
     setState("loading", t("tools.status.installing"));
     setAction(action);
     setActionBusy(true, action);
-    if (action === "install") {
-      await installAllTools();
-      await showToast(t("tools.toast.installSuccess"), "success");
-    } else if (action === "update") {
-      if (pendingUpdate.yt) await window.electron?.tools?.updateYtDlp?.();
-      if (pendingUpdate.ff) await window.electron?.tools?.updateFfmpeg?.();
-    }
+    await installAllTools();
+    await showToast(t("tools.toast.installSuccess"), "success");
     await fetchStatus();
   } catch (error) {
-    console.error("[downloaderToolsStatus] action failed:", error);
-    const message =
-      action === "install" ? t("tools.error.install") : t("tools.error.update");
+    logError("tools-status-action-failed", error);
+    const message = t("tools.error.install");
     setState("error", message, [], action);
     await showToast(message, "error");
   } finally {
@@ -267,7 +231,6 @@ function bindDom() {
         fetchStatus();
         return;
       }
-      pendingUpdate = { yt: false, ff: false };
       setState("error", summary.text, summary.details, "install");
     } else {
       fetchStatus();

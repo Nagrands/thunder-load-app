@@ -74,6 +74,7 @@ describe("downloaderToolsStatus", () => {
     buildDom();
     global.window.electron = {
       invoke: jest.fn().mockResolvedValue(undefined),
+      diagnostics: { log: jest.fn() },
       tools: {
         getVersions: jest.fn(),
         installAll: jest.fn(),
@@ -117,6 +118,7 @@ describe("downloaderToolsStatus", () => {
     expect(
       document.getElementById("dl-tools-action").classList.contains("hidden"),
     ).toBe(true);
+    expect(window.electron.tools.checkUpdates).not.toHaveBeenCalled();
     const container = document.getElementById("footer-tools-status");
     expect(container.outerHTML).toMatchInlineSnapshot(`
      "<div id="footer-tools-status" class="app-footer__tools-status downloader-tools-status">
@@ -243,26 +245,16 @@ describe("downloaderToolsStatus", () => {
     ).toBe(true);
   });
 
-  test("shows update action when updates are available and runs selective updates", async () => {
-    window.electron.tools.getVersions
-      .mockResolvedValueOnce({
-        ytDlp: { ok: true, path: "/tmp/yt-dlp", version: "2024.01.01" },
-        ffmpeg: {
-          ok: true,
-          path: "/tmp/ffmpeg",
-          version: "ffmpeg version 7.1",
-        },
-        deno: { ok: true, path: "/tmp/deno", version: "deno 2.0.0" },
-      })
-      .mockResolvedValueOnce({
-        ytDlp: { ok: true, path: "/tmp/yt-dlp", version: "2024.02.01" },
-        ffmpeg: {
-          ok: true,
-          path: "/tmp/ffmpeg",
-          version: "ffmpeg version 7.2",
-        },
-        deno: { ok: true, path: "/tmp/deno", version: "deno 2.0.0" },
-      });
+  test("defers remote update checks to the explicitly opened Tools view", async () => {
+    window.electron.tools.getVersions.mockResolvedValue({
+      ytDlp: { ok: true, path: "/tmp/yt-dlp", version: "2024.01.01" },
+      ffmpeg: {
+        ok: true,
+        path: "/tmp/ffmpeg",
+        version: "ffmpeg version 7.1",
+      },
+      deno: { ok: true, path: "/tmp/deno", version: "deno 2.0.0" },
+    });
     window.electron.tools.checkUpdates.mockResolvedValue({
       ytDlp: { current: "2024.01.01", latest: "2024.02.01" },
       ffmpeg: { current: "7.1", latest: "7.2" },
@@ -276,18 +268,11 @@ describe("downloaderToolsStatus", () => {
     await tick();
 
     expect(document.getElementById("dl-tools-text").textContent).toBe(
-      "Updates available",
+      "Tools are ready",
     );
-    expect(document.getElementById("dl-tools-action-label").textContent).toBe(
-      "Update",
-    );
-
-    document.getElementById("dl-tools-action").click();
-    await tick();
-    await tick();
-
-    expect(window.electron.tools.updateYtDlp).toHaveBeenCalledTimes(1);
-    expect(window.electron.tools.updateFfmpeg).toHaveBeenCalledTimes(1);
+    expect(window.electron.tools.checkUpdates).not.toHaveBeenCalled();
+    expect(window.electron.tools.updateYtDlp).not.toHaveBeenCalled();
+    expect(window.electron.tools.updateFfmpeg).not.toHaveBeenCalled();
     expect(
       document.getElementById("dl-tools-action").classList.contains("hidden"),
     ).toBe(true);
@@ -320,18 +305,8 @@ describe("downloaderToolsStatus", () => {
     ).toBe(true);
   });
 
-  test("shows error state when update check fails without breaking footer CTA", async () => {
-    const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
-    window.electron.tools.getVersions.mockResolvedValue({
-      ytDlp: { ok: true, path: "/tmp/yt-dlp", version: "2024.01.01" },
-      ffmpeg: {
-        ok: true,
-        path: "/tmp/ffmpeg",
-        version: "ffmpeg version 7.1",
-      },
-      deno: { ok: true, path: "/tmp/deno", version: "deno 2.0.0" },
-    });
-    window.electron.tools.checkUpdates.mockRejectedValue(new Error("boom"));
+  test("logs a local version failure through diagnostics", async () => {
+    window.electron.tools.getVersions.mockRejectedValue(new Error("boom"));
 
     const { initDownloaderToolsStatus } =
       await import("../downloaderToolsStatus.js");
@@ -345,11 +320,12 @@ describe("downloaderToolsStatus", () => {
     expect(
       document.getElementById("dl-tools-action").classList.contains("hidden"),
     ).toBe(true);
-    expect(errorSpy).toHaveBeenCalledWith(
-      "[downloaderToolsStatus] getVersions failed:",
-      expect.any(Error),
+    expect(window.electron.diagnostics.log).toHaveBeenCalledWith(
+      "Downloader",
+      "error",
+      "tools-status-refresh-failed",
+      { message: "boom" },
     );
-    errorSpy.mockRestore();
   });
 
   test("settings visibility event hides container until re-enabled", async () => {

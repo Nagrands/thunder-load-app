@@ -3,6 +3,12 @@ import { onOpenSettings } from "./openSettingsBus.js";
 
 const CONTROLLERS = new WeakMap();
 
+function logError(event, error) {
+  window.electron?.diagnostics?.log?.("WebControl", "error", event, {
+    message: error?.message || String(error),
+  });
+}
+
 function getElements() {
   const toggle = document.getElementById("settings-web-control-toggle");
   const urlInput = document.getElementById("settings-web-control-url");
@@ -87,7 +93,7 @@ function createWebControlController(elements) {
     try {
       await runLatest(() => window.electron.invoke("web:getStatus"));
     } catch (error) {
-      console.error("[settings] web status failed:", error);
+      logError("settings-status-refresh-failed", error);
     }
   };
 
@@ -101,7 +107,7 @@ function createWebControlController(elements) {
           window.electron.invoke("web:setEnabled", elements.toggle.checked),
         );
       } catch (error) {
-        console.error("[settings] web toggle failed:", error);
+        logError("settings-toggle-failed", error);
       } finally {
         elements.toggle.disabled = false;
       }
@@ -115,7 +121,7 @@ function createWebControlController(elements) {
       try {
         await runLatest(() => window.electron.invoke("web:open"));
       } catch (error) {
-        console.error("[settings] web open failed:", error);
+        logError("settings-open-failed", error);
       }
     },
     { signal: abortController.signal },
@@ -134,7 +140,7 @@ function createWebControlController(elements) {
           "success",
         );
       } catch (error) {
-        console.error("[settings] web LAN copy failed:", error);
+        logError("settings-copy-lan-failed", error);
       }
     },
     { signal: abortController.signal },
@@ -147,7 +153,7 @@ function createWebControlController(elements) {
       try {
         await runLatest(() => window.electron.invoke("web:restart"));
       } catch (error) {
-        console.error("[settings] web restart failed:", error);
+        logError("settings-restart-failed", error);
       } finally {
         elements.restartBtn.disabled = false;
       }
