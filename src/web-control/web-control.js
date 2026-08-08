@@ -421,6 +421,7 @@ bindBeforeUnload(settingsController.isDirty);
 
 Promise.all([refreshState(), settingsController.refreshRemote()]).catch(
   (error) => {
-    console.error(error);
+    el.jobSummaryTitle.textContent = "Веб-интерфейс недоступен";
+    el.jobSummaryMeta.textContent = String(error?.message || "Ошибка соединения");
   },
 );

@@ -1,6 +1,7 @@
 const { performance } = require("perf_hooks");
+const electronLog = require("electron-log");
 
-function createStartupMetrics(log, { prefix = "[Startup]" } = {}) {
+function createStartupMetrics(log = electronLog, { prefix = "[Startup]" } = {}) {
   const startedAt = performance.now();
 
   function formatDuration(durationMs) {
@@ -12,7 +13,7 @@ function createStartupMetrics(log, { prefix = "[Startup]" } = {}) {
       log.info(message);
       return;
     }
-    console.log(message);
+    electronLog.info(message);
   }
 
   function measure(label, fn) {

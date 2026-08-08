@@ -1,12 +1,11 @@
 import { t } from "../../i18n.js";
 import { onOpenSettings } from "./openSettingsBus.js";
+import { logRendererError } from "../../rendererDiagnostics.js";
 
 const CONTROLLERS = new WeakMap();
 
 function logError(event, error) {
-  window.electron?.diagnostics?.log?.("WebControl", "error", event, {
-    message: error?.message || String(error),
-  });
+  logRendererError("WebControl", event, error);
 }
 
 function getElements() {

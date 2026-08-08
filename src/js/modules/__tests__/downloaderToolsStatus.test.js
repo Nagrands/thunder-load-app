@@ -324,7 +324,9 @@ describe("downloaderToolsStatus", () => {
       "Downloader",
       "error",
       "tools-status-refresh-failed",
-      { message: "boom" },
+      {
+        error: { name: "Error", code: undefined, message: "boom" },
+      },
     );
   });
 

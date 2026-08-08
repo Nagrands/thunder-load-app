@@ -53,6 +53,10 @@ import {
   normalizePlayerSettings,
 } from "./playerSettings.js";
 import { applyPlayerSettings } from "../../nowPlaying/settingsEvents.js";
+import {
+  logRendererError,
+  logRendererEvent,
+} from "../../rendererDiagnostics.js";
 
 /**
  * Функция для инициализации настроек
@@ -260,7 +264,11 @@ async function initSettings() {
     themeDropdownBtn.setAttribute("data-current-theme", normalizedTheme);
   };
 
-  console.log("Тема: ", { themeDropdownBtn, themeDropdownMenu, themeLabel });
+  logRendererEvent("Settings", "debug", "theme-controls-resolved", {
+    hasButton: Boolean(themeDropdownBtn),
+    hasMenu: Boolean(themeDropdownMenu),
+    hasLabel: Boolean(themeLabel),
+  });
   if (themeDropdownBtn && themeDropdownMenu && themeLabel) {
     const savedTheme = await getTheme();
     document.documentElement.setAttribute("data-theme", savedTheme);
@@ -337,7 +345,9 @@ async function initSettings() {
   window.electron.invoke("get-auto-launch-status").then((isEnabled) => {
     if (settingsAutoLaunchToggle) {
       settingsAutoLaunchToggle.checked = isEnabled;
-      console.log(`Автозапуск установлен на: ${isEnabled}`);
+      logRendererEvent("Settings", "debug", "auto-launch-loaded", {
+        enabled: isEnabled,
+      });
     }
   });
 
@@ -348,10 +358,12 @@ async function initSettings() {
       window.electron
         .invoke("toggle-auto-launch", enable)
         .then(() => {
-          console.log(`Автозапуск ${enable ? "включен" : "отключен"}`);
+          logRendererEvent("Settings", "info", "auto-launch-changed", {
+            enabled: enable,
+          });
         })
         .catch((error) => {
-          console.error("Ошибка при изменении состояния автозапуска:", error);
+          logRendererError("Settings", "auto-launch-change-failed", error);
         });
     });
   }
@@ -360,9 +372,9 @@ async function initSettings() {
   window.electron.invoke("get-close-notification-status").then((isEnabled) => {
     if (settingsCloseNotificationToggle) {
       settingsCloseNotificationToggle.checked = isEnabled;
-      console.log(
-        `Показывать уведомление при сворачивании в трей установлено на: ${isEnabled}`,
-      );
+      logRendererEvent("Settings", "debug", "close-notification-loaded", {
+        enabled: isEnabled,
+      });
     }
   });
 
@@ -372,12 +384,16 @@ async function initSettings() {
       window.electron
         .invoke("set-close-notification-status", enable)
         .then(() => {
-          console.log(
-            `Уведомление при сворачивании ${enable ? "включено" : "отключено"}`,
-          );
+          logRendererEvent("Settings", "info", "close-notification-changed", {
+            enabled: enable,
+          });
         })
         .catch((error) => {
-          console.error("Ошибка при изменении состояния уведомления:", error);
+          logRendererError(
+            "Settings",
+            "close-notification-change-failed",
+            error,
+          );
         });
     });
   }
@@ -386,7 +402,9 @@ async function initSettings() {
   window.electron.invoke("get-minimize-on-launch-status").then((isEnabled) => {
     if (settingsMinimizeOnLaunchToggle) {
       settingsMinimizeOnLaunchToggle.checked = isEnabled;
-      console.log(`Сворачивание при запуске установлено на: ${isEnabled}`);
+      logRendererEvent("Settings", "debug", "minimize-on-launch-loaded", {
+        enabled: isEnabled,
+      });
     }
   });
 
@@ -397,9 +415,9 @@ async function initSettings() {
       window.electron
         .invoke("set-minimize-on-launch-status", enable)
         .then(() => {
-          console.log(
-            `Сворачивание при запуске ${enable ? "включено" : "отключено"}`,
-          );
+          logRendererEvent("Settings", "info", "minimize-on-launch-changed", {
+            enabled: enable,
+          });
         });
     });
   }
@@ -410,9 +428,9 @@ async function initSettings() {
     .then((isEnabled) => {
       if (settingsDisableGlobalShortcutsToggle) {
         settingsDisableGlobalShortcutsToggle.checked = isEnabled;
-        console.log(
-          `Отключение глобальных горячих клавиш установлено на: ${isEnabled}`,
-        );
+        logRendererEvent("Settings", "debug", "global-shortcuts-loaded", {
+          disabled: isEnabled,
+        });
       }
     });
 
@@ -428,15 +446,12 @@ async function initSettings() {
         if (result?.success === false) {
           throw new Error(result.error || "Unable to update global shortcuts");
         }
-        console.log(
-          `Отключение глобальных горячих клавиш ${enable ? "включено" : "отключено"}`,
-        );
+        logRendererEvent("Settings", "info", "global-shortcuts-changed", {
+          disabled: enable,
+        });
       } catch (error) {
         settingsDisableGlobalShortcutsToggle.checked = !enable;
-        console.error(
-          "Ошибка при изменении состояния глобальных горячих клавиш:",
-          error,
-        );
+        logRendererError("Settings", "global-shortcuts-change-failed", error);
         showToast(t("settings.shortcuts.error"), "error");
       }
     });
@@ -446,9 +461,9 @@ async function initSettings() {
   window.electron.invoke("get-open-on-copy-url-status").then((isEnabled) => {
     if (settingsOpenOnCopyUrlToggle) {
       settingsOpenOnCopyUrlToggle.checked = isEnabled;
-      console.log(
-        `Разворачивание окна при копировании URL установлено на: ${isEnabled}`,
-      );
+      logRendererEvent("Settings", "debug", "open-on-copy-url-loaded", {
+        enabled: isEnabled,
+      });
     }
   });
 
@@ -459,15 +474,12 @@ async function initSettings() {
       window.electron
         .invoke("set-open-on-copy-url-status", enable)
         .then(() => {
-          console.log(
-            `Разворачивание окна при копировании URL ${enable ? "включено" : "отключено"}`,
-          );
+          logRendererEvent("Settings", "info", "open-on-copy-url-changed", {
+            enabled: enable,
+          });
         })
         .catch((error) => {
-          console.error(
-            "Ошибка при изменении состояния разворачивания окна:",
-            error,
-          );
+          logRendererError("Settings", "open-on-copy-url-change-failed", error);
         });
     });
   }
@@ -478,8 +490,11 @@ async function initSettings() {
     .then((isEnabled) => {
       if (settingsOpenOnDownloadCompleteToggle) {
         settingsOpenOnDownloadCompleteToggle.checked = isEnabled;
-        console.log(
-          `Разворачивание окна по окончанию загрузки установлено на: ${isEnabled}`,
+        logRendererEvent(
+          "Settings",
+          "debug",
+          "open-on-download-complete-loaded",
+          { enabled: isEnabled },
         );
       }
     });
@@ -491,13 +506,17 @@ async function initSettings() {
       window.electron
         .invoke("set-open-on-download-complete-status", enable)
         .then(() => {
-          console.log(
-            `Разворачивание окна по окончанию загрузки ${enable ? "включено" : "отключено"}`,
+          logRendererEvent(
+            "Settings",
+            "info",
+            "open-on-download-complete-changed",
+            { enabled: enable },
           );
         })
         .catch((error) => {
-          console.error(
-            "Ошибка при изменении состояния разворачивания окна по окончанию загрузки:",
+          logRendererError(
+            "Settings",
+            "open-on-download-complete-change-failed",
             error,
           );
         });
@@ -527,8 +546,11 @@ async function initSettings() {
     .then((isEnabled) => {
       if (settingsDisableCompleteModalToggle) {
         settingsDisableCompleteModalToggle.checked = isEnabled;
-        console.log(
-          `Отключение модального окна завершения загрузки: ${isEnabled}`,
+        logRendererEvent(
+          "Settings",
+          "debug",
+          "download-complete-modal-loaded",
+          { disabled: isEnabled },
         );
       }
     });
@@ -545,8 +567,11 @@ async function initSettings() {
           window.electron.invoke("toast", message, "success", {
             allowHtml: true,
           });
-          console.log(
-            `Отключение модального окна завершения загрузки ${enable ? "включено" : "отключено"}`,
+          logRendererEvent(
+            "Settings",
+            "info",
+            "download-complete-modal-changed",
+            { disabled: enable },
           );
         });
     });
@@ -1012,7 +1037,7 @@ export async function importConfig(file) {
         );
         location.reload();
       } catch (error) {
-        console.error("[settings] Failed to import configuration:", error);
+        logRendererError("Settings", "configuration-import-failed", error);
         alert(
           t("settings.config.import.error", {
             error: error?.message || String(error),

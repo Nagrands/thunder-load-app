@@ -1,6 +1,7 @@
 import { acceleratorFromKeyboardEvent } from "../../hotkeys.js";
 import { t } from "../../i18n.js";
 import { showToast } from "../../toast.js";
+import { logRendererError } from "../../rendererDiagnostics.js";
 
 const SELECTORS = {
   search: "#shortcuts-search, #settings-shortcuts-search",
@@ -524,7 +525,7 @@ async function resetPlayerShortcuts() {
     announce(t("settings.shortcuts.resetPlayerSuccess"));
     showToast(t("settings.shortcuts.resetPlayerSuccess"), "success");
   } catch (error) {
-    console.error("[ShortcutEditor] Failed to reset player shortcuts:", error);
+    logRendererError("Settings", "player-shortcuts-reset-failed", error);
     announce(t("settings.shortcuts.error"));
   }
 }
@@ -575,7 +576,7 @@ async function load() {
     applyPayload(result);
     render();
   } catch (error) {
-    console.error("[ShortcutEditor] Failed to load shortcuts:", error);
+    logRendererError("Settings", "shortcuts-load-failed", error);
     announce(t("settings.shortcuts.error"));
   }
 }
@@ -592,7 +593,7 @@ async function resetShortcuts() {
     announce(t("settings.shortcuts.resetSuccess"));
     showToast(t("settings.shortcuts.resetSuccess"), "success");
   } catch (error) {
-    console.error("[ShortcutEditor] Failed to reset shortcuts:", error);
+    logRendererError("Settings", "shortcuts-reset-failed", error);
     announce(t("settings.shortcuts.error"));
   }
 }

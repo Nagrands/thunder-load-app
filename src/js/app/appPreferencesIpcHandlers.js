@@ -199,9 +199,7 @@ function registerAppPreferencesIpcHandlers({
       if (Notification.isSupported()) {
         new Notification({ title, body }).show();
       } else {
-        console.error(
-          "Системные уведомления не поддерживаются на этом устройстве.",
-        );
+        log.warn("System notifications are unavailable on this device.");
       }
     },
   );

@@ -1,8 +1,9 @@
 const path = require("path");
+const electronLog = require("electron-log");
 
 const LEGACY_USER_DATA_APP_NAME = "Thunder Load";
 
-function configureLegacyUserDataPath(app, fsModule) {
+function configureLegacyUserDataPath(app, fsModule, logger = electronLog) {
   try {
     const legacyUserDataPath = path.join(
       app.getPath("appData"),
@@ -12,7 +13,7 @@ function configureLegacyUserDataPath(app, fsModule) {
     app.setPath("userData", legacyUserDataPath);
     return legacyUserDataPath;
   } catch (error) {
-    console.error("Failed to configure legacy user data path:", error);
+    logger.error?.("legacy-user-data-path-failed", { error });
     return null;
   }
 }

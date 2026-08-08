@@ -1,3 +1,5 @@
+import { logRendererError } from "../../rendererDiagnostics.js";
+
 const OPEN_SETTINGS_HANDLERS_KEY = "__thunder_open_settings_handlers__";
 const OPEN_SETTINGS_DISPATCH_READY_KEY =
   "__thunder_open_settings_dispatch_ready__";
@@ -18,10 +20,9 @@ export function onOpenSettings(listenerKey, handler) {
       try {
         listener(...args);
       } catch (error) {
-        console.error(
-          `[settings] open-settings handler error (${key}):`,
-          error,
-        );
+        logRendererError("Settings", "open-settings-handler-failed", error, {
+          listenerKey: key,
+        });
       }
     }
   });

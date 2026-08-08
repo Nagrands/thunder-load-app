@@ -35,13 +35,13 @@ describe("userDataPath", () => {
         throw new Error("denied");
       }),
     };
-    const consoleSpy = jest
-      .spyOn(console, "error")
-      .mockImplementation(() => {});
+    const logger = { error: jest.fn() };
 
-    expect(configureLegacyUserDataPath(app, fsModule)).toBeNull();
+    expect(configureLegacyUserDataPath(app, fsModule, logger)).toBeNull();
     expect(app.setPath).not.toHaveBeenCalled();
-
-    consoleSpy.mockRestore();
+    expect(logger.error).toHaveBeenCalledWith(
+      "legacy-user-data-path-failed",
+      { error: expect.any(Error) },
+    );
   });
 });

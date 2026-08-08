@@ -3,6 +3,7 @@
 import { hideAllTooltips, initTooltips } from "./tooltipInitializer.js";
 import { installAllTools, summarizeToolsState } from "./toolsInfo.js";
 import { t } from "./i18n.js";
+import { logRendererError } from "./rendererDiagnostics.js";
 
 let isInitialized = false;
 let isLoading = false;
@@ -10,9 +11,7 @@ let isActionRunning = false;
 let currentAction = null;
 
 function logError(event, error) {
-  window.electron?.diagnostics?.log?.("Downloader", "error", event, {
-    message: error?.message || String(error),
-  });
+  logRendererError("Downloader", event, error);
 }
 
 const el = {
