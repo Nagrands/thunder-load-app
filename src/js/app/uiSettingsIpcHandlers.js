@@ -3,6 +3,9 @@
 const { CHANNELS } = require("../ipc/channels");
 
 function registerUiSettingsIpcHandlers({ ipcMain, mainWindow, store }) {
+  ipcMain.on(CHANNELS.WINDOW_MINIMIZE, () => mainWindow?.minimize?.());
+  ipcMain.on(CHANNELS.WINDOW_CLOSE, () => mainWindow?.close?.());
+
   ipcMain.handle(CHANNELS.GET_DEFAULT_TAB, () =>
     store.get("defaultTab", "download"),
   );
@@ -12,7 +15,6 @@ function registerUiSettingsIpcHandlers({ ipcMain, mainWindow, store }) {
   );
 
   ipcMain.handle(CHANNELS.GET_PLATFORM_INFO, () => {
-    console.log("get-platform-info handler registered");
     return { isMac: process.platform === "darwin" };
   });
 

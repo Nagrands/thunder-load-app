@@ -9,10 +9,10 @@ const {
   Tray,
   Menu,
   shell,
-  ipcMain,
   nativeImage,
 } = require("electron");
 const windowStateKeeper = require("electron-window-state");
+const log = require("electron-log");
 const { resolveIconPathFrom } = require("./iconPaths");
 const { showTrayNotification } = require("./notifications.js");
 const { trayIconController } = require("./trayIconController.js");
@@ -21,6 +21,10 @@ const { windowsTrayMenuController } = require("./windowsTrayMenu.js");
 let windowTray = null;
 let appMenu = null;
 let dockMediaState = null;
+let activeMainWindow = null;
+let trayRefreshApp = null;
+let trayRefreshHandler = null;
+let windowLogger = log;
 
 function setDockMediaState(snapshot) {
   const title = String(snapshot?.track?.title || "")
@@ -46,10 +50,10 @@ function loadNativeImageFrom(paths) {
     if (fs.existsSync(p)) {
       const img = nativeImage.createFromPath(p);
       if (!img.isEmpty()) return img;
-      console.warn("Icon exists but failed to load (empty):", p);
+      windowLogger.warning?.("window-icon-empty", { path: p });
     }
   }
-  console.warn("No suitable icon found among:", paths);
+  windowLogger.warning?.("window-icon-not-found", { paths });
   return null;
 }
 
@@ -92,14 +96,17 @@ function buildDownloadFolderState(store, fallbackDownloadPath) {
 
 function createMenuHandlers({ app, mainWindow, notifications = {} }) {
   const notify = notifications.showTrayNotification || (() => {});
+  const resolveMainWindow = () =>
+    typeof mainWindow === "function" ? mainWindow() : mainWindow;
 
   const showMainWindow = () => {
     try {
-      if (mainWindow?.isMinimized?.()) {
-        mainWindow.restore?.();
+      const target = resolveMainWindow();
+      if (target?.isMinimized?.()) {
+        target.restore?.();
       }
-      mainWindow?.show?.();
-      mainWindow?.focus?.();
+      target?.show?.();
+      target?.focus?.();
     } catch {}
   };
 
@@ -109,11 +116,13 @@ function createMenuHandlers({ app, mainWindow, notifications = {} }) {
     },
     openSettings: () => {
       showMainWindow();
-      mainWindow?.webContents?.send?.("open-settings");
+      resolveMainWindow()?.webContents?.send?.("open-settings");
     },
     mediaCommand: (command) => {
       if (!["play", "pause", "next", "previous"].includes(command)) return;
-      mainWindow?.webContents?.send?.("now-playing:media-command", { command });
+      resolveMainWindow()?.webContents?.send?.("now-playing:media-command", {
+        command,
+      });
     },
     openLastVideo: async (lastPath) => {
       if (!lastPath || !fs.existsSync(lastPath)) return;
@@ -282,7 +291,9 @@ function createWindow(
   _ffprobePath,
   _fileExists,
   getDownloadActivity = () => false,
+  logger = log,
 ) {
+  windowLogger = logger || log;
   const mainWindowState = windowStateKeeper({
     defaultWidth: 1280,
     defaultHeight: 740,
@@ -305,8 +316,10 @@ function createWindow(
       : [winIco, macPng];
 
   const iconPath = bwIconCandidates.find((p) => fs.existsSync(p)) || null;
-  console.log("icon candidates:", bwIconCandidates);
-  console.log("chosen icon:", iconPath);
+  windowLogger.debug?.("window-icon-selected", {
+    candidates: bwIconCandidates,
+    iconPath,
+  });
 
   const mainWindow = new BrowserWindow({
     titleBarStyle: "hiddenInset",
@@ -330,6 +343,7 @@ function createWindow(
       enableBlinkFeatures: "AudioVideoTracks",
     },
   });
+  activeMainWindow = mainWindow;
 
   mainWindow.once("ready-to-show", () => {
     mainWindow.show(); // обязательно вызываем show()
@@ -342,7 +356,7 @@ function createWindow(
   mainWindowState.manage(mainWindow);
 
   mainWindow.loadFile(path.join(__dirname, "../../index.html")).catch((err) => {
-    console.error("Ошибка при загрузке файла index.html:", err);
+    windowLogger.error?.("window-load-failed", { error: err });
   });
 
   mainWindow.setMenuBarVisibility(false);
@@ -429,18 +443,10 @@ function createWindow(
     store.set("isCloseNotificationShown", false);
   });
 
-  ipcMain.on("window-minimize", () => {
-    mainWindow.minimize();
-  });
-
-  ipcMain.on("window-close", () => {
-    mainWindow.close();
-  });
-
   try {
     createTray(mainWindow, app, store, downloadPath);
   } catch (err) {
-    console.error("❌ Failed to create tray:", err);
+    windowLogger.error?.("tray-create-failed", { error: err });
   }
 
   if (isMacPlatform()) {
@@ -454,7 +460,9 @@ function createWindow(
         ]
       : [resolveIconPathFrom(baseAssetsPath, "APP_ICON_PNG")];
     const dockImg = loadNativeImageFrom(dockIconCandidates);
-    console.log("dock icon candidates:", dockIconCandidates);
+    windowLogger.debug?.("dock-icon-candidates", {
+      candidates: dockIconCandidates,
+    });
     if (dockImg) {
       app.dock.setIcon(dockImg);
     }
@@ -478,18 +486,17 @@ function createWindow(
     };
 
     refreshDockMenu();
-    ipcMain.on("download-finished", refreshDockMenu);
     const refreshPlayerDockMenu = () => {
       refreshDockMenu();
     };
     app.on("thunder-load:dock-player-refresh", refreshPlayerDockMenu);
     mainWindow.once("closed", () => {
-      ipcMain.removeListener("download-finished", refreshDockMenu);
       app.removeListener(
         "thunder-load:dock-player-refresh",
         refreshPlayerDockMenu,
       );
       dockMediaState = null;
+      if (activeMainWindow === mainWindow) activeMainWindow = null;
     });
   }
   return mainWindow;
@@ -519,7 +526,7 @@ function createTray(mainWindow, app, store, downloadPath) {
 
   const menuHandlers = createMenuHandlers({
     app,
-    mainWindow,
+    mainWindow: () => activeMainWindow,
     notifications: { showTrayNotification },
   });
   const refreshTrayMenu = () => {
@@ -544,6 +551,7 @@ function createTray(mainWindow, app, store, downloadPath) {
   windowsTrayMenuController.configure({
     app,
     tray: windowTray,
+    logger: windowLogger,
     getState: () => {
       const lastVideo = buildLastVideoState(store);
       const downloads = buildDownloadFolderState(store, downloadPath);
@@ -571,8 +579,9 @@ function createTray(mainWindow, app, store, downloadPath) {
   });
 
   windowTray.setToolTip("Thunder");
+  trayRefreshApp = app;
+  trayRefreshHandler = handleTrayRefreshRequest;
   app?.on?.("thunder-load:tray-refresh", handleTrayRefreshRequest);
-  app?.once?.("before-quit", () => windowsTrayMenuController.dispose());
 
   windowTray.on("click", () => {
     if (isMac) {
@@ -580,7 +589,7 @@ function createTray(mainWindow, app, store, downloadPath) {
       windowTray.popUpContextMenu();
       return;
     }
-    toggleFromTray(mainWindow, menuHandlers.open);
+    toggleFromTray(activeMainWindow, menuHandlers.open);
   });
 
   windowTray.on("right-click", async () => {
@@ -589,7 +598,7 @@ function createTray(mainWindow, app, store, downloadPath) {
       const handled = await windowsTrayMenuController.toggle();
       if (handled) return;
     } catch (error) {
-      console.error("Failed to open Windows tray panel:", error);
+      windowLogger.error?.("windows-tray-panel-open-failed", { error });
     }
     windowTray.popUpContextMenu(fallbackContextMenu);
   });
@@ -597,6 +606,27 @@ function createTray(mainWindow, app, store, downloadPath) {
   windowTray.on("double-click", () => {
     menuHandlers.open();
   });
+}
+
+function disposeWindowRuntime() {
+  if (trayRefreshApp && trayRefreshHandler) {
+    trayRefreshApp.removeListener?.(
+      "thunder-load:tray-refresh",
+      trayRefreshHandler,
+    );
+  }
+  trayRefreshApp = null;
+  trayRefreshHandler = null;
+  windowsTrayMenuController.dispose();
+  try {
+    windowTray?.destroy?.();
+  } catch (error) {
+    windowLogger.warning?.("tray-destroy-failed", { error });
+  }
+  windowTray = null;
+  activeMainWindow = null;
+  dockMediaState = null;
+  trayIconController.reset();
 }
 
 function createAppMenu(isDev, app) {
@@ -675,10 +705,7 @@ function createAppMenu(isDev, app) {
 }
 
 function resetWindowStateForTests() {
-  windowTray = null;
-  dockMediaState = null;
-  trayIconController.reset();
-  windowsTrayMenuController.dispose();
+  disposeWindowRuntime();
 }
 
 module.exports = {
@@ -686,5 +713,6 @@ module.exports = {
   buildTrayMenuTemplate,
   buildDockMenuTemplate,
   setDockMediaState,
+  disposeWindowRuntime,
   resetWindowStateForTests,
 };

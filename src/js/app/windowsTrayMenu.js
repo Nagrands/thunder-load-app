@@ -2,6 +2,7 @@
 
 const path = require("path");
 const { BrowserWindow, screen } = require("electron");
+const electronLog = require("electron-log");
 
 const PANEL_WIDTH = 320;
 const PANEL_HEIGHT = 256;
@@ -48,6 +49,7 @@ function calculateTrayMenuPosition({ trayBounds, workArea, panelSize }) {
 function createWindowsTrayMenuController({
   BrowserWindowClass = BrowserWindow,
   screenApi = screen,
+  logger = electronLog,
 } = {}) {
   let popup = null;
   let tray = null;
@@ -62,6 +64,7 @@ function createWindowsTrayMenuController({
     tray = options.tray || tray;
     getState = options.getState || getState;
     handlers = options.handlers || handlers;
+    logger = options.logger || logger;
   }
 
   function getSafeState() {
@@ -130,7 +133,7 @@ function createWindowsTrayMenuController({
       .then(() => true)
       .catch((error) => {
         loadFailed = true;
-        console.error("Failed to load Windows tray panel:", error);
+        logger.error?.("windows-tray-panel-load-failed", { error });
         popup?.destroy?.();
         popup = null;
         return false;

@@ -72,6 +72,8 @@ const CHANNELS = Object.freeze({
   WINDOW_GET_FULLSCREEN: "window:get-fullscreen",
   WINDOW_SET_FULLSCREEN: "window:set-fullscreen",
   WINDOW_FULLSCREEN_CHANGED: "window:fullscreen-changed",
+  WINDOW_MINIMIZE: "window-minimize",
+  WINDOW_CLOSE: "window-close",
   WHATS_NEW_READY: "whats-new:ready",
   WHATS_NEW_ACK: "whats-new:ack",
   WEB_GET_STATUS: "web:getStatus",

@@ -36,7 +36,7 @@ configureLegacyUserDataPath(app, fs);
 
 const startupMetrics = createStartupMetrics(log);
 
-const { createWindow } = startupMetrics.measure(
+const { createWindow, disposeWindowRuntime } = startupMetrics.measure(
   "require window.js",
   () => require("./app/window.js"),
 );
@@ -373,6 +373,7 @@ if (!app.requestSingleInstanceLock()) {
             (activeDownloads && activeDownloads.size > 0),
           );
         },
+        mainLogger,
       ),
     );
     mediaOpenService.setMainWindow(mainWindow);
@@ -477,6 +478,7 @@ shutdownCoordinator.register("application-runtime", async () => {
   ipcRuntime = null;
   await processSupervisor.terminateAll("app-shutdown");
   await webControlServer?.dispose?.();
+  disposeWindowRuntime();
   mediaOpenService.dispose();
   fsCache.clear();
   iconCache.clear();

@@ -47,6 +47,7 @@ jest.mock("electron", () => {
       setContextMenu: jest.fn(),
       popUpContextMenu: jest.fn(),
       setImage: jest.fn(),
+      destroy: jest.fn(),
     };
   });
 
@@ -277,7 +278,7 @@ describe("tray runtime behavior", () => {
     );
   });
 
-  test("window-close IPC respects minimize-to-tray behavior on Windows", () => {
+  test("window close respects minimize-to-tray behavior on Windows", () => {
     setPlatform("win32");
     const app = new EventEmitter();
     app.getName = () => "Thunder";
@@ -306,20 +307,56 @@ describe("tray runtime behavior", () => {
       () => true,
     );
 
-    const closeIpcHandler = ipcMain.on.mock.calls.find(
-      ([event]) => event === "window-close",
-    )?.[1];
-    expect(typeof closeIpcHandler).toBe("function");
-
-    closeIpcHandler();
-    expect(app.isQuitting).toBe(false);
-    expect(mainWindow.close).toHaveBeenCalledTimes(1);
-
     const preventDefault = jest.fn();
     mainWindow._events.close({ preventDefault });
     expect(preventDefault).toHaveBeenCalledTimes(1);
     expect(mainWindow.hide).toHaveBeenCalledTimes(1);
     expect(app.quit).not.toHaveBeenCalled();
+  });
+
+  test("keeps one application tray and targets the recreated window", () => {
+    setPlatform("win32");
+    const app = new EventEmitter();
+    app.getName = () => "Thunder";
+    app.getVersion = () => "1.3.6";
+    app.getAppPath = () => "/tmp/app";
+    app.quit = jest.fn();
+    app.isPackaged = false;
+    app.isQuitting = false;
+    app.dock = { setIcon: jest.fn(), setMenu: jest.fn() };
+    const store = createStore({ downloadPath: "/tmp/downloads" });
+
+    const firstWindow = createWindow(
+      false,
+      app,
+      store,
+      "/tmp/downloads",
+      () => "1.3.6",
+      "",
+      "",
+      "",
+      () => true,
+    );
+    const secondWindow = createWindow(
+      false,
+      app,
+      store,
+      "/tmp/downloads",
+      () => "1.3.6",
+      "",
+      "",
+      "",
+      () => true,
+    );
+
+    expect(Tray).toHaveBeenCalledTimes(1);
+    expect(app.listenerCount("thunder-load:tray-refresh")).toBe(1);
+
+    const tray = Tray.mock.results[0].value;
+    tray.handlers.click();
+
+    expect(firstWindow.show).not.toHaveBeenCalled();
+    expect(secondWindow.show).toHaveBeenCalledTimes(1);
   });
 
   test("warns and keeps window open when closing during active download", () => {

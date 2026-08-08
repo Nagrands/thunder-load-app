@@ -1,10 +1,12 @@
 const handlers = {};
+const listeners = {};
 
 describe("uiSettingsIpcHandlers", () => {
   const originalPlatform = process.platform;
 
   beforeEach(() => {
     Object.keys(handlers).forEach((key) => delete handlers[key]);
+    Object.keys(listeners).forEach((key) => delete listeners[key]);
     jest.clearAllMocks();
     Object.defineProperty(process, "platform", {
       value: originalPlatform,
@@ -28,8 +30,13 @@ describe("uiSettingsIpcHandlers", () => {
       handle: jest.fn((channel, callback) => {
         handlers[channel] = callback;
       }),
+      on: jest.fn((channel, callback) => {
+        listeners[channel] = callback;
+      }),
     };
     const mainWindow = {
+      minimize: jest.fn(),
+      close: jest.fn(),
       webContents: {
         send: jest.fn(),
       },
@@ -66,6 +73,24 @@ describe("uiSettingsIpcHandlers", () => {
         expect.any(Function),
       );
     });
+    expect(ipcMain.on).toHaveBeenCalledWith(
+      CHANNELS.WINDOW_MINIMIZE,
+      expect.any(Function),
+    );
+    expect(ipcMain.on).toHaveBeenCalledWith(
+      CHANNELS.WINDOW_CLOSE,
+      expect.any(Function),
+    );
+  });
+
+  test("routes window controls through the tracked IPC registrar", () => {
+    const { CHANNELS, mainWindow } = register();
+
+    listeners[CHANNELS.WINDOW_MINIMIZE]();
+    listeners[CHANNELS.WINDOW_CLOSE]();
+
+    expect(mainWindow.minimize).toHaveBeenCalledTimes(1);
+    expect(mainWindow.close).toHaveBeenCalledTimes(1);
   });
 
   test("reads and writes default tab", () => {
