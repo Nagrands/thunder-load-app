@@ -3,6 +3,9 @@
 # New in version 1.6.0
 
 - Fixed Thunder icons in Finder, Spotlight, Dock, and the Windows taskbar: release `.app` and `.exe` packages now receive system-compatible icons during packaging.
+- Centralized shutdown for Player, downloads, tools, and Web Control without leaving yt-dlp/FFmpeg processes behind.
+- Fixed races in parallel downloads, IPC re-registration, and rapid media switching.
+- Added local event-level logs, an opt-in detailed mode, and safe diagnostic ZIP export in Settings.
 
 | What changed                 | What you get                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |

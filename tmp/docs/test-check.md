@@ -1,8 +1,8 @@
 ## Автотесты (Jest)
 
 - Автосборка списка: `npm run test-check:sync-tests`
-- Найдено файлов: 142
-- Найдено тест-кейсов (test/it): 1270
+- Найдено файлов: 149
+- Найдено тест-кейсов (test/it): 1289
 
 <!-- AUTO-JEST-TESTS:START -->
 
@@ -10,9 +10,10 @@
 - [ ] exposes whitelisted fullscreen invokes
 - [ ] unwraps native fullscreen events to a boolean and unsubscribes
 
-### `src/js/__tests__/preload.nowPlaying.test.js` (2)
+### `src/js/__tests__/preload.nowPlaying.test.js` (3)
 - [ ] exposes typed wrappers for all Now Playing invokes
 - [ ] resolves dropped media file paths through Electron webUtils
+- [ ] exposes safe diagnostics wrappers
 
 ### `src/js/__tests__/preload.toolsDependencies.test.js` (2)
 - [ ] exposes the validated dependency action channel
@@ -67,6 +68,15 @@
 - [ ] deduplicates simultaneous operations for the same tool
 - [ ] rejects malformed payloads without running an installer
 - [ ] keeps ffmpeg update disabled on macOS while allowing reinstall
+
+### `src/js/app/__tests__/diagnosticArchive.test.js` (2)
+- [ ] creates a valid empty ZIP structure
+- [ ] redacts secrets while collecting log files
+
+### `src/js/app/__tests__/diagnosticsLogger.test.js` (3)
+- [ ] redacts secrets recursively
+- [ ] writes structured scoped events and persists debug level
+- [ ] keeps the current log plus four bounded archives
 
 ### `src/js/app/__tests__/downloaderBackgroundPreview.test.js` (8)
 - [ ] selects a moderate playable YouTube mp4/webm source
@@ -197,6 +207,9 @@
 - [ ] CANCEL_DOWNLOAD_JOB returns a structured cancellation error
 - [ ] STOP_DOWNLOAD still cancels all active tokens
 
+### `src/js/app/__tests__/ipcRuntime.test.js` (1)
+- [ ] removes only owned handlers and listeners once
+
 ### `src/js/app/__tests__/mediaOpenService.test.js` (4)
 - [ ] normalizes only supported media and playlist paths
 - [ ] queues startup files until the renderer is ready
@@ -236,7 +249,7 @@
 
 ### `src/js/app/__tests__/nowPlayingIpcHandlers.test.js` (25)
 - [ ] registers all Player channels
-- [ ] waits for HLS disposal before allowing application quit
+- [ ] exposes idempotent awaited disposal to the application runtime
 - [ ] lists and selects audio streams only for stored local tracks
 - [ ] rejects audio selection fields in fallback playback requests
 - [ ] creates a validated multi-audio HLS session for local media
@@ -292,6 +305,10 @@
 - [ ] registers the requested media associations
 - [ ] uses the per-machine NSIS mode required for associations
 
+### `src/js/app/__tests__/processSupervisor.test.js` (2)
+- [ ] tracks a child until it closes
+- [ ] falls back from SIGTERM to SIGKILL for a stuck process tree
+
 ### `src/js/app/__tests__/runtimeTools.test.js` (2)
 - [ ] falls back from preferred yt-dlp path to default path when preferred is not executable
 - [ ] blocks Python-backed yt-dlp launchers on macOS
@@ -311,6 +328,9 @@
 - [ ] registers owned site callbacks
 - [ ] disable flag removes only service-owned shortcuts
 - [ ] restores the disable flag when re-enabling registrations fails
+
+### `src/js/app/__tests__/shutdownCoordinator.test.js` (1)
+- [ ] runs registered cleanup once and shares the stop promise
 
 ### `src/js/app/__tests__/toolsHashIpcHandlers.test.js` (6)
 - [ ] registers hash channels
@@ -375,10 +395,12 @@
 - [ ] accepts http/https URLs
 - [ ] rejects unsupported schemes and invalid strings
 
-### `src/js/app/__tests__/webControlServer.test.js` (5)
+### `src/js/app/__tests__/webControlServer.test.js` (7)
 - [ ] is disabled by default and binds to LAN when enabled
 - [ ] allows API requests without a token in LAN mode
 - [ ] forwards API actions to the renderer bridge
+- [ ] rejects pending renderer requests when the server stops
+- [ ] serializes concurrent start requests
 - [ ] normalizes one URL and requests its preview from the renderer
 - [ ] forwards a partial settings patch and returns the canonical snapshot
 
@@ -411,8 +433,9 @@
 - [ ] dock exposes the current track and transport commands
 - [ ] tray and dock keep identical action order
 
-### `src/js/app/__tests__/window.trayRuntime.test.js` (4)
+### `src/js/app/__tests__/window.trayRuntime.test.js` (5)
 - [ ] handles click/double-click/right-click and refresh events on windows tray
+- [ ] sets the Thunder icon explicitly for the packaged Windows taskbar
 - [ ] creates a template tray image on macOS
 - [ ] window-close IPC respects minimize-to-tray behavior on Windows
 - [ ] warns and keeps window open when closing during active download
@@ -486,6 +509,12 @@
 ### `src/js/modules/__tests__/developerModeTopBar.test.js` (2)
 - [ ] hides configured topbar buttons in developer mode
 - [ ] restores topbar buttons when developer mode is disabled
+
+### `src/js/modules/__tests__/diagnosticsSettings.test.js` (1)
+- [ ] loads, changes and exports diagnostics without duplicate handlers
+
+### `src/js/modules/__tests__/disposableScope.test.js` (1)
+- [ ] removes listeners, timers and aborts owned work idempotently
 
 ### `src/js/modules/__tests__/downloadActions.test.js` (4)
 - [ ] shows warning when current download folder cannot be resolved
@@ -857,7 +886,7 @@
 - [ ] accepts credential-free HTTP(S) URLs
 - [ ] marks HLS manifests for the HLS playback adapter
 
-### `src/js/modules/__tests__/nowPlayingPlaybackController.test.js` (42)
+### `src/js/modules/__tests__/nowPlayingPlaybackController.test.js` (44)
 - [ ] reports the buffered range without mutating playback position
 - [ ] reports absolute time and buffer for a restarted HLS timeline
 - [ ] selects a track, swaps the reusable media layer and starts playback
@@ -898,6 +927,8 @@
 - [ ] shows a distinct loading state and pauses the old track while resolving
 - [ ] requests a forced refresh only when retrying playback
 - [ ] releases a superseded playback descriptor and starts only the latest track
+- [ ] keeps only the latest track after one hundred rapid selections
+- [ ] awaits the final playback release during disposal
 - [ ] waits for resource release before resolving the next track
 - [ ] does not let a rejected stale play promise overwrite the latest state
 
@@ -1123,11 +1154,12 @@
 - [ ] keeps document overflow lock while a lock owner is still active
 - [ ] clears all scroll locks when tools view is hidden
 
-### `src/js/modules/__tests__/settings.template.test.js` (19)
+### `src/js/modules/__tests__/settings.template.test.js` (20)
 - [ ] includes Thunder Spark brand lockup in the footer
 - [ ] keeps queue filters in the queue header pills
 - [ ] keeps preview live player trigger on the thumbnail
 - [ ] removes Tools and Backup preferences from Settings
+- [ ] includes localized diagnostics controls
 - [ ] includes the emerald theme in settings and first-run templates
 - [ ] uses standard appearance cards and preserves control ids
 - [ ] renders a visible state indicator for global shortcuts
@@ -1521,12 +1553,13 @@
 - [ ] applies availability without exposing a path
 - [ ] supports keyboard navigation, Escape and action dispatch
 
-### `src/js/modules/__tests__/ytDlpCookiesSettings.test.js` (6)
+### `src/js/modules/__tests__/ytDlpCookiesSettings.test.js` (7)
 - [ ] uses defaults for missing or unsupported values
 - [ ] normalizes a valid value without mutating the source
 - [ ] rejects file paths containing null bytes
 - [ ] shows the active mode and supports keyboard listbox navigation
 - [ ] reuses the controller state across repeated initialization
+- [ ] opens the localized YouTube cookies guide
 - [ ] ignores a stale load response after a newer save
 
 ### `src/js/scripts/__tests__/download.selectFormats.test.js` (29)
