@@ -39,8 +39,13 @@ function setGlobalShortcutsDisabled(disabled) {
   return getShortcutService().setGlobalShortcutsDisabled(disabled);
 }
 
+function disposeGlobalShortcuts() {
+  shortcutService?.unregisterOwned();
+}
+
 module.exports = {
   configureShortcutService,
+  disposeGlobalShortcuts,
   getShortcutService,
   setupGlobalShortcuts,
   setGlobalShortcutsDisabled,

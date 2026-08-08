@@ -39,6 +39,14 @@ function getCatalogTracks(state = {}) {
   return [];
 }
 
+const logMediaLibrary = (level, event, context = {}) =>
+  window.electron?.diagnostics?.log?.(
+    "MediaLibrary",
+    level,
+    event,
+    context,
+  );
+
 function getSystemCollections(state = {}) {
   const tracks = getCatalogTracks(state);
   return [
@@ -1218,11 +1226,13 @@ export function createMediaLibraryView({ root, onDialogSubmit }) {
   window.addEventListener("resize", closePlaylistActionsOverlays);
   compactSidebarQuery?.addEventListener?.("change", syncSidebarMode);
   syncSidebarMode();
+  logMediaLibrary("debug", "view-created");
 
   return {
     closeDialog,
     closeSidebarPlaylistMenu,
     dispose() {
+      logMediaLibrary("debug", "view-disposed");
       closeDialog();
       playerDialog?.dispose();
       miniArtwork?.removeEventListener("error", handleArtworkError);

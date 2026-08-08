@@ -29,7 +29,7 @@
 
 // src/js/scripts/download.js
 
-const { execFileSync, spawn } = require("child_process");
+const { execFileSync } = require("child_process");
 const https = require("https");
 const fs = require("fs");
 const path = require("path");
@@ -39,6 +39,17 @@ const unzipper = require("unzipper");
 const treeKill = require("tree-kill");
 const log = require("electron-log");
 const { app } = require("electron");
+const { processSupervisor } = require("../app/processSupervisor");
+
+function spawn(command, args, options) {
+  const tool = String(command || "").toLowerCase().includes("ffmpeg")
+    ? "FFmpeg"
+    : "yt-dlp";
+  return processSupervisor.spawn(command, args, options, {
+    owner: "Downloader",
+    tool,
+  });
+}
 
 const {
   getEffectiveToolsDir,
@@ -374,7 +385,6 @@ function createDownloadToken() {
   };
 }
 
-let activeDownloadToken = null;
 const globalAbortControllers = new Map();
 const videoInfoCache = new Map(); // url -> { timestamp, data }
 const VIDEO_INFO_CACHE_TTL = 10 * 60 * 1000; // 10 минут
@@ -423,10 +433,6 @@ const cancelToken = (token, reason = "Download cancelled") => {
   if (!token) return;
   token.cancelled = true;
   token.cancelReason = reason;
-};
-
-const setActiveDownloadToken = (token) => {
-  activeDownloadToken = token || null;
 };
 
 function fetchJson(url, options = {}) {
@@ -478,7 +484,7 @@ function runProcess(cmd, args, options = {}) {
       }
       output += data.toString();
     });
-    proc.stderr.on("data", (data) => log.error(data.toString()));
+    proc.stderr.on("data", (data) => log.debug(data.toString()));
     proc.on("close", (code) => {
       if (isCancelled(token)) {
         return reject(new Error(token.cancelReason || "Download cancelled"));
@@ -2089,7 +2095,7 @@ async function runYtDlpVideoInfo(url, token, cacheKey) {
             processStore.getVideoInfo.stderr.on("data", (data) => {
               const text = data?.toString?.() || "";
               stderrOutput += text;
-              log.error(`Error: ${text}`);
+              log.debug(`[yt-dlp] ${text}`);
             });
             processStore.getVideoInfo.on("close", (code) => {
               processStore.getVideoInfo = null;
@@ -2189,7 +2195,7 @@ async function runYtDlpVideoPreview(url, token, cacheKey) {
         processStore.getVideoInfo.stderr.on("data", (data) => {
           const text = data?.toString?.() || "";
           stderrOutput += text;
-          log.error(`Error: ${text}`);
+          log.debug(`[yt-dlp] ${text}`);
         });
         processStore.getVideoInfo.on("close", (code) => {
           processStore.getVideoInfo = null;
@@ -2411,7 +2417,7 @@ function spawnDownloadProcess(
           proc.stderr.on("data", (data) => {
             const text = data?.toString?.() || "";
             stderrOutput += text;
-            log.error(text);
+            log.debug(`[yt-dlp] ${text}`);
           });
           proc.on("close", (code) => {
             processStore[processKey] = null;
@@ -2496,7 +2502,7 @@ function convertAudioToMp3(inputPath, outputPath, options = {}) {
     proc.stderr.on("data", (data) => {
       const text = data?.toString?.() || "";
       stderrOutput += text;
-      log.error(text);
+      log.debug(`[ffmpeg] ${text}`);
     });
     proc.on("close", (code) => {
       processStore[processKey] = null;
@@ -2544,7 +2550,7 @@ function convertSubtitleToSrt(inputPath, outputPath, options = {}) {
     proc.stderr.on("data", (data) => {
       const text = data?.toString?.() || "";
       stderrOutput += text;
-      log.error(text);
+      log.debug(`[ffmpeg] ${text}`);
     });
     proc.on("close", (code) => {
       processStore[processKey] = null;
@@ -2701,7 +2707,6 @@ async function downloadMedia(
 ) {
   try {
     token = token || createDownloadToken();
-    setActiveDownloadToken(token);
     const processStore = getProcessStore(token);
     const sanitizedFilename = outputFilename.replace(/[\\/:*?"<>|]/g, "");
     const subtitleOptions = normalizeSubtitleDownloadOptions(quality);
@@ -3124,15 +3129,13 @@ async function downloadMedia(
       log.error("Error in downloadMedia:", error);
     }
     throw error;
-  } finally {
-    setActiveDownloadToken(null);
   }
 }
 
 /**
  * Останавливает все активные процессы и выполняет очистку.
  */
-async function stopDownload(tokenOrTokens = activeDownloadToken) {
+async function stopDownload(tokenOrTokens = null) {
   const tokens = Array.isArray(tokenOrTokens)
     ? tokenOrTokens.filter(Boolean)
     : tokenOrTokens
@@ -3194,7 +3197,6 @@ async function stopDownload(tokenOrTokens = activeDownloadToken) {
     token.currentDownloadPath = null;
   }
 
-  setActiveDownloadToken(null);
   log.info("Download cancelled.", { count: tokens.length });
   return tokens.length;
 }
@@ -3210,7 +3212,6 @@ module.exports = {
   installFfmpeg,
   installDeno,
   createDownloadToken,
-  setActiveDownloadToken,
   getVideoInfo,
   getVideoPreview,
   downloadMedia,
@@ -3245,9 +3246,12 @@ async function ensureAllDependencies(store = null) {
     setSharedStore(store);
   }
   const token = createDownloadToken();
-  setActiveDownloadToken(token);
-  await installDeno(token);
-  await installYtDlp(token);
-  await installFfmpeg(token);
-  setActiveDownloadToken(null);
+  try {
+    await installDeno(token);
+    await installYtDlp(token);
+    await installFfmpeg(token);
+  } catch (error) {
+    await stopDownload(token);
+    throw error;
+  }
 }

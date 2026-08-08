@@ -1,7 +1,7 @@
 "use strict";
 
 const path = require("path");
-const { spawn } = require("child_process");
+const { processSupervisor } = require("./processSupervisor");
 
 const MAX_CACHE_ITEMS = 96;
 const MAX_CACHE_BYTES = 32 * 1024 * 1024;
@@ -86,7 +86,11 @@ class NowPlayingTimelinePreviewService {
     ffmpegPathResolver,
     getSessionInputs = () => [],
     getTrackById,
-    spawnProcess = spawn,
+    spawnProcess = (command, args, options) =>
+      processSupervisor.spawn(command, args, options, {
+        owner: "Player",
+        tool: "FFmpeg",
+      }),
   }) {
     this.ffmpegPathResolver = ffmpegPathResolver;
     this.getSessionInputs = getSessionInputs;

@@ -226,6 +226,34 @@ describe("webControlServer", () => {
     });
   });
 
+  it("rejects pending renderer requests when the server stops", async () => {
+    const store = createStore();
+    server = createWebControlServer({
+      appPath: path.resolve(__dirname, "../../../.."),
+      store,
+    });
+    server.setMainWindow({
+      isDestroyed: () => false,
+      webContents: { send: jest.fn() },
+    });
+    await server.startIfEnabled();
+    const pending = server.requestRenderer("snapshot");
+    await server.stop();
+    await expect(pending).rejects.toMatchObject({
+      code: "WEB_CONTROL_STOPPED",
+    });
+  });
+
+  it("serializes concurrent start requests", async () => {
+    const store = createStore();
+    server = createWebControlServer({
+      appPath: path.resolve(__dirname, "../../../.."),
+      store,
+    });
+    await Promise.all([server.setEnabled(true), server.setEnabled(true)]);
+    expect(fakeHttpServer.listen).toHaveBeenCalledTimes(1);
+  });
+
   it.each(["/", "/downloader", "/settings"])(
     "serves the web application for %s",
     async (pathname) => {
@@ -264,7 +292,16 @@ describe("webControlServer", () => {
 
       expect(response).toEqual({
         statusCode: 404,
-        body: { success: false, error: "Not found" },
+        body: {
+          success: false,
+          error: expect.objectContaining({
+            code: "NOT_FOUND",
+            category: "web-control",
+            message: "Not found",
+            retryable: false,
+            correlationId: expect.any(String),
+          }),
+        },
       });
     },
   );

@@ -1329,6 +1329,54 @@ describe("Now Playing playback controller", () => {
     ).toBe(1);
   });
 
+  test("keeps only the latest track after one hundred rapid selections", async () => {
+    const { controller, mediaLayers, providers } = createController();
+    const stressTracks = Array.from({ length: 100 }, (_entry, index) => ({
+      id: `stress-${index}`,
+      providerId: "local",
+      sourceRef: `/stress-${index}.mp3`,
+      title: `Stress ${index}`,
+      availability: "available",
+    }));
+    controller.setQueue(stressTracks);
+    const selections = stressTracks.map((track) =>
+      controller.selectTrack(track.id),
+    );
+    await Promise.all(selections);
+
+    expect(controller.currentTrack.id).toBe("stress-99");
+    expect(
+      mediaLayers.filter((media) => media.dataset.trackId === "stress-99"),
+    ).toHaveLength(1);
+    expect(controller.layerPlaybacks.filter(Boolean)).toHaveLength(1);
+    expect(providers.releasePlayback).toHaveBeenCalled();
+    await controller.dispose();
+    expect(controller.mediaEventHandlers.size).toBe(0);
+    expect(controller.pendingReleases.size).toBe(0);
+  });
+
+  test("awaits the final playback release during disposal", async () => {
+    const { controller, providers } = createController();
+    controller.setQueue(tracks);
+    await controller.selectTrack("one", { autoplay: false });
+    let finishRelease;
+    providers.releasePlayback.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          finishRelease = resolve;
+        }),
+    );
+    let disposed = false;
+    const disposal = controller.dispose().then(() => {
+      disposed = true;
+    });
+    await Promise.resolve();
+    expect(disposed).toBe(false);
+    finishRelease();
+    await disposal;
+    expect(disposed).toBe(true);
+  });
+
   test("waits for resource release before resolving the next track", async () => {
     const { controller, providers } = createController();
     controller.setQueue(tracks);

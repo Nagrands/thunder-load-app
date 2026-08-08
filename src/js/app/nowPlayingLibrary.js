@@ -1,11 +1,15 @@
 const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
-const { execFile } = require("child_process");
-const { promisify } = require("util");
 const { pathToFileURL } = require("url");
-
-const execFileAsync = promisify(execFile);
+const { processSupervisor } = require("./processSupervisor");
+const execFileAsync = (command, args = [], options = {}) =>
+  processSupervisor.execFile(command, args, options, {
+    owner: "MediaLibrary",
+    tool: String(command || "").toLowerCase().includes("ff")
+      ? "FFmpeg"
+      : "process",
+  });
 
 const AUDIO_EXTENSIONS = new Set([
   ".aac",

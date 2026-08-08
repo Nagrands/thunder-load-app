@@ -227,8 +227,8 @@ describe("bootstrapRenderer", () => {
     expect(mocks.registerTabs).toHaveBeenCalledWith(
       document.getElementById("main-view"),
     );
-    expect(mocks.initDownloaderBackgroundPreview).toHaveBeenCalled();
-    expect(mocks.initDownloaderLivePreview).toHaveBeenCalled();
+    expect(mocks.initDownloaderBackgroundPreview).not.toHaveBeenCalled();
+    expect(mocks.initDownloaderLivePreview).not.toHaveBeenCalled();
     expect(mocks.initUrlInputHandler).toHaveBeenCalled();
     expect(mocks.initHistory).toHaveBeenCalled();
     expect(mocks.initHistoryState).not.toHaveBeenCalled();

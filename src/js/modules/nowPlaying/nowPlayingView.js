@@ -69,7 +69,14 @@ export function createNowPlayingView({
     providers,
     mediaLayers,
     lifecycleLog: (...args) => {
-      if (readDeveloperModeEnabled()) console.debug(...args);
+      if (readDeveloperModeEnabled()) {
+        window.electron?.diagnostics?.log?.(
+          "Player",
+          "debug",
+          args[0],
+          args[1],
+        );
+      }
     },
   });
   const mediaSession = createMediaSessionManager({ controller });
@@ -142,6 +149,7 @@ export function createNowPlayingView({
   let active = false;
   let initialized = false;
   let disposed = false;
+  let disposalPromise = null;
   let initialPlaybackAttempted = false;
   let latestSnapshot = null;
   let persistentSignature = "";
@@ -2042,7 +2050,8 @@ export function createNowPlayingView({
       if (preferences.shouldSuspendInBackground()) controller.suspend();
     },
     dispose() {
-      if (disposed) return;
+      if (disposalPromise) return disposalPromise;
+      if (disposed) return Promise.resolve();
       void flushPersistence();
       disposed = true;
       unsubscribe();
@@ -2055,8 +2064,7 @@ export function createNowPlayingView({
         canPrevious: false,
       });
       mediaSession.dispose();
-      controller.dispose();
-      providers.dispose();
+      const controllerDisposal = controller.dispose();
       audioTracks?.dispose();
       controlsVisibility.dispose();
       overlayVisibility.dispose();
@@ -2092,6 +2100,10 @@ export function createNowPlayingView({
       window.removeEventListener("focus", onWindowFocus);
       window.removeEventListener("i18n:changed", onI18nChanged);
       document.removeEventListener("visibilitychange", onVisibilityChange);
+      disposalPromise = Promise.resolve(controllerDisposal).finally(() => {
+        providers.dispose();
+      });
+      return disposalPromise;
     },
   };
 }

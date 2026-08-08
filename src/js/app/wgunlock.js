@@ -1,10 +1,11 @@
 // src/js/app/wgunlock.js
 
 // main-process: WireGuard configuration & UDP sender
-const { app, ipcMain, BrowserWindow } = require("electron");
+const { app, BrowserWindow } = require("electron");
 const { promises: fs } = require("fs");
 const path = require("path");
 const dgram = require("dgram");
+const log = require("electron-log");
 
 // Путь к файлу конфигурации
 const confPath = path.join(app.getPath("userData"), "wireguard.conf");
@@ -20,7 +21,7 @@ async function handlePortInUse(lPort) {
       `Порт ${lPort} уже используется.`,
     );
   } catch (e) {
-    console.warn("Ошибка при обработке занятого порта:", e);
+    log.warn("Ошибка при обработке занятого порта:", e);
   }
 }
 
@@ -91,25 +92,6 @@ function sendUdp({ ip, rPort, lPort, msg }) {
   });
 }
 
-// --- Регистрация IPC-обработчиков ---
-const handlers = {
-  "wg-get-config": async () => readConfig(),
-  "wg-set-config": async (_, { key, val }) => {
-    const cfg = await readConfig();
-    await writeConfig({ ...cfg, [key]: val });
-  },
-  "wg-reset-config-defaults": async () => writeConfig({ ...DEFAULTS }),
-  "wg-send-udp": async (_, args) => sendUdp(args),
-};
-
-for (const [channel, handler] of Object.entries(handlers)) {
-  if (channel === "wg-set-config") {
-    ipcMain.on(channel, handler);
-  } else {
-    ipcMain.handle(channel, handler);
-  }
-}
-
 /**
  * Значения по умолчанию
  * @type {{ip: string, rPort: number, lPort: number, msg: string}}
@@ -131,3 +113,21 @@ const parseValue = (val) => {
   const num = Number(val);
   return Number.isNaN(num) ? val : num;
 };
+
+function registerWireGuardConfigIpcHandlers(ipcMain) {
+  const handlers = {
+    "wg-get-config": async () => readConfig(),
+    "wg-set-config": async (_, { key, val }) => {
+      const cfg = await readConfig();
+      await writeConfig({ ...cfg, [key]: val });
+    },
+    "wg-reset-config-defaults": async () => writeConfig({ ...DEFAULTS }),
+    "wg-send-udp": async (_, args) => sendUdp(args),
+  };
+  for (const [channel, handler] of Object.entries(handlers)) {
+    if (channel === "wg-set-config") ipcMain.on(channel, handler);
+    else ipcMain.handle(channel, handler);
+  }
+}
+
+module.exports = { registerWireGuardConfigIpcHandlers };

@@ -5,7 +5,7 @@ const fs = require("fs");
 const fsPromises = fs.promises;
 const http = require("http");
 const path = require("path");
-const { spawn } = require("child_process");
+const { processSupervisor } = require("./processSupervisor");
 const {
   buildFfmpegArgs,
   buildMultiAudioFfmpegArgs,
@@ -149,7 +149,11 @@ class NowPlayingHlsService {
   constructor({
     cacheRoot,
     ffmpegPathResolver,
-    spawnProcess = spawn,
+    spawnProcess = (command, args, options) =>
+      processSupervisor.spawn(command, args, options, {
+        owner: "Player",
+        tool: "FFmpeg",
+      }),
     serverFactory = http.createServer,
     now = Date.now,
     debugLog = null,

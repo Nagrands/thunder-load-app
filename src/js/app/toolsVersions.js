@@ -1,6 +1,15 @@
 // src/js/app/toolsVersions.js
 
-const { spawn } = require("node:child_process");
+const { processSupervisor } = require("./processSupervisor");
+const spawn = (command, args, options) =>
+  processSupervisor.spawn(command, args, options, {
+    owner: "Tools",
+    tool: String(command || "").toLowerCase().includes("yt-dlp")
+      ? "yt-dlp"
+      : String(command || "").toLowerCase().includes("ff")
+        ? "FFmpeg"
+        : "process",
+  });
 const fs = require("fs");
 const {
   prepareBinaryForExecution,

@@ -91,6 +91,7 @@ export class PlaybackController {
     this.selectionVersion = 0;
     this.playbackSession = null;
     this.disposed = false;
+    this.disposePromise = null;
     this.animationFrame = null;
     this.lastProgressEmitAt = 0;
     this.queueSnapshot = [];
@@ -1528,7 +1529,7 @@ export class PlaybackController {
   }
 
   dispose() {
-    if (this.disposed) return;
+    if (this.disposePromise) return this.disposePromise;
     this.cancelPlaybackSession();
     this.clearSeekRestart();
     this.disposed = true;
@@ -1545,10 +1546,13 @@ export class PlaybackController {
       );
       safeMediaCall(media, "pause");
     });
-    void this.releaseAllLayers();
+    const releaseResult = this.releaseAllLayers();
     this.mediaEventHandlers.clear();
     this.listeners.clear();
-    this.trace("controller-destroyed");
+    this.disposePromise = Promise.resolve(releaseResult).finally(() => {
+      this.trace("controller-destroyed");
+    });
+    return this.disposePromise;
   }
 }
 

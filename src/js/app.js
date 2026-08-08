@@ -27,28 +27,12 @@ const log = require("electron-log");
 
 const { app, BrowserWindow } = require("electron");
 const { configureLegacyUserDataPath } = require("./app/userDataPath.js");
+const { configureDiagnosticsLogger } = require("./app/diagnosticsLogger.js");
+const { processSupervisor } = require("./app/processSupervisor.js");
+const { ShutdownCoordinator } = require("./app/shutdownCoordinator.js");
 const { createStartupMetrics } = require("./app/startupMetrics.js");
 
-function configureVersionedLogFile() {
-  let versionTag = "unknown";
-  try {
-    const rawVersion = app.getVersion();
-    if (rawVersion) {
-      versionTag = String(rawVersion).replace(/[^0-9A-Za-z._-]/g, "_");
-    }
-  } catch (error) {
-    console.error("Failed to resolve app version for log file:", error);
-  }
-
-  try {
-    log.transports.file.fileName = `main_v${versionTag}.log`;
-  } catch (error) {
-    console.error("Failed to configure versioned log filename:", error);
-  }
-}
-
 configureLegacyUserDataPath(app, fs);
-configureVersionedLogFile();
 
 const startupMetrics = createStartupMetrics(log);
 
@@ -60,7 +44,6 @@ const { setupIpcHandlers } = startupMetrics.measure(
   "require ipcHandlers.js",
   () => require("./app/ipcHandlers.js"),
 );
-require("./app/wgunlock.js"); // регистрируем UDP и настройки WG Unlock
 const {
   showTrayNotification,
   notifyDownloadError,
@@ -68,16 +51,27 @@ const {
 } = require("./app/notifications.js");
 const ClipboardMonitor = require("./app/clipboardMonitor.js");
 const { isValidUrl, isSupportedUrl } = require("./app/utils.js");
-const { scheduleAutoUpdateCheck, setupAutoUpdater } = startupMetrics.measure(
+const {
+  disposeAutoUpdater,
+  scheduleAutoUpdateCheck,
+  setupAutoUpdater,
+} = startupMetrics.measure(
   "require autoUpdater.js",
   () => require("./app/autoUpdater.js"),
 );
-const { setupGlobalShortcuts } = require("./app/shortcuts.js");
+const {
+  disposeGlobalShortcuts,
+  setupGlobalShortcuts,
+} = require("./app/shortcuts.js");
 const { createWebControlServer } = require("./app/webControlServer.js");
 const { createMediaOpenService } = require("./app/mediaOpenService.js");
 
 // Initialize store and logging
 const store = new ElectronStore();
+const diagnosticsLogger = configureDiagnosticsLogger({ app, store, log });
+const mainLogger = diagnosticsLogger.createScope("Main");
+processSupervisor.setLogger(diagnosticsLogger);
+const shutdownCoordinator = new ShutdownCoordinator({ logger: mainLogger });
 const isDev = process.argv.includes("--dev");
 
 app.setAppUserModelId("com.thunderload.app");
@@ -113,12 +107,12 @@ const ffprobePath = path.join(
   process.platform === "win32" ? "ffprobe.exe" : "ffprobe",
 );
 
-log.info("App starting...");
-console.time("App → Total Startup Time");
+mainLogger.info("app-starting", { version: app.getVersion() });
 
 let mainWindow;
 let clipboardMonitorInstance;
 let webControlServer;
+let ipcRuntime;
 const WHATS_NEW_PENDING_KEY = "pendingWhatsNewVersion";
 
 // Cache for file existence checks
@@ -203,6 +197,7 @@ if (!app.requestSingleInstanceLock()) {
     dispatchPendingWhatsNew: () => false,
     clearPendingWhatsNewVersion: () => false,
     mediaOpenService,
+    diagnosticsLogger,
   };
 
   const getPendingWhatsNewVersion = () =>
@@ -322,7 +317,7 @@ if (!app.requestSingleInstanceLock()) {
    */
   function initializeMainWindowEvents() {
     mainWindow.webContents.on("did-finish-load", async () => {
-      console.timeLog("App → Total Startup Time", "Renderer finished load");
+      startupMetrics.mark("renderer finished load");
       try {
         await restoreDownloadPath();
 
@@ -340,6 +335,12 @@ if (!app.requestSingleInstanceLock()) {
    * Main function to initialize the application.
    */
   async function main() {
+    if (ipcRuntime) {
+      await ipcRuntime.dispose();
+      ipcRuntime = null;
+    }
+    clipboardMonitorInstance?.stop();
+    if (webControlServer) await webControlServer.dispose();
     // Ensure downloadPath is loaded from electron-store before window creation
     try {
       const savedStorePathAtStartup = store.get("downloadPath", "");
@@ -385,11 +386,12 @@ if (!app.requestSingleInstanceLock()) {
     webControlServer = createWebControlServer({
       appPath: app.getAppPath(),
       store,
+      diagnosticsLogger,
     });
     webControlServer.setMainWindow(mainWindow);
     dependencies.webControlServer = webControlServer;
 
-    startupMetrics.measure("setup IPC handlers", () =>
+    ipcRuntime = startupMetrics.measure("setup IPC handlers", () =>
       setupIpcHandlers(dependencies),
     );
 
@@ -413,10 +415,6 @@ if (!app.requestSingleInstanceLock()) {
     // Initialize clipboard monitor
     initializeClipboardMonitor();
 
-    console.timeLog(
-      "App → Total Startup Time",
-      "Main window created & IPC ready",
-    );
     startupMetrics.mark("main window created and IPC ready");
     // Setup mainWindow events
     initializeMainWindowEvents();
@@ -470,25 +468,29 @@ if (!app.requestSingleInstanceLock()) {
 /**
  * Clean up resources before quitting.
  */
-app.on("before-quit", () => {
+let shutdownCompleted = false;
+shutdownCoordinator.register("application-runtime", async () => {
+  clipboardMonitorInstance?.stop?.();
+  disposeGlobalShortcuts();
+  disposeAutoUpdater();
+  await ipcRuntime?.dispose?.();
+  ipcRuntime = null;
+  await processSupervisor.terminateAll("app-shutdown");
+  await webControlServer?.dispose?.();
+  mediaOpenService.dispose();
   fsCache.clear();
   iconCache.clear();
   app.isQuitting = true;
-
-  // Reset the notification flag
   store.set("isCloseNotificationShown", false);
+});
 
-  // Stop clipboard monitoring
-  if (clipboardMonitorInstance) {
-    clipboardMonitorInstance.stop();
-  }
-
-  if (webControlServer) {
-    webControlServer.stop().catch((error) => {
-      log.warn("Failed to stop web control server:", error);
-    });
-  }
-  mediaOpenService.dispose();
+app.on("before-quit", (event) => {
+  if (shutdownCompleted) return;
+  event.preventDefault();
+  void shutdownCoordinator.stop().finally(() => {
+    shutdownCompleted = true;
+    app.quit();
+  });
 });
 
 module.exports = {

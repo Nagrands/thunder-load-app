@@ -232,13 +232,15 @@ function registerNowPlayingIpcHandlers({
   hlsService: providedHlsService = null,
   audioTracksService: providedAudioTracksService = null,
   timelinePreviewService: providedTimelinePreviewService = null,
+  diagnosticsLogger = null,
 }) {
+  const playerLog = diagnosticsLogger?.createScope?.("Player");
   const hlsService =
     providedHlsService ||
     new NowPlayingHlsService({
       cacheRoot: path.join(app.getPath("userData"), "now-playing-hls"),
       ffmpegPathResolver: () => resolveToolPath(ffmpegPathResolver, store),
-      debugLog: app.isPackaged ? null : (...args) => log.debug(...args),
+      debugLog: (event, details) => playerLog?.debug(event, details),
     });
   const youtube = createYouTubeHandlers({
     getVideoInfo,
@@ -262,26 +264,6 @@ function registerNowPlayingIpcHandlers({
         hlsService.getPreviewInputs?.(sessionId) || [],
       getTrackById,
     });
-  if (typeof app.on === "function") {
-    let shutdownStarted = false;
-    let shutdownCompleted = false;
-    app.on("before-quit", (event) => {
-      if (shutdownCompleted) return;
-      event?.preventDefault?.();
-      if (shutdownStarted) return;
-      shutdownStarted = true;
-      timelinePreviewService.dispose();
-      audioTracksService.dispose?.();
-      void Promise.resolve(hlsService.dispose())
-        .catch((error) => {
-          log.warn("[now-playing] Failed to dispose HLS service:", error);
-        })
-        .finally(() => {
-          shutdownCompleted = true;
-          app.quit?.();
-        });
-    });
-  }
   const importOptions = () => ({
     artworkDir: path.join(app.getPath("userData"), "now-playing-artwork"),
     ffmpegPath: resolveToolPath(ffmpegPathResolver, store),
@@ -752,6 +734,17 @@ function registerNowPlayingIpcHandlers({
       }
     },
   );
+
+  let disposed = false;
+  return {
+    async dispose() {
+      if (disposed) return;
+      disposed = true;
+      timelinePreviewService.dispose();
+      audioTracksService.dispose?.();
+      await hlsService.dispose();
+    },
+  };
 }
 
 module.exports = {

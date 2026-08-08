@@ -1,6 +1,12 @@
 // src/js/app/ipcHandlers.js
 
-const { ipcMain, dialog, Notification, shell, app } = require("electron");
+const {
+  ipcMain: electronIpcMain,
+  dialog,
+  Notification,
+  shell,
+  app,
+} = require("electron");
 const { autoUpdater } = require("electron-updater");
 const { CHANNELS } = require("../ipc/channels");
 const {
@@ -21,9 +27,6 @@ const log = require("electron-log");
 const https = require("https");
 const crypto = require("crypto");
 const net = require("net");
-const { execFile, spawn } = require("child_process");
-const { promisify } = require("util");
-const execFileAsync = promisify(execFile);
 const {
   registerAppPreferencesIpcHandlers,
 } = require("./appPreferencesIpcHandlers");
@@ -45,10 +48,30 @@ const {
   registerToolsVersionsIpcHandlers,
 } = require("./toolsVersionsIpcHandlers");
 const { createDependencyActions } = require("./dependencyActions");
+const { registerDiagnosticsIpcHandlers } = require("./diagnosticsIpcHandlers");
+const { createTrackedIpcMain } = require("./ipcRuntime");
+const { processSupervisor } = require("./processSupervisor");
+const execFileAsync = (command, args = [], options = {}) =>
+  processSupervisor.execFile(command, args, options, {
+    owner: "Tools",
+    tool: String(command || "").toLowerCase().includes("yt-dlp")
+      ? "yt-dlp"
+      : String(command || "").toLowerCase().includes("ff")
+        ? "FFmpeg"
+        : "process",
+  });
+const spawn = (command, args, options) =>
+  processSupervisor.spawn(command, args, options, {
+    owner: "Tools",
+    tool: String(command || "").toLowerCase().includes("ffmpeg")
+      ? "FFmpeg"
+      : "process",
+  });
 const { registerUiSettingsIpcHandlers } = require("./uiSettingsIpcHandlers");
 const { registerUpdateDevIpcHandlers } = require("./updateDevIpcHandlers");
 const { registerWhatsNewIpcHandlers } = require("./whatsNewIpcHandlers");
 const { registerWgUnlockIpcHandlers } = require("./wgUnlockIpcHandlers");
+const { registerWireGuardConfigIpcHandlers } = require("./wgunlock");
 const {
   registerWindowsTrayMenuIpcHandlers,
 } = require("./windowsTrayMenuIpcHandlers");
@@ -65,7 +88,6 @@ const {
   getVideoPreview,
   downloadMedia,
   stopDownload,
-  setActiveDownloadToken,
   selectFormatsByQuality,
   createDownloadToken,
   setSharedStore,
@@ -80,7 +102,8 @@ const {
   selectYouTubeBackgroundPreview,
   selectYouTubeLivePreview,
 } = require("./downloaderBackgroundPreview");
-console.log("ipcHandlers loaded");
+let ipcMain = electronIpcMain;
+let activeIpcRuntime = null;
 
 /**
  * Проверяет, находится ли filePath внутри baseDir
@@ -666,7 +689,6 @@ async function resolveMediaInspectorProbePath(store) {
 }
 
 function setupIpcHandlers(dependencies) {
-  console.log("setupIpcHandlers called"); // ← должен появиться в devtools (main)
   const {
     mainWindow,
     store,
@@ -685,7 +707,23 @@ function setupIpcHandlers(dependencies) {
     dispatchPendingWhatsNew,
     clearPendingWhatsNewVersion,
     mediaOpenService,
+    diagnosticsLogger,
   } = dependencies;
+  if (activeIpcRuntime) void activeIpcRuntime.dispose();
+  const ipcRuntime = createTrackedIpcMain(electronIpcMain, {
+    logger: diagnosticsLogger?.createScope?.("IPC"),
+  });
+  activeIpcRuntime = ipcRuntime;
+  ipcMain = ipcRuntime.api;
+  if (diagnosticsLogger) {
+    registerDiagnosticsIpcHandlers({
+      app,
+      dialog,
+      ipcMain,
+      logger: diagnosticsLogger,
+      mainWindow,
+    });
+  }
   ipcMain.on(CHANNELS.TRAY_STATE_UPDATE, (_event, state) => {
     if (!TRAY_STATES.includes(state)) {
       log.warn(`Rejected invalid tray state: ${String(state)}`);
@@ -809,7 +847,7 @@ function setupIpcHandlers(dependencies) {
 
   registerToolsVersionsIpcHandlers({ ipcMain, store });
 
-  registerNowPlayingIpcHandlers({
+  const nowPlayingRuntime = registerNowPlayingIpcHandlers({
     app,
     dialog,
     ffmpegPathResolver: getRuntimeFfmpegPath,
@@ -820,7 +858,9 @@ function setupIpcHandlers(dependencies) {
     mainWindow,
     shell,
     store,
+    diagnosticsLogger,
   });
+  ipcRuntime.addDisposer(nowPlayingRuntime);
 
   registerFullscreenIpcHandlers({ ipcMain, mainWindow });
 
@@ -3010,7 +3050,6 @@ function setupIpcHandlers(dependencies) {
       }
 
       const token = createDownloadToken();
-      setActiveDownloadToken(token);
       if (jobId && downloadState.activeDownloads?.has(jobId)) {
         const prev = downloadState.activeDownloads.get(jobId);
         downloadState.activeDownloads.set(jobId, { ...prev, token });
@@ -3255,6 +3294,7 @@ function setupIpcHandlers(dependencies) {
   });
 
   registerWgUnlockIpcHandlers({ ipcMain, app, dialog, shell });
+  registerWireGuardConfigIpcHandlers(ipcMain);
 
   registerAppUpdateIpcHandlers({ ipcMain, autoUpdater });
   const shortcutService = configureShortcutService({ store, mainWindow });
@@ -3359,7 +3399,6 @@ function setupIpcHandlers(dependencies) {
         downloadState.activeDownloads.delete(jobId);
         downloadState.downloadInProgress =
           downloadState.activeDownloads.size > 0;
-        setActiveDownloadToken(null);
       }
     },
   );
@@ -3406,7 +3445,7 @@ function setupIpcHandlers(dependencies) {
   });
 
   ipcMain.handle(CHANNELS.STOP_DOWNLOAD, async () => {
-    console.log("A request to stop download was received.");
+    log.info("[download] Stop all requested");
     try {
       const tokens = Array.from(
         (downloadState.activeDownloads || new Map()).values(),
@@ -3414,10 +3453,10 @@ function setupIpcHandlers(dependencies) {
         .map((entry) => entry?.token)
         .filter(Boolean);
       const cancelled = await stopDownload(tokens);
-      console.log("The stopDownload() function was called successfully.");
+      log.info("[download] Stop all completed", { cancelled });
       return { success: true, cancelled };
     } catch (error) {
-      console.error("Error stopping download:", error);
+      log.error("[download] Stop all failed:", error);
       return { success: false, error: error.message };
     }
   });
@@ -3535,6 +3574,25 @@ function setupIpcHandlers(dependencies) {
     const iconName = getIconNameFromUrl(url);
     return await getAppIconPath(iconName);
   });
+
+  return {
+    async dispose() {
+      if (activeIpcRuntime === ipcRuntime) activeIpcRuntime = null;
+      const downloadTokens = [
+        ...(downloadState.activeDownloads || new Map()).values(),
+        ...activeVideoInfoTokens.values(),
+      ]
+        .map((entry) => entry?.token || entry)
+        .filter(Boolean);
+      await stopDownload(downloadTokens);
+      activeConverterRuns.forEach((entry) => {
+        entry.cancelled = true;
+        entry.proc?.kill?.("SIGTERM");
+      });
+      activeConverterRuns.clear();
+      await ipcRuntime.dispose();
+    },
+  };
 }
 
 module.exports = {

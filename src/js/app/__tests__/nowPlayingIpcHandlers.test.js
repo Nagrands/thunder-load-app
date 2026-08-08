@@ -94,7 +94,7 @@ describe("nowPlayingIpcHandlers", () => {
         eventHandlers[channel] = callback;
       }),
     };
-    registerNowPlayingIpcHandlers({
+    const runtime = registerNowPlayingIpcHandlers({
       app: appOverride || { getPath: jest.fn(() => root) },
       audioTracksService,
       dialog,
@@ -108,7 +108,7 @@ describe("nowPlayingIpcHandlers", () => {
       store,
       timelinePreviewService,
     });
-    return { CHANNELS, ipcMain };
+    return { CHANNELS, ipcMain, runtime };
   }
 
   test("registers all Player channels", () => {
@@ -135,29 +135,21 @@ describe("nowPlayingIpcHandlers", () => {
     });
   });
 
-  test("waits for HLS disposal before allowing application quit", async () => {
-    let beforeQuit;
+  test("exposes idempotent awaited disposal to the application runtime", async () => {
     const app = {
       getPath: jest.fn(() => root),
-      on: jest.fn((eventName, handler) => {
-        if (eventName === "before-quit") beforeQuit = handler;
-      }),
-      quit: jest.fn(),
+      on: jest.fn(),
     };
-    register(app);
-    const event = { preventDefault: jest.fn() };
+    const { runtime } = register(app);
 
-    beforeQuit(event);
-    await Promise.resolve();
-    await Promise.resolve();
+    await runtime.dispose();
 
-    expect(event.preventDefault).toHaveBeenCalledTimes(1);
     expect(timelinePreviewService.dispose).toHaveBeenCalledTimes(1);
     expect(audioTracksService.dispose).toHaveBeenCalledTimes(1);
     expect(hlsService.dispose).toHaveBeenCalledTimes(1);
-    expect(app.quit).toHaveBeenCalledTimes(1);
+    expect(app.on).not.toHaveBeenCalled();
 
-    beforeQuit({ preventDefault: jest.fn() });
+    await runtime.dispose();
     expect(hlsService.dispose).toHaveBeenCalledTimes(1);
   });
 

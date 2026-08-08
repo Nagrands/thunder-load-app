@@ -167,8 +167,17 @@ function scheduleAutoUpdateCheck(
   readyFallbackTimer = setTimeout(scheduleCheck, readyFallbackMs);
 }
 
+function disposeAutoUpdater() {
+  if (scheduledCheckTimer) clearTimeout(scheduledCheckTimer);
+  scheduledCheckTimer = null;
+  if (typeof cancelScheduledCheck === "function") cancelScheduledCheck();
+  cancelScheduledCheck = null;
+  updaterWindow = null;
+}
+
 module.exports = {
   checkForUpdatesNow,
+  disposeAutoUpdater,
   scheduleAutoUpdateCheck,
   setupAutoUpdater,
 };

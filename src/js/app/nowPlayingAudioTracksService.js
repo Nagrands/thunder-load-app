@@ -1,8 +1,10 @@
 const fs = require("fs");
-const { execFile } = require("child_process");
-const { promisify } = require("util");
-
-const execFileAsync = promisify(execFile);
+const { processSupervisor } = require("./processSupervisor");
+const execFileAsync = (command, args = [], options = {}) =>
+  processSupervisor.execFile(command, args, options, {
+    owner: "Player",
+    tool: "ffprobe",
+  });
 const MAX_AUDIO_TRACKS = 32;
 const MAX_CACHE_ENTRIES = 128;
 const PROBE_TIMEOUT_MS = 15_000;

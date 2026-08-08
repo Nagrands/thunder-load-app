@@ -83,7 +83,11 @@ async function request(path, options = {}) {
   });
   const data = await response.json();
   if (!response.ok || data.success === false) {
-    throw new Error(data.error || "Request failed");
+    throw new Error(
+      (data.error && typeof data.error === "object"
+        ? data.error.message
+        : data.error) || "Request failed",
+    );
   }
   return data;
 }

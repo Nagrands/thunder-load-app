@@ -8,6 +8,7 @@ const path = require("path");
 const { shell } = require("electron");
 const log = require("electron-log");
 const { CHANNELS } = require("../ipc/channels");
+const { serializeError } = require("./appError");
 
 const HOST = "0.0.0.0";
 const LOCAL_HOST = "127.0.0.1";
@@ -37,6 +38,18 @@ function createJsonResponse(res, statusCode, payload) {
     "Cache-Control": "no-store",
   });
   res.end(body);
+}
+
+function createErrorResponse(res, statusCode, code, message, options = {}) {
+  createJsonResponse(res, statusCode, {
+    success: false,
+    error: serializeError(new Error(message), {
+      code,
+      category: options.category || "web-control",
+      retryable: Boolean(options.retryable),
+      correlationId: options.correlationId,
+    }),
+  });
 }
 
 function normalizePort(value) {
@@ -114,13 +127,17 @@ function normalizePreviewUrl(value) {
   }
 }
 
-function createWebControlServer({ appPath, store }) {
+function createWebControlServer({ appPath, store, diagnosticsLogger = null }) {
   let server = null;
   let mainWindow = null;
   let runningPort = 0;
   let requestCounter = 1;
   const pendingRequests = new Map();
   const eventClients = new Set();
+  const eventClientTimers = new Map();
+  let lifecycleOperation = Promise.resolve();
+  let windowDestroyedCleanup = null;
+  const webLog = diagnosticsLogger?.createScope?.("WebControl");
 
   const staticDir = path.join(appPath, "src", "web-control");
 
@@ -162,6 +179,7 @@ function createWebControlServer({ appPath, store }) {
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         pendingRequests.delete(requestId);
+        webLog?.warning("renderer-request-timeout", { requestId, command });
         reject(new Error("Renderer request timed out"));
       }, REQUEST_TIMEOUT_MS);
 
@@ -174,6 +192,18 @@ function createWebControlServer({ appPath, store }) {
     });
   }
 
+  function rejectPendingRequests(code, message) {
+    for (const [requestId, pending] of pendingRequests) {
+      clearTimeout(pending.timeout);
+      const error = Object.assign(new Error(message), {
+        code,
+        correlationId: requestId,
+      });
+      pending.reject(error);
+    }
+    pendingRequests.clear();
+  }
+
   function resolveRendererResponse(payload = {}) {
     const requestId = String(payload.requestId || "");
     const pending = pendingRequests.get(requestId);
@@ -181,7 +211,16 @@ function createWebControlServer({ appPath, store }) {
     clearTimeout(pending.timeout);
     pendingRequests.delete(requestId);
     if (payload.success === false) {
-      pending.reject(new Error(payload.error || "Renderer request failed"));
+      const rendererError =
+        payload.error && typeof payload.error === "object"
+          ? payload.error
+          : { message: payload.error || "Renderer request failed" };
+      pending.reject(
+        Object.assign(new Error(rendererError.message), {
+          code: rendererError.code || "RENDERER_REQUEST_FAILED",
+          correlationId: rendererError.correlationId || requestId,
+        }),
+      );
       return true;
     }
     pending.resolve(payload.result);
@@ -197,7 +236,7 @@ function createWebControlServer({ appPath, store }) {
     const filePath = path.join(staticDir, normalized);
     const relative = path.relative(staticDir, filePath);
     if (relative.startsWith("..") || path.isAbsolute(relative)) {
-      createJsonResponse(res, 403, { success: false, error: "Forbidden" });
+      createErrorResponse(res, 403, "FORBIDDEN", "Forbidden");
       return;
     }
 
@@ -210,7 +249,7 @@ function createWebControlServer({ appPath, store }) {
       });
       res.end(content);
     } catch {
-      createJsonResponse(res, 404, { success: false, error: "Not found" });
+      createErrorResponse(res, 404, "NOT_FOUND", "Not found");
     }
   }
 
@@ -251,10 +290,12 @@ function createWebControlServer({ appPath, store }) {
       const body = await readRequestBody(req);
       const url = normalizePreviewUrl(body.url);
       if (!url) {
-        createJsonResponse(res, 400, {
-          success: false,
-          error: "A single valid HTTP(S) URL is required",
-        });
+        createErrorResponse(
+          res,
+          400,
+          "INVALID_URL",
+          "A single valid HTTP(S) URL is required",
+        );
         return;
       }
       const preview = await requestRenderer("preview:get", { url });
@@ -270,7 +311,7 @@ function createWebControlServer({ appPath, store }) {
       return;
     }
 
-    createJsonResponse(res, 404, { success: false, error: "Unknown API" });
+    createErrorResponse(res, 404, "UNKNOWN_API", "Unknown API");
   }
 
   function handleEvents(req, res, _reqUrl) {
@@ -288,9 +329,11 @@ function createWebControlServer({ appPath, store }) {
         })
         .catch(() => {});
     }, 2000);
+    eventClientTimers.set(res, interval);
     req.on("close", () => {
       clearInterval(interval);
       eventClients.delete(res);
+      eventClientTimers.delete(res);
     });
   }
 
@@ -306,23 +349,33 @@ function createWebControlServer({ appPath, store }) {
         return;
       }
       if (req.method !== "GET") {
-        createJsonResponse(res, 405, {
-          success: false,
-          error: "Method not allowed",
-        });
+        createErrorResponse(res, 405, "METHOD_NOT_ALLOWED", "Method not allowed");
         return;
       }
       await serveStatic(reqUrl, res);
     } catch (error) {
+      const correlationId = error?.correlationId || `web-${Date.now().toString(36)}`;
+      webLog?.error("request-failed", {
+        correlationId,
+        method: req.method,
+        path: req.url,
+        error,
+      });
       log.warn("[web-control] request failed:", error);
       createJsonResponse(res, 500, {
         success: false,
-        error: error.message || "Internal error",
+        error: serializeError(error, {
+          code: "WEB_REQUEST_FAILED",
+          category: "web-control",
+          message: "Internal error",
+          retryable: true,
+          correlationId,
+        }),
       });
     }
   }
 
-  async function start() {
+  async function startInternal() {
     if (server) return getStatus();
     ensureToken(store);
     const preferredPort = normalizePort(store.get(STORE_KEYS.port, 0));
@@ -351,10 +404,14 @@ function createWebControlServer({ appPath, store }) {
     runningPort = server.address()?.port || 0;
     store.set(STORE_KEYS.port, runningPort);
     log.info(`[web-control] listening on ${HOST}:${runningPort}`);
+    webLog?.info("server-started", { port: runningPort, host: HOST });
     return getStatus();
   }
 
-  async function stop() {
+  async function stopInternal() {
+    rejectPendingRequests("WEB_CONTROL_STOPPED", "Web Control stopped");
+    for (const interval of eventClientTimers.values()) clearInterval(interval);
+    eventClientTimers.clear();
     if (!server) {
       runningPort = 0;
       return getStatus();
@@ -365,18 +422,35 @@ function createWebControlServer({ appPath, store }) {
     for (const client of eventClients) client.end();
     eventClients.clear();
     await new Promise((resolve) => currentServer.close(resolve));
+    webLog?.info("server-stopped", {});
     return getStatus();
   }
 
-  async function restart() {
-    await stop();
-    return start();
+  function runLifecycle(task) {
+    const result = lifecycleOperation.then(task, task);
+    lifecycleOperation = result.catch(() => {});
+    return result;
+  }
+
+  function start() {
+    return runLifecycle(startInternal);
+  }
+
+  function stop() {
+    return runLifecycle(stopInternal);
+  }
+
+  function restart() {
+    return runLifecycle(async () => {
+      await stopInternal();
+      return startInternal();
+    });
   }
 
   async function setEnabled(enabled) {
     const nextEnabled = Boolean(enabled);
     store.set(STORE_KEYS.enabled, nextEnabled);
-    return nextEnabled ? start() : stop();
+    return runLifecycle(() => (nextEnabled ? startInternal() : stopInternal()));
   }
 
   async function open() {
@@ -386,7 +460,25 @@ function createWebControlServer({ appPath, store }) {
   }
 
   function setMainWindow(nextMainWindow) {
+    windowDestroyedCleanup?.();
+    windowDestroyedCleanup = null;
     mainWindow = nextMainWindow;
+    const webContents = nextMainWindow?.webContents;
+    if (typeof webContents?.once === "function") {
+      const onDestroyed = () => {
+        if (mainWindow === nextMainWindow) mainWindow = null;
+        rejectPendingRequests("RENDERER_UNAVAILABLE", "Renderer window was closed");
+      };
+      webContents.once("destroyed", onDestroyed);
+      windowDestroyedCleanup = () => webContents.removeListener?.("destroyed", onDestroyed);
+    }
+  }
+
+  async function dispose() {
+    await stop();
+    windowDestroyedCleanup?.();
+    windowDestroyedCleanup = null;
+    mainWindow = null;
   }
 
   async function startIfEnabled() {
@@ -404,6 +496,7 @@ function createWebControlServer({ appPath, store }) {
     startIfEnabled,
     stop,
     setMainWindow,
+    dispose,
     requestRenderer,
     resolveRendererResponse,
   };

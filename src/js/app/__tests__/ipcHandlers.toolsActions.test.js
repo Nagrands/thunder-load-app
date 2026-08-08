@@ -18,6 +18,20 @@ jest.mock("child_process", () => ({
   spawn: jest.fn(),
 }));
 
+jest.mock("../processSupervisor", () => ({
+  processSupervisor: {
+    execFile: jest.fn((command, args, options) => {
+      const { execFile } = require("child_process");
+      const { promisify } = require("util");
+      return execFile[promisify.custom](command, args, options);
+    }),
+    spawn: jest.fn((command, args, options) => {
+      const { spawn } = require("child_process");
+      return spawn(command, args, options);
+    }),
+  },
+}));
+
 jest.mock("electron", () => ({
   ipcMain: {
     handle: jest.fn((channel, cb) => {

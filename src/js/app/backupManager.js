@@ -6,19 +6,19 @@ const path = require("path");
 const os = require("os");
 const { app, dialog, shell } = require("electron");
 const log = require("electron-log");
-const { promisify } = require("util");
-const { exec, execFile } = require("child_process");
-const execFileAsync = promisify(execFile);
-const execAsync = promisify(exec);
+const { processSupervisor } = require("./processSupervisor");
+const execFileAsync = (command, args = [], options = {}) =>
+  processSupervisor.execFile(command, args, options, {
+    owner: "Tools",
+    tool: "process",
+  });
 
 // Проверка доступности команд архивации
 async function checkCommandExists(command) {
   try {
-    if (process.platform === "win32") {
-      await execAsync(`where ${command}`);
-    } else {
-      await execAsync(`which ${command}`);
-    }
+    await execFileAsync(process.platform === "win32" ? "where" : "which", [
+      command,
+    ]);
     return true;
   } catch {
     return false;
@@ -57,10 +57,9 @@ async function getFreeDiskSpace(dirPath) {
       }
       return Math.round(freeBytes / 1024 / 1024); // MB
     } else {
-      const { stdout } = await execAsync(
-        `df -k "${dirPath}" | tail -1 | awk '{print $4}'`,
-      );
-      const freeKB = parseInt(stdout.trim());
+      const { stdout } = await execFileAsync("df", ["-k", dirPath]);
+      const line = String(stdout).trim().split(/\r?\n/).at(-1) || "";
+      const freeKB = parseInt(line.trim().split(/\s+/)[3], 10);
       return Math.round(freeKB / 1024); // MB
     }
   } catch (error) {

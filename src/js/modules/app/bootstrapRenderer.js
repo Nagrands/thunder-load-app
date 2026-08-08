@@ -9,8 +9,6 @@ import { initSettings } from "../settings.js";
 import { initUrlInputHandler } from "../urlInputHandler.js";
 import { initDownloaderAvailability } from "../downloaderAvailability.js";
 import { initCompactDownloaderQuality } from "../compactDownloaderQuality.js";
-import { initDownloaderBackgroundPreview } from "../downloaderBackgroundPreview.js";
-import { initDownloaderLivePreview } from "../downloaderLivePreview.js";
 import { initSort } from "../sort.js";
 import { initHistoryFilter } from "../historyFilter.js";
 import { initHistoryActions } from "../historyActions.js";
@@ -51,6 +49,10 @@ import {
 
 const DEFERRED_INIT_FALLBACK_DELAY_MS = 0;
 
+function logRenderer(level, event, context = {}) {
+  window.electron?.diagnostics?.log?.("Main", level, event, context);
+}
+
 function scheduleDeferredInitialization(task) {
   if (typeof task !== "function") return;
 
@@ -67,7 +69,7 @@ function scheduleDeferredInitialization(task) {
 }
 
 async function runCriticalInitialization(mainView) {
-  console.time("[Startup] Critical init");
+  const startedAt = performance.now();
 
   initPageBackgroundMode();
   initScrollLockRepair();
@@ -75,12 +77,10 @@ async function runCriticalInitialization(mainView) {
   const tabsRuntime = await registerTabs(mainView);
   const { tabs } = tabsRuntime;
 
-  registerI18nListeners(tabs);
+  const disposeI18nListener = registerI18nListeners(tabs);
 
   initDeveloperModeFooterVisibility();
   initDeveloperModeTopBarVisibility();
-  initDownloaderBackgroundPreview();
-  initDownloaderLivePreview();
   initCompactDownloaderQuality();
   initUrlInputHandler();
   initDownloaderAvailability();
@@ -88,12 +88,16 @@ async function runCriticalInitialization(mainView) {
   const disposeWindowControls = initWindowControls();
   initTopBarResponsive();
   initFirstRunModal();
-  registerStatusMessageListener();
+  const disposeStatusListener = registerStatusMessageListener();
 
-  console.timeEnd("[Startup] Critical init");
+  logRenderer("info", "renderer-critical-init-completed", {
+    duration: performance.now() - startedAt,
+  });
   return {
     tabs,
     dispose() {
+      disposeStatusListener?.();
+      disposeI18nListener?.();
       disposeWindowControls();
       tabsRuntime.dispose?.();
     },
@@ -101,11 +105,11 @@ async function runCriticalInitialization(mainView) {
 }
 
 async function runDeferredInitialization({ tabs }) {
-  console.time("[Startup] Deferred init");
+  const startedAt = performance.now();
 
   try {
     void initHistoryState().catch((error) => {
-      console.error("[Startup] Deferred history init failed:", error);
+      logRenderer("error", "renderer-history-init-failed", { error });
     });
     initHotkeys(tabs);
     initWhatsNewModal();
@@ -133,11 +137,11 @@ async function runDeferredInitialization({ tabs }) {
 
     initUpdateHandler();
     initTooltips();
-    console.log("All modules initialized with TabSystem v1.0");
+    logRenderer("info", "renderer-deferred-init-completed", {
+      duration: performance.now() - startedAt,
+    });
   } catch (error) {
-    console.error("[Startup] Deferred init failed:", error);
-  } finally {
-    console.timeEnd("[Startup] Deferred init");
+    logRenderer("error", "renderer-deferred-init-failed", { error });
   }
 }
 
@@ -186,13 +190,15 @@ async function applyPlatformClass() {
       document.body.classList.add("is-mac");
     }
   } catch (error) {
-    console.warn("Platform info unavailable", error);
+    logRenderer("warning", "platform-info-unavailable", { error });
   }
 }
 
 export async function startRenderer() {
   try {
-    console.log("[Startup] Bootstrap loaded:", !!window.bootstrap);
+    logRenderer("debug", "renderer-bootstrap-loaded", {
+      bootstrapAvailable: Boolean(window.bootstrap),
+    });
     initLowEffectsFromStore();
     applyPlatformClass();
     cleanupLegacyRandomizerStorage();
@@ -215,11 +221,10 @@ export async function startRenderer() {
     document.body.classList.add("ready");
     document.getElementById("app-preloader")?.remove();
 
-    console.timeEnd("Renderer → Initialization");
     scheduleDeferredInitialization(async () => {
       await runDeferredInitialization(runtime);
     });
   } catch (error) {
-    console.error("Ошибка при инициализации приложения:", error);
+    logRenderer("error", "renderer-initialization-failed", { error });
   }
 }
