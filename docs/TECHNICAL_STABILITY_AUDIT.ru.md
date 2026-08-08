@@ -32,6 +32,13 @@
 - **Исправление:** регистраторы получают tracked IPC facade. Перед новым window runtime снимаются только принадлежащие ему handlers/listeners; Player services возвращают awaited disposer.
 - **Доказательство:** `ipcRuntime.test.js`; повторный `dispose()` идемпотентен и не использует `removeAllListeners`.
 
+### Высокий риск: Tray и window controls сохраняли первое окно
+
+- **Причина:** application-owned Tray замыкался на первый `BrowserWindow`, а `window-minimize`/`window-close` регистрировались напрямую в `window.js` при каждом создании окна. Tray также добавлял отдельный `before-quit`.
+- **Проявление:** после recreate команды Tray могли обращаться к уничтоженному окну, а глобальные IPC listeners накапливались.
+- **Исправление:** Tray остаётся одним application resource, но разрешает актуальное окно при каждом действии; его dispose выполняет shutdown coordinator. Window control IPC перенесены в tracked registrar, мёртвый `download-finished` listener удалён.
+- **Доказательство:** `window.trayRuntime.test.js` создаёт два окна, подтверждает один Tray/listener и действие только на втором окне; `uiSettingsIpcHandlers.test.js` проверяет централизованные window channels.
+
 ### Критический риск: конкурирующее завершение приложения
 
 - **Причина:** main, Player HLS и сервисы независимо слушали `before-quit`; Web Control и HLS очищались fire-and-forget.
@@ -87,6 +94,8 @@ Main-owned logger использует уровни `debug/info/warning/error` �
 
 Логи ограничены пятью файлами по 10 МБ. Перед записью и экспортом скрываются token/cookie/authorization/secret параметры. ZIP содержит только логи и manifest с версиями Thunder/Electron/Node/ОС; медиатека, cookies и настройки не добавляются.
 
+Renderer Settings/Downloader/Web Control ошибки проходят через безопасный preload diagnostics API. Разрознённые `console.*` в проверенных main/Settings/Player/Downloader/Web Control путях удалены; сохранён только аварийный stderr fallback внутри самого logger на случай отказа ротации файла.
+
 ## Платформенная проверка
 
 - Профильные тесты выполняются на каждом этапе.
@@ -94,6 +103,7 @@ Main-owned logger использует уровни `debug/info/warning/error` �
 - Свежая unsigned `mac-arm64` сборка успешно создана через `electron-builder --dir`; ICNS проверен packaged-валидатором.
 - Выполнено десять последовательных запусков финальной сборки: median `main window created and IPC ready` — 213,8 мс, median `renderer finished load` — 416,55 мс. Относительно десяти прогонов непосредственно до удаления фонового update-check это +0,7% и −1,3% соответственно, то есть регрессии critical time-to-ready нет. В журнале до всей стабилизации нет десяти однородных baseline-запусков, поэтому сравнение со старой архитектурой не заявляется.
 - macOS packaged smoke подтвердил idle quit и quit при активном Player/HLS. Playback-owned FFmpeg завершён контролируемым fallback `SIGKILL`; полный shutdown занял 1,527 с, оставшихся Thunder/yt-dlp/FFmpeg/ffprobe процессов нет.
+- Отдельный macOS packaged smoke подтвердил цикл close → activate → recreate: после закрытия окна application process остался жив, повторная активация создала рабочее окно, а финальный quit выполнил единственную последовательность coordinator cleanup за 7 мс. После выхода не осталось Thunder/yt-dlp/FFmpeg/ffprobe процессов; packaged ICNS повторно прошёл валидатор.
 - macOS Downloader и Web Control active-operation smoke остаются отдельными ручными пунктами.
 - Windows packaged smoke должен проверить tree termination yt-dlp/FFmpeg и повторное создание окна.
 

@@ -1,8 +1,8 @@
 ## Автотесты (Jest)
 
 - Автосборка списка: `npm run test-check:sync-tests`
-- Найдено файлов: 149
-- Найдено тест-кейсов (test/it): 1290
+- Найдено файлов: 150
+- Найдено тест-кейсов (test/it): 1295
 
 <!-- AUTO-JEST-TESTS:START -->
 
@@ -368,8 +368,9 @@
 - [ ] keeps the current image when a resource is missing
 - [ ] rejects invalid states without throwing
 
-### `src/js/app/__tests__/uiSettingsIpcHandlers.test.js` (6)
+### `src/js/app/__tests__/uiSettingsIpcHandlers.test.js` (7)
 - [ ] registers ui settings channels
+- [ ] routes window controls through the tracked IPC registrar
 - [ ] reads and writes default tab
 - [ ] reads and writes theme
 - [ ] reads and writes font size
@@ -433,11 +434,12 @@
 - [ ] dock exposes the current track and transport commands
 - [ ] tray and dock keep identical action order
 
-### `src/js/app/__tests__/window.trayRuntime.test.js` (6)
+### `src/js/app/__tests__/window.trayRuntime.test.js` (7)
 - [ ] handles click/double-click/right-click and refresh events on windows tray
 - [ ] sets the Thunder icon explicitly for the packaged Windows taskbar
 - [ ] creates a template tray image on macOS
-- [ ] window-close IPC respects minimize-to-tray behavior on Windows
+- [ ] window close respects minimize-to-tray behavior on Windows
+- [ ] keeps one application tray and targets the recreated window
 - [ ] warns and keeps window open when closing during active download
 - [ ] allows the window to close without re-entering quit during shutdown
 
@@ -1137,6 +1139,11 @@
 - [ ] shows media drop feedback and hides it when the drag leaves
 - [ ] opens Player and imports supported dropped media files
 - [ ] does not open Player for unsupported dropped files
+
+### `src/js/modules/__tests__/rendererDiagnostics.test.js` (3)
+- [ ] forwards structured renderer events to the safe preload API
+- [ ] serializes errors without exposing a stack
+- [ ] does not throw when diagnostics bridge is unavailable
 
 ### `src/js/modules/__tests__/scrollbarVisibility.test.js` (1)
 - [ ] shows scrollbars during wheel activity and hides them after idle
