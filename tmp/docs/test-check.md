@@ -2,7 +2,7 @@
 
 - Автосборка списка: `npm run test-check:sync-tests`
 - Найдено файлов: 149
-- Найдено тест-кейсов (test/it): 1289
+- Найдено тест-кейсов (test/it): 1290
 
 <!-- AUTO-JEST-TESTS:START -->
 
@@ -433,12 +433,13 @@
 - [ ] dock exposes the current track and transport commands
 - [ ] tray and dock keep identical action order
 
-### `src/js/app/__tests__/window.trayRuntime.test.js` (5)
+### `src/js/app/__tests__/window.trayRuntime.test.js` (6)
 - [ ] handles click/double-click/right-click and refresh events on windows tray
 - [ ] sets the Thunder icon explicitly for the packaged Windows taskbar
 - [ ] creates a template tray image on macOS
 - [ ] window-close IPC respects minimize-to-tray behavior on Windows
 - [ ] warns and keeps window open when closing during active download
+- [ ] allows the window to close without re-entering quit during shutdown
 
 ### `src/js/app/__tests__/windowActivation.test.js` (6)
 - [ ] activates and focuses window on macOS
@@ -567,9 +568,9 @@
 - [ ] shows install action when tools are missing
 - [ ] shows bridge missing state when tools bridge is unavailable
 - [ ] install action triggers installAll and refresh
-- [ ] shows update action when updates are available and runs selective updates
+- [ ] defers remote update checks to the explicitly opened Tools view
 - [ ] keeps CTA hidden when tools are installed and up to date
-- [ ] shows error state when update check fails without breaking footer CTA
+- [ ] logs a local version failure through diagnostics
 - [ ] settings visibility event hides container until re-enabled
 
 ### `src/js/modules/__tests__/downloaderView.test.js` (1)
