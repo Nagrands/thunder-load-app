@@ -366,4 +366,34 @@ describe("tray runtime behavior", () => {
     expect(preventDefault).toHaveBeenCalledTimes(1);
     expect(app.quit).not.toHaveBeenCalled();
   });
+
+  test("allows the window to close without re-entering quit during shutdown", () => {
+    setPlatform("darwin");
+    const app = new EventEmitter();
+    app.getName = () => "Thunder";
+    app.getVersion = () => "1.3.6";
+    app.getAppPath = () => "/tmp/app";
+    app.quit = jest.fn();
+    app.isPackaged = true;
+    app.isQuitting = true;
+    app.dock = { setIcon: jest.fn(), setMenu: jest.fn() };
+
+    const mainWindow = createWindow(
+      false,
+      app,
+      createStore({ minimizeInsteadOfClose: false }),
+      "/tmp/downloads",
+      () => "1.3.6",
+      "",
+      "",
+      "",
+      () => true,
+    );
+    const preventDefault = jest.fn();
+
+    mainWindow._events.close({ preventDefault });
+
+    expect(preventDefault).not.toHaveBeenCalled();
+    expect(app.quit).not.toHaveBeenCalled();
+  });
 });

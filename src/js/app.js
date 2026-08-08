@@ -485,11 +485,13 @@ shutdownCoordinator.register("application-runtime", async () => {
 });
 
 app.on("before-quit", (event) => {
+  mainLogger.info("app-before-quit", { shutdownCompleted });
   if (shutdownCompleted) return;
   event.preventDefault();
   void shutdownCoordinator.stop().finally(() => {
     shutdownCompleted = true;
-    app.quit();
+    mainLogger.info("shutdown-completed-requesting-quit");
+    setImmediate(() => app.quit());
   });
 });
 

@@ -420,7 +420,7 @@ function createWindow(
         );
         store.set("isCloseNotificationShown", true);
       }
-    } else {
+    } else if (!app.isQuitting) {
       app.quit();
     }
   });
