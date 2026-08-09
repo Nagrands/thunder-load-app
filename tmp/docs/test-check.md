@@ -1,8 +1,8 @@
 ## Автотесты (Jest)
 
 - Автосборка списка: `npm run test-check:sync-tests`
-- Найдено файлов: 150
-- Найдено тест-кейсов (test/it): 1298
+- Найдено файлов: 152
+- Найдено тест-кейсов (test/it): 1309
 
 <!-- AUTO-JEST-TESTS:START -->
 
@@ -470,6 +470,10 @@
 - [ ] adds listbox semantics and opens from the keyboard
 - [ ] supports arrow navigation, selection and Escape
 
+### `src/js/modules/__tests__/actionMenu.test.js` (2)
+- [ ] supports dynamic state, keyboard navigation and focus restoration
+- [ ] dispatches an enabled action
+
 ### `src/js/modules/__tests__/backupView.performance.test.js` (7)
 - [ ] does not start backup hints timers on tab activation
 - [ ] renders compact backup toolbar without hints block
@@ -501,7 +505,7 @@
 - [ ] runs action on Enter
 - [ ] closes menu on Escape
 - [ ] does not execute disabled menu item
-- [ ] hides context menu immediately when delete confirmation opens
+- [ ] removes a history entry without a confirmation modal
 - [ ] retry scrolls to URL input and focuses it
 - [ ] uses html-enabled toast after entry deletion
 - [ ] deletes history entry when stored id is a string
@@ -872,7 +876,7 @@
 - [ ] keeps a pinned sidebar visible across pointer leave and restores it
 - [ ] syncs fullscreen state and removes external listeners on dispose
 
-### `src/js/modules/__tests__/nowPlayingMediaLibraryModel.test.js` (12)
+### `src/js/modules/__tests__/nowPlayingMediaLibraryModel.test.js` (13)
 - [ ] migrates the V1 queue into the virtual media library
 - [ ] defaults invalid control positions to top
 - [ ] sanitizes broken playlist references and falls back to the library
@@ -883,6 +887,7 @@
 - [ ] returns defensive state copies
 - [ ] migrates V2 metadata and keeps the active network playlist
 - [ ] returns defensive copies of quality selections
+- [ ] atomically replaces state for undo restoration
 - [ ] persists favorites and exposes them as an active smart collection
 - [ ] returns at most 50 dated recent imports and keeps duplicate timestamps
 
@@ -1002,7 +1007,7 @@
 - [ ] announces only a natural end of the final playlist item
 - [ ] autohides controls only while playing and locks them on interaction
 - [ ] supports row keyboard selection, removal and queue clearing
-- [ ] clears every item from the system Media Library after confirmation
+- [ ] clears every item from the system Media Library with undo
 - [ ] clears only filtered items from the system Media Library
 - [ ] closes current playback from the mini-player without removing media
 - [ ] renders the V2 media library, playlists and persistent mini-player
@@ -1224,7 +1229,7 @@
 - [ ] uses showToast allowHtml for font size toasts
 - [ ] uses showToast allowHtml for theme toasts
 
-### `src/js/modules/__tests__/settingsModal.test.js` (17)
+### `src/js/modules/__tests__/settingsModal.test.js` (18)
 - [ ] opens and closes mobile sections panel via toggle
 - [ ] closes mobile panel and updates active label after tab click
 - [ ] supports arrow, Home and End keyboard navigation between tabs
@@ -1234,6 +1239,7 @@
 - [ ] closeSettings removes modal scroll lock
 - [ ] Escape closes settings through the modal lifecycle
 - [ ] Escape inside an open dropdown is left to the dropdown handler
+- [ ] uses the shared destructive confirmation for a full reset
 - [ ] external theme updates synchronize aria-selected
 - [ ] modal manager close request uses closeSettings cleanup
 - [ ] closeSettings suppresses settings trigger tooltip while focus is restored
@@ -1278,7 +1284,7 @@
 ### `src/js/modules/__tests__/themeManager.test.js` (1)
 - [ ] falls back from removed light theme to dark
 
-### `src/js/modules/__tests__/toast.test.js` (8)
+### `src/js/modules/__tests__/toast.test.js` (10)
 - [ ] keeps the legacy positional API and renders compact toast metadata
 - [ ] supports object options without breaking existing callers
 - [ ] renders allowed html tags when allowHtml=true
@@ -1287,6 +1293,8 @@
 - [ ] closes from the icon button and Escape
 - [ ] limits visible toasts to five
 - [ ] returns a loading toast controller that updates and closes
+- [ ] updates an operation notification in place and deduplicates its id
+- [ ] supports notification actions
 
 ### `src/js/modules/__tests__/tools.cleanupRegistry.test.js` (2)
 - [ ] removes window listeners and pending timers on dispose
@@ -1445,6 +1453,13 @@
 - [ ] uses the documented state priority
 - [ ] sends startup state and only sends actual changes
 - [ ] restores the derived state after reconnecting
+
+### `src/js/modules/__tests__/uiStateController.test.js` (5)
+- [ ] exposes the canonical states
+- [ ] renders loading progress and structural skeletons
+- [ ] renders actions and uses assertive errors
+- [ ] restores content and attributes on reset/dispose
+- [ ] applies the shared contract to existing status elements
 
 ### `src/js/modules/__tests__/updateHandler.test.js` (15)
 - [ ] renders localized update available flyover and focuses primary action

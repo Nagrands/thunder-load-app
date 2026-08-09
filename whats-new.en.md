@@ -6,6 +6,8 @@
 - Centralized shutdown for Player, downloads, tools, and Web Control without leaving yt-dlp/FFmpeg processes behind.
 - Fixed races in parallel downloads, IPC re-registration, and rapid media switching.
 - Added local event-level logs, an opt-in detailed mode, and safe diagnostic ZIP export in Settings.
+- Unified loading, success, warning, error, and empty states; reversible history, queue, and media-library removals now support Undo.
+- Standardized context menus, notifications, progress, focus, and reduced-motion behavior across Desktop and Web Control.
 
 | What changed                 | What you get                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
