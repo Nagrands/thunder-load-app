@@ -185,10 +185,9 @@ function cleanupLegacyToolsSettings() {
 
 async function applyPlatformClass() {
   try {
-    const { isMac } = await window.electron.getPlatformInfo();
-    if (isMac) {
-      document.body.classList.add("is-mac");
-    }
+    const { isMac, isWindows } = await window.electron.getPlatformInfo();
+    document.body.classList.toggle("is-mac", Boolean(isMac));
+    document.body.classList.toggle("is-windows", Boolean(isWindows));
   } catch (error) {
     logRenderer("warning", "platform-info-unavailable", { error });
   }

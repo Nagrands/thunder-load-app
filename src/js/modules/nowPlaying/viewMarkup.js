@@ -305,13 +305,13 @@ export function buildNowPlayingMarkup() {
           <button
             type="button"
             class="now-playing__window-action now-playing__window-action--close"
-            data-window-action="close"
-            data-i18n-aria="topbar.close"
-            data-i18n-title="topbar.close"
+            data-action="close-playback"
+            data-i18n-aria="nowPlaying.closePlayback"
+            data-i18n-title="nowPlaying.closePlayback"
             data-bs-toggle="tooltip"
             data-bs-placement="bottom"
-            aria-label="${t("topbar.close")}"
-            title="${t("topbar.close")}"
+            aria-label="${t("nowPlaying.closePlayback")}"
+            title="${t("nowPlaying.closePlayback")}"
           >
             <i data-lucide="x" aria-hidden="true"></i>
           </button>
@@ -594,16 +594,46 @@ export function buildNowPlayingMarkup() {
             <i data-lucide="x" aria-hidden="true"></i>
           </button>
         </div>
-        <button
-          class="player-library__close"
-          type="button"
-          data-action="show-player"
-          data-i18n-aria="nowPlaying.library.close"
-          aria-label="${t("nowPlaying.library.close")}"
-        >
-          <i data-lucide="panel-top-open" aria-hidden="true"></i>
-          <span data-i18n="nowPlaying.library.close">${t("nowPlaying.library.close")}</span>
-        </button>
+        <div class="player-library__header-controls">
+          <button
+            class="player-library__close"
+            type="button"
+            data-action="show-player"
+            data-i18n-aria="nowPlaying.library.close"
+            aria-label="${t("nowPlaying.library.close")}"
+          >
+            <i data-lucide="panel-top-open" aria-hidden="true"></i>
+            <span data-i18n="nowPlaying.library.close">${t("nowPlaying.library.close")}</span>
+          </button>
+          <div class="player-library__window-controls">
+            <button
+              type="button"
+              class="now-playing__window-action now-playing__window-action--minimize"
+              data-window-action="minimize"
+              data-i18n-aria="topbar.minimize"
+              data-i18n-title="topbar.minimize"
+              data-bs-toggle="tooltip"
+              data-bs-placement="bottom"
+              aria-label="${t("topbar.minimize")}"
+              title="${t("topbar.minimize")}"
+            >
+              <i data-lucide="minus" aria-hidden="true"></i>
+            </button>
+            <button
+              type="button"
+              class="now-playing__window-action now-playing__window-action--close"
+              data-window-action="close"
+              data-i18n-aria="topbar.close"
+              data-i18n-title="topbar.close"
+              data-bs-toggle="tooltip"
+              data-bs-placement="bottom"
+              aria-label="${t("topbar.close")}"
+              title="${t("topbar.close")}"
+            >
+              <i data-lucide="x" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
       </header>
       <div class="player-library__command-bar">
         ${libraryIconButton("toggle-library-sidebar", "panel-left", "nowPlaying.library.collections", "player-library__sidebar-toggle")}

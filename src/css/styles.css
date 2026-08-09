@@ -37879,7 +37879,24 @@ body.low-effects .now-playing .now-playing__visualizer-panel {
 .player-library__close {
   min-width: 250px;
   padding: 0 16px;
+}
+
+.player-library__header-controls {
+  display: flex;
+  min-width: 0;
+  align-items: center;
   justify-self: end;
+  gap: 8px;
+}
+
+.player-library__window-controls {
+  display: none;
+  align-items: center;
+  gap: 8px;
+}
+
+body.is-windows .player-library__window-controls {
+  display: flex;
 }
 
 .player-library__search {

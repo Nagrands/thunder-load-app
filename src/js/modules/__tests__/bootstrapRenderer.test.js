@@ -14,7 +14,10 @@ describe("bootstrapRenderer", () => {
     `;
     window.bootstrap = {};
     window.electron = {
-      getPlatformInfo: jest.fn().mockResolvedValue({ isMac: false }),
+      getPlatformInfo: jest.fn().mockResolvedValue({
+        isMac: false,
+        isWindows: true,
+      }),
     };
     mocks = {
       initHistory: jest.fn(),
@@ -236,6 +239,8 @@ describe("bootstrapRenderer", () => {
     expect(mocks.initWindowControls).toHaveBeenCalled();
     expect(mocks.initFirstRunModal).toHaveBeenCalled();
     expect(mocks.registerStatusMessageListener).toHaveBeenCalled();
+    expect(document.body.classList.contains("is-windows")).toBe(true);
+    expect(document.body.classList.contains("is-mac")).toBe(false);
     expect(document.body.classList.contains("ready")).toBe(true);
     expect(preloader.isConnected).toBe(false);
 

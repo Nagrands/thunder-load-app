@@ -130,7 +130,23 @@ describe("uiSettingsIpcHandlers", () => {
     });
     const { CHANNELS } = register();
 
-    expect(handlers[CHANNELS.GET_PLATFORM_INFO]()).toEqual({ isMac: true });
+    expect(handlers[CHANNELS.GET_PLATFORM_INFO]()).toEqual({
+      isMac: true,
+      isWindows: false,
+    });
+  });
+
+  test("identifies Windows in platform info", () => {
+    Object.defineProperty(process, "platform", {
+      value: "win32",
+      configurable: true,
+    });
+    const { CHANNELS } = register();
+
+    expect(handlers[CHANNELS.GET_PLATFORM_INFO]()).toEqual({
+      isMac: false,
+      isWindows: true,
+    });
   });
 
   test("forwards toast events to renderer", () => {

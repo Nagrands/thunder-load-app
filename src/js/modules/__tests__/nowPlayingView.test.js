@@ -11,6 +11,7 @@ jest.mock("../toast.js", () => ({
 
 import { showConfirmationDialog } from "../modals.js";
 import { showToast } from "../toast.js";
+import { initWindowControls } from "../windowControls.js";
 import { createNowPlayingView } from "../nowPlaying/nowPlayingView.js";
 import {
   PLAYER_COMMANDS,
@@ -88,6 +89,8 @@ describe("Now Playing view", () => {
     document.documentElement.classList.remove("low-effects");
     fullscreenChangedHandler = null;
     window.electron = {
+      minimize: jest.fn(),
+      close: jest.fn(),
       fullscreen: {
         getState: jest.fn().mockResolvedValue({
           success: true,
@@ -233,7 +236,7 @@ describe("Now Playing view", () => {
       ),
     ).toHaveLength(0);
     expect(view.element.querySelectorAll("[data-window-action]")).toHaveLength(
-      2,
+      3,
     );
     expect(
       view.element.querySelector(".now-playing__sidebar-toolbar"),
@@ -2486,6 +2489,116 @@ describe("Now Playing view", () => {
       view.element.querySelector('[data-action="close-playback"] span')
         .textContent,
     ).toBe("nowPlaying.closePlayback");
+    view.dispose();
+  });
+
+  test("closes current playback from the Player topbar without closing the app", async () => {
+    const api = {
+      getState: jest.fn().mockResolvedValue({
+        data: {
+          version: 3,
+          catalog: { tracks: [sampleTrack] },
+          playlists: [],
+          activePlaylistId: "media-library",
+          selectedTrackId: "demo",
+        },
+      }),
+      setState: jest.fn().mockResolvedValue({ success: true }),
+      importFiles: jest.fn(),
+      importFolder: jest.fn(),
+    };
+    const view = createNowPlayingView({ api });
+    document.body.appendChild(view.element);
+    await view.ready;
+
+    const closeButton = view.element.querySelector(
+      '.now-playing__player-topbar [data-action="close-playback"]',
+    );
+    expect(closeButton.dataset.windowAction).toBeUndefined();
+    expect(closeButton.getAttribute("aria-label")).toBe(
+      "nowPlaying.closePlayback",
+    );
+
+    closeButton.click();
+    await Promise.resolve();
+
+    expect(window.electron.close).not.toHaveBeenCalled();
+    expect(view.element.classList.contains("is-library-view")).toBe(true);
+    expect(
+      view.element.querySelectorAll(
+        '[data-ui="library-tracks"] .player-library__track',
+      ),
+    ).toHaveLength(1);
+    expect(view.element.querySelector('[data-ui="mini-player"]').hidden).toBe(
+      true,
+    );
+    view.dispose();
+  });
+
+  test("leaves the current view unchanged when no media can be closed", async () => {
+    const api = {
+      getState: jest.fn().mockResolvedValue({
+        data: {
+          version: 3,
+          catalog: { tracks: [] },
+          playlists: [],
+          activePlaylistId: "media-library",
+          selectedTrackId: null,
+        },
+      }),
+      setState: jest.fn().mockResolvedValue({ success: true }),
+      importFiles: jest.fn(),
+      importFolder: jest.fn(),
+    };
+    const view = createNowPlayingView({ api });
+    document.body.appendChild(view.element);
+    await view.ready;
+    const wasLibraryView = view.element.classList.contains("is-library-view");
+
+    view.element
+      .querySelector(
+        '.now-playing__player-topbar [data-action="close-playback"]',
+      )
+      .click();
+    await Promise.resolve();
+
+    expect(window.electron.close).not.toHaveBeenCalled();
+    expect(view.element.classList.contains("is-library-view")).toBe(
+      wasLibraryView,
+    );
+    view.dispose();
+  });
+
+  test("routes Media Library window controls to the Electron window", async () => {
+    const api = {
+      getState: jest.fn().mockResolvedValue({
+        data: {
+          version: 3,
+          catalog: { tracks: [sampleTrack] },
+          playlists: [],
+          activePlaylistId: "media-library",
+          selectedTrackId: "demo",
+        },
+      }),
+      setState: jest.fn().mockResolvedValue({ success: true }),
+      importFiles: jest.fn(),
+      importFolder: jest.fn(),
+    };
+    const view = createNowPlayingView({ api });
+    document.body.appendChild(view.element);
+    const disposeWindowControls = initWindowControls(view.element);
+    await view.ready;
+
+    view.element.querySelector('[data-action="show-library"]').click();
+    const windowControls = view.element.querySelector(
+      ".player-library__window-controls",
+    );
+    windowControls.querySelector('[data-window-action="minimize"]').click();
+    windowControls.querySelector('[data-window-action="close"]').click();
+
+    expect(window.electron.minimize).toHaveBeenCalledTimes(1);
+    expect(window.electron.close).toHaveBeenCalledTimes(1);
+    disposeWindowControls();
     view.dispose();
   });
 

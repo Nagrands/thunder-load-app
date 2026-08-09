@@ -2,7 +2,7 @@
 
 - Автосборка списка: `npm run test-check:sync-tests`
 - Найдено файлов: 152
-- Найдено тест-кейсов (test/it): 1309
+- Найдено тест-кейсов (test/it): 1314
 
 <!-- AUTO-JEST-TESTS:START -->
 
@@ -52,7 +52,8 @@
 - [ ] returns true for Compress-Archive module autoload failure
 - [ ] returns false for unrelated powershell error
 
-### `src/js/app/__tests__/brandAssets.test.js` (4)
+### `src/js/app/__tests__/brandAssets.test.js` (5)
+- [ ] Windows app and NSIS packages use the approved Thunder ICO
 - [ ] runtime icon paths resolve from Electron app.getAppPath
 - [ ] app and platform outputs contain the required sizes
 - [ ] menu and notification assets keep their runtime dimensions
@@ -368,13 +369,14 @@
 - [ ] keeps the current image when a resource is missing
 - [ ] rejects invalid states without throwing
 
-### `src/js/app/__tests__/uiSettingsIpcHandlers.test.js` (7)
+### `src/js/app/__tests__/uiSettingsIpcHandlers.test.js` (8)
 - [ ] registers ui settings channels
 - [ ] routes window controls through the tracked IPC registrar
 - [ ] reads and writes default tab
 - [ ] reads and writes theme
 - [ ] reads and writes font size
 - [ ] returns platform info
+- [ ] identifies Windows in platform info
 - [ ] forwards toast events to renderer
 
 ### `src/js/app/__tests__/updateDevIpcHandlers.test.js` (5)
@@ -437,7 +439,7 @@
 
 ### `src/js/app/__tests__/window.trayRuntime.test.js` (7)
 - [ ] handles click/double-click/right-click and refresh events on windows tray
-- [ ] sets the Thunder icon explicitly for the packaged Windows taskbar
+- [ ] uses the packaged executable icon for the Windows taskbar
 - [ ] creates a template tray image on macOS
 - [ ] window close respects minimize-to-tray behavior on Windows
 - [ ] keeps one application tray and targets the recreated window
@@ -972,7 +974,7 @@
 - [ ] keeps insertion order and supports reorder, removal and filtering
 - [ ] never exposes mutable internal items
 
-### `src/js/modules/__tests__/nowPlayingView.test.js` (49)
+### `src/js/modules/__tests__/nowPlayingView.test.js` (52)
 - [ ] renders an accessible player and restores selectedTrackId
 - [ ] provides keyboard navigation and focus restoration for the Player menu
 - [ ] uses a safe topbar artwork fallback when the cover fails
@@ -1010,6 +1012,9 @@
 - [ ] clears every item from the system Media Library with undo
 - [ ] clears only filtered items from the system Media Library
 - [ ] closes current playback from the mini-player without removing media
+- [ ] closes current playback from the Player topbar without closing the app
+- [ ] leaves the current view unchanged when no media can be closed
+- [ ] routes Media Library window controls to the Electron window
 - [ ] renders the V2 media library, playlists and persistent mini-player
 - [ ] can remove playlist files from the media library when deleting it
 - [ ] loads a video poster eagerly for the current card and library mini-player

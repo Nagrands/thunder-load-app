@@ -15,7 +15,10 @@ function registerUiSettingsIpcHandlers({ ipcMain, mainWindow, store }) {
   );
 
   ipcMain.handle(CHANNELS.GET_PLATFORM_INFO, () => {
-    return { isMac: process.platform === "darwin" };
+    return {
+      isMac: process.platform === "darwin",
+      isWindows: process.platform === "win32",
+    };
   });
 
   ipcMain.handle(CHANNELS.GET_THEME, () => {
