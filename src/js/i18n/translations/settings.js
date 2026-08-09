@@ -382,6 +382,9 @@ export const settingsTranslations = {
     "settings.config.import.success": "Конфигурация успешно импортирована",
     "settings.config.import.error": "Ошибка импорта: {error}",
     "settings.reset.confirm": "Вы уверены, что хотите сбросить все настройки?",
+    "settings.reset.title": "Сбросить все настройки?",
+    "settings.reset.subtitle": "Это изменит конфигурацию всего приложения",
+    "settings.reset.action": "Сбросить настройки",
     "settings.reset.error":
       "Не удалось сбросить настройки. Проверьте консоль для подробностей.",
     "settings.reset.success": "Настройки сброшены на значения по умолчанию",
@@ -750,6 +753,9 @@ export const settingsTranslations = {
     "settings.config.import.success": "Configuration imported successfully",
     "settings.config.import.error": "Import error: {error}",
     "settings.reset.confirm": "Are you sure you want to reset all settings?",
+    "settings.reset.title": "Reset all settings?",
+    "settings.reset.subtitle": "This changes the configuration for the entire app",
+    "settings.reset.action": "Reset settings",
     "settings.reset.error":
       "Failed to reset settings. Check the console for details.",
     "settings.reset.success": "Settings reset to defaults",

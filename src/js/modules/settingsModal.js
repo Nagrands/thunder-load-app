@@ -13,6 +13,7 @@ import { t } from "./i18n.js";
 import { initFirstRunModal } from "./firstRunModal.js";
 import { hideAllTooltips } from "./tooltipInitializer.js";
 import { showToast } from "./toast.js";
+import { showConfirmationDialog } from "./modals.js";
 import {
   acquireBodyScrollLock,
   releaseBodyScrollLock,
@@ -504,13 +505,27 @@ export function initSettingsModal() {
 
   if (resetBtn) {
     resetBtn.addEventListener("click", async () => {
-      if (!confirm(t("settings.reset.confirm"))) return;
+      const confirmed = await showConfirmationDialog({
+        title: t("settings.reset.title"),
+        subtitle: t("settings.reset.subtitle"),
+        message: t("settings.reset.confirm"),
+        confirmText: t("settings.reset.action"),
+        cancelText: t("confirm.default.cancel"),
+        tone: "danger",
+      });
+      if (!confirmed) return;
 
       try {
+        resetBtn.disabled = true;
+        resetBtn.setAttribute("aria-busy", "true");
         await resetConfigToDefaults();
+        showToast(t("settings.reset.success"), "success");
       } catch (error) {
         console.error("Ошибка при сбросе настроек:", error);
-        alert(t("settings.reset.error"));
+        showToast(t("settings.reset.error"), "error");
+      } finally {
+        resetBtn.disabled = false;
+        resetBtn.setAttribute("aria-busy", "false");
       }
     });
   }

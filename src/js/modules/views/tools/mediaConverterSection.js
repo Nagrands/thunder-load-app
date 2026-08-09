@@ -1,3 +1,5 @@
+import { applyUiState } from "../../uiStateController.js";
+
 const TARGET_FORMATS = [
   { value: "mp4", groupKey: "tools.converter.group.video" },
   { value: "webm", groupKey: "tools.converter.group.video" },
@@ -232,6 +234,10 @@ export function initMediaConverterSection({
       ? messageKeyOrText
       : t(messageKeyOrText);
     elements.result.className = `converter-result is-${tone}`;
+    applyUiState(elements.result, {
+      kind: tone === "idle" ? "idle" : tone,
+      operationId: state.requestId,
+    });
   };
 
   const setProgress = ({ percent = 0, visible = true, labelKey } = {}) => {
@@ -250,6 +256,10 @@ export function initMediaConverterSection({
       elements.progressBar.style.width = `${safePercent}%`;
     }
     elements.progressTrack?.setAttribute("aria-valuenow", String(safePercent));
+    applyUiState(elements.progress, {
+      kind: visible ? (safePercent >= 100 ? "success" : "loading") : "idle",
+      operationId: state.requestId,
+    });
   };
 
   const updateSelectedButtons = () => {

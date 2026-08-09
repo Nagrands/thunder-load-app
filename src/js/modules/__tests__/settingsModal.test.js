@@ -27,6 +27,10 @@ jest.mock("../toast.js", () => ({
   showToast: jest.fn(),
 }));
 
+jest.mock("../modals.js", () => ({
+  showConfirmationDialog: jest.fn(async () => true),
+}));
+
 jest.mock("../domElements.js", () => ({
   get settingsModal() {
     return global.document.getElementById("settings-modal");
@@ -46,7 +50,8 @@ describe("settingsModal mobile sections navigation", () => {
         <button id="first-run-reset-button" type="button"></button>
         <button id="settings-about-whats-new-button" type="button"></button>
         <button id="settings-about-copy-info-button" type="button"></button>
-        <button id="settings-about-check-updates-button" type="button"></button>
+      <button id="settings-about-check-updates-button" type="button"></button>
+      <button id="reset-config-button" type="button"></button>
         <div class="dropdown">
           <button class="dropdown-toggle" aria-expanded="true" type="button"></button>
           <ul class="dropdown-menu show"><li id="dropdown-option" tabindex="-1">Option</li></ul>
@@ -299,6 +304,32 @@ describe("settingsModal mobile sections navigation", () => {
 
     expect(document.getElementById("settings-modal").style.display).toBe(
       "flex",
+    );
+  });
+
+  test("uses the shared destructive confirmation for a full reset", async () => {
+    let mod;
+    let showConfirmationDialog;
+    let resetConfigToDefaults;
+    let showToast;
+    jest.isolateModules(() => {
+      mod = require("../settingsModal.js");
+      ({ showConfirmationDialog } = require("../modals.js"));
+      ({ resetConfigToDefaults } = require("../settings.js"));
+      ({ showToast } = require("../toast.js"));
+      mod.initSettingsModal();
+    });
+    document.getElementById("reset-config-button").click();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(showConfirmationDialog).toHaveBeenCalledWith(
+      expect.objectContaining({ tone: "danger" }),
+    );
+    expect(resetConfigToDefaults).toHaveBeenCalledTimes(1);
+    expect(showToast).toHaveBeenCalledWith(
+      "settings.reset.success",
+      "success",
     );
   });
 

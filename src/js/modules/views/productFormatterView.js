@@ -10,6 +10,7 @@ import {
 import { cleanupEntryText } from "../formatters/productListFormatterParsing.js";
 import { applyI18n, t } from "../i18n.js";
 import { initTooltips } from "../tooltipInitializer.js";
+import { applyUiState } from "../uiStateController.js";
 import {
   buildComparison,
   copyText,
@@ -195,6 +196,7 @@ export default function renderProductFormatterView(wrapper) {
     status.textContent = message;
     if (tone) status.dataset.tone = tone;
     else delete status.dataset.tone;
+    applyUiState(status, { kind: tone || "idle" });
   };
 
   const getCurrentSource = () => String(input?.value || "").trim();
@@ -423,7 +425,7 @@ export default function renderProductFormatterView(wrapper) {
     state.formattingRunId += 1;
     const runId = state.formattingRunId;
     if (statusMessage) {
-      setStatus(t("productsFormatter.status.formatting"));
+      setStatus(t("productsFormatter.status.formatting"), "loading");
     }
     try {
       const result = formatProductLists(

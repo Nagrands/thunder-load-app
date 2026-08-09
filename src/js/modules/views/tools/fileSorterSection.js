@@ -1,5 +1,6 @@
 import { showConfirmationDialog } from "../../modals.js";
 import { initTooltips } from "../../tooltipInitializer.js";
+import { applyUiState } from "../../uiStateController.js";
 
 const SORTER_LAST_FOLDER_KEY = "toolsSorterLastFolder";
 const SORTER_RULES_KEY = "toolsSorterRules";
@@ -272,6 +273,9 @@ export function initFileSorterSection({ view, getEl, t }) {
     if (!elements.result) return;
     elements.result.textContent = message;
     elements.result.className = `quick-action-result ${tone}`;
+    applyUiState(elements.result, {
+      kind: tone === "muted" ? "idle" : tone,
+    });
   };
 
   const getConfig = () => ({

@@ -314,10 +314,3 @@ function showConfirmationDialog(options, onConfirm, onCancel) {
 }
 
 export { showConfirmationDialog };
-
-// Глобальное закрытие модальных окон по клавише Escape
-window.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") {
-    closeAllModalsFunction();
-  }
-});

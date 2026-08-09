@@ -1,3 +1,5 @@
+import { applyUiState } from "../../uiStateController.js";
+
 function createMarkup(t, { allowPickFile = true, variant = "tools" } = {}) {
   const pickButton = allowPickFile
     ? `
@@ -448,6 +450,7 @@ export function initMediaInspectorPanel({
     if (!statusEl) return;
     statusEl.className = `media-inspector-status is-${state}`;
     statusEl.textContent = t(messageKey);
+    applyUiState(statusEl, { kind: state });
   };
 
   const showState = (
@@ -473,6 +476,7 @@ export function initMediaInspectorPanel({
       return;
     }
     stateEl.className = `media-inspector-state media-inspector-state--${mode}`;
+    applyUiState(stateEl, { kind: mode });
     stateEl.classList.remove("hidden");
     stateTitleEl.textContent = t(titleKey);
     stateBodyEl.textContent = isText ? bodyKeyOrText : t(bodyKeyOrText);

@@ -1,4 +1,5 @@
 import { t } from "../../i18n.js";
+import { applyUiState } from "../../uiStateController.js";
 import {
   acquireDocumentScrollLock,
   releaseDocumentScrollLock,
@@ -918,6 +919,14 @@ export const initHashCheckSection = ({ view, cleanup }) => {
     if (hashResultEl) {
       hashResultEl.textContent = message || t(messageKey);
       hashResultEl.className = `quick-action-result ${statusTone}`;
+      applyUiState(hashResultEl, {
+        kind:
+          statusKey === "hashCheck.status.calculating"
+            ? "loading"
+            : statusTone === "muted"
+              ? "idle"
+              : statusTone,
+      });
     }
     if (hashActualValueEl)
       hashActualValueEl.textContent = hashActualValueFirst || "-";
