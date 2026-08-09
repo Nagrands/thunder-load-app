@@ -25,6 +25,7 @@ function filterAndSortHistory(query, sortOrder = "desc", forceRender = false) {
   const sorted = selectHistoryEntries(getHistoryData(), {
     query: normalizedQuery,
     source: state.historySourceFilter,
+    status: state.historyStatusFilter,
     mode: state.currentSortMode,
     sortKey: state.currentSortKey,
     sortOrder,
@@ -35,7 +36,7 @@ function filterAndSortHistory(query, sortOrder = "desc", forceRender = false) {
     Math.ceil(totalEntries / state.historyPageSize),
   );
   state.historyPage = Math.max(1, Math.min(state.historyPage, totalPages));
-  const renderKey = `${sorted.map((entry) => `${entry.id}|${entry.timestamp}`).join(",")}|p${state.historyPage}|s${state.historyPageSize}|q${normalizedQuery}|src${state.historySourceFilter}|k${state.currentSortKey}|o${sortOrder}|m${state.currentSortMode}`;
+  const renderKey = `${sorted.map((entry) => `${entry.id}|${entry.timestamp}`).join(",")}|p${state.historyPage}|s${state.historyPageSize}|q${normalizedQuery}|src${state.historySourceFilter}|st${state.historyStatusFilter}|k${state.currentSortKey}|o${sortOrder}|m${state.currentSortMode}`;
   if (!forceRender && renderKey === lastRenderedKey) return;
   lastRenderedKey = renderKey;
   const start = (state.historyPage - 1) * state.historyPageSize;

@@ -1020,16 +1020,6 @@
 
             <div class="history-action-segment history-action-segment--danger">
               <button
-                id="delete-selected"
-                class="history-action-button hidden"
-                aria-label="Удалить выбранные записи"
-                data-hint="Удалить выбранные"
-                data-i18n-aria="history.deleteSelected"
-                data-i18n-hint="history.deleteSelected"
-              >
-                <i data-lucide="trash-2"></i>
-              </button>
-              <button
                 id="clear-history"
                 data-shortcut-action="history.clear"
                 class="history-action-button"
@@ -1197,6 +1187,23 @@
               </div>
               <div id="history-filters-body" class="history-filters-body">
                 <div class="history-filter-group">
+                  <div class="history-filter-pill history-filter-pill--status">
+                    <i data-lucide="circle-check-big"></i>
+                    <div class="history-filter-meta">
+                      <span data-i18n="history.filter.status.label">Состояние</span>
+                      <select
+                        id="history-status-filter"
+                        class="history-filter-select"
+                        aria-label="Фильтр по состоянию"
+                        data-i18n-aria="history.filter.status.label"
+                      >
+                        <option value="all" data-icon="lucide:list-filter" data-i18n="history.filter.status.all">Все</option>
+                        <option value="available" data-icon="lucide:circle-check-big" data-i18n="history.filter.status.available">Доступные</option>
+                        <option value="missing" data-icon="lucide:file-x-2" data-i18n="history.filter.status.missing">Файл удалён</option>
+                        <option value="error" data-icon="lucide:circle-alert" data-i18n="history.filter.status.error">Ошибки</option>
+                      </select>
+                    </div>
+                  </div>
                   <div class="history-filter-pill">
                     <i data-lucide="globe"></i>
                     <div class="history-filter-meta">
@@ -1280,21 +1287,37 @@
           <span data-i18n="history.bulk.selected">Выбрано</span>
           <span id="history-selected-count">0</span>
         </div>
-        <button
-          id="history-clear-selection"
-          class="history-bulk-clear"
-          type="button"
-          aria-label="Снять выделение"
-          data-i18n-aria="history.bulk.clear"
-          data-i18n="history.bulk.clear"
-        >
-          Снять выделение
-        </button>
+        <div class="history-bulk-actions" role="toolbar" aria-label="Массовые действия" data-i18n-aria="history.bulk.actions">
+          <button id="history-select-page" class="history-bulk-action" type="button" data-i18n="history.bulk.selectPage">Выбрать страницу</button>
+          <button id="history-select-filtered" class="history-bulk-action" type="button" title="Поиск не влияет на область выбора" data-i18n="history.bulk.selectFiltered" data-i18n-title="history.bulk.selectFilteredHint">Выбрать все результаты фильтра</button>
+          <button id="history-export-selected-json" class="history-bulk-action" type="button" aria-label="Экспортировать выбранные в JSON" data-i18n-aria="history.bulk.exportJson">
+            <i data-lucide="file-json"></i><span>JSON</span>
+          </button>
+          <button id="history-export-selected-csv" class="history-bulk-action" type="button" aria-label="Экспортировать выбранные в CSV" data-i18n-aria="history.bulk.exportCsv">
+            <i data-lucide="file-spreadsheet"></i><span>CSV</span>
+          </button>
+          <button id="delete-selected" class="history-bulk-action history-bulk-action--danger" type="button" aria-label="Удалить выбранные записи" data-i18n-aria="history.deleteSelected">
+            <i data-lucide="trash-2"></i><span data-i18n="history.bulk.delete">Удалить выбранные</span>
+          </button>
+          <button
+            id="history-clear-selection"
+            class="history-bulk-clear"
+            type="button"
+            aria-label="Снять выделение"
+            data-i18n-aria="history.bulk.clear"
+            data-i18n="history.bulk.clear"
+          >
+            Снять выделение
+          </button>
+        </div>
       </div>
 
       <div id="history" class="history-list" role="list"></div>
-      <div id="history-empty" class="history-empty" data-i18n="history.empty">
-        Список пуст
+      <div id="history-empty" class="history-empty">
+        <p id="history-empty-message" data-i18n="history.empty">Список пуст</p>
+        <button id="history-empty-reset-search" class="history-empty-action hidden" type="button" data-i18n="history.search.reset">
+          Сбросить поиск
+        </button>
       </div>
 
       <div id="history-pagination" class="history-pagination" data-ui="history-pagination">

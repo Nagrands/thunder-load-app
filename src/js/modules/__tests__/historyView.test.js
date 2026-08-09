@@ -51,7 +51,6 @@ const setupDom = () => {
         <button id="refresh-button"></button>
         <button id="sort-button"><i data-lucide="arrow-down-wide-narrow"></i></button>
         <button id="clear-history"></button>
-        <button id="delete-selected" class="hidden"></button>
         <button id="history-more-trigger" aria-expanded="false"></button>
         <div id="history-more-menu" class="hidden">
           <button id="restore-history" class="history-more-menu__item"></button>
@@ -104,13 +103,28 @@ const setupDom = () => {
       </div>
 
       <select id="history-source-filter"></select>
+      <select id="history-status-filter">
+        <option value="all">All</option>
+        <option value="available">Available</option>
+        <option value="missing">Missing</option>
+        <option value="error">Error</option>
+      </select>
       <select id="history-sort-key"></select>
       <select id="history-sort-mode"></select>
-      <div id="history-bulk-bar" class="history-bulk-bar hidden"></div>
-      <span id="history-selected-count"></span>
-      <button id="history-clear-selection"></button>
+      <div id="history-bulk-bar" class="history-bulk-bar hidden">
+        <span id="history-selected-count"></span>
+        <button id="history-select-page"></button>
+        <button id="history-select-filtered"></button>
+        <button id="history-export-selected-json"></button>
+        <button id="history-export-selected-csv"></button>
+        <button id="delete-selected"></button>
+        <button id="history-clear-selection"></button>
+      </div>
       <div id="history"></div>
-      <div id="history-empty"></div>
+      <div id="history-empty">
+        <p id="history-empty-message"></p>
+        <button id="history-empty-reset-search" class="hidden"></button>
+      </div>
       <div id="history-pagination" class="history-pagination" data-ui="history-pagination">
         <div class="history-page-side history-page-side--left">
           <button id="history-page-prev-fast"></button>
@@ -275,6 +289,19 @@ describe("Downloader history list", () => {
     expect(window.electron.invoke).not.toHaveBeenCalledWith("load-history");
   });
 
+  test("persists the history status filter", async () => {
+    const { initHistory } = await import("../history.js");
+    const { state } = await import("../state.js");
+    initHistory();
+    const statusFilter = document.getElementById("history-status-filter");
+
+    statusFilter.value = "error";
+    statusFilter.dispatchEvent(new Event("change", { bubbles: true }));
+
+    expect(state.historyStatusFilter).toBe("error");
+    expect(localStorage.getItem("historyStatusFilter")).toBe("error");
+  });
+
   test("initial state load uses cached stats instead of count IPC", async () => {
     window.electron.invoke.mockImplementation((channel) => {
       if (channel === "load-history") {
@@ -414,6 +441,7 @@ describe("Downloader history list", () => {
     localStorage.setItem("historyVisible", "true");
     localStorage.setItem("lastSearch", "Entry");
     localStorage.setItem("historySourceFilter", "example.com");
+    localStorage.setItem("historyStatusFilter", "available");
     localStorage.setItem("historyPageSize", "4");
     localStorage.setItem("historyDensity", "compact");
     const entries = Array.from({ length: 8 }, (_, index) =>
@@ -448,6 +476,7 @@ describe("Downloader history list", () => {
     expect(state.historyPage).toBe(2);
     expect(state.currentSearchQuery).toBe("Entry");
     expect(state.historySourceFilter).toBe("example.com");
+    expect(state.historyStatusFilter).toBe("available");
     expect(state.historyDensity).toBe("compact");
     expect(state.selectedEntries).toEqual(["6"]);
     expect(state.historyStale).toBe(false);
@@ -506,6 +535,88 @@ describe("Downloader history list", () => {
     expect(
       document.querySelector('.history-row__checkbox[data-id="kept"]').checked,
     ).toBe(true);
+  });
+
+  test("selects the current page across pagination without clearing earlier ids", async () => {
+    const entries = [
+      createEntry({ id: "page-1" }),
+      createEntry({ id: "page-2" }),
+    ];
+    const { initHistory, renderHistory } = await import("../history.js");
+    const { state, setHistoryData } = await import("../state.js");
+    setHistoryData(entries);
+    initHistory();
+
+    renderHistory([entries[0]], {
+      paged: true,
+      page: 1,
+      pageSize: 1,
+      totalEntries: 2,
+      totalPages: 2,
+      fullEntries: entries,
+    });
+    document.getElementById("history-select-page").click();
+    renderHistory([entries[1]], {
+      paged: true,
+      page: 2,
+      pageSize: 1,
+      totalEntries: 2,
+      totalPages: 2,
+      fullEntries: entries,
+    });
+    document.getElementById("history-select-page").click();
+
+    expect(state.selectedEntries).toEqual(["page-1", "page-2"]);
+  });
+
+  test("selects status results independently from the search query", async () => {
+    const entries = [
+      createEntry({ id: "available" }),
+      createEntry({ id: "missing", isMissing: true }),
+      createEntry({ id: "failed", downloadStatus: "failed", error: true }),
+    ];
+    const { initHistory, renderHistory } = await import("../history.js");
+    const { state, setHistoryData } = await import("../state.js");
+    setHistoryData(entries);
+    state.historyStatusFilter = "missing";
+    state.currentSearchQuery = "query-with-no-results";
+    initHistory();
+    renderHistory([], {
+      paged: true,
+      page: 1,
+      pageSize: 20,
+      totalEntries: 0,
+      totalPages: 1,
+      fullEntries: [],
+    });
+
+    document.getElementById("history-select-filtered").click();
+
+    expect(state.selectedEntries).toEqual(["missing"]);
+  });
+
+  test("keeps a zero-result search and shows an explicit reset action", async () => {
+    const underlying = [createEntry({ id: "entry-1" })];
+    const { initHistory, renderHistory } = await import("../history.js");
+    const { state, setHistoryData } = await import("../state.js");
+    setHistoryData(underlying);
+    state.currentSearchQuery = "not-found";
+    localStorage.setItem("lastSearch", "not-found");
+    document.getElementById("filter-input").value = "not-found";
+    initHistory();
+    renderHistory([], {
+      totalEntries: 0,
+      fullEntries: [],
+    });
+
+    const resetButton = document.getElementById("history-empty-reset-search");
+    expect(state.currentSearchQuery).toBe("not-found");
+    expect(resetButton.classList.contains("hidden")).toBe(false);
+
+    resetButton.click();
+
+    expect(state.currentSearchQuery).toBe("");
+    expect(localStorage.getItem("lastSearch")).toBeNull();
   });
 
   test("hides pagination for empty history", async () => {

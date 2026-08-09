@@ -9,6 +9,7 @@ const mockState = {
   historyPage: 1,
   historyPageSize: 20,
   historySourceFilter: "",
+  historyStatusFilter: "all",
 };
 let mockHistoryData = [];
 const mockRenderHistory = jest.fn();
@@ -37,6 +38,7 @@ describe("filterAndSortHistory", () => {
       historyPage: 1,
       historyPageSize: 20,
       historySourceFilter: "",
+      historyStatusFilter: "all",
     });
   });
 
@@ -72,6 +74,31 @@ describe("filterAndSortHistory", () => {
     expect(mockRenderHistory).toHaveBeenCalledWith(
       [],
       expect.objectContaining({ totalEntries: 0 }),
+    );
+  });
+
+  test("filters entries by availability state", async () => {
+    mockState.historyStatusFilter = "missing";
+    mockHistoryData = [
+      {
+        id: "available",
+        sourceUrl: "https://example.com/available",
+        timestamp: "2026-01-02T00:00:00.000Z",
+      },
+      {
+        id: "missing",
+        sourceUrl: "https://example.com/missing",
+        timestamp: "2026-01-01T00:00:00.000Z",
+        isMissing: true,
+      },
+    ];
+    const { filterAndSortHistory } = await import("../filterAndSortHistory.js");
+
+    filterAndSortHistory("", "desc", true);
+
+    expect(mockRenderHistory).toHaveBeenCalledWith(
+      [expect.objectContaining({ id: "missing" })],
+      expect.objectContaining({ totalEntries: 1 }),
     );
   });
 });

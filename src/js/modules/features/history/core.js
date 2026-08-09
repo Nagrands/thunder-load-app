@@ -44,6 +44,10 @@ import {
 } from "./commandRegistry.js";
 import { replaceHistoryRow } from "./renderer.js";
 import { createHistoryInspector } from "./previewInspector.js";
+import {
+  selectHistoryEntriesByIds,
+  selectHistoryEntriesByStatus,
+} from "./selectors.js";
 
 const HISTORY_IMAGE_PLACEHOLDER = "../assets/img/thumbnail-unavailable.png";
 const HISTORY_PAGE_SIZES = [4, 10, 20];
@@ -51,6 +55,7 @@ const HISTORY_TOGGLE_ANIMATION_MS = 260;
 const HISTORY_UPDATE_DEBOUNCE_MS = 120;
 const HISTORY_FILTER_DEFAULTS = {
   source: "",
+  status: "all",
   sortKey: "date",
   sortMode: "mixed",
 };
@@ -66,6 +71,7 @@ let historyCardPreviewCounter = null;
 let historyPreviewEntries = [];
 let historyPreviewIndex = -1;
 let historySourceFilterSelect = null;
+let historyStatusFilterSelect = null;
 let historyExportJsonButton = null;
 let historyExportCsvButton = null;
 let restoreHistoryButton = null;
@@ -91,6 +97,7 @@ let historyDensityButtons = {
 };
 let historySelectUIs = {
   source: null,
+  status: null,
   pageSize: null,
   sortKey: null,
   sortMode: null,
@@ -254,6 +261,8 @@ const setHistoryDensity = (value) => {
 const getHistoryActiveFiltersCount = () => {
   const sourceValue =
     historySourceFilterSelect?.value ?? state.historySourceFilter ?? "";
+  const statusValue =
+    historyStatusFilterSelect?.value ?? state.historyStatusFilter ?? "all";
   const sortKeyValue =
     historySortKeySelect?.value ?? state.currentSortKey ?? "date";
   const sortModeValue =
@@ -261,6 +270,7 @@ const getHistoryActiveFiltersCount = () => {
 
   let count = 0;
   if (sourceValue !== HISTORY_FILTER_DEFAULTS.source) count += 1;
+  if (statusValue !== HISTORY_FILTER_DEFAULTS.status) count += 1;
   if (sortKeyValue !== HISTORY_FILTER_DEFAULTS.sortKey) count += 1;
   if (sortModeValue !== HISTORY_FILTER_DEFAULTS.sortMode) count += 1;
   return count;
@@ -297,6 +307,10 @@ const resetHistoryFilters = () => {
     historySourceFilterSelect,
     HISTORY_FILTER_DEFAULTS.source,
   );
+  const statusChanged = applySelectValue(
+    historyStatusFilterSelect,
+    HISTORY_FILTER_DEFAULTS.status,
+  );
   const sortKeyChanged = applySelectValue(
     historySortKeySelect,
     HISTORY_FILTER_DEFAULTS.sortKey,
@@ -306,7 +320,7 @@ const resetHistoryFilters = () => {
     HISTORY_FILTER_DEFAULTS.sortMode,
   );
 
-  if (!sourceChanged && !sortKeyChanged && !sortModeChanged) {
+  if (!sourceChanged && !statusChanged && !sortKeyChanged && !sortModeChanged) {
     updateHistoryActiveFiltersUi();
   }
 };
@@ -315,6 +329,10 @@ const syncHistorySelectValues = () => {
   if (historySourceFilterSelect) {
     historySourceFilterSelect.value = state.historySourceFilter || "";
     historySelectUIs.source?.updateLabel?.();
+  }
+  if (historyStatusFilterSelect) {
+    historyStatusFilterSelect.value = state.historyStatusFilter || "all";
+    historySelectUIs.status?.updateLabel?.();
   }
   if (paginationSize) {
     paginationSize.value = String(
@@ -676,6 +694,11 @@ function ensureHistoryControlElements() {
       "history-source-filter",
     );
   }
+  if (!historyStatusFilterSelect || !historyStatusFilterSelect.isConnected) {
+    historyStatusFilterSelect = document.getElementById(
+      "history-status-filter",
+    );
+  }
   if (!historyExportJsonButton || !historyExportJsonButton.isConnected) {
     historyExportJsonButton = document.getElementById("history-export-json");
   }
@@ -756,6 +779,9 @@ function ensureHistoryControlElements() {
 
   if (!historySelectUIs.source) {
     historySelectUIs.source = enhanceSelect(historySourceFilterSelect);
+  }
+  if (!historySelectUIs.status) {
+    historySelectUIs.status = enhanceSelect(historyStatusFilterSelect);
   }
   if (!historySelectUIs.sortKey) {
     historySelectUIs.sortKey = enhanceSelect(historySortKeySelect);
@@ -1166,28 +1192,68 @@ function toggleGroupSelection(groupKey) {
 }
 
 function updateDeleteSelectedButton() {
-  const clearBtn = document.getElementById("clear-history");
   const deleteBtn = document.getElementById("delete-selected");
   ensureHistoryControlElements();
   const selectedCount = state.selectedEntries.length;
-
-  if (!clearBtn || !deleteBtn) return;
+  const hasHistory = getHistoryData().length > 0;
+  const selectedActions = [
+    deleteBtn,
+    document.getElementById("history-export-selected-json"),
+    document.getElementById("history-export-selected-csv"),
+    historyClearSelectionButton,
+  ].filter(Boolean);
+  const pageButton = document.getElementById("history-select-page");
+  const filteredButton = document.getElementById("history-select-filtered");
+  const statusMatches = selectHistoryEntriesByStatus(
+    getHistoryData(),
+    state.historyStatusFilter,
+  );
 
   if (historyBulkBarRoot) {
-    historyBulkBarRoot.classList.toggle("hidden", selectedCount === 0);
+    historyBulkBarRoot.classList.toggle("hidden", !hasHistory);
   }
   if (historySelectedCountRoot) {
     historySelectedCountRoot.textContent = String(selectedCount);
   }
 
-  if (selectedCount > 0) {
-    clearBtn.classList.add("hidden");
-    deleteBtn.classList.remove("hidden");
-  } else {
-    clearBtn.classList.remove("hidden");
-    deleteBtn.classList.add("hidden");
-  }
+  selectedActions.forEach((button) => {
+    button.disabled = selectedCount === 0;
+    button.setAttribute("aria-disabled", button.disabled ? "true" : "false");
+  });
+  if (pageButton) pageButton.disabled = lastRenderedPageEntries.length === 0;
+  if (filteredButton) filteredButton.disabled = statusMatches.length === 0;
   updateGroupSelectionLabels();
+}
+
+function syncRenderedSelectionUi() {
+  const selectedIds = new Set(state.selectedEntries.map(String));
+  document.querySelectorAll(".history-row__checkbox").forEach((checkbox) => {
+    const id = String(checkbox.dataset.id || "");
+    const selected = selectedIds.has(id);
+    checkbox.checked = selected;
+    checkbox.closest(".history-row")?.classList.toggle("selected", selected);
+  });
+  updateDeleteSelectedButton();
+}
+
+function selectHistoryIds(entries = []) {
+  const selected = new Set(state.selectedEntries.map(String));
+  entries.forEach((entry) => {
+    const id = entry?.id?.toString?.() || "";
+    if (id) selected.add(id);
+  });
+  state.selectedEntries = Array.from(selected);
+  syncRenderedSelectionUi();
+}
+
+function selectCurrentHistoryPage() {
+  selectHistoryIds(lastRenderedPageEntries);
+}
+
+function selectAllHistoryStatusResults() {
+  selectHistoryIds(
+    selectHistoryEntriesByStatus(getHistoryData(), state.historyStatusFilter),
+  );
 }
 
 function clearHistorySelection() {
@@ -2551,12 +2617,13 @@ document
     if (!idsToDelete.length) return;
 
     const currentHistory = getHistoryData();
-    const deletedEntries = currentHistory.filter((entry) =>
-      idsToDelete.includes(entry.id.toString()),
+    const deletedEntries = selectHistoryEntriesByIds(
+      currentHistory,
+      idsToDelete,
     );
 
     const updatedHistory = currentHistory.filter(
-      (entry) => !idsToDelete.includes(entry.id.toString()),
+      (entry) => !idsToDelete.includes(String(entry?.id)),
     );
 
     // ВСТАВКА: логи до и после удаления
@@ -2739,10 +2806,12 @@ function downloadTextFile(filename, content, mime = "text/plain") {
   }
 }
 
-function exportHistory(format = "json") {
-  const entries = lastRenderedFiltered.length
-    ? lastRenderedFiltered
-    : getHistoryData();
+function exportHistory(format = "json", entriesOverride = null) {
+  const entries = Array.isArray(entriesOverride)
+    ? entriesOverride
+    : lastRenderedFiltered.length
+      ? lastRenderedFiltered
+      : getHistoryData();
   if (!entries.length) {
     showToast(t("history.toast.exportEmpty"), "warning");
     return;
@@ -2761,6 +2830,22 @@ function exportHistory(format = "json") {
   const json = JSON.stringify(entries, null, 2);
   downloadTextFile(`history_${timestamp}.json`, json, "application/json");
   showToast(t("history.toast.exportJson"), "success");
+}
+
+function exportSelectedHistory(format = "json") {
+  exportHistory(
+    format,
+    selectHistoryEntriesByIds(getHistoryData(), state.selectedEntries),
+  );
+}
+
+function resetHistorySearch() {
+  state.currentSearchQuery = "";
+  state.historyPage = 1;
+  localStorage.removeItem("lastSearch");
+  setFilterInputValue("");
+  updateSearchClearButtonVisibility();
+  filterAndSortHistory("", state.currentSortOrder, true);
 }
 
 function renderHistory(entries, meta = {}) {
@@ -2818,11 +2903,13 @@ function renderHistory(entries, meta = {}) {
 
   clearHistoryContainer(container);
   syncSelectedEntriesWith(getHistoryData());
+  updateDeleteSelectedButton();
 
   if (isEmpty) {
     const hasActiveFilters =
       Boolean(state.currentSearchQuery?.trim()) ||
-      Boolean(state.historySourceFilter);
+      Boolean(state.historySourceFilter) ||
+      state.historyStatusFilter !== HISTORY_FILTER_DEFAULTS.status;
     const hasUnderlyingHistory = getHistoryData().length > 0;
     const shouldHideControls = !hasActiveFilters && !hasUnderlyingHistory;
 
@@ -2841,9 +2928,19 @@ function renderHistory(entries, meta = {}) {
     if (filtersRow) filtersRow.classList.toggle("hidden", shouldHideControls);
 
     if (historyEmptyRoot) {
-      historyEmptyRoot.textContent = hasActiveFilters
+      const message = historyEmptyRoot.querySelector("#history-empty-message");
+      const resetSearchButton = historyEmptyRoot.querySelector(
+        "#history-empty-reset-search",
+      );
+      const messageText = hasActiveFilters
         ? t("history.empty.noFiltered")
         : t("history.empty.noRecent");
+      if (message) message.textContent = messageText;
+      else historyEmptyRoot.textContent = messageText;
+      resetSearchButton?.classList.toggle(
+        "hidden",
+        !state.currentSearchQuery?.trim(),
+      );
       historyEmptyRoot.style.display = "";
     }
     updatePaginationControls({
@@ -2860,6 +2957,9 @@ function renderHistory(entries, meta = {}) {
 
   if (historyEmptyRoot) {
     historyEmptyRoot.style.display = "none";
+    historyEmptyRoot
+      .querySelector("#history-empty-reset-search")
+      ?.classList.add("hidden");
   }
 
   // Показываем элементы поиска и действий
@@ -2971,6 +3071,19 @@ function initHistory() {
       true,
     );
   });
+  historyStatusFilterSelect?.addEventListener("change", (e) => {
+    state.historyStatusFilter =
+      e.target.value || HISTORY_FILTER_DEFAULTS.status;
+    localStorage.setItem("historyStatusFilter", state.historyStatusFilter);
+    state.historyPage = 1;
+    historySelectUIs.status?.updateLabel?.();
+    updateHistoryActiveFiltersUi();
+    filterAndSortHistory(
+      state.currentSearchQuery,
+      state.currentSortOrder,
+      true,
+    );
+  });
   historySortKeySelect?.addEventListener("change", (e) => {
     state.currentSortKey = e.target.value || HISTORY_FILTER_DEFAULTS.sortKey;
     localStorage.setItem("currentSortKey", state.currentSortKey);
@@ -3006,6 +3119,21 @@ function initHistory() {
   historyClearSelectionButton?.addEventListener("click", () =>
     clearHistorySelection(),
   );
+  document
+    .getElementById("history-select-page")
+    ?.addEventListener("click", selectCurrentHistoryPage);
+  document
+    .getElementById("history-select-filtered")
+    ?.addEventListener("click", selectAllHistoryStatusResults);
+  document
+    .getElementById("history-export-selected-json")
+    ?.addEventListener("click", () => exportSelectedHistory("json"));
+  document
+    .getElementById("history-export-selected-csv")
+    ?.addEventListener("click", () => exportSelectedHistory("csv"));
+  document
+    .getElementById("history-empty-reset-search")
+    ?.addEventListener("click", resetHistorySearch);
   toggleAllDetailsButton?.addEventListener("click", () =>
     toggleAllHistoryDetails(),
   );

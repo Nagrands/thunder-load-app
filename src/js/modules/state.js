@@ -47,6 +47,14 @@ const state = {
       return "";
     }
   })(),
+  historyStatusFilter: (() => {
+    try {
+      const value = window.localStorage.getItem("historyStatusFilter");
+      return ["available", "missing", "error"].includes(value) ? value : "all";
+    } catch {
+      return "all";
+    }
+  })(),
   deletedHistoryBuffer: [],
   historyPageSize: (() => {
     try {

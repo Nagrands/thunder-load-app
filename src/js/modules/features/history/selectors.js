@@ -11,6 +11,31 @@ const isAudioHistoryEntry = (entry) => {
   return /audio/i.test(String(quality));
 };
 
+const isFailedHistoryEntry = (entry) =>
+  entry?.downloadStatus === "failed" ||
+  entry?.status === "failed" ||
+  entry?.status === "error" ||
+  entry?.error === true;
+
+const matchesHistoryStatus = (entry, status = "all") => {
+  if (status === "missing") {
+    return Boolean(entry?.isMissing) && !isFailedHistoryEntry(entry);
+  }
+  if (status === "error") return isFailedHistoryEntry(entry);
+  if (status === "available") {
+    return !entry?.isMissing && !isFailedHistoryEntry(entry);
+  }
+  return true;
+};
+
+const selectHistoryEntriesByStatus = (entries, status = "all") =>
+  entries.filter((entry) => matchesHistoryStatus(entry, status));
+
+const selectHistoryEntriesByIds = (entries, ids = []) => {
+  const selectedIds = new Set(ids.map(String));
+  return entries.filter((entry) => selectedIds.has(String(entry?.id)));
+};
+
 const parseHistorySize = (entry) => {
   if (Number.isFinite(entry?.sizeBytes)) return Number(entry.sizeBytes);
   if (Number.isFinite(entry?.size)) return Number(entry.size);
@@ -86,6 +111,7 @@ function selectHistoryEntries(entries, options = {}) {
     .trim()
     .toLowerCase();
   const source = String(options.source || "").toLowerCase();
+  const status = options.status || "all";
   const mode = options.mode || "mixed";
   const sortKey = options.sortKey || "date";
   const sortOrder = options.sortOrder || "desc";
@@ -94,6 +120,7 @@ function selectHistoryEntries(entries, options = {}) {
     .filter(
       (entry) => !source || getHistorySourceHost(entry.sourceUrl) === source,
     )
+    .filter((entry) => matchesHistoryStatus(entry, status))
     .filter((entry) => {
       if (mode === "audio") return isAudioHistoryEntry(entry);
       if (mode === "video") return !isAudioHistoryEntry(entry);
@@ -150,4 +177,12 @@ function selectHistoryEntries(entries, options = {}) {
     .map(({ entry }) => entry);
 }
 
-export { getHistorySourceHost, isAudioHistoryEntry, selectHistoryEntries };
+export {
+  getHistorySourceHost,
+  isAudioHistoryEntry,
+  isFailedHistoryEntry,
+  matchesHistoryStatus,
+  selectHistoryEntries,
+  selectHistoryEntriesByIds,
+  selectHistoryEntriesByStatus,
+};
