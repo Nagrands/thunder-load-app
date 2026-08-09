@@ -11,13 +11,9 @@ import {
 } from "../downloadJobs.js";
 
 describe("downloadJobs selectors", () => {
-  test("keeps legacy collections in sync with the job store", () => {
+  test("uses downloadJobs as the only queue state", () => {
     const state = {
       downloadJobs: [],
-      activeDownloads: [],
-      downloadQueue: [],
-      failedDownloads: [],
-      completedDownloads: [],
       queuePaused: false,
     };
 
@@ -61,26 +57,16 @@ describe("downloadJobs selectors", () => {
     expect(getPendingDownloadJobs(state)).toHaveLength(1);
     expect(getFailedDownloadJobs(state)).toHaveLength(1);
     expect(getCompletedDownloadJobs(state)).toHaveLength(1);
-    expect(state.activeDownloads).toHaveLength(1);
-    expect(state.downloadQueue).toHaveLength(1);
-    expect(state.failedDownloads).toHaveLength(1);
-    expect(state.completedDownloads).toHaveLength(1);
     expect(getCompletedDownloadJobs(state)[0].filePath).toBe("/tmp/done.mp4");
-    expect(state.completedDownloads[0].filePath).toBe("/tmp/done.mp4");
 
     removeDownloadJob(state, "failed");
 
     expect(getFailedDownloadJobs(state)).toHaveLength(0);
-    expect(state.failedDownloads).toHaveLength(0);
   });
 
   test("replaces and clears jobs by status without touching other groups", () => {
     const state = {
       downloadJobs: [],
-      activeDownloads: [],
-      downloadQueue: [],
-      failedDownloads: [],
-      completedDownloads: [],
       queuePaused: false,
     };
 

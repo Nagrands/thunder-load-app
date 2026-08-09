@@ -37,9 +37,13 @@ import { t } from "./i18n.js";
 import { registerDismissibleOverlay } from "./overlayManager.js";
 import { focusUrlInputAfterRetry } from "./retryFocus.js";
 import {
-  assertHistorySaveResult,
-  unwrapHistoryEntries,
-} from "./historyIpcResult.js";
+  loadHistoryEntries,
+  saveHistoryEntries,
+} from "./features/history/repositoryClient.js";
+import {
+  getHistoryCommandByContextId,
+  isHistoryCommandAvailable,
+} from "./features/history/commandRegistry.js";
 
 /**
  * Текущий выбранный элемент истории
@@ -150,14 +154,15 @@ async function showContextMenu(event, logEntry) {
     console.log(`Файл существует: ${fileExists}`);
   }
 
-  // Отключаем пункты меню, если файл не существует
-  const openVideoItem = contextMenu.querySelector("#open-video");
-  const openFolderItem = contextMenu.querySelector("#open-folder");
-  const deleteFileItem = contextMenu.querySelector("#delete-file");
-
-  setMenuItemDisabled(openVideoItem, !fileExists);
-  setMenuItemDisabled(openFolderItem, !fileExists);
-  setMenuItemDisabled(deleteFileItem, !fileExists);
+  const entry = getEntryData(currentLogEntry);
+  for (const menuItem of getMenuItems()) {
+    const commandId = getHistoryCommandByContextId(menuItem.id);
+    if (!commandId) continue;
+    setMenuItemDisabled(
+      menuItem,
+      !isHistoryCommandAvailable(commandId, entry, { fileExists }),
+    );
+  }
 
   // Меню закреплено относительно viewport, поэтому используем client-координаты.
   // Это не позволяет прокрутке body повторно смещать меню.
@@ -230,18 +235,18 @@ async function handleContextMenuClick(event) {
 
   if (!menuItem || menuItem.disabled || !currentLogEntry) return;
 
-  const action = menuItem.id;
+  const action = getHistoryCommandByContextId(menuItem.id);
   const { filePath } = getEntryData(currentLogEntry);
 
   try {
     switch (action) {
-      case "open-video":
+      case "open-file":
         await handleOpenVideo(filePath);
         break;
       case "open-folder":
         await handleOpenFolder(filePath);
         break;
-      case "open-site":
+      case "open-source":
         await handleOpenSite(currentLogEntry);
         break;
       case "delete-entry":
@@ -250,7 +255,7 @@ async function handleContextMenuClick(event) {
       case "delete-file":
         await handleDeleteFile(currentLogEntry);
         break;
-      case "retry-download":
+      case "retry":
         handleRetryDownload(currentLogEntry);
         break;
       default:
@@ -453,9 +458,7 @@ async function handleDeleteEntry(logEntry) {
               (entry) => String(entry?.id) !== String(deletedEntry?.id),
             );
           }
-          assertHistorySaveResult(
-            await window.electron.invoke("save-history", restored),
-          );
+          await saveHistoryEntries(restored);
           filterAndSortHistory(
             state.currentSearchQuery,
             state.currentSortOrder,
@@ -482,9 +485,7 @@ async function handleDeleteEntry(logEntry) {
  * @returns {Object} - Объект с текущей историей и флагом удаления
  */
 async function deleteEntryFromHistory(entryId) {
-  let currentHistory = unwrapHistoryEntries(
-    await window.electron.invoke("load-history"),
-  );
+  let currentHistory = await loadHistoryEntries();
   const initialHistoryLength = currentHistory.length;
   const normalizedEntryId = String(entryId);
   const entryToDelete = currentHistory.find(
@@ -497,9 +498,7 @@ async function deleteEntryFromHistory(entryId) {
   );
 
   // Сохранение обновленной истории
-  assertHistorySaveResult(
-    await window.electron.invoke("save-history", currentHistory),
-  );
+  await saveHistoryEntries(currentHistory);
   const wasDeleted = currentHistory.length < initialHistoryLength;
   return {
     currentHistory,
@@ -526,9 +525,7 @@ async function markDeletedFileAsMissing(logEntry, deletedPath) {
   if (!changed) return;
   setHistoryData(updatedHistory);
   try {
-    assertHistorySaveResult(
-      await window.electron.invoke("save-history", updatedHistory),
-    );
+    await saveHistoryEntries(updatedHistory);
   } catch (error) {
     console.warn(
       "Не удалось сохранить статус удалённого файла в истории:",

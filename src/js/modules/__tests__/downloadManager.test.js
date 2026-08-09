@@ -2390,6 +2390,9 @@ describe("downloadManager queue smart logic", () => {
           quality: "Source",
         },
       ];
+      state.downloadQueue = [
+        { url: "https://example.com/pending", quality: "Source" },
+      ];
       updateQueueDisplay();
       expect(startBtn.disabled).toBe(false);
     });

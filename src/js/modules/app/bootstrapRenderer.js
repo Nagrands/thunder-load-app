@@ -11,7 +11,7 @@ import { initDownloaderAvailability } from "../downloaderAvailability.js";
 import { initCompactDownloaderQuality } from "../compactDownloaderQuality.js";
 import { initSort } from "../sort.js";
 import { initHistoryFilter } from "../historyFilter.js";
-import { initHistoryActions } from "../historyActions.js";
+import { initHistoryActions } from "../features/history/actions.js";
 import { initDownloadActions } from "../downloadActions.js";
 import { initDownloadCancel } from "../downloadCancel.js";
 import { initDownloadCompleteHandler } from "../downloadCompleteHandler.js";

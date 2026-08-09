@@ -69,6 +69,7 @@ const el = {
 
 let currentState = {};
 let queueFilter = "all";
+const queueRowsById = new Map();
 
 function apiUrl(path) {
   return new URL(path, window.location.origin).toString();
@@ -189,6 +190,7 @@ function renderSummary(state = {}) {
 }
 
 function renderEmptyQueue(filtered = false) {
+  queueRowsById.clear();
   el.queue.innerHTML = `<div class="queue-empty" role="listitem">
     <span class="queue-empty-icon" aria-hidden="true">${ICONS.inbox}</span>
     <p class="queue-empty-title">${
@@ -244,24 +246,46 @@ function renderState(state = {}) {
     return;
   }
 
-  el.queue.innerHTML = visibleJobs
-    .map((job, index) => {
-      const id = escapeHtml(job.jobId || job.id || job.signature);
-      const title = escapeHtml(job.title || job.url || "Без названия");
-      const url = escapeHtml(job.url || "");
-      const status = escapeHtml(getStatusLabel(job));
-      const progress = Math.max(
-        0,
-        Math.min(100, Math.round(Number(job.progress) || 0)),
-      );
-      const qualityValue = job.quality || job.qualityMode || "source";
-      const quality = escapeHtml(
-        typeof qualityValue === "object"
-          ? qualityValue.label || qualityValue.resolution || qualityValue.type
-          : qualityValue,
-      );
-      return `<article class="queue-item ${getStatusClass(job)}" role="listitem">
-        <span class="queue-progress-line" style="width:${progress}%"></span>
+  const nextIds = new Set(
+    visibleJobs.map((job) => String(job.jobId || job.id || job.signature)),
+  );
+  for (const [id, row] of queueRowsById) {
+    if (nextIds.has(id)) continue;
+    row.remove();
+    queueRowsById.delete(id);
+  }
+  for (const [index, job] of visibleJobs.entries()) {
+    const rawId = String(job.jobId || job.id || job.signature);
+    const id = escapeHtml(job.jobId || job.id || job.signature);
+    const title = escapeHtml(job.title || job.url || "Без названия");
+    const url = escapeHtml(job.url || "");
+    const status = escapeHtml(getStatusLabel(job));
+    const progress = Math.max(
+      0,
+      Math.min(100, Math.round(Number(job.progress) || 0)),
+    );
+    const qualityValue = job.quality || job.qualityMode || "source";
+    const quality = escapeHtml(
+      typeof qualityValue === "object"
+        ? qualityValue.label || qualityValue.resolution || qualityValue.type
+        : qualityValue,
+    );
+    const structureKey = JSON.stringify({
+      index,
+      id: rawId,
+      status: job.status,
+      title,
+      url,
+      quality,
+      retryable: job.retryable,
+      errorCode: job.errorCode,
+      filePath: job.filePath,
+    });
+    let row = queueRowsById.get(rawId);
+    if (!row || row.dataset.queueStructure !== structureKey) {
+      const template = document.createElement("template");
+      template.innerHTML = `<article class="queue-item ${getStatusClass(job)}" role="listitem" data-job-id="${id}">
+        <span class="queue-progress-line" data-queue-progress-bar style="width:${progress}%"></span>
         <div class="queue-item-index-wrap">
           <span class="queue-item-index">${index + 1}</span>
         </div>
@@ -270,17 +294,26 @@ function renderState(state = {}) {
           <div class="queue-item-subtitle">${url}</div>
         </div>
         <div class="queue-item-right">
-          <span class="queue-status-chip">${status}</span>
+          <span class="queue-status-chip" data-queue-status>${status}</span>
           <span class="queue-quality-chip">${quality}</span>
-          <span class="queue-stage-chip">${progress}%</span>
+          <span class="queue-stage-chip" data-queue-progress-label>${progress}%</span>
         </div>
         <div class="queue-item-actions-wrap">
           <button type="button" class="queue-item-menu-toggle" data-menu-toggle aria-haspopup="menu" aria-expanded="false" title="Действия">${ICONS.more}<span class="visually-hidden">Действия</span></button>
           <div class="queue-item-actions" role="menu" hidden>${renderQueueActions(job, id)}</div>
         </div>
       </article>`;
-    })
-    .join("");
+      const replacement = template.content.firstElementChild;
+      replacement.dataset.queueStructure = structureKey;
+      row?.replaceWith(replacement);
+      row = replacement;
+      queueRowsById.set(rawId, row);
+    }
+    row.querySelector("[data-queue-progress-bar]").style.width = `${progress}%`;
+    row.querySelector("[data-queue-progress-label]").textContent =
+      `${progress}%`;
+    el.queue.appendChild(row);
+  }
   window.ThunderWebUiState?.apply(el.queue, {
     kind: visibleJobs.some((job) => job.status === "running")
       ? "loading"
@@ -291,6 +324,7 @@ function renderState(state = {}) {
 }
 
 function renderQueueLoading() {
+  queueRowsById.clear();
   el.queue.innerHTML = Array.from(
     { length: 3 },
     (

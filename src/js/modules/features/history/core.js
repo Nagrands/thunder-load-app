@@ -31,12 +31,19 @@ import { initTooltips, disposeAllTooltips } from "../../tooltipInitializer.js";
 import { getLanguage, t } from "../../i18n.js";
 import { focusUrlInputAfterRetry } from "../../retryFocus.js";
 import { formatDownloadHistoryReason } from "../../downloadErrorUi.js";
-import { initMediaInspectorPanel } from "../../views/tools/mediaInspectorPanel.js";
 import { getVideoPreview } from "../../videoInfoBroker.js";
 import {
-  assertHistorySaveResult,
+  inspectHistoryFiles,
+  loadHistorySnapshot,
+  saveHistoryEntries,
   unwrapHistoryEntries,
-} from "../../historyIpcResult.js";
+} from "./repositoryClient.js";
+import {
+  getHistoryCommand,
+  isHistoryCommandAvailable,
+} from "./commandRegistry.js";
+import { replaceHistoryRow } from "./renderer.js";
+import { createHistoryInspector } from "./previewInspector.js";
 
 const HISTORY_IMAGE_PLACEHOLDER = "../assets/img/thumbnail-unavailable.png";
 const HISTORY_PAGE_SIZES = [4, 10, 20];
@@ -107,9 +114,6 @@ let historyFiltersToggleButton = null;
 let historyFiltersBody = null;
 let historyFiltersCollapsed = false;
 let historySearchClearBound = false;
-let activeHistoryInspectorEntryId = "";
-let activeHistoryInspectorRoot = null;
-let activeHistoryInspectorTrigger = null;
 let historyLoadPromise = null;
 let historyUpdateTimer = null;
 let historyUpdateGeneration = 0;
@@ -1666,9 +1670,7 @@ const restoreMissingHistoryPreviews = async (entries, rawHistory) => {
   filterAndSortHistory(state.currentSearchQuery, state.currentSortOrder, true);
 
   try {
-    assertHistorySaveResult(
-      await window.electron.invoke("save-history", updatedRawHistory),
-    );
+    await saveHistoryEntries(updatedRawHistory);
   } catch (error) {
     console.warn(
       "Не удалось сохранить историю после восстановления превью:",
@@ -1807,75 +1809,27 @@ async function openHistoryCardFolder(entry) {
   }
 }
 
+const historyInspector = createHistoryInspector({
+  t,
+  onMissing: (entry) => {
+    markEntryMissing(entry);
+    showToast(t("history.toast.fileMissing"), "error");
+  },
+  onError: (error) => {
+    console.error("Ошибка при анализе файла истории:", error);
+    showToast(t("history.toast.fileOpenError"), "error");
+  },
+});
+
 function hideActiveHistoryInspector() {
-  if (activeHistoryInspectorRoot) {
-    activeHistoryInspectorRoot.innerHTML = "";
-    activeHistoryInspectorRoot.classList.add("hidden");
-    activeHistoryInspectorRoot.classList.remove("is-open");
-  }
-  if (activeHistoryInspectorTrigger) {
-    activeHistoryInspectorTrigger.classList.remove("is-active");
-  }
-  activeHistoryInspectorEntryId = "";
-  activeHistoryInspectorRoot = null;
-  activeHistoryInspectorTrigger = null;
+  historyInspector.hide();
 }
 
 async function inspectHistoryCardFile(
   entry,
   { root = null, trigger = null, ensureVisible = null } = {},
 ) {
-  if (!entry?.filePath) return;
-  try {
-    const exists = await window.electron.invoke(
-      "check-file-exists",
-      entry.filePath,
-    );
-    if (!exists) {
-      entry.isMissing = true;
-      markEntryMissing(entry);
-      return showToast(t("history.toast.fileMissing"), "error");
-    }
-
-    const entryId = entry.id?.toString?.() || "";
-    const isSameEntryOpen =
-      activeHistoryInspectorEntryId &&
-      activeHistoryInspectorEntryId === entryId &&
-      activeHistoryInspectorRoot === root;
-
-    if (isSameEntryOpen) {
-      hideActiveHistoryInspector();
-      return;
-    }
-
-    hideActiveHistoryInspector();
-
-    if (!(root instanceof HTMLElement)) return;
-
-    ensureVisible?.();
-    root.classList.remove("hidden");
-    root.classList.add("is-open");
-
-    const panel = initMediaInspectorPanel({
-      root,
-      t,
-      allowPickFile: false,
-      autoAnalyzeInitial: false,
-      variant: "history",
-    });
-    if (!panel) return;
-
-    activeHistoryInspectorEntryId = entryId;
-    activeHistoryInspectorRoot = root;
-    activeHistoryInspectorTrigger =
-      trigger instanceof HTMLElement ? trigger : null;
-    activeHistoryInspectorTrigger?.classList.add("is-active");
-
-    await panel.inspectFile(entry.filePath, { autoAnalyze: true });
-  } catch (error) {
-    console.error("Ошибка при анализе файла истории:", error);
-    showToast(t("history.toast.fileOpenError"), "error");
-  }
+  await historyInspector.inspect(entry, { root, trigger, ensureVisible });
 }
 
 function retryHistoryCardDownload(entry) {
@@ -1936,25 +1890,19 @@ function markEntryMissing(entry) {
     id ? row.dataset.id === id : row.dataset.filepath === filePath,
   );
   if (currentRow) {
-    const wasOpen = currentRow.classList.contains("is-open");
-    const groupKey = currentRow.dataset.groupKey || "unknown";
-    const { el: replacement } = createLogEntry(updatedEntry, groupKey);
-    if (wasOpen) {
-      replacement.classList.add("is-open");
-      replacement
-        .querySelector(".history-row__details")
-        ?.classList.add("is-open");
-      const toggle = replacement.querySelector(".history-row__toggle");
-      toggle?.classList.add("is-open");
-      toggle?.setAttribute("aria-expanded", "true");
-    }
-    currentRow.replaceWith(replacement);
-    attachDeleteListeners(replacement);
-    updateTitleTruncation();
-    updateToggleAllButtonState();
-    updateGroupSelectionLabels();
-    refreshHistoryLucideIcons();
-    initTooltips();
+    replaceHistoryRow({
+      currentRow,
+      entry: updatedEntry,
+      createRow: createLogEntry,
+      afterReplace: (replacement) => {
+        attachDeleteListeners(replacement);
+        updateTitleTruncation();
+        updateToggleAllButtonState();
+        updateGroupSelectionLabels();
+        refreshHistoryLucideIcons();
+        initTooltips();
+      },
+    });
   }
   const stats = getHistoryStats(updated);
   updateHistoryHeaderStats({ count: stats.count, sizeBytes: stats.sizeBytes });
@@ -2151,7 +2099,7 @@ function createLogEntry(entry, groupKey = "unknown") {
   openBtn.title = t("history.action.openFile");
   openBtn.setAttribute("data-i18n-title", "history.action.openFile");
   openBtn.innerHTML = '<i data-lucide="play"></i>';
-  openBtn.disabled = entry.isMissing || !entry.filePath;
+  openBtn.disabled = !isHistoryCommandAvailable("open-file", entry);
   openBtn.addEventListener("click", async (e) => {
     e.stopPropagation();
     await openHistoryCardFile(entry);
@@ -2169,7 +2117,7 @@ function createLogEntry(entry, groupKey = "unknown") {
     "history.action.openFolderShort",
   );
   openFolderBtn.innerHTML = '<i data-lucide="folder-open"></i>';
-  openFolderBtn.disabled = entry.isMissing || !entry.filePath;
+  openFolderBtn.disabled = !isHistoryCommandAvailable("open-folder", entry);
   openFolderBtn.addEventListener("click", async (e) => {
     e.stopPropagation();
     await openHistoryCardFolder(entry);
@@ -2218,36 +2166,27 @@ function createLogEntry(entry, groupKey = "unknown") {
   menuList.className = "history-row__menu-list";
   menuList.setAttribute("role", "menu");
 
-  const openSourceItem = menuItem(
-    t("history.action.openSource"),
-    "external-link",
-    {
-      disabled: !entry.sourceUrl,
-      action: "open-source",
-      onClick: () => openHistorySourceLink(entry.sourceUrl),
-    },
-  );
+  const commandMenuItem = (commandId, options = {}) => {
+    const command = getHistoryCommand(commandId);
+    return menuItem(t(command.labelKey), command.icon, {
+      ...options,
+      action: commandId,
+      disabled: !isHistoryCommandAvailable(commandId, entry),
+    });
+  };
 
-  const retryItem = menuItem(t("history.action.retry"), "refresh-cw", {
-    disabled: !entry.sourceUrl,
-    action: "retry",
+  const openSourceItem = commandMenuItem("open-source", {
+    onClick: () => openHistorySourceLink(entry.sourceUrl),
+  });
+  const retryItem = commandMenuItem("retry", {
     onClick: () => retryHistoryCardDownload(entry),
   });
-
-  const inspectItem = menuItem(t("history.action.inspect"), "activity", {
-    disabled: entry.isMissing || !entry.filePath,
-    action: "inspect",
+  const inspectItem = commandMenuItem("inspect", {
     onClick: () => openInspectorFromRow(),
   });
-
-  const deleteItem = menuItem(
-    t("history.action.deleteFromHistory"),
-    "trash-2",
-    {
-      className: " history-row__delete history-row__menu-item--danger",
-      action: "delete-entry",
-    },
-  );
+  const deleteItem = commandMenuItem("delete-entry", {
+    className: " history-row__delete history-row__menu-item--danger",
+  });
 
   menuList.append(openSourceItem, retryItem, inspectItem, deleteItem);
   menu.append(menuButton, menuList);
@@ -2534,7 +2473,7 @@ function createLogEntry(entry, groupKey = "unknown") {
   const setDetailsOpen = (nextOpen, event = null) => {
     event?.stopPropagation?.();
     const isOpen = !!nextOpen;
-    if (!isOpen && activeHistoryInspectorRoot === inspectorSlot) {
+    if (!isOpen && historyInspector.isActiveRoot(inspectorSlot)) {
       hideActiveHistoryInspector();
     }
     details.classList.toggle("is-open", isOpen);
@@ -2638,9 +2577,7 @@ document
     console.log("История после удаления:", getHistoryData());
     state.selectedEntries = [];
 
-    assertHistorySaveResult(
-      await window.electron.invoke("save-history", updatedHistory),
-    );
+    await saveHistoryEntries(updatedHistory);
     filterAndSortHistory(
       state.currentSearchQuery,
       state.currentSortOrder,
@@ -2673,9 +2610,7 @@ document
         }
         const restored = [...deletedEntries, ...getHistoryData()];
         setHistoryData(restored);
-        assertHistorySaveResult(
-          await window.electron.invoke("save-history", restored),
-        );
+        await saveHistoryEntries(restored);
         filterAndSortHistory(
           state.currentSearchQuery,
           state.currentSortOrder,
@@ -2748,7 +2683,7 @@ async function restoreDeletedEntries() {
   setHistoryData(merged);
   state.deletedHistoryBuffer = [];
   updateRestoreButton();
-  assertHistorySaveResult(await window.electron.invoke("save-history", merged));
+  await saveHistoryEntries(merged);
   filterAndSortHistory(state.currentSearchQuery, state.currentSortOrder, true);
   showToast(
     t("history.toast.restoredEntries", { count: buffer.length }),
@@ -3143,7 +3078,7 @@ const loadHistory = async (forceRender = false) => {
   if (historyLoadPromise) return historyLoadPromise;
 
   historyLoadPromise = (async () => {
-    const loadResult = await window.electron.invoke("load-history");
+    const loadResult = await loadHistorySnapshot();
     const rawHistory = unwrapHistoryEntries(loadResult).map((entry) => ({
       ...entry,
     }));
@@ -3157,10 +3092,7 @@ const loadHistory = async (forceRender = false) => {
     let fileMetadata = new Map();
     if (filePaths.length) {
       try {
-        const inspection = await window.electron.invoke(
-          "history:inspect-files",
-          filePaths,
-        );
+        const inspection = await inspectHistoryFiles(filePaths);
         if (inspection?.success === false) {
           throw new Error(inspection.error || "History file inspection failed");
         }
@@ -3273,9 +3205,7 @@ const addNewEntryToHistory = async (
 
     setHistoryData(updated);
     state.historyPage = 1;
-    const saveResult = assertHistorySaveResult(
-      await window.electron.invoke("save-history", updated),
-    );
+    const saveResult = await saveHistoryEntries(updated);
     if (Number.isFinite(Number(saveResult?.revision))) {
       state.historyRevision = Number(saveResult.revision);
     }

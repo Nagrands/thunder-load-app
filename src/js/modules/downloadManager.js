@@ -5,9 +5,9 @@ import { state, updateButtonState } from "./state.js";
 import { showLoading, showToast } from "./toast.js";
 import { addNewEntryToHistory, getHistoryData } from "./history.js";
 import {
-  assertHistorySaveResult,
-  unwrapHistoryEntries,
-} from "./historyIpcResult.js";
+  loadHistoryEntries,
+  saveHistoryEntries,
+} from "./features/history/repositoryClient.js";
 import { isValidUrl, isSupportedUrl, normalizeUrlInput } from "./validation.js";
 import {
   urlInput,
@@ -51,7 +51,6 @@ import {
   removeDownloadJob,
   replaceDownloadJobsByStatus,
   setDownloadJobs,
-  syncLegacyDownloadCollections,
   upsertDownloadJob,
 } from "./downloadJobs.js";
 import {
@@ -65,6 +64,13 @@ import {
 } from "./downloadQueueFilter.js";
 import { normalizeWebQualitySelection } from "./webQualitySelection.js";
 import { applyUiState } from "./uiStateController.js";
+import { readQueueJobs, writeQueueJobs } from "./features/queue/persistence.js";
+import { getQueueCounts } from "./features/queue/controller.js";
+import {
+  createWebControlQueueSnapshot,
+  normalizeWebControlQuality as adaptWebControlQuality,
+} from "./features/queue/webControlAdapter.js";
+import { createIncrementalQueueRenderer } from "./features/queue/renderer.js";
 
 const queueInfo = document.getElementById("download-queue-info");
 const queueIndicator = document.getElementById("queue-start-indicator");
@@ -124,7 +130,9 @@ const PARALLEL_DOWNLOAD_LIMIT = 2;
 const PROGRESS_RENDER_THROTTLE_MS = 220;
 const QUEUE_MAX_LABEL_LEN = 64;
 let lastProgressRenderTs = 0;
-let lastQueueMarkup = "";
+const queueRenderer = queueList
+  ? createIncrementalQueueRenderer(queueList)
+  : null;
 let queueItemIdCounter = 1;
 const queueTitleRequestsInFlight = new Map();
 const queuePumpReservations = new Set();
@@ -424,10 +432,11 @@ function ensureQueueFormatsReady(url, quality) {
 }
 
 function refreshPendingQueueTitles() {
-  if (!Array.isArray(state.downloadQueue) || state.downloadQueue.length === 0) {
+  const pendingJobs = getPendingDownloadJobs(state);
+  if (pendingJobs.length === 0) {
     return;
   }
-  for (const item of state.downloadQueue) {
+  for (const item of pendingJobs) {
     if (!item?.url || item?.title) continue;
     const signature = getQueueSignature(item.url, item.quality);
     void ensureQueueTitle(item.url, {
@@ -747,38 +756,21 @@ function removeFailedBySignature(signature) {
 }
 
 function persistQueue() {
-  try {
-    if (
-      !Array.isArray(state.downloadQueue) ||
-      state.downloadQueue.length === 0
-    ) {
-      window.localStorage.removeItem(QUEUE_STORAGE_KEY);
-      return;
-    }
-    window.localStorage.setItem(
-      QUEUE_STORAGE_KEY,
-      JSON.stringify(state.downloadQueue),
-    );
-    console.log(QUEUE_LOG_TAG, "persist", {
-      count: state.downloadQueue.length,
-    });
-  } catch {}
+  const pendingJobs = getPendingDownloadJobs(state);
+  const count = writeQueueJobs(
+    window.localStorage,
+    QUEUE_STORAGE_KEY,
+    pendingJobs,
+  );
+  if (count) console.log(QUEUE_LOG_TAG, "persist", { count });
 }
 
 function persistFailedQueue() {
-  try {
-    if (
-      !Array.isArray(state.failedDownloads) ||
-      state.failedDownloads.length === 0
-    ) {
-      window.localStorage.removeItem(QUEUE_FAILED_STORAGE_KEY);
-      return;
-    }
-    window.localStorage.setItem(
-      QUEUE_FAILED_STORAGE_KEY,
-      JSON.stringify(state.failedDownloads || []),
-    );
-  } catch {}
+  writeQueueJobs(
+    window.localStorage,
+    QUEUE_FAILED_STORAGE_KEY,
+    getFailedDownloadJobs(state),
+  );
 }
 
 function persistAllQueueCollections() {
@@ -849,20 +841,11 @@ function persistQueuePausedState() {
 }
 
 function loadQueueFromStorage() {
-  let raw = null;
-  try {
-    raw = window.localStorage.getItem(QUEUE_STORAGE_KEY);
-  } catch {
-    raw = null;
-  }
-  if (!raw) return [];
-  let parsed = [];
-  try {
-    parsed = JSON.parse(raw);
-  } catch {
-    parsed = [];
-  }
-  if (!Array.isArray(parsed)) return [];
+  const parsed = readQueueJobs(
+    window.localStorage,
+    QUEUE_STORAGE_KEY,
+    (item) => item,
+  );
   const unique = new Set();
   const restored = [];
   const activeSignatures = getCurrentDownloadSignatures();
@@ -886,20 +869,11 @@ function loadQueueFromStorage() {
 }
 
 function loadFailedQueueFromStorage() {
-  let raw = null;
-  try {
-    raw = window.localStorage.getItem(QUEUE_FAILED_STORAGE_KEY);
-  } catch {
-    raw = null;
-  }
-  if (!raw) return [];
-  let parsed = [];
-  try {
-    parsed = JSON.parse(raw);
-  } catch {
-    parsed = [];
-  }
-  if (!Array.isArray(parsed)) return [];
+  const parsed = readQueueJobs(
+    window.localStorage,
+    QUEUE_FAILED_STORAGE_KEY,
+    (item) => item,
+  );
   return parsed
     .filter(
       (item) =>
@@ -1107,8 +1081,7 @@ async function getDownloadedUrlMap() {
     if (Array.isArray(local) && local.length > 0) {
       entries = local;
     } else {
-      const loaded = await window.electron.invoke("load-history");
-      entries = unwrapHistoryEntries(loaded);
+      entries = await loadHistoryEntries();
     }
   } catch (error) {
     console.warn("Failed to load history for duplicate detection:", error);
@@ -1219,9 +1192,47 @@ function enqueueMany(urls, quality, options = {}) {
   return { added, duplicates, activeDup, invalid, capped, alreadyDownloaded };
 }
 
+const getQueueStatusMeta = (status, progress) => {
+  const statusMap = {
+    downloading: {
+      label: t("queue.status.downloading"),
+      icon: "loader-circle",
+    },
+    pending: { label: t("queue.status.pending"), icon: "clock-3" },
+    paused: { label: t("queue.status.paused"), icon: "pause" },
+    error: { label: t("queue.status.error"), icon: "alert-circle" },
+  };
+  const theme = QUEUE_COLORS.status[status] || QUEUE_COLORS.status.pending;
+  return {
+    label:
+      status === "downloading"
+        ? `${statusMap[status].label} ${Math.max(0, Math.min(100, Number(progress) || 0)).toFixed(0)}%`
+        : statusMap[status].label,
+    icon: statusMap[status]?.icon || "clock-3",
+    style: `background:${theme.bg};border:1px solid ${theme.border};color:${theme.color};`,
+  };
+};
+
+const getQueueProgressRenderData = (item) => {
+  const stageChipLabel =
+    item.status === "downloading" && item.stage
+      ? t(`queue.stage.${item.stage}`)
+      : "";
+  const eta =
+    item.status === "downloading"
+      ? formatEtaEstimate(item.createdAt, item.progress)
+      : "";
+  return {
+    progress: item.progress,
+    progressLabel: getQueueStatusMeta(item.status, item.progress).label,
+    stageLabel: stageChipLabel ? ` · ${stageChipLabel}` : "",
+    stageChipLabel,
+    etaLabel: eta ? ` · ${eta}` : "",
+  };
+};
+
 function updateQueueDisplay() {
   ensureDownloadJobsState(state);
-  syncLegacyDownloadCollections(state);
   const activeItems = getActiveDownloadJobs(state).map((item) =>
     normalizeQueueItem({
       id: item.jobId,
@@ -1249,8 +1260,9 @@ function updateQueueDisplay() {
   const errorItems = getFailedDownloadJobs(state).map((item) =>
     normalizeQueueItem({ ...item, status: "error" }),
   );
-  const activeCount = activeItems.length;
-  const pendingCount = pendingItems.length;
+  const counts = getQueueCounts(state);
+  const activeCount = counts.active;
+  const pendingCount = counts.pending;
   const totalVisible = activeCount + pendingCount + errorItems.length;
   const hasQueueItems = totalVisible > 0;
   const activeJobIds = new Set(
@@ -1347,27 +1359,6 @@ function updateQueueDisplay() {
   }
   updateDownloadJobSummary();
 
-  const statusMeta = (status, progress) => {
-    const statusMap = {
-      downloading: {
-        label: t("queue.status.downloading"),
-        icon: "loader-circle",
-      },
-      pending: { label: t("queue.status.pending"), icon: "clock-3" },
-      paused: { label: t("queue.status.paused"), icon: "pause" },
-      error: { label: t("queue.status.error"), icon: "alert-circle" },
-    };
-    const theme = QUEUE_COLORS.status[status] || QUEUE_COLORS.status.pending;
-    return {
-      label:
-        status === "downloading"
-          ? `${statusMap[status].label} ${Math.max(0, Math.min(100, Number(progress) || 0)).toFixed(0)}%`
-          : statusMap[status].label,
-      icon: statusMap[status]?.icon || "clock-3",
-      style: `background:${theme.bg};border:1px solid ${theme.border};color:${theme.color};`,
-    };
-  };
-
   const rowMarkup = (item, displayIndex, group, pendingIndex = -1) => {
     const fullUrl = String(item.url || "");
     const urlLabel = makeQueueUrlLabel(fullUrl);
@@ -1395,7 +1386,7 @@ function updateQueueDisplay() {
           ? t("queue.kind.subtitle")
           : "";
     const source = detectSource(fullUrl);
-    const meta = statusMeta(item.status, item.progress);
+    const meta = getQueueStatusMeta(item.status, item.progress);
     const isDownloading = item.status === "downloading";
     const isActiveGroup = group === "active";
     const isPendingGroup = group === "pending";
@@ -1417,15 +1408,15 @@ function updateQueueDisplay() {
         <span class="queue-source-pill" style="background:${source.bg};color:${source.color};border:1px solid ${source.color}33;">${escapeQueueHtml(source.label)}</span>
         <div class="queue-item-meta" title="${escapeQueueHtml(fullUrl)}">
           <div class="queue-item-title">${escapeQueueHtml(titleLabel)}</div>
-          <div class="queue-item-subtitle">${escapeQueueHtml(urlLabel)}${item.size ? ` · ${escapeQueueHtml(item.size)}` : ""}${stageLabel ? ` · ${escapeQueueHtml(stageLabel)}` : ""}${etaLabel ? ` · ${escapeQueueHtml(etaLabel)}` : ""}</div>
+          <div class="queue-item-subtitle"><span>${escapeQueueHtml(urlLabel)}${item.size ? ` · ${escapeQueueHtml(item.size)}` : ""}</span><span data-queue-stage-label>${stageLabel ? ` · ${escapeQueueHtml(stageLabel)}` : ""}</span><span data-queue-eta-label>${etaLabel ? ` · ${escapeQueueHtml(etaLabel)}` : ""}</span></div>
         </div>
         <div class="queue-item-right">
           <span class="queue-status-chip ${isDownloading ? "is-spinning" : ""}" style="${meta.style}">
-            <i data-lucide="${meta.icon}"></i><span>${escapeQueueHtml(meta.label)}</span>
+            <i data-lucide="${meta.icon}"></i><span data-queue-progress-label>${escapeQueueHtml(meta.label)}</span>
           </span>
           ${reasonLabel ? `<span class="queue-reason-chip">${escapeQueueHtml(reasonLabel)}</span>` : ""}
           ${retryStateLabel ? `<span class="queue-retry-chip ${item.retryable === false ? "is-manual" : "is-retryable"}">${escapeQueueHtml(retryStateLabel)}</span>` : ""}
-          ${stageLabel ? `<span class="queue-stage-chip">${escapeQueueHtml(stageLabel)}</span>` : ""}
+          ${isDownloading ? `<span class="queue-stage-chip${stageLabel ? "" : " hidden"}" data-queue-stage-chip>${escapeQueueHtml(stageLabel)}</span>` : ""}
           ${kindLabel ? `<span class="queue-kind-chip">${escapeQueueHtml(kindLabel)}</span>` : ""}
           <span class="queue-quality-chip">${escapeQueueHtml(qualityLabel)}</span>
           <div class="queue-item-actions queue-hover-controls">
@@ -1461,15 +1452,16 @@ function updateQueueDisplay() {
         </div>
         ${
           isDownloading
-            ? `<span class="queue-progress-line" style="width:${Math.max(0, Math.min(100, Number(item.progress) || 0))}%;"></span>`
+            ? `<span class="queue-progress-line" data-queue-progress-bar style="width:${Math.max(0, Math.min(100, Number(item.progress) || 0))}%;"></span>`
             : ""
         }
       </li>
     `;
   };
 
-  if (queueList) {
+  if (queueList && queueRenderer) {
     queueList.setAttribute("role", "list");
+    queueList.setAttribute("aria-live", "off");
     if (!hasQueueItems) {
       const emptyMarkup = `
         <div class="queue-empty">
@@ -1478,10 +1470,7 @@ function updateQueueDisplay() {
           <p class="queue-empty-hint">${escapeQueueHtml(t("queue.empty.hint"))}</p>
         </div>
       `;
-      if (lastQueueMarkup !== emptyMarkup) {
-        queueList.innerHTML = emptyMarkup;
-        lastQueueMarkup = emptyMarkup;
-      }
+      queueRenderer.render({ rows: [], emptyMarkup });
     } else {
       const groupedRows = {
         active: activeItems.map((item) => ({
@@ -1503,22 +1492,45 @@ function updateQueueDisplay() {
       const visibleRows = visibleGroups.flatMap(
         (group) => groupedRows[group] || [],
       );
-      const rows = visibleRows.map((row, displayIndex) =>
-        rowMarkup(row.item, displayIndex, row.group, row.pendingIndex ?? -1),
-      );
-      const nextMarkup = rows.length
-        ? `<ul role="list" class="queue-items">${rows.join("")}</ul>`
-        : `
+      const rows = visibleRows.map((row, displayIndex) => {
+        const id = getQueueItemIdentity(row.item);
+        const progressData = getQueueProgressRenderData(row.item);
+        return {
+          id,
+          markup: rowMarkup(
+            row.item,
+            displayIndex,
+            row.group,
+            row.pendingIndex ?? -1,
+          ),
+          structureKey: JSON.stringify({
+            id,
+            displayIndex,
+            group: row.group,
+            pendingIndex: row.pendingIndex ?? -1,
+            status: row.item.status,
+            title: row.item.title,
+            url: row.item.url,
+            size: row.item.size,
+            quality: row.item.quality,
+            type: row.item.type,
+            reason: row.item.reason,
+            retryable: row.item.retryable,
+            filePath: row.item.filePath,
+            cancelling: cancellingDownloadJobIds.has(row.item.jobId),
+            locale: t("queue.status.pending"),
+          }),
+          ...progressData,
+        };
+      });
+      const filteredEmptyMarkup = `
           <div class="queue-empty">
             <span class="queue-empty-icon" aria-hidden="true"><i data-lucide="list-filter"></i></span>
             <p class="queue-empty-title">${escapeQueueHtml(t("queue.filter.empty.title"))}</p>
             <p class="queue-empty-hint">${escapeQueueHtml(t("queue.filter.empty.hint"))}</p>
           </div>
         `;
-      if (nextMarkup !== lastQueueMarkup) {
-        queueList.innerHTML = nextMarkup;
-        lastQueueMarkup = nextMarkup;
-      }
+      queueRenderer.render({ rows, emptyMarkup: filteredEmptyMarkup });
     }
   }
   applyLucideIcons();
@@ -1749,8 +1761,7 @@ async function migrateLegacyCompletedJobs() {
   const legacyJobs = loadCompletedJobs();
   if (!legacyJobs.length) return;
   try {
-    const loaded = await window.electron.invoke("load-history");
-    const historyEntries = unwrapHistoryEntries(loaded);
+    const historyEntries = await loadHistoryEntries();
     const knownPaths = new Set(
       historyEntries
         .map((entry) => String(entry?.filePath || ""))
@@ -1760,12 +1771,7 @@ async function migrateLegacyCompletedJobs() {
       .filter((job) => job.filePath && !knownPaths.has(String(job.filePath)))
       .map(buildHistoryEntryFromQueueJob);
     if (additions.length) {
-      assertHistorySaveResult(
-        await window.electron.invoke("save-history", [
-          ...additions,
-          ...historyEntries,
-        ]),
-      );
+      await saveHistoryEntries([...additions, ...historyEntries]);
     }
     persistCompletedJobs([]);
     additions.forEach((entry) =>
@@ -2899,39 +2905,30 @@ function initDownloadButton() {
     const now = Date.now();
     if (now - lastProgressRenderTs < PROGRESS_RENDER_THROTTLE_MS) return;
     lastProgressRenderTs = now;
-    updateQueueDisplay();
+    const item = normalizeQueueItem({
+      ...active,
+      status: "downloading",
+      stage: active.stage || "prepare",
+    });
+    if (
+      !queueRenderer?.updateProgress(jobId, getQueueProgressRenderData(item))
+    ) {
+      updateQueueDisplay();
+    }
   });
 }
 
 function normalizeWebControlQuality(value) {
-  if (value && typeof value === "object") {
-    return normalizeWebQualitySelection(value);
-  }
-  const normalized = String(value || "")
-    .trim()
-    .toLowerCase();
-  if (normalized === "audio" || normalized === "audio-only") {
-    return "Audio Only";
-  }
-  return "Source";
+  return adaptWebControlQuality(value, normalizeWebQualitySelection);
 }
 
 function getWebControlSnapshot() {
   ensureDownloadJobsState(state);
-  const jobs = state.downloadJobs.map((job) => ({ ...job }));
-  return {
-    jobs,
-    queuePaused: Boolean(state.suppressAutoPump || state.queuePaused),
-    maxParallelDownloads: Number(state.maxParallelDownloads) || 1,
+  return createWebControlQueueSnapshot(state, {
     undoClearAvailable: Boolean(
       webClearUndo && webClearUndo.expiresAt > Date.now(),
     ),
-    counts: {
-      pending: getPendingDownloadJobs(state).length,
-      running: getActiveDownloadJobs(state).length,
-      failed: getFailedDownloadJobs(state).length,
-    },
-  };
+  });
 }
 
 async function addWebControlDownload(payload = {}) {

@@ -26,9 +26,6 @@ const readParallelLimit = () => {
 const state = {
   isDownloading: false,
   downloadJobs: [],
-  activeDownloads: [],
-  failedDownloads: [],
-  completedDownloads: [],
   maxParallelDownloads: readParallelLimit(),
   queuePaused: false,
   queueCollapsed: false,
@@ -41,7 +38,6 @@ const state = {
   currentSortMode: window.localStorage.getItem("currentSortMode") || "mixed",
   currentSearchQuery: window.localStorage.getItem("lastSearch") || "",
   lastPastedUrl: "",
-  downloadQueue: [],
   selectedEntries: [], // выбранные ID
   historyPage: 1,
   historySourceFilter: (() => {
@@ -81,6 +77,46 @@ const state = {
     }
   })(),
 };
+
+// Older Jest fixtures may still address the former collections. Keep them as
+// test-only derived adapters so production owns queue state only in downloadJobs.
+if (globalThis.process?.env?.NODE_ENV === "test") {
+  const statusesByProperty = {
+    activeDownloads: ["running"],
+    downloadQueue: ["pending", "paused"],
+    failedDownloads: ["failed"],
+    completedDownloads: ["done"],
+  };
+  Object.entries(statusesByProperty).forEach(([property, statuses]) => {
+    Object.defineProperty(state, property, {
+      configurable: true,
+      get() {
+        return state.downloadJobs.filter((job) =>
+          statuses.includes(job.status),
+        );
+      },
+      set(items) {
+        const preserved = state.downloadJobs.filter(
+          (job) => !statuses.includes(job.status),
+        );
+        const incoming = Array.isArray(items)
+          ? items.map((item) => ({
+              ...item,
+              status:
+                item.status === "downloading"
+                  ? "running"
+                  : item.status === "error"
+                    ? "failed"
+                    : statuses.includes(item.status)
+                      ? item.status
+                      : statuses[0],
+            }))
+          : [];
+        state.downloadJobs = [...preserved, ...incoming];
+      },
+    });
+  });
+}
 
 // Временное хранилище истории (без привязки к DOM)
 let historyData = [];

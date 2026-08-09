@@ -115,7 +115,7 @@ describe("bootstrapRenderer", () => {
       jest.doMock("../historyFilter.js", () => ({
         initHistoryFilter: mocks.initHistoryFilter,
       }));
-      jest.doMock("../historyActions.js", () => ({
+      jest.doMock("../features/history/actions.js", () => ({
         initHistoryActions: mocks.initHistoryActions,
       }));
       jest.doMock("../downloadActions.js", () => ({
@@ -211,9 +211,7 @@ describe("bootstrapRenderer", () => {
     await startRenderer();
 
     expect(localStorage.getItem("developerDisableDownloaderTab")).toBeNull();
-    expect(localStorage.getItem("migration.toolsSettingsRemoved.v1")).toBe(
-      "1",
-    );
+    expect(localStorage.getItem("migration.toolsSettingsRemoved.v1")).toBe("1");
     [
       "wgUnlockDisabled",
       "backupDisabled",
