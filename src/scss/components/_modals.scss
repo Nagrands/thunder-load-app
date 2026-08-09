@@ -874,7 +874,7 @@ body.low-effects .player-form-modal {
 .close-whats-new,
 .close-settings,
 .close-modal,
-.history-card-preview-close,
+.history-preview-close,
 .quality-modal-close {
   @include mixins.close-button;
   background: rgba(8, 10, 20, 0.7);
@@ -968,7 +968,7 @@ body.low-effects .player-form-modal {
 // ----------------------------------------
 // History Preview Modal
 // ----------------------------------------
-.history-card-preview-overlay {
+.history-preview-overlay {
   position: fixed;
   inset: 0;
   backdrop-filter: blur(6px);
@@ -987,7 +987,7 @@ body.low-effects .player-form-modal {
   }
 }
 
-.history-card-preview-dialog {
+.history-preview-dialog {
   position: relative;
   width: min(92vw, 1200px);
   // height: min(86vh, 820px);
@@ -1003,7 +1003,7 @@ body.low-effects .player-form-modal {
   animation: historyPreviewZoom 0.6s ease-out;
 }
 
-.history-card-preview-image {
+.history-preview-image {
   width: 100%;
   height: 100%;
   min-width: 0;
@@ -1020,7 +1020,7 @@ body.low-effects .player-form-modal {
   background: rgba(0, 0, 0, 0.35);
 }
 
-.history-card-preview-caption {
+.history-preview-caption {
   position: absolute;
   left: 50%;
   bottom: 12px;
@@ -1038,13 +1038,13 @@ body.low-effects .player-form-modal {
   // text-align: center;
 }
 
-.history-card-preview-close {
+.history-preview-close {
   position: absolute;
   top: 12px;
   right: 12px;
 }
 
-.history-card-preview-counter {
+.history-preview-counter {
   position: absolute;
   left: 50%;
   top: 12px;
@@ -1059,7 +1059,7 @@ body.low-effects .player-form-modal {
   backdrop-filter: blur(6px);
 }
 
-.history-card-preview-nav {
+.history-preview-nav {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
@@ -1086,11 +1086,11 @@ body.low-effects .player-form-modal {
   }
 }
 
-.history-card-preview-prev {
+.history-preview-prev {
   left: 12px;
 }
 
-.history-card-preview-next {
+.history-preview-next {
   right: 12px;
 }
 

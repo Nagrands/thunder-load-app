@@ -1261,7 +1261,6 @@
 // ===================================================================
 // 10. Inspector Slots (Media Inspector)
 // ===================================================================
-.history-card-inspector-slot,
 .history-row-inspector-slot {
   &.hidden {
     display: none;
@@ -1277,10 +1276,6 @@
   }
 }
 
-.history-card-inspector-slot {
-  margin-top: 10px;
-}
-
 .history-row-inspector-slot {
   grid-column: 1 / -1;
   margin-top: 2px;
@@ -1293,7 +1288,7 @@
 // ===================================================================
 // 11. Misc / Utility
 // ===================================================================
-.history-cards-subtitle {
+.history-toolbar__subtitle {
   margin: 0;
   font-size: 0.65rem;
   text-transform: uppercase;
@@ -1301,7 +1296,7 @@
   color: var(--color-quality);
 }
 
-.history-cards-title {
+.history-toolbar__heading {
   font-size: 1.4rem;
   line-height: 1.15;
   color: var(--thunder-electric);
@@ -1902,7 +1897,7 @@
   min-width: 0;
 }
 
-.history-cards-subtitle {
+.history-toolbar__subtitle {
   text-transform: none;
   letter-spacing: 0.09em;
   color: var(--color-quality);

@@ -13,8 +13,6 @@ const elements = {
     ?.querySelector(".button-text"),
   history: document.getElementById("history"),
   historyContainer: document.getElementById("history-container"),
-  historyCards: document.getElementById("history-cards"),
-  historyCardsEmpty: document.getElementById("history-cards-empty"),
   historyEmpty: document.getElementById("history-empty"),
   historyBulkBar: document.getElementById("history-bulk-bar"),
   historySelectedCount: document.getElementById("history-selected-count"),
@@ -94,8 +92,6 @@ const elements = {
 
 const OPTIONAL_KEYS = new Set([
   "versionElement",
-  "historyCards",
-  "historyCardsEmpty",
   "historyEmpty",
   "historyBulkBar",
   "historySelectedCount",
@@ -140,8 +136,6 @@ export const {
   buttonText,
   history,
   historyContainer,
-  historyCards,
-  historyCardsEmpty,
   historyEmpty,
   historyBulkBar,
   historySelectedCount,

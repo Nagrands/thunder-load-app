@@ -8,10 +8,10 @@
             <i data-lucide="history"></i>
           </div>
           <div class="history-toolbar__title">
-            <p class="history-cards-subtitle" data-i18n="history.subtitle">
+            <p class="history-toolbar__subtitle" data-i18n="history.subtitle">
               Недавние загрузки
             </p>
-            <h3 class="history-cards-title" data-i18n="history.title">История</h3>
+            <h3 class="history-toolbar__heading" data-i18n="history.title">История</h3>
           </div>
         </div>
         <div class="history-actions-card">
@@ -332,6 +332,67 @@
       <div id="history" class="history-list" role="list"></div>
       <div id="history-empty" class="history-empty" data-i18n="history.empty">
         Список пуст
+      </div>
+
+      <div id="history-pagination" class="history-pagination" data-ui="history-pagination">
+        <div class="history-page-side history-page-side--left">
+          <button
+            type="button"
+            class="history-action-button history-page-btn"
+            id="history-page-prev-fast"
+            aria-label="Назад на 5 страниц"
+            data-i18n-aria="history.pagination.prevFastAria"
+          >
+            <i data-lucide="chevrons-left"></i>
+          </button>
+          <button
+            type="button"
+            class="history-action-button history-page-btn"
+            id="history-page-prev"
+            aria-label="Предыдущая страница"
+            data-i18n-aria="history.pagination.prevAria"
+          >
+            <i data-lucide="chevron-left"></i>
+          </button>
+        </div>
+        <div class="history-page-center">
+          <span class="history-page-info" id="history-page-info" aria-live="polite">
+            Страница 1 из 1 · 0 записей
+          </span>
+          <label class="history-page-size">
+            <span class="history-page-size-label" data-i18n="history.pagination.perLabel">по</span>
+            <select
+              id="history-page-size"
+              class="input input-sm history-page-size-select bk-select-init"
+              aria-label="Записей на странице"
+              data-i18n-aria="history.pagination.perAria"
+            >
+              <option value="4">4</option>
+              <option value="10">10</option>
+              <option value="20">20</option>
+            </select>
+          </label>
+        </div>
+        <div class="history-page-side history-page-side--right">
+          <button
+            type="button"
+            class="history-action-button history-page-btn"
+            id="history-page-next"
+            aria-label="Следующая страница"
+            data-i18n-aria="history.pagination.nextAria"
+          >
+            <i data-lucide="chevron-right"></i>
+          </button>
+          <button
+            type="button"
+            class="history-action-button history-page-btn"
+            id="history-page-next-fast"
+            aria-label="Вперёд на 5 страниц"
+            data-i18n-aria="history.pagination.nextFastAria"
+          >
+            <i data-lucide="chevrons-right"></i>
+          </button>
+        </div>
       </div>
     </div>
   </div>

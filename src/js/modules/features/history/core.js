@@ -3,8 +3,6 @@
 import {
   history,
   historyContainer,
-  historyCards,
-  historyCardsEmpty,
   historyEmpty,
   historyBulkBar,
   historySelectedCount,
@@ -36,10 +34,6 @@ import { formatDownloadHistoryReason } from "../../downloadErrorUi.js";
 import { initMediaInspectorPanel } from "../../views/tools/mediaInspectorPanel.js";
 import { getVideoPreview } from "../../videoInfoBroker.js";
 
-const RECENT_HISTORY_LIMIT = 8;
-const HISTORY_VIRTUALIZATION_MIN_ITEMS = 60;
-const HISTORY_VIRTUAL_OVERSCAN_PX = 480;
-
 const HISTORY_IMAGE_PLACEHOLDER = "../assets/img/thumbnail-unavailable.png";
 const HISTORY_PAGE_SIZES = [4, 10, 20];
 const HISTORY_TOGGLE_ANIMATION_MS = 260;
@@ -50,8 +44,6 @@ const HISTORY_FILTER_DEFAULTS = {
 };
 const attemptedPreviewRestores = new Set();
 
-let historyCardsRoot = historyCards;
-let historyCardsEmptyRoot = historyCardsEmpty;
 let historyEmptyRoot = historyEmpty;
 let historyCardPreviewOverlay = null;
 let historyCardPreviewImage = null;
@@ -106,7 +98,6 @@ let historyMenuBound = false;
 let historyMoreMenuBound = false;
 let historyMoreTriggerButton = null;
 let historyMoreMenu = null;
-let historyVirtualList = null;
 let historyFiltersToggleButton = null;
 let historyFiltersBody = null;
 let historyFiltersCollapsed = false;
@@ -208,8 +199,7 @@ const updateHistoryHeaderStats = ({ count = 0, sizeBytes = 0 } = {}) => {
 
 const normalizePageSize = (value) => {
   const n = Number(value);
-  if (!Number.isFinite(n) || n <= 0) return HISTORY_PAGE_SIZES[0];
-  return Math.max(4, Math.min(200, Math.floor(n)));
+  return HISTORY_PAGE_SIZES.includes(n) ? n : HISTORY_PAGE_SIZES[0];
 };
 
 const normalizeDensity = (value) => {
@@ -418,68 +408,8 @@ function changePageSize(value) {
 function ensurePaginationElements() {
   if (paginationRoot && paginationRoot.isConnected) return;
 
-  paginationRoot = document.createElement("div");
-  paginationRoot.id = "history-pagination";
-  paginationRoot.className = "history-pagination";
-  paginationRoot.setAttribute("data-ui", "history-pagination");
-  paginationRoot.innerHTML = `
-    <div class="history-page-side history-page-side--left">
-      <button
-        type="button"
-        class="history-action-button history-page-btn"
-        id="history-page-prev-fast"
-        aria-label="${t("history.pagination.prevFastAria")}"
-      >
-        <i data-lucide="chevrons-left"></i>
-      </button>
-      <button
-        type="button"
-        class="history-action-button history-page-btn"
-        id="history-page-prev"
-        aria-label="${t("history.pagination.prevAria")}"
-      >
-        <i data-lucide="chevron-left"></i>
-      </button>
-    </div>
-    <div class="history-page-center">
-      <span class="history-page-info" id="history-page-info" aria-live="polite">
-        ${t("history.pagination.info", {
-          page: 1,
-          total: 1,
-          count: 0,
-          label: t("history.entry.many"),
-        })}
-      </span>
-      <label class="history-page-size">
-        <span class="history-page-size-label">${t("history.pagination.perLabel")}</span>
-        <select
-          id="history-page-size"
-          class="input input-sm history-page-size-select bk-select-init"
-          aria-label="${t("history.pagination.perAria")}"
-        >
-          ${HISTORY_PAGE_SIZES.map((opt) => `<option value="${opt}">${opt}</option>`).join("")}
-        </select>
-      </label>
-    </div>
-    <div class="history-page-side history-page-side--right">
-      <button
-        type="button"
-        class="history-action-button history-page-btn"
-        id="history-page-next"
-        aria-label="${t("history.pagination.nextAria")}"
-      >
-        <i data-lucide="chevron-right"></i>
-      </button>
-      <button
-        type="button"
-        class="history-action-button history-page-btn"
-        id="history-page-next-fast"
-        aria-label="${t("history.pagination.nextFastAria")}"
-      >
-        <i data-lucide="chevrons-right"></i>
-      </button>
-    </div>
-  `;
+  paginationRoot = document.getElementById("history-pagination");
+  if (!paginationRoot) return;
 
   paginationPrev = paginationRoot.querySelector("#history-page-prev");
   paginationNext = paginationRoot.querySelector("#history-page-next");
@@ -491,24 +421,24 @@ function ensurePaginationElements() {
     historySelectUIs.pageSize = enhanceSelect(paginationSize);
   }
 
-  paginationPrev?.addEventListener("click", () =>
-    goToPage(state.historyPage - 1),
-  );
-  paginationNext?.addEventListener("click", () =>
-    goToPage(state.historyPage + 1),
-  );
-  paginationPrevFast?.addEventListener("click", () =>
-    goToPage(state.historyPage - 5),
-  );
-  paginationNextFast?.addEventListener("click", () =>
-    goToPage(state.historyPage + 5),
-  );
-  paginationSize?.addEventListener("change", (e) =>
-    changePageSize(e.target.value),
-  );
-
-  const host = historyContainer || history?.parentElement || document.body;
-  host.appendChild(paginationRoot);
+  if (paginationRoot.dataset.bound !== "true") {
+    paginationPrev?.addEventListener("click", () =>
+      goToPage(state.historyPage - 1),
+    );
+    paginationNext?.addEventListener("click", () =>
+      goToPage(state.historyPage + 1),
+    );
+    paginationPrevFast?.addEventListener("click", () =>
+      goToPage(state.historyPage - 5),
+    );
+    paginationNextFast?.addEventListener("click", () =>
+      goToPage(state.historyPage + 5),
+    );
+    paginationSize?.addEventListener("change", (e) =>
+      changePageSize(e.target.value),
+    );
+    paginationRoot.dataset.bound = "true";
+  }
 }
 
 function updatePaginationControls(meta) {
@@ -562,12 +492,6 @@ function updatePaginationControls(meta) {
     );
   }
   if (paginationSize) {
-    if (!HISTORY_PAGE_SIZES.includes(meta.pageSize)) {
-      const opt = document.createElement("option");
-      opt.value = String(meta.pageSize);
-      opt.textContent = meta.pageSize;
-      paginationSize.appendChild(opt);
-    }
     paginationSize.value = String(meta.pageSize);
     historySelectUIs.pageSize?.rebuild?.();
     historySelectUIs.pageSize?.updateLabel?.();
@@ -576,172 +500,6 @@ function updatePaginationControls(meta) {
   if (paginationRoot) {
     paginationRoot.style.display = meta.totalEntries > 0 ? "flex" : "none";
   }
-}
-
-function ensureHistoryCardsElements() {
-  if (!historyCardsRoot || !historyCardsRoot.isConnected) {
-    historyCardsRoot = document.getElementById("history-cards");
-  }
-  if (!historyCardsEmptyRoot || !historyCardsEmptyRoot.isConnected) {
-    historyCardsEmptyRoot = document.getElementById("history-cards-empty");
-  }
-  if (historyCardsRoot && historyCardsEmptyRoot) return;
-
-  let area = document.querySelector(".history-cards-area");
-  if (!area) {
-    area = document.createElement("div");
-    area.className = "history-cards-area";
-    area.setAttribute("aria-live", "polite");
-    area.innerHTML = `
-      <div class="history-cards-header">
-        <div>
-          <p class="history-cards-subtitle" data-i18n="history.cards.subtitle">
-            ${t("history.cards.subtitle")}
-          </p>
-          <h3 class="history-cards-title" data-i18n="history.cards.title">
-            ${t("history.cards.title")}
-          </h3>
-        </div>
-        <div class="history-toolbar__controls history-cards-search history-actions">
-          <div class="history-search-wrapper history-input-wrapper">
-            <i id="icon-filter-search" class="search-icon" data-lucide="search"></i>
-            <input
-              type="text"
-              id="filter-input"
-              placeholder="${t("history.search.placeholder")}"
-              data-i18n-placeholder="history.search.placeholder"
-              aria-label="${t("history.search.aria")}"
-              data-i18n-aria="history.search.aria"
-            />
-            <button
-              id="clear-filter-input"
-              class="history-action-button"
-              data-bs-toggle="tooltip"
-              data-bs-placement="top"
-              title="${t("history.search.clearHint")}"
-              data-i18n-title="history.search.clearHint"
-            >
-              &times;
-            </button>
-          </div>
-          <div class="history-actions-primary">
-            <button
-              id="history-header"
-              class="history-action-button history-count-pill"
-              data-bs-toggle="tooltip"
-              data-bs-placement="top"
-              title="${t("history.count")}"
-              data-i18n-title="history.count"
-            >
-              <span id="total-downloads">0</span>
-            </button>
-            <button
-              id="refresh-button"
-              class="history-action-button"
-              data-bs-toggle="tooltip"
-              data-bs-placement="top"
-              title="${t("history.refresh")}"
-              data-i18n-title="history.refresh"
-            >
-              <i data-lucide="refresh-cw"></i>
-            </button>
-            <button
-              id="sort-button"
-              class="history-action-button"
-              data-bs-toggle="tooltip"
-              data-bs-placement="top"
-              title="${t("history.sort")}"
-              data-i18n-title="history.sort"
-            >
-              <i data-lucide="arrow-down-wide-narrow"></i>
-            </button>
-            <div
-              class="history-density-group"
-              role="group"
-              aria-label="${t("history.density.label")}"
-              data-i18n-aria="history.density.label"
-            >
-              <button
-                id="history-density-compact"
-                type="button"
-                class="history-density-btn"
-                data-density="compact"
-                data-bs-toggle="tooltip"
-                data-bs-placement="top"
-                title="${t("history.density.compact")}"
-                data-i18n-title="history.density.compact"
-              >
-                <i data-lucide="rows-3"></i>
-              </button>
-              <button
-                id="history-density-regular"
-                type="button"
-                class="history-density-btn"
-                data-density="regular"
-                data-bs-toggle="tooltip"
-                data-bs-placement="top"
-                title="${t("history.density.regular")}"
-                data-i18n-title="history.density.regular"
-              >
-                <i data-lucide="grip-horizontal"></i>
-              </button>
-              <button
-                id="history-density-comfort"
-                type="button"
-                class="history-density-btn"
-                data-density="comfort"
-                data-bs-toggle="tooltip"
-                data-bs-placement="top"
-                title="${t("history.density.comfort")}"
-                data-i18n-title="history.density.comfort"
-              >
-                <i data-lucide="panel-top-open"></i>
-              </button>
-            </div>
-          </div>
-          <div class="history-actions-secondary">
-            <button
-              id="clear-history"
-              class="history-action-button"
-              data-bs-toggle="tooltip"
-              data-bs-placement="top"
-              title="${t("history.clear")}"
-              data-i18n-title="history.clear"
-            >
-              <i data-lucide="trash"></i>
-            </button>
-            <button
-              id="delete-selected"
-              class="history-action-button hidden"
-              data-bs-toggle="tooltip"
-              data-bs-placement="top"
-              title="${t("history.deleteSelected")}"
-              data-i18n-title="history.deleteSelected"
-            >
-              <i data-lucide="trash-2"></i>
-            </button>
-          </div>
-        </div>
-      </div>
-      <div id="history-cards" class="history-card-grid" role="list"></div>
-      <div id="history-cards-empty" class="history-cards-empty">
-        <span data-i18n="history.empty.noRecent">
-          ${t("history.empty.noRecent")}
-        </span>
-      </div>
-    `;
-    const container =
-      historyContainer || document.getElementById("history-container");
-    if (container) {
-      const listAnchor = container.querySelector("#history");
-      if (listAnchor) container.insertBefore(area, listAnchor);
-      else container.appendChild(area);
-    } else {
-      document.body.appendChild(area);
-    }
-  }
-  historyCardsRoot = area.querySelector("#history-cards");
-  historyCardsEmptyRoot = area.querySelector("#history-cards-empty");
 }
 
 function ensureHistoryEmptyElement() {
@@ -1052,7 +810,7 @@ function ensureHistoryCardPreviewOverlay() {
   if (historyCardPreviewOverlay) return historyCardPreviewOverlay;
 
   const overlay = document.createElement("div");
-  overlay.className = "history-card-preview-overlay hidden";
+  overlay.className = "history-preview-overlay hidden";
   overlay.setAttribute("role", "dialog");
   overlay.setAttribute("aria-modal", "true");
   overlay.setAttribute("aria-hidden", "true");
@@ -1060,10 +818,10 @@ function ensureHistoryCardPreviewOverlay() {
   overlay.setAttribute("data-i18n-aria", "history.preview.overlayLabel");
   overlay.tabIndex = -1;
   overlay.innerHTML = `
-    <div class="history-card-preview-dialog" role="document">
+    <div class="history-preview-dialog" role="document">
       <button
         type="button"
-        class="history-card-preview-close"
+        class="history-preview-close"
         aria-label="${t("history.preview.close")}"
         data-i18n-aria="history.preview.close"
       >
@@ -1071,7 +829,7 @@ function ensureHistoryCardPreviewOverlay() {
       </button>
       <button
         type="button"
-        class="history-card-preview-nav history-card-preview-prev"
+        class="history-preview-nav history-preview-prev"
         aria-label="${t("history.preview.prev")}"
         data-i18n-aria="history.preview.prev"
       >
@@ -1079,21 +837,21 @@ function ensureHistoryCardPreviewOverlay() {
       </button>
       <button
         type="button"
-        class="history-card-preview-nav history-card-preview-next"
+        class="history-preview-nav history-preview-next"
         aria-label="${t("history.preview.next")}"
         data-i18n-aria="history.preview.next"
       >
         <i data-lucide="chevron-right"></i>
       </button>
-      <img class="history-card-preview-image" alt="" />
-      <div class="history-card-preview-counter"></div>
-      <p class="history-card-preview-caption"></p>
+      <img class="history-preview-image" alt="" />
+      <div class="history-preview-counter"></div>
+      <p class="history-preview-caption"></p>
     </div>
   `;
 
-  const closeBtn = overlay.querySelector(".history-card-preview-close");
-  const prevBtn = overlay.querySelector(".history-card-preview-prev");
-  const nextBtn = overlay.querySelector(".history-card-preview-next");
+  const closeBtn = overlay.querySelector(".history-preview-close");
+  const prevBtn = overlay.querySelector(".history-preview-prev");
+  const nextBtn = overlay.querySelector(".history-preview-next");
   closeBtn.addEventListener("click", closeHistoryCardPreview);
   prevBtn.addEventListener("click", () => openHistoryPreviewRelative(-1));
   nextBtn.addEventListener("click", () => openHistoryPreviewRelative(1));
@@ -1128,17 +886,11 @@ function ensureHistoryCardPreviewOverlay() {
   });
 
   historyCardPreviewOverlay = overlay;
-  historyCardPreviewImage = overlay.querySelector(
-    ".history-card-preview-image",
-  );
-  historyCardPreviewCaption = overlay.querySelector(
-    ".history-card-preview-caption",
-  );
-  historyCardPreviewCounter = overlay.querySelector(
-    ".history-card-preview-counter",
-  );
-  historyCardPreviewPrev = overlay.querySelector(".history-card-preview-prev");
-  historyCardPreviewNext = overlay.querySelector(".history-card-preview-next");
+  historyCardPreviewImage = overlay.querySelector(".history-preview-image");
+  historyCardPreviewCaption = overlay.querySelector(".history-preview-caption");
+  historyCardPreviewCounter = overlay.querySelector(".history-preview-counter");
+  historyCardPreviewPrev = overlay.querySelector(".history-preview-prev");
+  historyCardPreviewNext = overlay.querySelector(".history-preview-next");
 
   document.body.appendChild(overlay);
   refreshHistoryLucideIcons();
@@ -1299,16 +1051,6 @@ function clearHistoryContainer(container) {
   container.innerHTML = "";
 }
 
-function destroyHistoryVirtualList() {
-  if (!historyVirtualList) return;
-  try {
-    historyVirtualList.destroy?.();
-  } catch (error) {
-    console.warn("Не удалось остановить виртуализацию истории:", error);
-  }
-  historyVirtualList = null;
-}
-
 function createHistoryGroupElement(entry, groupKey = "unknown", count = 0) {
   const entryDate = normalizeEntryDate(entry);
   const group = document.createElement("div");
@@ -1352,202 +1094,6 @@ function getHistoryGroupCounts(entries = []) {
     counts.set(key, (counts.get(key) || 0) + 1);
   });
   return counts;
-}
-
-function estimateVirtualItemHeight(type) {
-  if (type === "group") return 42;
-  if (state.historyDetailsExpanded) {
-    const density = normalizeDensity(state.historyDensity);
-    if (density === "compact") return 360;
-    if (density === "comfort") return 410;
-    return 390;
-  }
-  const density = normalizeDensity(state.historyDensity);
-  if (density === "compact") return 88;
-  if (density === "comfort") return 124;
-  return 104;
-}
-
-function buildVirtualHistoryItems(entries = []) {
-  const items = [];
-  let lastGroupKey = null;
-  const groupCounts = getHistoryGroupCounts(entries);
-  entries.forEach((entry) => {
-    const entryDate = normalizeEntryDate(entry);
-    const groupKey = getDayKey(entryDate);
-    if (groupKey !== lastGroupKey) {
-      lastGroupKey = groupKey;
-      items.push({
-        type: "group",
-        key: `group:${groupKey}`,
-        groupKey,
-        entry,
-        count: groupCounts.get(groupKey) || 0,
-        height: estimateVirtualItemHeight("group"),
-      });
-    }
-    items.push({
-      type: "entry",
-      key: `entry:${entry?.id ?? entry?.filePath ?? Math.random()}`,
-      groupKey,
-      entry,
-      height: estimateVirtualItemHeight("entry"),
-    });
-  });
-  return items;
-}
-
-function binarySearchPrefix(prefix, value) {
-  let low = 0;
-  let high = prefix.length - 1;
-  while (low < high) {
-    const mid = Math.floor((low + high + 1) / 2);
-    if (prefix[mid] <= value) {
-      low = mid;
-    } else {
-      high = mid - 1;
-    }
-  }
-  return low;
-}
-
-function renderHistoryVirtualized(container, entries = []) {
-  const items = buildVirtualHistoryItems(entries);
-  const topSpacer = document.createElement("div");
-  topSpacer.className = "history-virtual-spacer history-virtual-spacer--top";
-  topSpacer.setAttribute("aria-hidden", "true");
-
-  const windowRoot = document.createElement("div");
-  windowRoot.className = "history-virtual-window";
-
-  const bottomSpacer = document.createElement("div");
-  bottomSpacer.className =
-    "history-virtual-spacer history-virtual-spacer--bottom";
-  bottomSpacer.setAttribute("aria-hidden", "true");
-
-  container.append(topSpacer, windowRoot, bottomSpacer);
-
-  let prefix = [];
-  let totalHeight = 0;
-  const rebuildPrefix = () => {
-    prefix = new Array(items.length + 1);
-    prefix[0] = 0;
-    for (let i = 0; i < items.length; i += 1) {
-      prefix[i + 1] = prefix[i] + (items[i].height || 0);
-    }
-    totalHeight = prefix[prefix.length - 1] || 0;
-  };
-  rebuildPrefix();
-
-  let currentStart = -1;
-  let currentEnd = -1;
-  let scrollFrame = null;
-
-  const renderRange = () => {
-    scrollFrame = null;
-    const rect = container.getBoundingClientRect();
-    const viewportHeight =
-      window.innerHeight || document.documentElement.clientHeight || 900;
-    const offsetInContainer = Math.max(0, -rect.top);
-    const visibleStartPx = Math.max(
-      0,
-      offsetInContainer - HISTORY_VIRTUAL_OVERSCAN_PX,
-    );
-    const visibleEndPx = Math.max(
-      visibleStartPx,
-      Math.min(
-        totalHeight,
-        offsetInContainer + viewportHeight + HISTORY_VIRTUAL_OVERSCAN_PX,
-      ),
-    );
-
-    const start = Math.max(
-      0,
-      Math.min(items.length, binarySearchPrefix(prefix, visibleStartPx)),
-    );
-    const end = Math.max(
-      start,
-      Math.min(items.length, binarySearchPrefix(prefix, visibleEndPx) + 1),
-    );
-
-    if (start === currentStart && end === currentEnd) return;
-    currentStart = start;
-    currentEnd = end;
-
-    topSpacer.style.height = `${prefix[start]}px`;
-    bottomSpacer.style.height = `${Math.max(0, totalHeight - prefix[end])}px`;
-
-    const fragment = document.createDocumentFragment();
-    for (let i = start; i < end; i += 1) {
-      const item = items[i];
-      if (item.type === "group") {
-        const group = createHistoryGroupElement(
-          item.entry,
-          item.groupKey,
-          item.count,
-        );
-        group.dataset.virtualIndex = String(i);
-        fragment.appendChild(group);
-        continue;
-      }
-      const { el } = createLogEntry(item.entry, item.groupKey);
-      el.dataset.virtualIndex = String(i);
-      fragment.appendChild(el);
-    }
-    windowRoot.innerHTML = "";
-    windowRoot.appendChild(fragment);
-
-    attachDeleteListeners();
-    requestAnimationFrame(() => {
-      updateTitleTruncation();
-      initTooltips();
-      updateToggleAllButtonState();
-      updateGroupSelectionLabels();
-      refreshHistoryLucideIcons();
-    });
-
-    let measuredChanged = false;
-    windowRoot.childNodes.forEach((node) => {
-      if (!(node instanceof HTMLElement)) return;
-      const index = Number(node.dataset.virtualIndex);
-      if (!Number.isFinite(index) || index < 0 || index >= items.length) return;
-      const measured = Math.ceil(node.getBoundingClientRect().height || 0);
-      if (!measured) return;
-      if (Math.abs((items[index].height || 0) - measured) < 2) return;
-      items[index].height = measured;
-      measuredChanged = true;
-    });
-    if (measuredChanged) {
-      rebuildPrefix();
-      topSpacer.style.height = `${prefix[start]}px`;
-      bottomSpacer.style.height = `${Math.max(0, totalHeight - prefix[end])}px`;
-      scheduleRender();
-    }
-  };
-
-  const scheduleRender = () => {
-    if (scrollFrame) return;
-    scrollFrame = requestAnimationFrame(renderRange);
-  };
-
-  window.addEventListener("scroll", scheduleRender, { passive: true });
-  window.addEventListener("resize", scheduleRender, { passive: true });
-  windowRoot.addEventListener("load", scheduleRender, true);
-  renderRange();
-
-  return {
-    enabled: true,
-    requestRender: scheduleRender,
-    destroy() {
-      if (scrollFrame) {
-        cancelAnimationFrame(scrollFrame);
-        scrollFrame = null;
-      }
-      window.removeEventListener("scroll", scheduleRender);
-      window.removeEventListener("resize", scheduleRender);
-      windowRoot.removeEventListener("load", scheduleRender, true);
-    },
-  };
 }
 
 function syncSelectedEntriesWith(entries = []) {
@@ -1681,7 +1227,6 @@ function toggleAllHistoryDetails(forceState = null) {
   try {
     localStorage.setItem("historyDetailsExpanded", String(shouldOpen));
   } catch {}
-  historyVirtualList?.requestRender?.();
 }
 
 function updateTitleTruncation() {
@@ -2122,23 +1667,6 @@ const restoreMissingHistoryPreviews = async (entries, rawHistory) => {
   }
 };
 
-const formatCardDate = (entry) => {
-  if (!entry) return "";
-  if (entry.timestamp) {
-    try {
-      const d = new Date(entry.timestamp);
-      if (!Number.isNaN(d.getTime())) {
-        return d.toLocaleString([], {
-          dateStyle: "medium",
-          timeStyle: "short",
-          hour12: false,
-        });
-      }
-    } catch (_) {}
-  }
-  return entry.dateText || "";
-};
-
 const formatSizeLabel = (entry) => {
   if (entry?.isMissing) return "";
   if (entry?.formattedSize) return entry.formattedSize;
@@ -2281,7 +1809,6 @@ function hideActiveHistoryInspector() {
   activeHistoryInspectorEntryId = "";
   activeHistoryInspectorRoot = null;
   activeHistoryInspectorTrigger = null;
-  historyVirtualList?.requestRender?.();
 }
 
 async function inspectHistoryCardFile(
@@ -2335,7 +1862,6 @@ async function inspectHistoryCardFile(
     activeHistoryInspectorTrigger?.classList.add("is-active");
 
     await panel.inspectFile(entry.filePath, { autoAnalyze: true });
-    historyVirtualList?.requestRender?.();
   } catch (error) {
     console.error("Ошибка при анализе файла истории:", error);
     showToast(t("history.toast.fileOpenError"), "error");
@@ -2367,235 +1893,61 @@ function retryHistoryCardDownload(entry) {
   );
 }
 
-function renderHistoryCards(entries = []) {
-  ensureHistoryCardsElements();
-  if (!historyCardsRoot) return;
-  const cardsLimit = normalizePageSize(
-    state.historyPageSize || RECENT_HISTORY_LIMIT,
-  );
-  const subset = (entries || []).slice(0, cardsLimit);
-  historyCardsRoot.innerHTML = "";
-  if (subset.length === 0) {
-    if (historyCardsEmptyRoot) historyCardsEmptyRoot.style.display = "";
-    return;
-  }
-  if (historyCardsEmptyRoot) historyCardsEmptyRoot.style.display = "none";
-
-  subset.forEach((entry) => {
-    const hasPreview = Boolean(entry?.thumbnail);
-    const thumbSrc = hasPreview ? entry.thumbnail : HISTORY_IMAGE_PLACEHOLDER;
-    const isPlaceholder = !hasPreview;
-
-    const card = document.createElement("article");
-    card.className = `history-card${entry.isMissing ? " is-missing" : ""}`;
-    card.setAttribute("role", "listitem");
-    card.dataset.id = entry.id || "";
-    card.dataset.filepath = entry.filePath || "";
-    card.dataset.url = entry.sourceUrl || "";
-    card.dataset.filename = entry.fileName || "";
-    card.dataset.quality = entry.quality || "";
-    card.dataset.datetime = entry.dateText || "";
-    card.dataset.resolution = entry.resolution || "";
-    card.dataset.size = entry.formattedSize || "";
-
-    const thumb = document.createElement("div");
-    thumb.className = `history-card-thumb${
-      isPlaceholder ? " placeholder" : ""
-    }`;
-    if (thumbSrc) {
-      const img = document.createElement("img");
-      attachPlaceholderOnError(img, HISTORY_IMAGE_PLACEHOLDER, thumb);
-      img.src = thumbSrc;
-      img.alt = entry.fileName || t("preview.alt");
-      img.loading = "lazy";
-
-      const zoomBtn = document.createElement("button");
-      zoomBtn.type = "button";
-      zoomBtn.className = "history-card-thumb-button";
-      zoomBtn.title = t("history.preview.zoom");
-      zoomBtn.setAttribute("data-i18n-title", "history.preview.zoom");
-      zoomBtn.setAttribute("data-bs-toggle", "tooltip");
-      zoomBtn.setAttribute("data-bs-placement", "top");
-      zoomBtn.addEventListener("click", () =>
-        openHistoryCardPreview(
-          img.src || thumbSrc,
-          entry.fileName || entry.sourceUrl,
-          entry,
-        ),
-      );
-      const zoomBadge = document.createElement("span");
-      zoomBadge.className = "history-card-thumb-zoom";
-      zoomBadge.innerHTML = '<i data-lucide="expand"></i>';
-
-      zoomBtn.append(img, zoomBadge);
-      thumb.appendChild(zoomBtn);
-    } else {
-      const icon = document.createElement("i");
-      icon.setAttribute("data-lucide", "image");
-      thumb.appendChild(icon);
-    }
-    if (entry.quality) {
-      const chip = document.createElement("span");
-      chip.className = "history-card-chip";
-      chip.textContent = entry.quality;
-      thumb.appendChild(chip);
-    }
-
-    const body = document.createElement("div");
-    body.className = "history-card-body";
-
-    const name = document.createElement("h4");
-    name.className = "history-card-name";
-    name.title = entry.fileName || "";
-    name.textContent = entry.fileName || t("history.file.untitled");
-    body.appendChild(name);
-
-    const meta = document.createElement("div");
-    meta.className = "history-card-meta";
-    const host = detectHost(entry.sourceUrl);
-    if (host) {
-      const hostBadge = document.createElement("span");
-      hostBadge.className = "history-card-host";
-
-      const hostLabel = document.createElement("span");
-      hostLabel.className = "history-card-host-label";
-
-      const hostButton = document.createElement("button");
-      hostButton.type = "button";
-      hostButton.className = "history-card-host-link";
-      hostButton.textContent = host;
-      hostButton.title = t("history.action.openSource");
-      hostButton.setAttribute("data-i18n-title", "history.action.openSource");
-      hostButton.setAttribute("data-bs-toggle", "tooltip");
-      hostButton.setAttribute("data-bs-placement", "top");
-      hostButton.addEventListener("click", () =>
-        openHistorySourceLink(entry.sourceUrl),
-      );
-
-      hostBadge.append(hostLabel, hostButton);
-      meta.appendChild(hostBadge);
-    }
-    const size = document.createElement("span");
-    size.textContent = formatSizeLabel(entry);
-    meta.appendChild(size);
-    body.appendChild(meta);
-
-    const dateLabel = formatCardDate(entry);
-    if (dateLabel) {
-      const date = document.createElement("p");
-      date.className = "history-card-date";
-      date.textContent = dateLabel;
-      body.appendChild(date);
-    }
-
-    const actions = document.createElement("div");
-    actions.className = "history-card-actions";
-    const openBtn = document.createElement("button");
-    openBtn.type = "button";
-    openBtn.className = "history-card-btn";
-    openBtn.dataset.action = "open";
-    openBtn.innerHTML = `<i data-lucide="play"></i><span>${t(
-      "history.action.open",
-    )}</span>`;
-    openBtn.title = t("history.action.openFile");
-    openBtn.setAttribute("data-i18n-title", "history.action.openFile");
-    openBtn.setAttribute("data-bs-toggle", "tooltip");
-    openBtn.setAttribute("data-bs-placement", "top");
-    openBtn.disabled = entry.isMissing || !entry.filePath;
-    openBtn.addEventListener("click", () => openHistoryCardFile(entry));
-
-    const openFolderBtn = document.createElement("button");
-    openFolderBtn.type = "button";
-    openFolderBtn.className = "history-card-btn ghost";
-    openFolderBtn.dataset.action = "open-folder";
-    openFolderBtn.innerHTML = `<i data-lucide="folder-open"></i><span>${t(
-      "history.action.folder",
-    )}</span>`;
-    openFolderBtn.title = t("history.action.openFolder");
-    openFolderBtn.setAttribute("data-i18n-title", "history.action.openFolder");
-    openFolderBtn.setAttribute("data-bs-toggle", "tooltip");
-    openFolderBtn.setAttribute("data-bs-placement", "top");
-    openFolderBtn.disabled = entry.isMissing || !entry.filePath;
-    openFolderBtn.addEventListener("click", () => openHistoryCardFolder(entry));
-
-    const inspectBtn = document.createElement("button");
-    inspectBtn.type = "button";
-    inspectBtn.className = "history-card-btn ghost";
-    inspectBtn.dataset.action = "inspect";
-    inspectBtn.innerHTML = `<i data-lucide="activity"></i><span>${t(
-      "history.action.inspect",
-    )}</span>`;
-    inspectBtn.title = t("history.action.inspectFile");
-    inspectBtn.setAttribute("data-i18n-title", "history.action.inspectFile");
-    inspectBtn.setAttribute("data-bs-toggle", "tooltip");
-    inspectBtn.setAttribute("data-bs-placement", "top");
-    inspectBtn.disabled = entry.isMissing || !entry.filePath;
-
-    const retryBtn = document.createElement("button");
-    retryBtn.type = "button";
-    retryBtn.className = "history-card-btn ghost";
-    retryBtn.dataset.action = "retry";
-    retryBtn.innerHTML = `<i data-lucide="refresh-cw"></i><span>${t(
-      "history.action.retry",
-    )}</span>`;
-    retryBtn.title = t("history.action.retryFile");
-    retryBtn.setAttribute("data-i18n-title", "history.action.retryFile");
-    retryBtn.setAttribute("data-bs-toggle", "tooltip");
-    retryBtn.setAttribute("data-bs-placement", "top");
-    retryBtn.disabled = !entry.sourceUrl;
-    if (entry.sourceUrl) {
-      retryBtn.addEventListener("click", () => retryHistoryCardDownload(entry));
-    }
-
-    actions.append(openBtn, openFolderBtn, inspectBtn, retryBtn);
-    body.appendChild(actions);
-
-    const inspectorSlot = document.createElement("section");
-    inspectorSlot.className = "history-card-inspector-slot hidden";
-    body.appendChild(inspectorSlot);
-
-    inspectBtn.addEventListener("click", () =>
-      inspectHistoryCardFile(entry, {
-        root: inspectorSlot,
-        trigger: inspectBtn,
-      }),
-    );
-
-    const deleteBtn = document.createElement("button");
-    deleteBtn.type = "button";
-    deleteBtn.className = "history-card-delete";
-    deleteBtn.setAttribute("aria-label", t("history.action.delete"));
-    deleteBtn.setAttribute("data-i18n-aria", "history.action.delete");
-    deleteBtn.title = t("history.action.delete");
-    deleteBtn.setAttribute("data-i18n-title", "history.action.delete");
-    deleteBtn.setAttribute("data-bs-toggle", "tooltip");
-    deleteBtn.setAttribute("data-bs-placement", "top");
-    deleteBtn.innerHTML = '<i data-lucide="x"></i>';
-    deleteBtn.addEventListener("click", async (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      await handleDeleteEntry(card);
-    });
-
-    card.append(deleteBtn, thumb, body);
-    historyCardsRoot.appendChild(card);
-  });
-}
-
 function markEntryMissing(entry) {
   if (!entry) return;
   const id = entry.id?.toString?.() || "";
+  const filePath = String(entry.filePath || "");
+  if (!id && !filePath) return;
+  const matchesEntry = (item) => {
+    if (!item) return false;
+    if (id) return String(item.id || "") === id;
+    return String(item.filePath || "") === filePath;
+  };
   const current = getHistoryData();
   if (!Array.isArray(current) || !current.length) return;
-  const updated = current.map((item) => {
-    if (!item) return item;
-    const itemId = item.id?.toString?.() || "";
-    if (id && itemId !== id) return item;
-    return { ...item, isMissing: true };
-  });
+  const updated = current.map((item) =>
+    matchesEntry(item) ? { ...item, isMissing: true } : item,
+  );
+  const updatedEntry = updated.find(matchesEntry);
+  if (!updatedEntry) return;
   setHistoryData(updated);
-  filterAndSortHistory(state.currentSearchQuery, state.currentSortOrder, true);
-  renderHistoryCards(updated);
+  lastRenderedFiltered = lastRenderedFiltered.map((item) =>
+    matchesEntry(item) ? updatedEntry : item,
+  );
+  lastRenderedPageEntries = lastRenderedPageEntries.map((item) =>
+    matchesEntry(item) ? updatedEntry : item,
+  );
+
+  const currentRow = Array.from(
+    document.querySelectorAll(
+      ".history-row[data-id], .history-row[data-filepath]",
+    ),
+  ).find((row) =>
+    id ? row.dataset.id === id : row.dataset.filepath === filePath,
+  );
+  if (currentRow) {
+    const wasOpen = currentRow.classList.contains("is-open");
+    const groupKey = currentRow.dataset.groupKey || "unknown";
+    const { el: replacement } = createLogEntry(updatedEntry, groupKey);
+    if (wasOpen) {
+      replacement.classList.add("is-open");
+      replacement
+        .querySelector(".history-row__details")
+        ?.classList.add("is-open");
+      const toggle = replacement.querySelector(".history-row__toggle");
+      toggle?.classList.add("is-open");
+      toggle?.setAttribute("aria-expanded", "true");
+    }
+    currentRow.replaceWith(replacement);
+    attachDeleteListeners(replacement);
+    updateTitleTruncation();
+    updateToggleAllButtonState();
+    updateGroupSelectionLabels();
+    refreshHistoryLucideIcons();
+    initTooltips();
+  }
+  const stats = getHistoryStats(updated);
+  updateHistoryHeaderStats({ count: stats.count, sizeBytes: stats.sizeBytes });
 }
 
 function isFailedHistoryEntry(entry) {
@@ -3185,7 +2537,6 @@ function createLogEntry(entry, groupKey = "unknown") {
     toggle.setAttribute("aria-label", label);
     toggle.title = label;
     updateToggleAllButtonState();
-    historyVirtualList?.requestRender?.();
   };
 
   const toggleDetails = (event = null) =>
@@ -3229,8 +2580,8 @@ function createLogEntry(entry, groupKey = "unknown") {
   return { el };
 }
 
-function attachDeleteListeners() {
-  const deleteButtons = document.querySelectorAll(".history-row__delete");
+function attachDeleteListeners(root = document) {
+  const deleteButtons = root.querySelectorAll(".history-row__delete");
   deleteButtons.forEach((btn) => {
     btn.addEventListener("click", async (e) => {
       e.preventDefault();
@@ -3518,11 +2869,9 @@ function renderHistory(entries, meta = {}) {
   hideActiveHistoryInspector();
 
   disposeAllTooltips(); // очистка старых тултипов перед новой инициализацией
-  destroyHistoryVirtualList();
 
   clearHistoryContainer(container);
   clearHistorySelection();
-  if (container) container.dataset.virtualized = "false";
 
   if (isEmpty) {
     const hasActiveFilters =
@@ -3581,39 +2930,32 @@ function renderHistory(entries, meta = {}) {
   if (filtersRow) filtersRow.classList.remove("hidden");
 
   syncSelectedEntriesWith(pageEntries);
-  const shouldVirtualize =
-    pageEntries.length >= HISTORY_VIRTUALIZATION_MIN_ITEMS;
-  container.dataset.virtualized = shouldVirtualize ? "true" : "false";
-  if (shouldVirtualize) {
-    historyVirtualList = renderHistoryVirtualized(container, pageEntries);
-  } else {
-    let lastGroupKey = null;
-    const groupCounts = getHistoryGroupCounts(pageEntries);
-    pageEntries.forEach((entry) => {
-      const entryDate = normalizeEntryDate(entry);
-      const groupKey = getDayKey(entryDate);
-      if (groupKey !== lastGroupKey) {
-        lastGroupKey = groupKey;
-        container.appendChild(
-          createHistoryGroupElement(
-            entry,
-            groupKey,
-            groupCounts.get(groupKey) || 0,
-          ),
-        );
-      }
+  let lastGroupKey = null;
+  const groupCounts = getHistoryGroupCounts(pageEntries);
+  pageEntries.forEach((entry) => {
+    const entryDate = normalizeEntryDate(entry);
+    const groupKey = getDayKey(entryDate);
+    if (groupKey !== lastGroupKey) {
+      lastGroupKey = groupKey;
+      container.appendChild(
+        createHistoryGroupElement(
+          entry,
+          groupKey,
+          groupCounts.get(groupKey) || 0,
+        ),
+      );
+    }
 
-      const { el } = createLogEntry(entry, groupKey);
-      container.appendChild(el);
-    });
-    requestAnimationFrame(() => {
-      updateTitleTruncation();
-      initTooltips();
-      updateGroupSelectionLabels();
-      refreshHistoryLucideIcons();
-    });
-    attachDeleteListeners();
-  }
+    const { el } = createLogEntry(entry, groupKey);
+    container.appendChild(el);
+  });
+  requestAnimationFrame(() => {
+    updateTitleTruncation();
+    initTooltips();
+    updateGroupSelectionLabels();
+    refreshHistoryLucideIcons();
+  });
+  attachDeleteListeners();
 
   const highlighted = container.querySelector(".new-entry");
   if (highlighted) {
@@ -3905,7 +3247,6 @@ export {
   initHistoryState,
   getHistoryData,
   renderHistory,
-  renderHistoryCards,
   sortHistory,
   updateDownloadCount,
   loadHistory,

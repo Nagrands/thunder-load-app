@@ -102,13 +102,29 @@ const setupDom = () => {
       <select id="history-source-filter"></select>
       <select id="history-sort-key"></select>
       <select id="history-sort-mode"></select>
-      <div id="history-cards"></div>
-      <div id="history-cards-empty"></div>
       <div id="history-bulk-bar" class="history-bulk-bar hidden"></div>
       <span id="history-selected-count"></span>
       <button id="history-clear-selection"></button>
       <div id="history"></div>
       <div id="history-empty"></div>
+      <div id="history-pagination" class="history-pagination" data-ui="history-pagination">
+        <div class="history-page-side history-page-side--left">
+          <button id="history-page-prev-fast"></button>
+          <button id="history-page-prev"></button>
+        </div>
+        <div class="history-page-center">
+          <span id="history-page-info"></span>
+          <select id="history-page-size">
+            <option value="4">4</option>
+            <option value="10">10</option>
+            <option value="20">20</option>
+          </select>
+        </div>
+        <div class="history-page-side history-page-side--right">
+          <button id="history-page-next"></button>
+          <button id="history-page-next-fast"></button>
+        </div>
+      </div>
     </div>
   `;
 
@@ -473,52 +489,6 @@ describe("Downloader history list", () => {
     expect(menu.classList.contains("is-open")).toBe(true);
   });
 
-  test("opens inline media inspector inside a history card and toggles it closed", async () => {
-    window.electron.invoke.mockResolvedValue(true);
-    const { renderHistoryCards } = await import("../features/history/core.js");
-
-    renderHistoryCards([createEntry()]);
-
-    const inspectButton = document.querySelector(
-      '.history-card-btn[data-action="inspect"]',
-    );
-    const inspectorSlot = document.querySelector(
-      ".history-card-inspector-slot",
-    );
-
-    inspectButton.click();
-    await Promise.resolve();
-    await Promise.resolve();
-
-    expect(window.electron.invoke).toHaveBeenCalledWith(
-      "check-file-exists",
-      "/tmp/video.mp4",
-    );
-    expect(window.electron.tools.analyzeMediaFile).toHaveBeenCalledWith({
-      filePath: "/tmp/video.mp4",
-    });
-    expect(inspectorSlot.classList.contains("hidden")).toBe(false);
-    expect(
-      inspectorSlot.querySelector(".media-inspector-card--history"),
-    ).not.toBeNull();
-    expect(
-      inspectorSlot.querySelector("#media-inspector-pick-file"),
-    ).toBeNull();
-    expect(
-      inspectorSlot
-        .querySelector("#media-inspector-drop-zone")
-        ?.classList.contains("has-file"),
-    ).toBe(true);
-    expect(
-      inspectorSlot.querySelector("#media-inspector-file-path")?.textContent,
-    ).toBe("/tmp/video.mp4");
-
-    inspectButton.click();
-    await Promise.resolve();
-
-    expect(inspectorSlot.classList.contains("hidden")).toBe(true);
-  });
-
   test("opens inline media inspector inside row details and keeps only one open", async () => {
     window.electron.invoke.mockResolvedValue(true);
     const { renderHistory } = await import("../history.js");
@@ -838,33 +808,7 @@ describe("Downloader history list", () => {
     expect(unifiedCard.querySelector("#history-filters-card")).not.toBeNull();
   });
 
-  test("enables virtualized rendering for large history pages", async () => {
-    localStorage.setItem("historyPageSize", "200");
-    const { renderHistory } = await import("../history.js");
-
-    const entries = Array.from({ length: 120 }, (_, idx) =>
-      createEntry({
-        id: String(idx + 1),
-        fileName: `Entry ${idx + 1}`,
-        sourceUrl: `https://example.com/watch?v=${idx + 1}`,
-      }),
-    );
-
-    renderHistory(entries, {
-      pageSize: 200,
-      totalEntries: entries.length,
-      fullEntries: entries,
-    });
-
-    const list = document.getElementById("history");
-    const renderedRows = list.querySelectorAll(".history-row");
-    expect(list.dataset.virtualized).toBe("true");
-    expect(list.querySelector(".history-virtual-window")).not.toBeNull();
-    expect(renderedRows.length).toBeGreaterThan(0);
-    expect(renderedRows.length).toBeLessThan(entries.length);
-  });
-
-  test("keeps full render for small history pages", async () => {
+  test("renders the complete current page without virtualization wrappers", async () => {
     const { renderHistory } = await import("../history.js");
     const entries = Array.from({ length: 12 }, (_, idx) =>
       createEntry({
@@ -881,9 +825,59 @@ describe("Downloader history list", () => {
     });
 
     const list = document.getElementById("history");
-    expect(list.dataset.virtualized).toBe("false");
     expect(list.querySelector(".history-virtual-window")).toBeNull();
     expect(list.querySelectorAll(".history-row")).toHaveLength(entries.length);
+  });
+
+  test("falls back to the supported 4-entry page size", async () => {
+    const { renderHistory } = await import("../history.js");
+    const entries = Array.from({ length: 12 }, (_, idx) =>
+      createEntry({ id: String(idx + 1), fileName: `Entry ${idx + 1}` }),
+    );
+
+    renderHistory(entries, {
+      pageSize: 200,
+      totalEntries: entries.length,
+      fullEntries: entries,
+    });
+
+    expect(document.querySelectorAll(".history-row")).toHaveLength(4);
+    expect(document.getElementById("history-page-size").value).toBe("4");
+    expect(
+      Array.from(document.getElementById("history-page-size").options).map(
+        (option) => option.value,
+      ),
+    ).toEqual(["4", "10", "20"]);
+  });
+
+  test("marks only the affected row when its file is missing", async () => {
+    const entries = [
+      createEntry({ id: "missing", filePath: "/tmp/missing.mp4" }),
+      createEntry({ id: "kept", filePath: "/tmp/kept.mp4" }),
+    ];
+    const { setHistoryData, getHistoryData } = await import("../state.js");
+    const { renderHistory } = await import("../history.js");
+    setHistoryData(entries);
+    renderHistory(entries);
+    const rowsBefore = document.querySelectorAll(".history-row");
+    const untouchedRow = rowsBefore[1];
+    window.electron.invoke.mockImplementation((channel) => {
+      if (channel === "check-file-exists") return Promise.resolve(false);
+      return Promise.resolve(true);
+    });
+
+    rowsBefore[0]
+      .querySelector(".history-row__preview-play")
+      .dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    await Promise.resolve();
+    await Promise.resolve();
+
+    const rowsAfter = document.querySelectorAll(".history-row");
+    expect(rowsAfter[0]).not.toBe(rowsBefore[0]);
+    expect(rowsAfter[0].classList.contains("history-row--deleted")).toBe(true);
+    expect(rowsAfter[1]).toBe(untouchedRow);
+    expect(getHistoryData()[0].isMissing).toBe(true);
+    expect(getHistoryData()[1].isMissing).toBe(false);
   });
 
   test("toggles details when clicking history row body", async () => {

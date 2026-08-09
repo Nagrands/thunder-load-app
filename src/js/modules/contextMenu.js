@@ -605,9 +605,7 @@ async function handleDeleteFile(logEntry) {
         textEl.removeAttribute("data-filepath");
       }
       logEntry
-        .querySelectorAll(
-          ".history-card-btn, .history-row__action, .open-folder-btn",
-        )
+        .querySelectorAll(".history-row__action, .open-folder-btn")
         .forEach((btn) => {
           if (btn.dataset.action === "retry") return;
           if (btn.classList.contains("history-row__delete")) return;
@@ -671,14 +669,12 @@ function initContextMenu() {
   contextMenuInitialized = true;
   if (!contextMenu) return;
 
-  // Обработчик контекстного меню на истории и карточках
+  // Обработчик контекстного меню в строках истории
   const historyRoot = historyContainer || history || document.body;
   historyRoot.addEventListener(
     "contextmenu",
     async (event) => {
-      const targetEntry =
-        event.target.closest(".log-entry") ||
-        event.target.closest(".history-card");
+      const targetEntry = event.target.closest(".log-entry");
       if (targetEntry) {
         await showContextMenu(event, targetEntry);
       }
