@@ -4,6 +4,7 @@ describe("toast safe html rendering", () => {
   let showToast;
   let showLoading;
   let closeAllToasts;
+  let notify;
 
   beforeEach(() => {
     jest.resetModules();
@@ -17,6 +18,7 @@ describe("toast safe html rendering", () => {
       showToast = mod.showToast;
       showLoading = mod.showLoading;
       closeAllToasts = mod.closeAllToasts;
+      notify = mod.notify;
     });
     window.DOMPurify = createDOMPurify(window);
   });
@@ -153,5 +155,48 @@ describe("toast safe html rendering", () => {
     controller.close();
     jest.advanceTimersByTime(220);
     expect(document.querySelector(".toast-loading")).toBeNull();
+  });
+
+  it("updates an operation notification in place and deduplicates its id", () => {
+    jest.useFakeTimers();
+    const loading = notify({
+      id: "download-1",
+      type: "loading",
+      title: "Preparing",
+      message: "Waiting",
+    });
+    const completed = notify({
+      id: "download-1",
+      type: "success",
+      title: "Done",
+      message: "Saved",
+      duration: 4000,
+    });
+
+    expect(completed).toBe(loading);
+    expect(document.querySelectorAll(".toast")).toHaveLength(1);
+    expect(loading.element.dataset.type).toBe("success");
+    expect(loading.element.querySelector(".toast-title")?.textContent).toBe(
+      "Done",
+    );
+    jest.advanceTimersByTime(4000);
+    expect(loading.element.classList.contains("hide")).toBe(true);
+  });
+
+  it("supports notification actions", async () => {
+    const retry = jest.fn();
+    notify({
+      id: "preview-error",
+      type: "error",
+      message: "Failed",
+      persistent: true,
+      actions: [{ id: "retry", label: "Retry", onClick: retry }],
+    });
+
+    document
+      .querySelector('[data-action="retry"]')
+      ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    await Promise.resolve();
+    expect(retry).toHaveBeenCalledTimes(1);
   });
 });

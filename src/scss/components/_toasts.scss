@@ -183,6 +183,43 @@
   }
 }
 
+.toast-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 5px;
+}
+
+.toast-action {
+  padding: 3px 8px;
+  color: var(--color-highlight);
+  font-size: 0.76rem;
+  font-weight: 700;
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--toast-tone) 32%, var(--toast-border));
+  border-radius: 7px;
+  cursor: pointer;
+
+  &:hover:not(:disabled),
+  &:focus-visible:not(:disabled),
+  &.is-primary {
+    background: color-mix(in srgb, var(--toast-tone) 16%, transparent);
+  }
+
+  &:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--toast-tone) 72%, transparent);
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast,
+  .toast-progress {
+    transition-duration: 0.01ms !important;
+    animation: none !important;
+  }
+}
+
 .toast-success {
   --toast-tone: var(--color-toast-success);
 }

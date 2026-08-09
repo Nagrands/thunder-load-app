@@ -19,6 +19,15 @@ const TOAST_HTML_ALLOWED_ATTR = {
 const DEFAULT_TOAST_DURATION = 5500;
 const TOAST_HIDE_ANIMATION_MS = 220;
 const MAX_VISIBLE_TOASTS = 5;
+const NOTIFICATION_DURATIONS = Object.freeze({
+  loading: 0,
+  success: 4000,
+  info: 4500,
+  warning: 6000,
+  error: 8000,
+});
+const notificationRecords = new Map();
+let notificationSequence = 0;
 const VALID_TOAST_TYPES = new Set([
   "info",
   "success",
@@ -289,6 +298,13 @@ function setupToastEventHandlers(toast, duration, onClickUndo) {
 function closeToast(toast) {
   if (!toast || !toast.parentNode) return;
 
+  const operationId = toast.dataset.operationId;
+  if (operationId) {
+    const record = notificationRecords.get(operationId);
+    if (record?.timer) clearTimeout(record.timer);
+    if (record?.toast === toast) notificationRecords.delete(operationId);
+  }
+
   toast.classList.remove("show");
   toast.classList.add("hide");
 
@@ -422,6 +438,147 @@ function showLoading(
   };
 }
 
+function setNotificationActions(record, actions = []) {
+  record.toast.querySelector(".toast-actions")?.remove();
+  const normalized = Array.isArray(actions)
+    ? actions.filter((action) => action?.id && typeof action.onClick === "function")
+    : [];
+  if (!normalized.length) return;
+  const actionsElement = document.createElement("div");
+  actionsElement.className = "toast-actions";
+  normalized.forEach((action) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `toast-action${action.primary ? " is-primary" : ""}`;
+    button.dataset.action = action.id;
+    button.textContent = String(action.label || action.id);
+    button.addEventListener("click", async (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      await action.onClick();
+      if (action.closeOnClick !== false) closeToast(record.toast);
+    });
+    actionsElement.appendChild(button);
+  });
+  record.toast.querySelector(".toast-content")?.appendChild(actionsElement);
+}
+
+function updateNotificationPresentation(record, nextConfig) {
+  const config = { ...record.config, ...(nextConfig || {}) };
+  const type = normalizeToastType(config.type || config.tone || "info");
+  record.config = { ...config, type };
+  const { toast } = record;
+  toast.dataset.type = type;
+  toast.classList.remove(
+    "toast-info",
+    "toast-success",
+    "toast-warning",
+    "toast-error",
+    "toast-loading",
+    "toast-accent-info",
+    "toast-accent-success",
+    "toast-accent-warning",
+    "toast-accent-error",
+  );
+  toast.classList.add(`toast-${type}`);
+  if (type === "loading") toast.classList.add("toast-loading");
+  if (config.accent) toast.classList.add(`toast-accent-${type}`);
+  const icon = toast.querySelector(".toast-icon");
+  if (icon) icon.className = `toast-icon ${getIconClass(type)}`;
+  const messageElement = toast.querySelector(".toast-message");
+  if (messageElement) {
+    renderToastMessage(messageElement, config.message, {
+      allowHtml: Boolean(config.allowHtml),
+    });
+  }
+  let titleElement = toast.querySelector(".toast-title");
+  if (config.title && !titleElement) {
+    titleElement = document.createElement("div");
+    titleElement.className = "toast-title";
+    toast.querySelector(".toast-content")?.prepend(titleElement);
+  }
+  if (titleElement) {
+    titleElement.textContent = String(config.title || "");
+    titleElement.hidden = !config.title;
+  }
+  setNotificationActions(record, config.actions);
+}
+
+function scheduleNotificationClose(record) {
+  if (record.timer) clearTimeout(record.timer);
+  const configuredDuration = Number(record.config.duration);
+  const duration = Number.isFinite(configuredDuration)
+    ? configuredDuration
+    : NOTIFICATION_DURATIONS[record.config.type] || 0;
+  if (record.config.persistent || duration <= 0) {
+    record.timer = null;
+    return;
+  }
+  record.timer = setTimeout(() => closeToast(record.toast), duration);
+}
+
+/**
+ * Operation-aware notification API. Reusing an id updates the existing toast
+ * instead of adding another one, so Loading can become a final state in place.
+ */
+function notify(config = {}) {
+  const initial = typeof config === "string" ? { message: config } : config;
+  const id = String(initial.id || `notification-${++notificationSequence}`);
+  const existing = notificationRecords.get(id);
+  if (existing?.toast?.isConnected) {
+    updateNotificationPresentation(existing, initial);
+    scheduleNotificationClose(existing);
+    return existing.handle;
+  }
+
+  const type = normalizeToastType(initial.type || initial.tone || "info");
+  const { toast } = buildToastElement({
+    message: initial.message || "",
+    type,
+    title: initial.title || null,
+    onClickUndo: null,
+    accent: Boolean(initial.accent),
+    options: { allowHtml: Boolean(initial.allowHtml) },
+  });
+  toast.dataset.operationId = id;
+  const record = {
+    toast,
+    config: { ...initial, id, type },
+    timer: null,
+    handle: null,
+  };
+  const handle = {
+    id,
+    element: toast,
+    update(nextConfig = {}) {
+      if (!toast.isConnected) return handle;
+      updateNotificationPresentation(record, nextConfig);
+      scheduleNotificationClose(record);
+      return handle;
+    },
+    close: () => closeToast(toast),
+  };
+  record.handle = handle;
+  notificationRecords.set(id, record);
+  toastContainer?.appendChild(toast);
+  updateNotificationPresentation(record, record.config);
+  toast.querySelector(".toast-close")?.addEventListener("click", () =>
+    closeToast(toast),
+  );
+  toast.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") closeToast(toast);
+  });
+  toast.addEventListener("mouseenter", () => {
+    if (record.timer) clearTimeout(record.timer);
+    record.timer = null;
+  });
+  toast.addEventListener("mouseleave", () => scheduleNotificationClose(record));
+  requestAnimationFrame(() => toast.classList.add("show"));
+  scheduleNotificationClose(record);
+  manageToastLimit();
+  return handle;
+}
+
 export {
   showToast,
   showSuccess,
@@ -431,4 +588,5 @@ export {
   showUndoable,
   closeAllToasts,
   showLoading,
+  notify,
 };
