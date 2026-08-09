@@ -64,6 +64,7 @@ try {
     "get-file-size",
     "get-font-size",
     "get-icon-path",
+    "history:inspect-files",
     "cache-history-preview",
     "delete-history-preview",
     "cancel-video-info-request",
@@ -367,7 +368,7 @@ try {
    * @property {(channel: string, listener: (...args: any[]) => void) => (() => void)|undefined} on
    * @property {(channel: string, ...args: any[]) => void} send
    * @property {(listener: (...args: any[]) => void) => (() => void)|undefined} onShowWhatsNew
-   * @property {(listener: (payload: { count?: number }) => void) => (() => void)|undefined} onHistoryUpdated
+   * @property {(listener: (payload: { count?: number, revision?: number }) => void) => (() => void)|undefined} onHistoryUpdated
    * @property {{
    *   getAvailability: () => Promise<any>,
    *   getVersions: () => Promise<any>,

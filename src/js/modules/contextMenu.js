@@ -36,6 +36,10 @@ import { state, updateButtonState } from "./state.js";
 import { t } from "./i18n.js";
 import { registerDismissibleOverlay } from "./overlayManager.js";
 import { focusUrlInputAfterRetry } from "./retryFocus.js";
+import {
+  assertHistorySaveResult,
+  unwrapHistoryEntries,
+} from "./historyIpcResult.js";
 
 /**
  * Текущий выбранный элемент истории
@@ -449,7 +453,9 @@ async function handleDeleteEntry(logEntry) {
               (entry) => String(entry?.id) !== String(deletedEntry?.id),
             );
           }
-          await window.electron.invoke("save-history", restored);
+          assertHistorySaveResult(
+            await window.electron.invoke("save-history", restored),
+          );
           filterAndSortHistory(
             state.currentSearchQuery,
             state.currentSortOrder,
@@ -476,7 +482,9 @@ async function handleDeleteEntry(logEntry) {
  * @returns {Object} - Объект с текущей историей и флагом удаления
  */
 async function deleteEntryFromHistory(entryId) {
-  let currentHistory = await window.electron.invoke("load-history");
+  let currentHistory = unwrapHistoryEntries(
+    await window.electron.invoke("load-history"),
+  );
   const initialHistoryLength = currentHistory.length;
   const normalizedEntryId = String(entryId);
   const entryToDelete = currentHistory.find(
@@ -489,7 +497,9 @@ async function deleteEntryFromHistory(entryId) {
   );
 
   // Сохранение обновленной истории
-  await window.electron.invoke("save-history", currentHistory);
+  assertHistorySaveResult(
+    await window.electron.invoke("save-history", currentHistory),
+  );
   const wasDeleted = currentHistory.length < initialHistoryLength;
   return {
     currentHistory,
@@ -516,7 +526,9 @@ async function markDeletedFileAsMissing(logEntry, deletedPath) {
   if (!changed) return;
   setHistoryData(updatedHistory);
   try {
-    await window.electron.invoke("save-history", updatedHistory);
+    assertHistorySaveResult(
+      await window.electron.invoke("save-history", updatedHistory),
+    );
   } catch (error) {
     console.warn(
       "Не удалось сохранить статус удалённого файла в истории:",

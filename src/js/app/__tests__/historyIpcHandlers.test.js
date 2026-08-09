@@ -62,6 +62,7 @@ describe("historyIpcHandlers", () => {
       CHANNELS.SAVE_HISTORY,
       CHANNELS.CLEAR_HISTORY,
       CHANNELS.GET_DOWNLOAD_COUNT,
+      CHANNELS.INSPECT_HISTORY_FILES,
     ].forEach((channel) => {
       expect(ipcMain.handle).toHaveBeenCalledWith(
         channel,
@@ -75,8 +76,16 @@ describe("historyIpcHandlers", () => {
 
     const result = await handlers[CHANNELS.LOAD_HISTORY]();
 
-    expect(result).toEqual([]);
-    expect(JSON.parse(fs.readFileSync(historyFilePath, "utf8"))).toEqual([]);
+    expect(result).toEqual({
+      success: true,
+      entries: [],
+      count: 0,
+      revision: 1,
+    });
+    expect(JSON.parse(fs.readFileSync(historyFilePath, "utf8"))).toEqual({
+      version: 2,
+      entries: [],
+    });
   });
 
   test("save-history writes entries and emits count", async () => {
@@ -85,14 +94,24 @@ describe("historyIpcHandlers", () => {
 
     const result = await handlers[CHANNELS.SAVE_HISTORY](null, history);
 
-    expect(JSON.parse(fs.readFileSync(historyFilePath, "utf8"))).toEqual(
-      history,
-    );
+    expect(JSON.parse(fs.readFileSync(historyFilePath, "utf8"))).toEqual({
+      version: 2,
+      entries: expect.arrayContaining([
+        expect.objectContaining({ id: "one", status: "completed" }),
+        expect.objectContaining({ id: "two", status: "completed" }),
+      ]),
+    });
     expect(mainWindow.webContents.send).toHaveBeenCalledWith(
       "history-updated",
-      { count: 2 },
+      { count: 2, revision: 1 },
     );
-    expect(result).toEqual({ success: true, count: 2 });
+    expect(result).toEqual(
+      expect.objectContaining({
+        success: true,
+        count: 2,
+        revision: 1,
+      }),
+    );
   });
 
   test("save-history returns a structured failure", async () => {
@@ -103,7 +122,12 @@ describe("historyIpcHandlers", () => {
 
     const result = await handlers[CHANNELS.SAVE_HISTORY](null, [{ id: "one" }]);
 
-    expect(result).toEqual({ success: false, error: "disk error" });
+    expect(result).toEqual({
+      success: false,
+      count: 0,
+      revision: 0,
+      error: "disk error",
+    });
     expect(mainWindow.webContents.send).not.toHaveBeenCalled();
     writeSpy.mockRestore();
   });
@@ -125,14 +149,39 @@ describe("historyIpcHandlers", () => {
 
     const result = await handlers[CHANNELS.CLEAR_HISTORY]();
 
-    expect(result).toBe(true);
-    expect(JSON.parse(fs.readFileSync(historyFilePath, "utf8"))).toEqual([]);
+    expect(result).toEqual(
+      expect.objectContaining({ success: true, count: 0, revision: 1 }),
+    );
+    expect(JSON.parse(fs.readFileSync(historyFilePath, "utf8"))).toEqual({
+      version: 2,
+      entries: [],
+    });
     expect(fs.existsSync(previewDirPath)).toBe(true);
     expect(fs.existsSync(path.join(previewDirPath, "preview.jpg"))).toBe(false);
     expect(ensurePreviewCacheDir).toHaveBeenCalledTimes(1);
     expect(mainWindow.webContents.send).toHaveBeenCalledWith(
       "history-updated",
-      { count: 0 },
+      { count: 0, revision: 1 },
     );
+  });
+
+  test("inspects file existence and size in one batch", async () => {
+    const { CHANNELS } = register();
+    const existingPath = path.join(root, "video.mp4");
+    const missingPath = path.join(root, "missing.mp4");
+    fs.writeFileSync(existingPath, "12345");
+
+    const result = await handlers[CHANNELS.INSPECT_HISTORY_FILES](null, [
+      existingPath,
+      missingPath,
+    ]);
+
+    expect(result).toEqual({
+      success: true,
+      files: [
+        { filePath: existingPath, exists: true, sizeBytes: 5 },
+        { filePath: missingPath, exists: false, sizeBytes: null },
+      ],
+    });
   });
 });

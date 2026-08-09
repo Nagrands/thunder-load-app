@@ -1,12 +1,14 @@
 import { jest } from "@jest/globals";
 
+const mockShowToast = jest.fn();
+
 jest.mock("../tooltipInitializer.js", () => ({
   initTooltips: jest.fn(),
   disposeAllTooltips: jest.fn(),
 }));
 
 jest.mock("../toast.js", () => ({
-  showToast: jest.fn(),
+  showToast: mockShowToast,
 }));
 
 jest.mock("../contextMenu.js", () => ({
@@ -285,6 +287,18 @@ describe("Downloader history list", () => {
       }
       if (channel === "check-file-exists") return Promise.resolve(true);
       if (channel === "get-file-size") return Promise.resolve(3 * 1024 * 1024);
+      if (channel === "history:inspect-files") {
+        return Promise.resolve({
+          success: true,
+          files: [
+            {
+              filePath: "/tmp/video.mp4",
+              exists: true,
+              sizeBytes: 3 * 1024 * 1024,
+            },
+          ],
+        });
+      }
       if (channel === "get-download-count") return Promise.resolve(999);
       return Promise.resolve(null);
     });
@@ -293,6 +307,18 @@ describe("Downloader history list", () => {
     await initHistoryState();
 
     expect(window.electron.invoke).toHaveBeenCalledWith("load-history");
+    expect(window.electron.invoke).toHaveBeenCalledWith(
+      "history:inspect-files",
+      ["/tmp/video.mp4"],
+    );
+    expect(window.electron.invoke).not.toHaveBeenCalledWith(
+      "check-file-exists",
+      "/tmp/video.mp4",
+    );
+    expect(window.electron.invoke).not.toHaveBeenCalledWith(
+      "get-file-size",
+      "/tmp/video.mp4",
+    );
     expect(window.electron.invoke).not.toHaveBeenCalledWith(
       "get-download-count",
     );
@@ -325,6 +351,31 @@ describe("Downloader history list", () => {
 
     resolveHistory([]);
     await hydration;
+  });
+
+  test("reports a corrupt history response without marking it hydrated", async () => {
+    window.electron.invoke.mockImplementation((channel) => {
+      if (channel === "load-history") {
+        return Promise.resolve({
+          success: false,
+          entries: [],
+          count: 0,
+          revision: 0,
+          warning: "history-corrupt",
+          error: "Unexpected token",
+          backupPath: "/tmp/history.corrupt-2026",
+        });
+      }
+      return Promise.resolve(null);
+    });
+    const { initHistoryState } = await import("../history.js");
+    const { state } = await import("../state.js");
+    mockShowToast.mockClear();
+
+    await initHistoryState();
+
+    expect(state.historyHydrated).toBe(false);
+    expect(mockShowToast).toHaveBeenCalledWith(expect.any(String), "error");
   });
 
   test("marks hidden history stale and reloads it once on the next open", async () => {

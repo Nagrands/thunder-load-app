@@ -33,6 +33,10 @@ import { focusUrlInputAfterRetry } from "../../retryFocus.js";
 import { formatDownloadHistoryReason } from "../../downloadErrorUi.js";
 import { initMediaInspectorPanel } from "../../views/tools/mediaInspectorPanel.js";
 import { getVideoPreview } from "../../videoInfoBroker.js";
+import {
+  assertHistorySaveResult,
+  unwrapHistoryEntries,
+} from "../../historyIpcResult.js";
 
 const HISTORY_IMAGE_PLACEHOLDER = "../assets/img/thumbnail-unavailable.png";
 const HISTORY_PAGE_SIZES = [4, 10, 20];
@@ -1662,7 +1666,9 @@ const restoreMissingHistoryPreviews = async (entries, rawHistory) => {
   filterAndSortHistory(state.currentSearchQuery, state.currentSortOrder, true);
 
   try {
-    await window.electron.invoke("save-history", updatedRawHistory);
+    assertHistorySaveResult(
+      await window.electron.invoke("save-history", updatedRawHistory),
+    );
   } catch (error) {
     console.warn(
       "Не удалось сохранить историю после восстановления превью:",
@@ -2632,7 +2638,9 @@ document
     console.log("История после удаления:", getHistoryData());
     state.selectedEntries = [];
 
-    await window.electron.invoke("save-history", updatedHistory); // ✅ сохраняем на диск
+    assertHistorySaveResult(
+      await window.electron.invoke("save-history", updatedHistory),
+    );
     filterAndSortHistory(
       state.currentSearchQuery,
       state.currentSortOrder,
@@ -2665,7 +2673,9 @@ document
         }
         const restored = [...deletedEntries, ...getHistoryData()];
         setHistoryData(restored);
-        await window.electron.invoke("save-history", restored);
+        assertHistorySaveResult(
+          await window.electron.invoke("save-history", restored),
+        );
         filterAndSortHistory(
           state.currentSearchQuery,
           state.currentSortOrder,
@@ -2738,7 +2748,7 @@ async function restoreDeletedEntries() {
   setHistoryData(merged);
   state.deletedHistoryBuffer = [];
   updateRestoreButton();
-  await window.electron.invoke("save-history", merged);
+  assertHistorySaveResult(await window.electron.invoke("save-history", merged));
   filterAndSortHistory(state.currentSearchQuery, state.currentSortOrder, true);
   showToast(
     t("history.toast.restoredEntries", { count: buffer.length }),
@@ -3133,18 +3143,39 @@ const loadHistory = async (forceRender = false) => {
   if (historyLoadPromise) return historyLoadPromise;
 
   historyLoadPromise = (async () => {
-    const loadedHistory = await window.electron.invoke("load-history");
-    const rawHistory = Array.isArray(loadedHistory)
-      ? loadedHistory.map((entry) => ({ ...entry }))
-      : [];
-    const entries = [];
+    const loadResult = await window.electron.invoke("load-history");
+    const rawHistory = unwrapHistoryEntries(loadResult).map((entry) => ({
+      ...entry,
+    }));
+    if (Number.isFinite(Number(loadResult?.revision))) {
+      state.historyRevision = Number(loadResult.revision);
+    }
 
-    if (Array.isArray(rawHistory) && rawHistory.some((e) => e?.fileName)) {
-      for (const rawEntry of rawHistory) {
-        const normalized = await normalizeEntry(rawEntry);
-        entries.push(normalized);
+    const filePaths = Array.from(
+      new Set(rawHistory.map((entry) => entry?.filePath).filter(Boolean)),
+    );
+    let fileMetadata = new Map();
+    if (filePaths.length) {
+      try {
+        const inspection = await window.electron.invoke(
+          "history:inspect-files",
+          filePaths,
+        );
+        if (inspection?.success === false) {
+          throw new Error(inspection.error || "History file inspection failed");
+        }
+        fileMetadata = new Map(
+          (inspection?.files || []).map((item) => [item.filePath, item]),
+        );
+      } catch (error) {
+        console.warn("Ошибка пакетной проверки файлов истории:", error);
       }
     }
+    const entries = await Promise.all(
+      rawHistory.map((rawEntry) =>
+        normalizeEntry(rawEntry, fileMetadata.get(rawEntry.filePath) || null),
+      ),
+    );
 
     setHistoryData(entries);
     state.historyHydrated = true;
@@ -3242,9 +3273,11 @@ const addNewEntryToHistory = async (
 
     setHistoryData(updated);
     state.historyPage = 1;
-    const saveResult = await window.electron.invoke("save-history", updated);
-    if (saveResult?.success === false) {
-      throw new Error(saveResult.error || "History save failed");
+    const saveResult = assertHistorySaveResult(
+      await window.electron.invoke("save-history", updated),
+    );
+    if (Number.isFinite(Number(saveResult?.revision))) {
+      state.historyRevision = Number(saveResult.revision);
     }
     if (removedPreviews.length) {
       try {

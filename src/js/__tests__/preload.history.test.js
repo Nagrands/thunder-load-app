@@ -1,11 +1,12 @@
 const mockExposeInMainWorld = jest.fn();
+const mockInvoke = jest.fn();
 const mockOn = jest.fn();
 const mockRemoveListener = jest.fn();
 
 jest.mock("electron", () => ({
   contextBridge: { exposeInMainWorld: mockExposeInMainWorld },
   ipcRenderer: {
-    invoke: jest.fn(),
+    invoke: mockInvoke,
     on: mockOn,
     once: jest.fn(),
     removeListener: mockRemoveListener,
@@ -40,5 +41,14 @@ describe("preload history API", () => {
       "history-updated",
       wrappedListener,
     );
+  });
+
+  test("allows the batched history file inspection channel", async () => {
+    const api = mockExposeInMainWorld.mock.calls[0][1];
+    const filePaths = ["/tmp/one.mp4", "/tmp/two.mp4"];
+
+    await api.invoke("history:inspect-files", filePaths);
+
+    expect(mockInvoke).toHaveBeenCalledWith("history:inspect-files", filePaths);
   });
 });

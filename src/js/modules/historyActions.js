@@ -17,6 +17,7 @@ import { showToast } from "./toast.js";
 import { filterAndSortHistory } from "./filterAndSortHistory.js";
 import { state, setHistoryData, getHistoryData } from "./state.js";
 import { t } from "./i18n.js";
+import { assertHistorySaveResult } from "./historyIpcResult.js";
 
 let isClearingHistory = false;
 const CLEAR_HISTORY_UNDO_MS = 5500;
@@ -123,7 +124,9 @@ async function handleClearHistory() {
     setHistoryData(remainingHistory);
 
     resetHistoryViewAfterClear(remainingHistory);
-    await window.electron.invoke("save-history", remainingHistory);
+    assertHistorySaveResult(
+      await window.electron.invoke("save-history", remainingHistory),
+    );
 
     let cleanupTimer = schedulePreviewCleanup(previewPaths);
 
@@ -139,7 +142,9 @@ async function handleClearHistory() {
         }
         state.downloadHistory = [...previousHistory];
         setHistoryData(previousHistory);
-        await window.electron.invoke("save-history", previousHistory);
+        assertHistorySaveResult(
+          await window.electron.invoke("save-history", previousHistory),
+        );
         showToast(t("history.toast.deleteCancelled"), "success");
       },
     );

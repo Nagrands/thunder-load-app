@@ -4,6 +4,10 @@ import { historyContainer } from "./domElements.js";
 import { state, updateButtonState } from "./state.js";
 import { showLoading, showToast } from "./toast.js";
 import { addNewEntryToHistory, getHistoryData } from "./history.js";
+import {
+  assertHistorySaveResult,
+  unwrapHistoryEntries,
+} from "./historyIpcResult.js";
 import { isValidUrl, isSupportedUrl, normalizeUrlInput } from "./validation.js";
 import {
   urlInput,
@@ -1060,26 +1064,29 @@ function buildDownloadedUrlMap(entries = []) {
   return map;
 }
 
-async function historyEntryFileExists(entry) {
-  const filePath = entry?.filePath;
-  if (!filePath) return true;
-  try {
-    return (
-      (await window.electron.invoke("check-file-exists", filePath)) === true
-    );
-  } catch {
-    return false;
-  }
-}
-
 async function filterHistoryEntriesWithExistingFiles(entries = []) {
-  const checks = await Promise.all(
-    entries.map(async (entry) => ({
-      entry,
-      exists: await historyEntryFileExists(entry),
-    })),
+  const filePaths = Array.from(
+    new Set(entries.map((entry) => entry?.filePath).filter(Boolean)),
   );
-  return checks.filter(({ exists }) => exists).map(({ entry }) => entry);
+  if (!filePaths.length) return entries;
+  try {
+    const result = await window.electron.invoke(
+      "history:inspect-files",
+      filePaths,
+    );
+    if (result?.success === false) {
+      throw new Error(result.error || "History file inspection failed");
+    }
+    const availability = new Map(
+      (result?.files || []).map((item) => [item.filePath, item.exists]),
+    );
+    return entries.filter(
+      (entry) => !entry?.filePath || availability.get(entry.filePath) !== false,
+    );
+  } catch (error) {
+    console.warn("Failed to inspect history files:", error);
+    return entries;
+  }
 }
 
 function getDownloadedUrlMapSync() {
@@ -1101,9 +1108,10 @@ async function getDownloadedUrlMap() {
       entries = local;
     } else {
       const loaded = await window.electron.invoke("load-history");
-      entries = Array.isArray(loaded) ? loaded : [];
+      entries = unwrapHistoryEntries(loaded);
     }
-  } catch {
+  } catch (error) {
+    console.warn("Failed to load history for duplicate detection:", error);
     entries = [];
   }
   const existingFileEntries =
@@ -1742,11 +1750,7 @@ async function migrateLegacyCompletedJobs() {
   if (!legacyJobs.length) return;
   try {
     const loaded = await window.electron.invoke("load-history");
-    const historyEntries = Array.isArray(loaded)
-      ? loaded
-      : Array.isArray(loaded?.entries)
-        ? loaded.entries
-        : [];
+    const historyEntries = unwrapHistoryEntries(loaded);
     const knownPaths = new Set(
       historyEntries
         .map((entry) => String(entry?.filePath || ""))
@@ -1755,14 +1759,13 @@ async function migrateLegacyCompletedJobs() {
     const additions = legacyJobs
       .filter((job) => job.filePath && !knownPaths.has(String(job.filePath)))
       .map(buildHistoryEntryFromQueueJob);
-    const saveResult = additions.length
-      ? await window.electron.invoke("save-history", [
+    if (additions.length) {
+      assertHistorySaveResult(
+        await window.electron.invoke("save-history", [
           ...additions,
           ...historyEntries,
-        ])
-      : { success: true };
-    if (saveResult?.success === false) {
-      throw new Error(saveResult.error || "History migration failed");
+        ]),
+      );
     }
     persistCompletedJobs([]);
     additions.forEach((entry) =>

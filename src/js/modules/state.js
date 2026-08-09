@@ -72,6 +72,7 @@ const state = {
   })(),
   historyHydrated: false,
   historyStale: false,
+  historyRevision: 0,
   historyDetailsExpanded: (() => {
     try {
       return window.localStorage.getItem("historyDetailsExpanded") === "true";

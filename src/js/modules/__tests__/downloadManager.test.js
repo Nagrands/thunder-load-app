@@ -580,9 +580,12 @@ describe("downloadManager enqueueOnly behavior", () => {
 
   it("allows enqueue when URL exists in history but the downloaded file was removed", async () => {
     await jest.isolateModulesAsync(async () => {
-      window.electron.invoke.mockImplementation(async (channel, filePath) => {
-        if (channel === "check-file-exists" && filePath === "/tmp/a.mp4") {
-          return false;
+      window.electron.invoke.mockImplementation(async (channel) => {
+        if (channel === "history:inspect-files") {
+          return {
+            success: true,
+            files: [{ filePath: "/tmp/a.mp4", exists: false, sizeBytes: null }],
+          };
         }
         return null;
       });
@@ -4669,7 +4672,18 @@ describe("downloadManager legacy completed migration", () => {
     localStorage.clear();
     buildDom();
     window.electron = {
-      invoke: jest.fn(),
+      invoke: jest.fn(async (channel) => {
+        if (channel === "load-history") {
+          return { success: true, entries: [], count: 0, revision: 1 };
+        }
+        if (channel === "save-history") {
+          return { success: true, count: 0, revision: 2 };
+        }
+        if (channel === "history:inspect-files") {
+          return { success: true, files: [] };
+        }
+        return null;
+      }),
       ipcRenderer: { invoke: jest.fn() },
       on: jest.fn(),
     };
