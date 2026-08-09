@@ -281,6 +281,21 @@ describe("Now Playing media library model", () => {
     );
   });
 
+  test("atomically replaces state for undo restoration", () => {
+    const model = createMediaLibraryModel({
+      version: 4,
+      catalog: { tracks: localTracks },
+    });
+    const snapshot = model.getState();
+    model.deleteFromCatalog("local-one");
+    expect(model.getState().catalog.tracks).toHaveLength(1);
+
+    const restored = model.replaceState(snapshot);
+    expect(restored.catalog.tracks).toHaveLength(2);
+    restored.catalog.tracks.length = 0;
+    expect(model.getState().catalog.tracks).toHaveLength(2);
+  });
+
   test("persists favorites and exposes them as an active smart collection", () => {
     const model = createMediaLibraryModel({
       version: 4,

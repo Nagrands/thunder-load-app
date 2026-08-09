@@ -2311,24 +2311,14 @@ describe("Now Playing view", () => {
     secondRow.querySelector('[data-action="remove-track"]').click();
     await Promise.resolve();
     await Promise.resolve();
-    expect(showConfirmationDialog).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: "nowPlaying.library.deleteTitle",
-        confirmText: "nowPlaying.library.deleteAction",
-      }),
-    );
+    expect(showConfirmationDialog).not.toHaveBeenCalled();
     expect(
       view.element.querySelector('.now-playing__track[data-track-id="second"]'),
     ).toBeNull();
     view.element.querySelector('[data-action="clear"]').click();
     await Promise.resolve();
     await Promise.resolve();
-    expect(showConfirmationDialog).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: "nowPlaying.library.clearQueueTitle",
-        confirmText: "nowPlaying.library.clearQueueAction",
-      }),
-    );
+    expect(showConfirmationDialog).not.toHaveBeenCalled();
     expect(view.element.querySelector('[data-ui="library-empty"]').hidden).toBe(
       false,
     );
@@ -2336,7 +2326,7 @@ describe("Now Playing view", () => {
     view.dispose();
   });
 
-  test("clears every item from the system Media Library after confirmation", async () => {
+  test("clears every item from the system Media Library with undo", async () => {
     const secondTrack = {
       ...sampleTrack,
       id: "second",
@@ -2376,22 +2366,27 @@ describe("Now Playing view", () => {
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(showConfirmationDialog).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: "nowPlaying.library.clearQueueTitle",
-        message: "nowPlaying.library.clearQueueConfirm",
-        confirmText: "nowPlaying.library.clearQueueAction",
-      }),
-    );
+    expect(showConfirmationDialog).not.toHaveBeenCalled();
     expect(
       view.element.querySelectorAll(
-        '[data-ui="library-tracks"] [data-track-id]',
+        '[data-ui="library-tracks"] > [data-track-id]',
       ),
     ).toHaveLength(0);
     expect(view.element.querySelector('[data-ui="library-empty"]').hidden).toBe(
       false,
     );
     expect(clearButton.disabled).toBe(true);
+    const undoCall = showToast.mock.calls.find(
+      ([key, options]) =>
+        key === "nowPlaying.toast.libraryCleared" &&
+        typeof options?.onUndo === "function",
+    );
+    await undoCall[1].onUndo();
+    expect(
+      view.element.querySelectorAll(
+        '[data-ui="library-tracks"] > [data-track-id]',
+      ),
+    ).toHaveLength(2);
     view.dispose();
   });
 
@@ -2429,12 +2424,7 @@ describe("Now Playing view", () => {
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(showConfirmationDialog).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message: "nowPlaying.library.clearFilteredQueueConfirm",
-        confirmText: "nowPlaying.library.clearFilteredQueueAction",
-      }),
-    );
+    expect(showConfirmationDialog).not.toHaveBeenCalled();
     expect(
       view.element.querySelector(
         '[data-ui="library-tracks"] [data-track-id="video"]',
@@ -2447,7 +2437,10 @@ describe("Now Playing view", () => {
     ).not.toBeNull();
     expect(showToast).toHaveBeenCalledWith(
       "nowPlaying.toast.libraryItemsRemoved",
-      "success",
+      expect.objectContaining({
+        type: "success",
+        onUndo: expect.any(Function),
+      }),
     );
     view.dispose();
   });
@@ -2868,7 +2861,10 @@ describe("Now Playing view", () => {
     ).not.toBeNull();
     expect(showToast).toHaveBeenCalledWith(
       "nowPlaying.toast.playlistAndMediaDeleted",
-      "success",
+      expect.objectContaining({
+        type: "success",
+        onUndo: expect.any(Function),
+      }),
     );
 
     library

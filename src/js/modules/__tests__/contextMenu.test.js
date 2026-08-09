@@ -3,16 +3,6 @@ import { jest } from "@jest/globals";
 const mockShowConfirmationDialog = jest.fn();
 const mockShowToast = jest.fn();
 
-const deferred = () => {
-  let resolve;
-  let reject;
-  const promise = new Promise((res, rej) => {
-    resolve = res;
-    reject = rej;
-  });
-  return { promise, resolve, reject };
-};
-
 const flush = async () => {
   await Promise.resolve();
   await Promise.resolve();
@@ -252,10 +242,12 @@ describe("context menu UI", () => {
     );
   });
 
-  test("hides context menu immediately when delete confirmation opens", async () => {
-    const pendingConfirm = deferred();
-    mockShowConfirmationDialog.mockReturnValue(pendingConfirm.promise);
-
+  test("removes a history entry without a confirmation modal", async () => {
+    window.electron.invoke.mockImplementation(async (channel) => {
+      if (channel === "check-file-exists") return true;
+      if (channel === "load-history") return [];
+      return true;
+    });
     const { initContextMenu } = await import("../contextMenu.js");
     initContextMenu();
 
@@ -268,13 +260,9 @@ describe("context menu UI", () => {
       .getElementById("delete-entry")
       .dispatchEvent(new MouseEvent("click", { bubbles: true }));
 
-    await Promise.resolve();
-
-    expect(mockShowConfirmationDialog).toHaveBeenCalledTimes(1);
+    await flush();
+    expect(mockShowConfirmationDialog).not.toHaveBeenCalled();
     expect(menu.style.display).toBe("none");
-
-    pendingConfirm.resolve(false);
-    await Promise.resolve();
   });
 
   test("retry scrolls to URL input and focuses it", async () => {
@@ -337,15 +325,19 @@ describe("context menu UI", () => {
     await handleDeleteEntry(entry);
 
     expect(mockShowToast).toHaveBeenCalledWith(
-      expect.stringContaining(
-        "Запись успешно удалена<br><strong>Test file</strong>.",
-      ),
-      "success",
-      5500,
+      expect.stringContaining("history.toast.deletedEntry<br><strong>Test file</strong>."),
+      "info",
+      8000,
       null,
-      null,
-      false,
+      expect.any(Function),
+      true,
       { allowHtml: true },
+    );
+    const undo = mockShowToast.mock.calls.at(-1)[4];
+    await undo();
+    expect(window.electron.invoke).toHaveBeenCalledWith(
+      "save-history",
+      [expect.objectContaining({ id: 42 })],
     );
   });
 
@@ -375,12 +367,12 @@ describe("context menu UI", () => {
 
     expect(window.electron.invoke).toHaveBeenCalledWith("save-history", []);
     expect(mockShowToast).toHaveBeenCalledWith(
-      expect.stringContaining("Запись успешно удалена"),
-      "success",
-      5500,
+      expect.stringContaining("history.toast.deletedEntry"),
+      "info",
+      8000,
       null,
-      null,
-      false,
+      expect.any(Function),
+      true,
       { allowHtml: true },
     );
   });

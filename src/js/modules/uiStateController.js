@@ -224,4 +224,25 @@ function createUiStateController({
   };
 }
 
-export { UI_STATE_KINDS, createUiStateController, normalizeState };
+function applyUiState(element, nextState = {}) {
+  if (!(element instanceof HTMLElement)) return normalizeState(nextState);
+  const state = normalizeState(nextState);
+  element.dataset.uiState = state.kind;
+  element.dataset.tone = state.kind;
+  element.setAttribute("aria-busy", String(state.kind === "loading"));
+  element.setAttribute("role", state.kind === "error" ? "alert" : "status");
+  element.setAttribute(
+    "aria-live",
+    state.kind === "error" ? "assertive" : "polite",
+  );
+  if (state.operationId) element.dataset.operationId = state.operationId;
+  else delete element.dataset.operationId;
+  return state;
+}
+
+export {
+  UI_STATE_KINDS,
+  applyUiState,
+  createUiStateController,
+  normalizeState,
+};

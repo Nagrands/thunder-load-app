@@ -4792,6 +4792,7 @@ describe("downloadManager completed queue persistence", () => {
       ]);
 
       const { initDownloadButton } = require("../downloadManager");
+      const { showToast } = require("../toast");
       initDownloadButton();
 
       document.getElementById("queue-clear-button").click();
@@ -4799,6 +4800,12 @@ describe("downloadManager completed queue persistence", () => {
 
       expect(loadCompletedJobs()).toEqual([]);
       expect(localStorage.getItem("downloadCompletedQueue")).toBeNull();
+      const undo = showToast.mock.calls.find(
+        ([message]) => message === "queue.cleared",
+      )?.[4];
+      expect(undo).toEqual(expect.any(Function));
+      undo();
+      expect(loadCompletedJobs()).toHaveLength(2);
     });
   });
 

@@ -1,5 +1,6 @@
 import {
   UI_STATE_KINDS,
+  applyUiState,
   createUiStateController,
 } from "../uiStateController.js";
 
@@ -74,5 +75,14 @@ describe("ui state controller", () => {
     controller.dispose();
     expect(root.hasAttribute("aria-busy")).toBe(false);
     expect(root.querySelector(".ui-state")).toBeNull();
+  });
+
+  test("applies the shared contract to existing status elements", () => {
+    const element = document.createElement("div");
+    applyUiState(element, { kind: "warning", operationId: "check-1" });
+    expect(element.dataset.uiState).toBe("warning");
+    expect(element.dataset.tone).toBe("warning");
+    expect(element.dataset.operationId).toBe("check-1");
+    expect(element.getAttribute("aria-busy")).toBe("false");
   });
 });

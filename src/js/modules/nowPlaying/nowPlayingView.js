@@ -4,6 +4,7 @@ import { readDeveloperModeEnabled } from "../developerMode.js";
 import { showConfirmationDialog } from "../modals.js";
 import { showToast } from "../toast.js";
 import { initTooltips } from "../tooltipInitializer.js";
+import { applyUiState } from "../uiStateController.js";
 import createControlsVisibility from "./controlsVisibility.js";
 import createFullscreenController from "./fullscreenController.js";
 import createImmersiveOverlayVisibility from "./immersiveOverlayVisibility.js";
@@ -293,13 +294,28 @@ export function createNowPlayingView({
     onAction: handleContextAction,
   });
 
-  function showPlayerToast(messageKey, type = "success", params = {}) {
-    return showToast(t(messageKey, params), type);
+  function showPlayerToast(
+    messageKey,
+    type = "success",
+    params = {},
+    options = {},
+  ) {
+    if (!options || Object.keys(options).length === 0) {
+      return showToast(t(messageKey, params), type);
+    }
+    return showToast(t(messageKey, params), {
+      type,
+      duration: options.duration,
+      title: options.title,
+      onUndo: options.onUndo,
+      accent: Boolean(options.accent || options.onUndo),
+    });
   }
 
   function showPlayerError(error) {
     const message = error?.message || t("nowPlaying.error");
     showToast(message, "error");
+    applyUiState(status, { kind: "error" });
     return message;
   }
 
@@ -797,6 +813,23 @@ export function createNowPlayingView({
     }
   }
 
+  async function restoreLibrarySnapshot(
+    snapshot,
+    { selectedTrackId = null, autoplay = false } = {},
+  ) {
+    libraryModel.replaceState(snapshot);
+    const tracks = libraryModel.getState().catalog.tracks;
+    provider.restore(tracks.filter((track) => track.providerId === "local"));
+    youtubeProvider.restore(
+      tracks.filter((track) => track.providerId === "youtube"),
+    );
+    syncLibraryQueue({ selectedTrackId });
+    queuePersistence({ immediate: true });
+    if (selectedTrackId && tracks.some((track) => track.id === selectedTrackId)) {
+      await controller.selectTrack(selectedTrackId, { autoplay });
+    }
+  }
+
   async function importPaths(paths, { autoplay = true } = {}) {
     if (!Array.isArray(paths) || !paths.length || !api?.importPaths)
       return false;
@@ -853,6 +886,10 @@ export function createNowPlayingView({
   async function importYouTube(url, qualitySelection) {
     const loadingMessage = t("nowPlaying.youtube.fetching");
     status.textContent = loadingMessage;
+    applyUiState(status, {
+      kind: "loading",
+      operationId: `youtube-${Date.now()}`,
+    });
     libraryView.setOperationStatus(loadingMessage, { loading: true });
     try {
       const track = await youtubeProvider.importSource(url, {
@@ -867,10 +904,12 @@ export function createNowPlayingView({
         libraryView.showDialogError(duplicateMessage);
         libraryView.setOperationStatus(duplicateMessage, { error: true });
         status.textContent = "";
+        applyUiState(status, { kind: "warning" });
         return false;
       }
       syncLibraryQueue();
       status.textContent = "";
+      applyUiState(status, { kind: "success" });
       libraryView.setOperationStatus("");
       showPlayerToast("nowPlaying.toast.linkAdded");
       return true;
@@ -879,6 +918,7 @@ export function createNowPlayingView({
       libraryView.showDialogError(message);
       libraryView.setOperationStatus(message, { error: true });
       status.textContent = message;
+      applyUiState(status, { kind: "error" });
       return false;
     }
   }
@@ -989,6 +1029,7 @@ export function createNowPlayingView({
     }
     const wasCurrent = controller.currentTrack?.id === trackId;
     const wasPlaying = controller.isPlaying;
+    const previousState = libraryModel.getState();
     if (!libraryModel.removeTrackFromPlaylist(trackId, activePlaylist.id)) {
       return false;
     }
@@ -998,22 +1039,22 @@ export function createNowPlayingView({
         autoplay: wasPlaying,
       });
     }
-    showPlayerToast("nowPlaying.toast.removedFromPlaylist");
+    showPlayerToast("nowPlaying.toast.removedFromPlaylist", "success", {}, {
+      duration: 8000,
+      onUndo: () =>
+        restoreLibrarySnapshot(previousState, {
+          selectedTrackId: wasCurrent ? trackId : controller.currentTrack?.id,
+          autoplay: wasCurrent && wasPlaying,
+        }),
+    });
     return true;
   }
 
   async function deleteCatalogTrack(trackId) {
-    const track = libraryModel
-      .getState()
-      .catalog.tracks.find((item) => item.id === trackId);
-    const confirmed = await showConfirmationDialog({
-      title: t("nowPlaying.library.deleteTitle"),
-      message: t("nowPlaying.library.deleteConfirm", {
-        title: track?.title || t("nowPlaying.library.unknownItem"),
-      }),
-      confirmText: t("nowPlaying.library.deleteAction"),
-    });
-    if (!confirmed) return false;
+    const previousState = libraryModel.getState();
+    const track = previousState.catalog.tracks.find(
+      (item) => item.id === trackId,
+    );
     const wasCurrent = controller.currentTrack?.id === trackId;
     const wasPlaying = controller.isPlaying;
     if (!libraryModel.deleteFromCatalog(trackId)) return false;
@@ -1024,9 +1065,19 @@ export function createNowPlayingView({
         autoplay: wasPlaying,
       });
     }
-    showPlayerToast("nowPlaying.toast.mediaDeleted", "success", {
-      title: track?.displayTitle || track?.title || "",
-    });
+    showPlayerToast(
+      "nowPlaying.toast.mediaDeleted",
+      "success",
+      { title: track?.displayTitle || track?.title || "" },
+      {
+        duration: 8000,
+        onUndo: () =>
+          restoreLibrarySnapshot(previousState, {
+            selectedTrackId: wasCurrent ? trackId : controller.currentTrack?.id,
+            autoplay: wasCurrent && wasPlaying,
+          }),
+      },
+    );
     return true;
   }
 
@@ -1136,33 +1187,16 @@ export function createNowPlayingView({
       activePlaylist.id === MEDIA_LIBRARY_ID
         ? libraryView.getFilteredTracks()
         : [];
-    if (activePlaylist.id === MEDIA_LIBRARY_ID) {
-      if (!mediaLibraryTracks.length) return false;
-      const clearsEntireLibrary =
-        mediaLibraryTracks.length === state.catalog.tracks.length;
-      const confirmed = await showConfirmationDialog({
-        title: t("nowPlaying.library.clearQueueTitle"),
-        message: t(
-          clearsEntireLibrary
-            ? "nowPlaying.library.clearQueueConfirm"
-            : "nowPlaying.library.clearFilteredQueueConfirm",
-          {
-            count: mediaLibraryTracks.length,
-          },
-        ),
-        confirmText: t(
-          clearsEntireLibrary
-            ? "nowPlaying.library.clearQueueAction"
-            : "nowPlaying.library.clearFilteredQueueAction",
-        ),
-      });
-      if (!confirmed) return false;
-    }
+    if (activePlaylist.id === MEDIA_LIBRARY_ID && !mediaLibraryTracks.length)
+      return false;
     const removedCount =
       activePlaylist.id === MEDIA_LIBRARY_ID
         ? mediaLibraryTracks.length
         : activePlaylist.trackIds.length;
     if (!removedCount) return false;
+    const selectedTrackId = controller.currentTrack?.id || null;
+    const wasPlaying = controller.isPlaying;
+    const previousState = libraryModel.getState();
     controller.pause();
     if (activePlaylist?.id === MEDIA_LIBRARY_ID) {
       mediaLibraryTracks.forEach((track) =>
@@ -1189,6 +1223,14 @@ export function createNowPlayingView({
         : "nowPlaying.toast.playlistCleared",
       "success",
       { count: removedCount },
+      {
+        duration: 8000,
+        onUndo: () =>
+          restoreLibrarySnapshot(previousState, {
+            selectedTrackId,
+            autoplay: wasPlaying,
+          }),
+      },
     );
     return true;
   }
@@ -1378,6 +1420,7 @@ export function createNowPlayingView({
         defaultChoice: "playlist-only",
       });
       if (!deleteMode) return false;
+      const previousState = libraryModel.getState();
       const removedTrackIds = [...activePlaylist.trackIds];
       const removeFromLibrary = deleteMode === "playlist-and-library";
       const currentTrackRemoved =
@@ -1405,6 +1448,16 @@ export function createNowPlayingView({
           : "nowPlaying.toast.playlistDeleted",
         "success",
         { title: activePlaylist.title, count: removedTrackIds.length },
+        {
+          duration: 8000,
+          onUndo: () =>
+            restoreLibrarySnapshot(previousState, {
+              selectedTrackId: currentTrackRemoved
+                ? controller.currentTrack?.id
+                : null,
+              autoplay: currentTrackRemoved && wasPlaying,
+            }),
+        },
       );
       return true;
     }
@@ -2010,6 +2063,7 @@ export function createNowPlayingView({
     } catch (error) {
       initialized = true;
       status.textContent = error?.message || t("nowPlaying.error");
+      applyUiState(status, { kind: "error", operationId: "player-init" });
     }
     root.classList.add("is-ready");
     await fullscreen.ready;

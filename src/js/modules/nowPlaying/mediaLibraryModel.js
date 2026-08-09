@@ -331,6 +331,11 @@ export class MediaLibraryModel {
     return cloneState(this.state);
   }
 
+  replaceState(nextState = {}) {
+    this.state = normalizeMediaLibraryState(nextState, { now: this.now() });
+    return this.getState();
+  }
+
   getActiveTracks() {
     return getActiveTracksFromState(this.state);
   }

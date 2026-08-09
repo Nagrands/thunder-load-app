@@ -51,6 +51,7 @@ import {
   patchDownloadJob,
   removeDownloadJob,
   replaceDownloadJobsByStatus,
+  setDownloadJobs,
   syncLegacyDownloadCollections,
   upsertDownloadJob,
 } from "./downloadJobs.js";
@@ -64,6 +65,7 @@ import {
   syncQueueFilterControls,
 } from "./downloadQueueFilter.js";
 import { normalizeWebQualitySelection } from "./webQualitySelection.js";
+import { applyUiState } from "./uiStateController.js";
 
 const queueInfo = document.getElementById("download-queue-info");
 const queueIndicator = document.getElementById("queue-start-indicator");
@@ -643,6 +645,7 @@ function updateDownloadJobSummary() {
       jobSummary.classList.add("hidden");
       jobSummaryTitle.textContent = t("downloader.jobSummary.idle");
       jobSummaryMeta.textContent = t("downloader.jobSummary.idleMeta");
+      applyUiState(jobSummary, { kind: "empty" });
       const badge = document.getElementById("downloader-job-summary-badge");
       if (badge) badge.textContent = t("downloader.jobSummary.badge");
       return;
@@ -660,6 +663,10 @@ function updateDownloadJobSummary() {
       getQueueReasonLabel(latestFailed),
       getQueueRetryStateLabel(latestFailed),
     ].join(" · ");
+    applyUiState(jobSummary, {
+      kind: "error",
+      operationId: latestFailed.jobId || latestFailed.id,
+    });
     return;
   }
   const title =
@@ -688,6 +695,10 @@ function updateDownloadJobSummary() {
   jobSummary.classList.remove("hidden");
   jobSummaryTitle.textContent = title || t("downloader.jobSummary.idle");
   jobSummaryMeta.textContent = metaParts.join(" · ");
+  applyUiState(jobSummary, {
+    kind: "loading",
+    operationId: current.jobId || current.id,
+  });
 }
 
 function findActiveDownload(jobId) {
@@ -776,6 +787,33 @@ function persistFailedQueue() {
 
 function persistCompletedQueue() {
   persistCompletedJobs(getCompletedDownloadJobs(state));
+}
+
+function persistAllQueueCollections() {
+  persistQueue();
+  persistFailedQueue();
+  persistCompletedQueue();
+}
+
+function showQueueRemovalUndo(removedJobs, messageKey) {
+  const snapshot = (removedJobs || []).map((job) => ({ ...job }));
+  if (!snapshot.length) return;
+  showToast(t(messageKey), "info", 8000, null, () => {
+    const current = ensureDownloadJobsState(state).map((job) => ({ ...job }));
+    const restoredIds = new Set(
+      snapshot.map((job) => String(job.jobId || job.id || job.signature)),
+    );
+    setDownloadJobs(state, [
+      ...snapshot,
+      ...current.filter(
+        (job) =>
+          !restoredIds.has(String(job.jobId || job.id || job.signature)),
+      ),
+    ]);
+    persistAllQueueCollections();
+    updateQueueDisplay();
+    showToast(t("queue.undo.restored"), "success");
+  });
 }
 
 function readQueueCollapsedState() {
@@ -2281,15 +2319,14 @@ function initDownloadButton() {
         !getCompletedDownloadJobs(state).length
       )
         return;
-      const confirmed = await showConfirmationDialog({
-        title: t("queue.clear.confirm.title"),
-        subtitle: t("queue.clear.confirm.subtitle"),
-        message: t("queue.clear.confirm.message"),
-        confirmText: t("queue.clear.confirm.confirm"),
-        cancelText: t("queue.clear.confirm.cancel"),
-        tone: "danger",
-      });
-      if (!confirmed) return;
+      const removedJobs = ensureDownloadJobsState(state).filter((job) =>
+        [
+          JOB_STATUS.pending,
+          JOB_STATUS.paused,
+          JOB_STATUS.failed,
+          JOB_STATUS.done,
+        ].includes(job.status),
+      );
       replaceDownloadJobsByStatus(
         state,
         [
@@ -2308,7 +2345,7 @@ function initDownloadButton() {
       persistQueuePausedState();
       updateQueueDisplay();
       console.log(QUEUE_LOG_TAG, "clear");
-      showToast(t("queue.cleared"), "info");
+      showQueueRemovalUndo(removedJobs, "queue.cleared");
     });
   }
 
@@ -2554,7 +2591,7 @@ function initDownloadButton() {
         removeDownloadJob(state, jobId);
         persistCompletedQueue();
         updateQueueDisplay();
-        showToast(t("queue.item.removed"), "info");
+        showQueueRemovalUndo([task], "queue.item.removed");
         return;
       }
       if (failedRemoveBtn) {
@@ -2564,7 +2601,7 @@ function initDownloadButton() {
         removeDownloadJob(state, jobId);
         persistFailedQueue();
         updateQueueDisplay();
-        showToast(t("queue.item.removed"), "info");
+        showQueueRemovalUndo([task], "queue.item.removed");
         return;
       }
       if (!btn) return;
@@ -2582,7 +2619,7 @@ function initDownloadButton() {
         jobId,
         url: removed?.url || "",
       });
-      showToast(t("queue.item.removed"), "info");
+      showQueueRemovalUndo([removed], "queue.item.removed");
     });
     queueList.dataset.bound = "1";
   }

@@ -46,6 +46,8 @@ import { focusUrlInputAfterRetry } from "./retryFocus.js";
  */
 let currentLogEntry = null;
 let contextMenuInitialized = false;
+const HISTORY_ENTRY_UNDO_MS = 8000;
+const HISTORY_PREVIEW_CLEANUP_MS = 8500;
 
 const escapeHtml = (value = "") =>
   String(value)
@@ -396,51 +398,16 @@ async function handleDeleteEntry(logEntry) {
     return;
   }
 
-  const { fileName, dateTime, quality } = getEntryData(logEntry);
+  const { fileName } = getEntryData(logEntry);
   const entryName = fileName || logEntry.textContent.trim();
-  const entryDateTime =
-    dateTime || logEntry.querySelector(".date-time")?.textContent?.trim() || "";
-  const entryQuality =
-    quality || logEntry.querySelector(".quality")?.textContent?.trim() || "";
-  const formattedName = entryName
-    .replace(entryDateTime, "")
-    .replace(entryQuality, "")
-    .trim();
+  const formattedName = entryName.trim();
   const safeFormattedName = escapeHtml(formattedName);
-  const safeEntryDateTime = escapeHtml(entryDateTime || "");
-  const safeEntryQuality = escapeHtml(entryQuality || "");
-  const confirmationMessage = `
-    <div class="info-entry">
-      <div class="info-note">
-        <p><i class="fa-solid fa-film"></i> ${safeFormattedName}</p>
-      </div>
-      <div class="date-time-quality">
-        <span class="date-time">
-          <i class="fa-solid fa-clock"></i> ${safeEntryDateTime || "Без даты"}
-        </span>
-        <span class="quality">
-          <i class="fa-regular fa-rectangle-list"></i> ${safeEntryQuality || "—"}
-        </span>
-      </div>
-    </div>
-    `;
-
-  const confirmed = await showConfirmationDialog({
-    title: t("history.delete.title"),
-    subtitle: t("history.delete.subtitle"),
-    message: confirmationMessage,
-    confirmText: t("history.delete.confirm"),
-    cancelText: t("history.delete.cancel"),
-    tone: "danger",
-    allowHtml: true,
-  });
-  if (!confirmed) return;
 
   try {
     console.log(`Удаление элемента из DOM \n"${formattedName}"`);
     logEntry.remove(); // Удаление записи из DOM
 
-    const { currentHistory, wasDeleted, deletedEntry } =
+    const { currentHistory, wasDeleted, deletedEntry, previewPath } =
       await deleteEntryFromHistory(entryId); // Удаление записи из истории
     setHistoryData(currentHistory);
     if (deletedEntry) {
@@ -460,13 +427,47 @@ async function handleDeleteEntry(logEntry) {
     if (wasDeleted) {
       await updateDownloadCount();
       sortHistory(state.currentSortOrder);
+      let cleanupTimer = previewPath
+        ? setTimeout(() => {
+            window.electron
+              .invoke("delete-history-preview", previewPath)
+              .catch((error) =>
+                console.warn("Не удалось удалить превью записи:", error),
+              );
+          }, HISTORY_PREVIEW_CLEANUP_MS)
+        : null;
       showToast(
-        `Запись успешно удалена<br><strong>${safeFormattedName}</strong>.`,
-        "success",
-        5500,
+        `${t("history.toast.deletedEntry")}<br><strong>${safeFormattedName}</strong>.`,
+        "info",
+        HISTORY_ENTRY_UNDO_MS,
         null,
-        null,
-        false,
+        async () => {
+          if (cleanupTimer) {
+            clearTimeout(cleanupTimer);
+            cleanupTimer = null;
+          }
+          const restored = [
+            deletedEntry,
+            ...(getHistoryData() || []).filter(
+              (entry) => String(entry?.id) !== String(deletedEntry?.id),
+            ),
+          ];
+          setHistoryData(restored);
+          if (Array.isArray(state.deletedHistoryBuffer)) {
+            state.deletedHistoryBuffer = state.deletedHistoryBuffer.filter(
+              (entry) => String(entry?.id) !== String(deletedEntry?.id),
+            );
+          }
+          await window.electron.invoke("save-history", restored);
+          filterAndSortHistory(
+            state.currentSearchQuery,
+            state.currentSortOrder,
+            true,
+          );
+          await updateDownloadCount();
+          showToast(t("history.toast.deleteCancelled"), "success");
+        },
+        true,
         { allowHtml: true },
       );
     } else {
@@ -499,19 +500,13 @@ async function deleteEntryFromHistory(entryId) {
 
   // Сохранение обновленной истории
   await window.electron.invoke("save-history", currentHistory);
-  if (entryToDelete?.thumbnailCacheFile) {
-    try {
-      await window.electron.invoke(
-        "delete-history-preview",
-        entryToDelete.thumbnailCacheFile,
-      );
-    } catch (error) {
-      console.warn("Не удалось удалить превью записи:", error);
-    }
-  }
-
   const wasDeleted = currentHistory.length < initialHistoryLength;
-  return { currentHistory, wasDeleted, deletedEntry: entryToDelete };
+  return {
+    currentHistory,
+    wasDeleted,
+    deletedEntry: entryToDelete,
+    previewPath: entryToDelete?.thumbnailCacheFile || "",
+  };
 }
 
 async function markDeletedFileAsMissing(logEntry, deletedPath) {
