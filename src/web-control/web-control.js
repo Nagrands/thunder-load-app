@@ -302,6 +302,66 @@ async function sendAction(action, payload = {}) {
   renderState(result);
 }
 
+function showDiscardSettingsDialog() {
+  const russian = String(navigator.language || "").toLowerCase().startsWith("ru");
+  const copy = russian
+    ? {
+        title: "Сбросить несохранённые изменения?",
+        message: "Изменения настроек Web Control не были сохранены.",
+        confirm: "Сбросить",
+        cancel: "Продолжить редактирование",
+      }
+    : {
+        title: "Discard unsaved changes?",
+        message: "Your Web Control settings changes have not been saved.",
+        confirm: "Discard",
+        cancel: "Continue editing",
+      };
+  const previousFocus = document.activeElement;
+  const root = document.createElement("div");
+  root.className = "web-confirmation";
+  root.innerHTML = `<div class="web-confirmation__backdrop"></div>
+    <section class="web-confirmation__dialog" role="alertdialog" aria-modal="true" aria-labelledby="web-confirmation-title">
+      <h2 id="web-confirmation-title">${copy.title}</h2>
+      <p>${copy.message}</p>
+      <div class="web-confirmation__actions">
+        <button type="button" data-confirmation-cancel>${copy.cancel}</button>
+        <button type="button" class="is-danger" data-confirmation-confirm>${copy.confirm}</button>
+      </div>
+    </section>`;
+  document.body.appendChild(root);
+  return new Promise((resolve) => {
+    const finish = (confirmed) => {
+      document.removeEventListener("keydown", onKeydown, true);
+      root.remove();
+      previousFocus?.focus?.();
+      resolve(confirmed);
+    };
+    const onKeydown = (event) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      finish(false);
+    };
+    root.querySelector("[data-confirmation-cancel]").addEventListener(
+      "click",
+      () => finish(false),
+      { once: true },
+    );
+    root.querySelector("[data-confirmation-confirm]").addEventListener(
+      "click",
+      () => finish(true),
+      { once: true },
+    );
+    root.querySelector(".web-confirmation__backdrop").addEventListener(
+      "click",
+      () => finish(false),
+      { once: true },
+    );
+    document.addEventListener("keydown", onKeydown, true);
+    root.querySelector("[data-confirmation-cancel]").focus();
+  });
+}
+
 const settingsController = createSettingsController({
   fields: el.settings,
   saveButton: document.getElementById("save-settings"),
@@ -312,6 +372,7 @@ const settingsController = createSettingsController({
 const router = createRouterController({
   modal: el.settingsModal,
   hasUnsavedChanges: settingsController.isDirty,
+  confirmDiscard: showDiscardSettingsDialog,
   onDiscard: settingsController.cancel,
 });
 

@@ -166,4 +166,21 @@ describe("web control UI contract", () => {
     expect(window.location.pathname).toBe("/settings");
     expect(modal.classList.contains("is-open")).toBe(true);
   });
+
+  it("supports the asynchronous custom discard dialog", async () => {
+    document.body.innerHTML = '<div id="modal" aria-hidden="false"></div>';
+    window.history.replaceState({}, "", "/settings");
+    const onDiscard = jest.fn();
+    const router = createWebRouter({
+      modal: document.getElementById("modal"),
+      hasUnsavedChanges: () => true,
+      confirmDiscard: jest.fn(async () => true),
+      onDiscard,
+    });
+
+    await router.closeSettings();
+
+    expect(onDiscard).toHaveBeenCalledTimes(1);
+    expect(window.location.pathname).toBe("/");
+  });
 });

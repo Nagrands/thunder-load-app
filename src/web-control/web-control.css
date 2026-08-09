@@ -768,9 +768,9 @@ button:disabled {
   border-radius: 999px;
   background: linear-gradient(
     90deg,
-    color-mix(in srgb, var(--border) 75%, transparent),
-    color-mix(in srgb, var(--text-muted) 24%, transparent),
-    color-mix(in srgb, var(--border) 75%, transparent)
+    color-mix(in srgb, var(--color-border) 75%, transparent),
+    color-mix(in srgb, var(--color-text-muted) 24%, transparent),
+    color-mix(in srgb, var(--color-border) 75%, transparent)
   );
   background-size: 200% 100%;
   animation: queue-skeleton-shimmer 1.4s ease-in-out infinite;
@@ -806,6 +806,73 @@ button:disabled {
   to {
     background-position: -200% 0;
   }
+}
+
+.web-confirmation {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  padding: 20px;
+  place-items: center;
+}
+
+.web-confirmation__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(2, 7, 14, 0.72);
+  backdrop-filter: blur(8px);
+}
+
+.web-confirmation__dialog {
+  position: relative;
+  width: min(440px, 100%);
+  padding: 24px;
+  color: var(--color-text-main);
+  background: var(--color-bg-panel-strong);
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.42);
+}
+
+.web-confirmation__dialog h2 {
+  margin: 0 0 8px;
+  font-size: 1.15rem;
+}
+
+.web-confirmation__dialog p {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.web-confirmation__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 22px;
+}
+
+.web-confirmation__actions button {
+  min-height: 40px;
+  padding: 0 16px;
+  color: var(--color-text-main);
+  background: var(--color-bg-soft);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.web-confirmation__actions button:hover,
+.web-confirmation__actions button:focus-visible {
+  background: rgba(var(--color-accent-rgb), 0.12);
+  border-color: var(--color-accent);
+}
+
+.web-confirmation__actions .is-danger {
+  color: #fff;
+  background: #b4232e;
+  border-color: #d8414d;
 }
 
 .queue-item-menu-toggle {

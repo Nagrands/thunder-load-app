@@ -1038,15 +1038,21 @@ export async function importConfig(file) {
         location.reload();
       } catch (error) {
         logRendererError("Settings", "configuration-import-failed", error);
-        alert(
+        await window.electron.invoke(
+          "toast",
           t("settings.config.import.error", {
             error: error?.message || String(error),
           }),
+          "error",
         );
       }
     });
   } catch (e) {
-    alert(t("settings.config.import.error", { error: e.message }));
+    await window.electron.invoke(
+      "toast",
+      t("settings.config.import.error", { error: e.message }),
+      "error",
+    );
   }
 }
 
