@@ -1,11 +1,5 @@
 const QUEUE_FILTER_STORAGE_KEY = "downloadQueueFilter";
-const QUEUE_FILTERS = Object.freeze([
-  "all",
-  "active",
-  "pending",
-  "error",
-  "done",
-]);
+const QUEUE_FILTERS = Object.freeze(["all", "active", "pending", "error"]);
 
 const isQueueFilter = (value) => QUEUE_FILTERS.includes(value);
 

@@ -17,7 +17,6 @@ const buildDom = () => {
       <button id="queue-active-count" class="hidden" data-queue-filter="active" aria-pressed="false"><span>Active</span><span data-queue-filter-count></span></button>
       <button id="queue-count" class="hidden" data-queue-filter="pending" aria-pressed="false"><span>Queued</span><span data-queue-filter-count></span></button>
       <button id="queue-error-count" class="hidden" data-queue-filter="error" aria-pressed="false"><span>Errors</span><span data-queue-filter-count></span></button>
-      <button id="queue-done-count" class="hidden" data-queue-filter="done" aria-pressed="false"><span>Done</span><span data-queue-filter-count></span></button>
     </div>
     <span id="queue-cap-state" class="hidden"></span>
     <div id="queue-start-indicator" class="hidden"></div>
@@ -1293,7 +1292,7 @@ describe("downloadManager queue smart logic", () => {
     });
   });
 
-  it("removes completed jobs via row action", async () => {
+  it("does not render legacy completed jobs in the queue", async () => {
     await jest.isolateModulesAsync(async () => {
       jest.doMock("../domElements", () => ({
         urlInput: document.getElementById("url"),
@@ -1336,9 +1335,10 @@ describe("downloadManager queue smart logic", () => {
 
       initDownloadButton();
       updateQueueDisplay();
-      document.querySelector("[data-queue-remove-done]").click();
-
-      expect(state.completedDownloads).toHaveLength(0);
+      expect(document.querySelector("[data-queue-remove-done]")).toBeNull();
+      expect(document.getElementById("queue-list").textContent).not.toContain(
+        "Done",
+      );
     });
   });
 
@@ -2347,7 +2347,7 @@ describe("downloadManager queue smart logic", () => {
     });
   });
 
-  it("disables start button while there is an active download", () => {
+  it("keeps start-all available while there is capacity and pending work", () => {
     jest.isolateModules(() => {
       jest.doMock("../domElements", () => ({
         urlInput: document.getElementById("url"),
@@ -2388,7 +2388,7 @@ describe("downloadManager queue smart logic", () => {
         },
       ];
       updateQueueDisplay();
-      expect(startBtn.disabled).toBe(true);
+      expect(startBtn.disabled).toBe(false);
     });
   });
 
@@ -3133,8 +3133,7 @@ describe("downloadManager progress activity class", () => {
       expect(state.downloadJobs.some((job) => job.status === "running")).toBe(
         false,
       );
-      expect(state.completedDownloads).toHaveLength(1);
-      expect(state.completedDownloads[0].status).toBe("done");
+      expect(state.completedDownloads).toHaveLength(0);
       expect(state.isDownloading).toBe(false);
     });
   });
@@ -3208,7 +3207,7 @@ describe("downloadManager parallel pool", () => {
     });
   });
 
-  it("asks before manual queue start and keeps parallel start when user chooses all", async () => {
+  it("starts the whole queue without a mode prompt", async () => {
     await jest.isolateModulesAsync(async () => {
       const first = deferred();
       const second = deferred();
@@ -3275,12 +3274,7 @@ describe("downloadManager parallel pool", () => {
       await Promise.resolve();
       await Promise.resolve();
 
-      expect(showConfirmationDialog).toHaveBeenCalledWith(
-        expect.objectContaining({
-          confirmResult: "all",
-          cancelResult: "single",
-        }),
-      );
+      expect(showConfirmationDialog).not.toHaveBeenCalled();
       const downloadCalls = window.electron.invoke.mock.calls.filter(
         ([channel]) => channel === "download-video",
       );
@@ -3293,7 +3287,7 @@ describe("downloadManager parallel pool", () => {
     });
   });
 
-  it("starts only one queued item when user chooses single manual start", async () => {
+  it("starts only the selected queued item from its row action", async () => {
     await jest.isolateModulesAsync(async () => {
       const first = deferred();
       window.electron = {
@@ -3350,7 +3344,7 @@ describe("downloadManager parallel pool", () => {
       ];
 
       initDownloadButton();
-      document.getElementById("queue-start-button").click();
+      document.querySelector("[data-queue-start-job]").click();
       await Promise.resolve();
       await Promise.resolve();
 
@@ -4319,7 +4313,7 @@ describe("downloadManager pool loading toast", () => {
   });
 });
 
-describe("downloadManager completed job actions", () => {
+describe("downloadManager History recovery actions", () => {
   const mockCompletedJobDependencies = () => {
     jest.doMock("../domElements", () => ({
       urlInput: document.getElementById("url"),
@@ -4390,8 +4384,8 @@ describe("downloadManager completed job actions", () => {
 
       await initiateDownload("https://example.com/done", "Source");
 
-      expect(state.completedDownloads).toHaveLength(1);
-      expect(state.completedDownloads[0].filePath).toBe("/tmp/done.mp4");
+      expect(state.completedDownloads).toHaveLength(0);
+      expect(state.downloadJobs).toHaveLength(0);
     });
   });
 
@@ -4406,8 +4400,9 @@ describe("downloadManager completed job actions", () => {
           jobId: "done-1",
           url: "https://example.com/done",
           quality: "Source",
-          status: "done",
+          status: "failed",
           filePath: "/tmp/done.mp4",
+          errorCode: "HISTORY_SAVE_FAILED",
         },
       ];
       updateQueueDisplay();
@@ -4418,26 +4413,18 @@ describe("downloadManager completed job actions", () => {
       expect(document.getElementById("queue-active-count").classList).toContain(
         "hidden",
       );
-      expect(document.getElementById("queue-error-count").classList).toContain(
-        "hidden",
-      );
       expect(
-        document.getElementById("queue-done-count").classList,
+        document.getElementById("queue-error-count").classList,
       ).not.toContain("hidden");
-      expect(
-        document.querySelector(
-          '[data-queue-filter="done"] [data-queue-filter-count]',
-        ).textContent,
-      ).toBe("1");
       expect(document.getElementById("queue-start-button").classList).toContain(
         "hidden",
       );
       expect(document.getElementById("queue-pause-button").classList).toContain(
         "hidden",
       );
-      expect(document.getElementById("queue-clear-button").classList).toContain(
-        "hidden",
-      );
+      expect(
+        document.getElementById("queue-clear-button").classList,
+      ).not.toContain("hidden");
 
       state.downloadJobs.push({
         jobId: "pending-1",
@@ -4459,7 +4446,7 @@ describe("downloadManager completed job actions", () => {
     });
   });
 
-  it("opens and reveals a completed file from accessible actions", async () => {
+  it("opens and reveals a saved file from recovery actions", async () => {
     await jest.isolateModulesAsync(async () => {
       mockCompletedJobDependencies();
       window.electron.invoke.mockImplementation(async (channel) => {
@@ -4478,16 +4465,19 @@ describe("downloadManager completed job actions", () => {
           url: "https://example.com/done",
           quality: "Source",
           signature: "done-actions",
-          status: "done",
+          status: "failed",
           filePath: "/tmp/done.mp4",
+          errorCode: "HISTORY_SAVE_FAILED",
         },
       ];
 
       initDownloadButton();
       updateQueueDisplay();
 
-      const openButton = document.querySelector("[data-queue-open-done]");
-      const revealButton = document.querySelector("[data-queue-reveal-done]");
+      const openButton = document.querySelector("[data-queue-open-recovery]");
+      const revealButton = document.querySelector(
+        "[data-queue-reveal-recovery]",
+      );
       for (const button of [openButton, revealButton]) {
         expect(button.getAttribute("title")).toBeTruthy();
         expect(button.getAttribute("aria-label")).toBe(button.title);
@@ -4504,7 +4494,7 @@ describe("downloadManager completed job actions", () => {
         "open-download-folder",
         "/tmp/done.mp4",
       );
-      expect(state.completedDownloads).toHaveLength(1);
+      expect(state.failedDownloads).toHaveLength(1);
     });
   });
 
@@ -4527,15 +4517,16 @@ describe("downloadManager completed job actions", () => {
           jobId: "done-errors",
           url: "https://example.com/done",
           quality: "Source",
-          status: "done",
+          status: "failed",
           filePath: "/tmp/done.mp4",
+          errorCode: "HISTORY_SAVE_FAILED",
         },
       ];
 
       initDownloadButton();
       updateQueueDisplay();
-      document.querySelector("[data-queue-open-done]").click();
-      document.querySelector("[data-queue-reveal-done]").click();
+      document.querySelector("[data-queue-open-recovery]").click();
+      document.querySelector("[data-queue-reveal-recovery]").click();
       await Promise.resolve();
       await Promise.resolve();
 
@@ -4552,12 +4543,12 @@ describe("downloadManager completed job actions", () => {
         "Error revealing completed download:",
         expect.any(Error),
       );
-      expect(state.completedDownloads).toHaveLength(1);
+      expect(state.failedDownloads).toHaveLength(1);
       errorSpy.mockRestore();
     });
   });
 
-  it("opens the intended completed job when state changes before click", async () => {
+  it("opens the intended recovery job when state changes before click", async () => {
     await jest.isolateModulesAsync(async () => {
       mockCompletedJobDependencies();
       window.electron.invoke.mockResolvedValue({ success: true });
@@ -4574,8 +4565,9 @@ describe("downloadManager completed job actions", () => {
           url: "https://example.com/first",
           quality: "Source",
           signature: "done-first",
-          status: "done",
+          status: "failed",
           filePath: "/tmp/first.mp4",
+          errorCode: "HISTORY_SAVE_FAILED",
         },
         {
           id: "done-target",
@@ -4583,15 +4575,16 @@ describe("downloadManager completed job actions", () => {
           url: "https://example.com/target",
           quality: "Source",
           signature: "done-target",
-          status: "done",
+          status: "failed",
           filePath: "/tmp/target.mp4",
+          errorCode: "HISTORY_SAVE_FAILED",
         },
       ];
 
       initDownloadButton();
       updateQueueDisplay();
       const openButton = document.querySelector(
-        '[data-queue-open-done][data-job-id="done-target"]',
+        '[data-queue-open-recovery][data-job-id="done-target"]',
       );
       expect(openButton).toBeTruthy();
       expect(openButton.hasAttribute("data-index")).toBe(false);
@@ -4602,8 +4595,9 @@ describe("downloadManager completed job actions", () => {
         url: "https://example.com/inserted",
         quality: "Source",
         signature: "done-inserted",
-        status: "done",
+        status: "failed",
         filePath: "/tmp/inserted.mp4",
+        errorCode: "HISTORY_SAVE_FAILED",
       });
       openButton.click();
       await Promise.resolve();
@@ -4616,7 +4610,7 @@ describe("downloadManager completed job actions", () => {
   });
 });
 
-describe("downloadManager completed queue persistence", () => {
+describe("downloadManager legacy completed migration", () => {
   const completedJob = (overrides = {}) => ({
     jobId: "done-persisted",
     title: "Persisted download",
@@ -4681,7 +4675,7 @@ describe("downloadManager completed queue persistence", () => {
     };
   });
 
-  it("persists a successful download as a done job", async () => {
+  it("does not persist a successful download as a done job", async () => {
     await jest.isolateModulesAsync(async () => {
       mockCompletedPersistenceDependencies();
       window.electron.invoke.mockImplementation(async (channel, url) => {
@@ -4703,19 +4697,13 @@ describe("downloadManager completed queue persistence", () => {
 
       await initiateDownload("https://example.com/persisted", "Source");
 
-      expect(localStorage.getItem("downloadCompletedQueue")).toBeTruthy();
-      expect(loadCompletedJobs()).toEqual([
-        expect.objectContaining({
-          url: "https://example.com/persisted",
-          status: "done",
-          filePath: "/tmp/persisted.mp4",
-        }),
-      ]);
+      expect(localStorage.getItem("downloadCompletedQueue")).toBeNull();
+      expect(loadCompletedJobs()).toEqual([]);
     });
   });
 
-  it("restores completed jobs during initialization", () => {
-    jest.isolateModules(() => {
+  it("moves completed jobs to History during initialization", async () => {
+    await jest.isolateModulesAsync(async () => {
       mockCompletedPersistenceDependencies();
       const {
         loadCompletedJobs,
@@ -4726,21 +4714,16 @@ describe("downloadManager completed queue persistence", () => {
       const { state } = require("../state");
       const { initDownloadButton } = require("../downloadManager");
       initDownloadButton();
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(state.completedDownloads).toEqual([
-        expect.objectContaining({
-          jobId: "done-persisted",
-          status: "done",
-          filePath: "/tmp/persisted.mp4",
-        }),
-      ]);
-      expect(loadCompletedJobs()).toHaveLength(1);
-      expect(document.querySelector("[data-queue-remove-done]")).toBeTruthy();
+      expect(state.completedDownloads).toEqual([]);
+      expect(loadCompletedJobs()).toHaveLength(0);
+      expect(document.querySelector("[data-queue-remove-done]")).toBeNull();
     });
   });
 
-  it("syncs completed storage after removing completed jobs", () => {
-    jest.isolateModules(() => {
+  it("migrates multiple completed jobs in one History write", async () => {
+    await jest.isolateModulesAsync(async () => {
       mockCompletedPersistenceDependencies();
       const {
         loadCompletedJobs,
@@ -4759,22 +4742,21 @@ describe("downloadManager completed queue persistence", () => {
 
       const { initDownloadButton } = require("../downloadManager");
       initDownloadButton();
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
-      document.querySelector("[data-queue-remove-done]").click();
-      expect(loadCompletedJobs()).toEqual([
-        expect.objectContaining({
-          jobId: "done-second",
-          status: "done",
-        }),
-      ]);
-
-      document.querySelector("[data-queue-remove-done]").click();
       expect(loadCompletedJobs()).toEqual([]);
       expect(localStorage.getItem("downloadCompletedQueue")).toBeNull();
+      expect(window.electron.invoke).toHaveBeenCalledWith(
+        "save-history",
+        expect.arrayContaining([
+          expect.objectContaining({ filePath: "/tmp/persisted.mp4" }),
+          expect.objectContaining({ filePath: "/tmp/second.mp4" }),
+        ]),
+      );
     });
   });
 
-  it("clears completed storage when clearing the whole queue", async () => {
+  it("does not expose migrated completed jobs to queue clear or Undo", async () => {
     await jest.isolateModulesAsync(async () => {
       mockCompletedPersistenceDependencies({ confirmClear: true });
       const {
@@ -4794,8 +4776,6 @@ describe("downloadManager completed queue persistence", () => {
       const { initDownloadButton } = require("../downloadManager");
       const { showToast } = require("../toast");
       initDownloadButton();
-
-      document.getElementById("queue-clear-button").click();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(loadCompletedJobs()).toEqual([]);
@@ -4803,27 +4783,30 @@ describe("downloadManager completed queue persistence", () => {
       const undo = showToast.mock.calls.find(
         ([message]) => message === "queue.cleared",
       )?.[4];
-      expect(undo).toEqual(expect.any(Function));
-      undo();
-      expect(loadCompletedJobs()).toHaveLength(2);
+      expect(undo).toBeUndefined();
     });
   });
 
-  it("opens and reveals a restored completed job", async () => {
+  it("opens and reveals a completed job when migration needs recovery", async () => {
     await jest.isolateModulesAsync(async () => {
       mockCompletedPersistenceDependencies();
       const { persistCompletedJobs } = require("../downloadQueuePersistence");
       persistCompletedJobs([completedJob()]);
       window.electron.invoke.mockImplementation(async (channel) => {
+        if (channel === "load-history") return [];
+        if (channel === "save-history") {
+          return { success: false, error: "disk error" };
+        }
         if (channel === "open-last-video") return { success: true };
         return undefined;
       });
 
       const { initDownloadButton } = require("../downloadManager");
       initDownloadButton();
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
-      document.querySelector("[data-queue-open-done]").click();
-      document.querySelector("[data-queue-reveal-done]").click();
+      document.querySelector("[data-queue-open-recovery]").click();
+      document.querySelector("[data-queue-reveal-recovery]").click();
       await Promise.resolve();
 
       expect(window.electron.invoke).toHaveBeenCalledWith(
@@ -4834,6 +4817,267 @@ describe("downloadManager completed queue persistence", () => {
         "open-download-folder",
         "/tmp/persisted.mp4",
       );
+    });
+  });
+});
+
+describe("downloadManager queue completion semantics", () => {
+  const mockDependencies = (historySaved = true) => {
+    jest.doMock("../domElements", () => ({
+      urlInput: document.getElementById("url"),
+      downloadButton: document.getElementById("download-button"),
+      enqueueButton: document.getElementById("enqueue-button"),
+      downloadCancelButton: document.getElementById("download-cancel"),
+      buttonText: document.querySelector(".button-text"),
+      progressBarContainer: document.getElementById("progress-bar-container"),
+      progressBar: document.getElementById("progress-bar"),
+      openLastVideoButton: document.getElementById("open-last-video"),
+      queueStartButton: document.getElementById("queue-start-button"),
+      queuePauseButton: document.getElementById("queue-pause-button"),
+      queueToggleButton: document.getElementById("queue-toggle-button"),
+      queueClearButton: document.getElementById("queue-clear-button"),
+      queueRetryFailedButton: document.getElementById(
+        "queue-retry-failed-button",
+      ),
+      historyContainer: null,
+    }));
+    jest.doMock("../history", () => ({
+      addNewEntryToHistory: jest.fn(async () => historySaved),
+      updateDownloadCount: jest.fn(async () => {}),
+      getHistoryData: jest.fn(() => []),
+    }));
+    jest.doMock("../i18n", () => ({
+      getLanguage: jest.fn(() => "en"),
+      t: jest.fn((key) => key),
+    }));
+    jest.doMock("../toast", () => ({
+      showLoading: jest.fn(),
+      showToast: jest.fn(),
+    }));
+  };
+
+  beforeEach(() => {
+    jest.resetModules();
+    localStorage.clear();
+    buildDom();
+  });
+
+  it("removes a successful job immediately after History confirms the entry", async () => {
+    await jest.isolateModulesAsync(async () => {
+      mockDependencies(true);
+      window.electron = {
+        invoke: jest.fn(async (channel, url) => {
+          if (channel === "download-video") {
+            return {
+              fileName: "saved.mp4",
+              filePath: "/tmp/saved.mp4",
+              actualQuality: "Source",
+              sourceUrl: url,
+            };
+          }
+          if (channel === "get-icon-path") return "";
+          return {};
+        }),
+        ipcRenderer: { invoke: jest.fn() },
+        on: jest.fn(),
+      };
+      const { state } = require("../state");
+      const { initiateDownload } = require("../downloadManager");
+
+      await initiateDownload("https://example.com/saved", "Source");
+
+      expect(state.downloadJobs).toHaveLength(0);
+      expect(localStorage.getItem("downloadCompletedQueue")).toBeNull();
+    });
+  });
+
+  it("migrates legacy completed jobs once and removes storage only after save", async () => {
+    await jest.isolateModulesAsync(async () => {
+      mockDependencies(true);
+      window.electron = {
+        invoke: jest.fn(async (channel) => {
+          if (channel === "load-history") return [];
+          if (channel === "save-history") return { success: true, count: 1 };
+          return {};
+        }),
+        ipcRenderer: { invoke: jest.fn() },
+        on: jest.fn(),
+      };
+      const { persistCompletedJobs } = require("../downloadQueuePersistence");
+      persistCompletedJobs([
+        {
+          jobId: "legacy-done",
+          url: "https://example.com/legacy",
+          title: "Legacy",
+          quality: "Source",
+          status: "done",
+          filePath: "/tmp/legacy.mp4",
+        },
+      ]);
+      const { initDownloadButton } = require("../downloadManager");
+      initDownloadButton();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(window.electron.invoke).toHaveBeenCalledWith(
+        "save-history",
+        expect.arrayContaining([
+          expect.objectContaining({ filePath: "/tmp/legacy.mp4" }),
+        ]),
+      );
+      expect(localStorage.getItem("downloadCompletedQueue")).toBeNull();
+    });
+  });
+
+  it("keeps a recoverable job when History save fails", async () => {
+    await jest.isolateModulesAsync(async () => {
+      mockDependencies(true);
+      window.electron = {
+        invoke: jest.fn(async (channel) => {
+          if (channel === "load-history") return [];
+          if (channel === "save-history") {
+            return { success: false, error: "disk error" };
+          }
+          return {};
+        }),
+        ipcRenderer: { invoke: jest.fn() },
+        on: jest.fn(),
+      };
+      const { persistCompletedJobs } = require("../downloadQueuePersistence");
+      persistCompletedJobs([
+        {
+          jobId: "legacy-recovery",
+          url: "https://example.com/recovery",
+          title: "Recovery",
+          quality: "Source",
+          status: "done",
+          filePath: "/tmp/recovery.mp4",
+        },
+      ]);
+      const { state } = require("../state");
+      const { initDownloadButton } = require("../downloadManager");
+      initDownloadButton();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(state.failedDownloads).toEqual([
+        expect.objectContaining({
+          filePath: "/tmp/recovery.mp4",
+          errorCode: "HISTORY_SAVE_FAILED",
+        }),
+      ]);
+      expect(localStorage.getItem("downloadCompletedQueue")).toBeTruthy();
+      expect(document.querySelector("[data-queue-open-recovery]")).toBeTruthy();
+      expect(
+        document.querySelector("[data-queue-reveal-recovery]"),
+      ).toBeTruthy();
+    });
+  });
+
+  it("clears only the selected error category and restores it with one Undo", async () => {
+    await jest.isolateModulesAsync(async () => {
+      mockDependencies(true);
+      window.electron = {
+        invoke: jest.fn(async () => ({})),
+        ipcRenderer: { invoke: jest.fn() },
+        on: jest.fn(),
+      };
+      const { state } = require("../state");
+      const { showToast } = require("../toast");
+      const {
+        initDownloadButton,
+        updateQueueDisplay,
+      } = require("../downloadManager");
+      state.downloadJobs = [
+        {
+          jobId: "running",
+          url: "https://example.com/running",
+          quality: "Source",
+          status: "running",
+        },
+        {
+          jobId: "pending",
+          url: "https://example.com/pending",
+          quality: "Source",
+          status: "pending",
+        },
+        {
+          jobId: "failed",
+          url: "https://example.com/failed",
+          quality: "Source",
+          status: "failed",
+        },
+      ];
+      initDownloadButton();
+      updateQueueDisplay();
+      document.querySelector('[data-queue-filter="error"]').click();
+      document.getElementById("queue-clear-button").click();
+      await Promise.resolve();
+
+      expect(state.downloadJobs.map((job) => job.jobId)).toEqual([
+        "running",
+        "pending",
+      ]);
+      const undo = showToast.mock.calls.find(
+        ([message]) => message === "queue.cleared",
+      )?.[4];
+      expect(undo).toEqual(expect.any(Function));
+      undo();
+      expect(state.downloadJobs.map((job) => job.jobId)).toEqual([
+        "failed",
+        "running",
+        "pending",
+      ]);
+    });
+  });
+
+  it("keeps active Web Control jobs while clearing and restores inactive jobs", async () => {
+    await jest.isolateModulesAsync(async () => {
+      mockDependencies(true);
+      window.electron = {
+        invoke: jest.fn(async () => ({})),
+        ipcRenderer: { invoke: jest.fn() },
+        on: jest.fn(),
+      };
+      const { state } = require("../state");
+      const {
+        handleWebControlDownloaderAction,
+      } = require("../downloadManager");
+      state.downloadJobs = [
+        {
+          jobId: "web-running",
+          url: "https://example.com/running",
+          quality: "Source",
+          status: "running",
+        },
+        {
+          jobId: "web-pending",
+          url: "https://example.com/pending",
+          quality: "Source",
+          status: "pending",
+        },
+        {
+          jobId: "web-failed",
+          url: "https://example.com/failed",
+          quality: "Source",
+          status: "failed",
+        },
+      ];
+
+      const cleared = await handleWebControlDownloaderAction(
+        "downloader:clear",
+        { target: "all" },
+      );
+      expect(cleared.jobs.map((job) => job.jobId)).toEqual(["web-running"]);
+      expect(cleared.undoClearAvailable).toBe(true);
+
+      const restored = await handleWebControlDownloaderAction(
+        "downloader:undo-clear",
+      );
+      expect(restored.jobs.map((job) => job.jobId)).toEqual([
+        "web-pending",
+        "web-failed",
+        "web-running",
+      ]);
+      expect(restored.undoClearAvailable).toBe(false);
     });
   });
 });
@@ -5125,7 +5369,7 @@ describe("downloadManager queue filters", () => {
       const errorCounter = document.querySelector(
         '[data-queue-filter="error"] [data-queue-filter-count]',
       );
-      expect(allCounter.textContent).toBe("(5)");
+      expect(allCounter.textContent).toBe("(4)");
       expect(pendingCounter.textContent).toBe("2");
       expect(errorCounter.textContent).toBe("1");
 
@@ -5164,7 +5408,7 @@ describe("downloadManager queue filters", () => {
           .getAttribute("aria-pressed"),
       ).toBe("false");
       expect(document.getElementById("queue-total-count").textContent).toBe(
-        "(3)",
+        "(2)",
       );
       expect(document.getElementById("queue-count").classList).toContain(
         "hidden",
@@ -5175,7 +5419,7 @@ describe("downloadManager queue filters", () => {
       expect(document.getElementById("queue-list").textContent).toContain(
         "example.com/failed",
       );
-      expect(document.getElementById("queue-list").textContent).toContain(
+      expect(document.getElementById("queue-list").textContent).not.toContain(
         "example.com/done",
       );
       expect(

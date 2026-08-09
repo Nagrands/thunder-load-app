@@ -523,11 +523,6 @@ button:disabled {
   color: #b8d6ff;
 }
 
-.queue-count-pill--done {
-  border-color: rgba(var(--color-success-rgb), 0.24);
-  color: #b7f1ca;
-}
-
 .queue-count-pill--failed {
   border-color: rgba(var(--color-danger-rgb), 0.28);
   color: #ffb3b3;
@@ -732,11 +727,6 @@ button:disabled {
   100% {
     opacity: 0.7;
   }
-}
-
-.queue-item.is-done .queue-status-chip {
-  border-color: rgba(var(--color-success-rgb), 0.26);
-  color: #b8f0cc;
 }
 
 .queue-item.is-failed .queue-status-chip {

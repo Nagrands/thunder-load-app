@@ -5,7 +5,6 @@ const buildFilterDom = () => {
       <button id="queue-active-count" data-queue-filter="active" aria-pressed="false"><span>Active</span><span data-queue-filter-count></span></button>
       <button id="queue-count" data-queue-filter="pending" aria-pressed="false"><span>Queued</span><span data-queue-filter-count></span></button>
       <button id="queue-error-count" data-queue-filter="error" aria-pressed="false"><span>Errors</span><span data-queue-filter-count></span></button>
-      <button id="queue-done-count" data-queue-filter="done" aria-pressed="false"><span>Done</span><span data-queue-filter-count></span></button>
     </div>
   `;
 };
@@ -54,15 +53,15 @@ describe("downloadQueueFilter", () => {
 
     initDownloadQueueFilter(onChange);
     initDownloadQueueFilter(onChange);
-    document.querySelector('[data-queue-filter="done"]').click();
+    document.querySelector('[data-queue-filter="pending"]').click();
 
-    expect(getDownloadQueueFilter()).toBe("done");
-    expect(localStorage.getItem("downloadQueueFilter")).toBe("done");
+    expect(getDownloadQueueFilter()).toBe("pending");
+    expect(localStorage.getItem("downloadQueueFilter")).toBe("pending");
     expect(onChange).toHaveBeenCalledTimes(1);
-    expect(onChange).toHaveBeenCalledWith("done");
+    expect(onChange).toHaveBeenCalledWith("pending");
     expect(
       document
-        .querySelector('[data-queue-filter="done"]')
+        .querySelector('[data-queue-filter="pending"]')
         .getAttribute("aria-pressed"),
     ).toBe("true");
   });

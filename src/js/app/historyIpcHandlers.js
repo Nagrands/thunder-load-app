@@ -39,8 +39,10 @@ function registerHistoryIpcHandlers({
       await fs.promises.writeFile(historyFilePath, historyJson, "utf8");
       const count = Array.isArray(history) ? history.length : 0;
       emitHistoryUpdated(mainWindow, count);
+      return { success: true, count };
     } catch (error) {
       log.error(`Error saving history: ${error}`);
+      return { success: false, error: error.message };
     }
   });
 

@@ -45,7 +45,6 @@ import {
   ensureDownloadJobsState,
   findDownloadJob,
   getActiveDownloadJobs,
-  getCompletedDownloadJobs,
   getFailedDownloadJobs,
   getPendingDownloadJobs,
   patchDownloadJob,
@@ -75,13 +74,11 @@ const jobSummary = document.getElementById("downloader-job-summary");
 const jobSummaryTitle = document.getElementById("downloader-job-summary-title");
 const jobSummaryMeta = document.getElementById("downloader-job-summary-meta");
 const QUEUE_LOG_TAG = "[queue]";
-const QUEUE_START_MODE = Object.freeze({
-  single: "single",
-  all: "all",
-});
+const HISTORY_SAVE_ERROR_CODE = "HISTORY_SAVE_FAILED";
 
 let downloadedUrlCache = { ts: 0, map: new Map() };
 let lastDownloadIntentWarmup = { url: "", ts: 0 };
+let webClearUndo = null;
 const DOWNLOAD_INTENT_WARMUP_RETRY_MS = 30 * 1000;
 
 function updateDownloaderTabLabel() {
@@ -93,12 +90,8 @@ function updateDownloaderTabLabel() {
     if (!label) return;
     const activeCount = getActiveDownloadJobs(state).length;
     const failedCount = getFailedDownloadJobs(state).length;
-    const doneCount = getCompletedDownloadJobs(state).length;
     const count =
-      activeCount +
-      getPendingDownloadJobs(state).length +
-      failedCount +
-      doneCount;
+      activeCount + getPendingDownloadJobs(state).length + failedCount;
     const base = t("tabs.download");
     label.textContent = base;
     if (badge) {
@@ -307,6 +300,9 @@ const makeQueueUrlLabel = (url) => {
 };
 
 function getQueueReasonLabel(item) {
+  if (item?.errorCode === HISTORY_SAVE_ERROR_CODE) {
+    return t("queue.reason.historySaveFailed");
+  }
   return formatDownloadQueueReason(
     item?.errorCode
       ? {
@@ -785,19 +781,15 @@ function persistFailedQueue() {
   } catch {}
 }
 
-function persistCompletedQueue() {
-  persistCompletedJobs(getCompletedDownloadJobs(state));
-}
-
 function persistAllQueueCollections() {
   persistQueue();
   persistFailedQueue();
-  persistCompletedQueue();
 }
 
-function showQueueRemovalUndo(removedJobs, messageKey) {
+function showQueueRemovalUndo(removedJobs, messageKey, options = {}) {
   const snapshot = (removedJobs || []).map((job) => ({ ...job }));
   if (!snapshot.length) return;
+  const pausedBeforeRemoval = Boolean(options.pausedBeforeRemoval);
   showToast(t(messageKey), "info", 8000, null, () => {
     const current = ensureDownloadJobsState(state).map((job) => ({ ...job }));
     const restoredIds = new Set(
@@ -806,10 +798,14 @@ function showQueueRemovalUndo(removedJobs, messageKey) {
     setDownloadJobs(state, [
       ...snapshot,
       ...current.filter(
-        (job) =>
-          !restoredIds.has(String(job.jobId || job.id || job.signature)),
+        (job) => !restoredIds.has(String(job.jobId || job.id || job.signature)),
       ),
     ]);
+    if (options.restorePauseState) {
+      state.suppressAutoPump = pausedBeforeRemoval;
+      state.queuePaused = pausedBeforeRemoval;
+      persistQueuePausedState();
+    }
     persistAllQueueCollections();
     updateQueueDisplay();
     showToast(t("queue.undo.restored"), "success");
@@ -1249,15 +1245,9 @@ function updateQueueDisplay() {
   const errorItems = getFailedDownloadJobs(state).map((item) =>
     normalizeQueueItem({ ...item, status: "error" }),
   );
-  const doneItems = getCompletedDownloadJobs(state).map((item) =>
-    normalizeQueueItem({ ...item, status: "done" }),
-  );
-
   const activeCount = activeItems.length;
   const pendingCount = pendingItems.length;
-  const doneCount = doneItems.length;
-  const totalVisible =
-    activeCount + pendingCount + errorItems.length + doneCount;
+  const totalVisible = activeCount + pendingCount + errorItems.length;
   const hasQueueItems = totalVisible > 0;
   const activeJobIds = new Set(
     activeItems.map((item) => item.jobId || item.id).filter(Boolean),
@@ -1273,7 +1263,6 @@ function updateQueueDisplay() {
       active: activeCount,
       pending: pendingCount,
       error: errorItems.length,
-      done: doneCount,
     },
     { hidden: state.queueCollapsed },
   );
@@ -1282,7 +1271,7 @@ function updateQueueDisplay() {
   if (queueInfo) {
     queueInfo.classList.toggle("hidden", !hasQueueItems);
     if (queueStartButton) {
-      queueStartButton.disabled = pendingCount <= 0 || activeCount > 0;
+      queueStartButton.disabled = pendingCount <= 0;
       queueStartButton.classList.toggle("hidden", pendingCount <= 0);
     }
     if (queuePauseButton) {
@@ -1310,8 +1299,16 @@ function updateQueueDisplay() {
       queuePauseButton.setAttribute("data-i18n-aria", pauseKey);
     }
     if (queueClearButton) {
-      queueClearButton.disabled = totalVisible <= 1;
-      queueClearButton.classList.toggle("hidden", totalVisible <= 1);
+      const clearableCount =
+        queueFilter === "active"
+          ? 0
+          : queueFilter === "pending"
+            ? pendingCount
+            : queueFilter === "error"
+              ? errorItems.length
+              : pendingCount + errorItems.length;
+      queueClearButton.disabled = clearableCount <= 0;
+      queueClearButton.classList.toggle("hidden", clearableCount <= 0);
     }
     if (queueRetryFailedButton) {
       const retryableFailedCount = getRetryableFailedJobs().length;
@@ -1354,7 +1351,6 @@ function updateQueueDisplay() {
       },
       pending: { label: t("queue.status.pending"), icon: "clock-3" },
       paused: { label: t("queue.status.paused"), icon: "pause" },
-      done: { label: t("queue.status.done"), icon: "check-circle-2" },
       error: { label: t("queue.status.error"), icon: "alert-circle" },
     };
     const theme = QUEUE_COLORS.status[status] || QUEUE_COLORS.status.pending;
@@ -1399,8 +1395,9 @@ function updateQueueDisplay() {
     const isDownloading = item.status === "downloading";
     const isActiveGroup = group === "active";
     const isPendingGroup = group === "pending";
-    const isDoneGroup = group === "done";
     const hasFilePath = Boolean(item.filePath);
+    const isHistoryRecovery =
+      item.errorCode === HISTORY_SAVE_ERROR_CODE && hasFilePath;
     const isFirst = pendingIndex === 0;
     const isLast = pendingIndex === pendingItems.length - 1;
     const itemIdentity = getQueueItemIdentity(item);
@@ -1435,24 +1432,25 @@ function updateQueueDisplay() {
             }
             ${
               isPendingGroup
-                ? `<button type="button" class="queue-item-move" data-queue-move="up" data-job-id="${escapeQueueHtml(itemIdentity)}" title="${t("queue.item.moveUp.title")}" aria-label="${t("queue.item.moveUp.title")}" ${isFirst ? "disabled" : ""}><i data-lucide="chevron-up"></i></button>
+                ? `<button type="button" class="queue-item-start" data-queue-start-job="1" data-job-id="${escapeQueueHtml(itemIdentity)}" title="${t("queue.item.start.title")}" aria-label="${t("queue.item.start.title")}"><i data-lucide="play"></i></button>
+                   <button type="button" class="queue-item-move" data-queue-move="up" data-job-id="${escapeQueueHtml(itemIdentity)}" title="${t("queue.item.moveUp.title")}" aria-label="${t("queue.item.moveUp.title")}" ${isFirst ? "disabled" : ""}><i data-lucide="chevron-up"></i></button>
                    <button type="button" class="queue-item-move" data-queue-move="down" data-job-id="${escapeQueueHtml(itemIdentity)}" title="${t("queue.item.moveDown.title")}" aria-label="${t("queue.item.moveDown.title")}" ${isLast ? "disabled" : ""}><i data-lucide="chevron-down"></i></button>`
                 : ""
             }
             ${
               group === "error"
-                ? `<button type="button" class="queue-item-retry" data-queue-retry-failed="1" data-job-id="${escapeQueueHtml(itemIdentity)}" title="${t(item.retryable ? "queue.item.retry.title" : "queue.item.retry.disabled.title")}" aria-label="${t(item.retryable ? "queue.item.retry.title" : "queue.item.retry.disabled.title")}" ${item.retryable ? "" : "disabled"}><i data-lucide="rotate-cw"></i></button>`
+                ? `<button type="button" class="queue-item-retry" data-queue-retry-failed="1" data-job-id="${escapeQueueHtml(itemIdentity)}" title="${t(isHistoryRecovery ? "queue.item.archiveRetry.title" : item.retryable ? "queue.item.retry.title" : "queue.item.retry.disabled.title")}" aria-label="${t(isHistoryRecovery ? "queue.item.archiveRetry.title" : item.retryable ? "queue.item.retry.title" : "queue.item.retry.disabled.title")}" ${item.retryable || isHistoryRecovery ? "" : "disabled"}><i data-lucide="rotate-cw"></i></button>`
                 : ""
             }
             ${
-              isDoneGroup
-                ? `<button type="button" class="queue-item-open" data-queue-open-done="1" data-job-id="${escapeQueueHtml(itemIdentity)}" title="${t("queue.item.open.title")}" aria-label="${t("queue.item.open.title")}" ${hasFilePath ? "" : "disabled"}><i data-lucide="play"></i></button>
-                   <button type="button" class="queue-item-reveal" data-queue-reveal-done="1" data-job-id="${escapeQueueHtml(itemIdentity)}" title="${t("queue.item.reveal.title")}" aria-label="${t("queue.item.reveal.title")}" ${hasFilePath ? "" : "disabled"}><i data-lucide="folder-open"></i></button>`
+              isHistoryRecovery
+                ? `<button type="button" class="queue-item-open" data-queue-open-recovery="1" data-job-id="${escapeQueueHtml(itemIdentity)}" title="${t("queue.item.open.title")}" aria-label="${t("queue.item.open.title")}"><i data-lucide="play"></i></button>
+                   <button type="button" class="queue-item-reveal" data-queue-reveal-recovery="1" data-job-id="${escapeQueueHtml(itemIdentity)}" title="${t("queue.item.reveal.title")}" aria-label="${t("queue.item.reveal.title")}"><i data-lucide="folder-open"></i></button>`
                 : ""
             }
             ${
               group !== "active"
-                ? `<button type="button" class="queue-item-remove" data-${group === "error" ? "queue-remove-failed" : group === "done" ? "queue-remove-done" : "queue-remove"}="1" data-job-id="${escapeQueueHtml(itemIdentity)}" title="${t("queue.item.remove.title")}" aria-label="${t("queue.item.remove.title")}"><i data-lucide="x"></i></button>`
+                ? `<button type="button" class="queue-item-remove" data-${group === "error" ? "queue-remove-failed" : "queue-remove"}="1" data-job-id="${escapeQueueHtml(itemIdentity)}" title="${t("queue.item.remove.title")}" aria-label="${t("queue.item.remove.title")}"><i data-lucide="x"></i></button>`
                 : ""
             }
           </div>
@@ -1495,15 +1493,9 @@ function updateQueueDisplay() {
           item,
           group: "error",
         })),
-        done: doneItems.map((item) => ({
-          item,
-          group: "done",
-        })),
       };
       const visibleGroups =
-        queueFilter === "all"
-          ? ["active", "pending", "error", "done"]
-          : [queueFilter];
+        queueFilter === "all" ? ["active", "pending", "error"] : [queueFilter];
       const visibleRows = visibleGroups.flatMap(
         (group) => groupedRows[group] || [],
       );
@@ -1692,6 +1684,109 @@ async function revealCompletedDownload(task) {
   }
 }
 
+function buildHistoryEntryFromQueueJob(task) {
+  const timestamp =
+    Number(task?.completedAt) ||
+    Number(task?.updatedAt) ||
+    Number(task?.createdAt) ||
+    Date.now();
+  return {
+    id:
+      task?.historyEntryId || task?.jobId || task?.id || `history-${timestamp}`,
+    fileName:
+      task?.title || makeQueueTitle(task?.url) || makeQueueUrlLabel(task?.url),
+    filePath: task?.filePath || "",
+    quality: getQueueQualityLabel(task?.quality),
+    downloadKind: resolveDownloadKind(task),
+    sourceUrl: task?.url || "",
+    dateTime: new Date(timestamp).toLocaleString("ru-RU", { hour12: false }),
+    downloadStatus: "done",
+  };
+}
+
+function createHistoryRecoveryJob(task) {
+  return normalizeQueueItem({
+    ...task,
+    status: JOB_STATUS.failed,
+    progress: 100,
+    stage: "finalize",
+    reason: t("queue.reason.historySaveFailed"),
+    errorCode: HISTORY_SAVE_ERROR_CODE,
+    retryable: false,
+    failedAt: Date.now(),
+  });
+}
+
+async function archiveRecoveredDownload(task) {
+  if (!task?.filePath) return false;
+  const saved = await addNewEntryToHistory(
+    buildHistoryEntryFromQueueJob(task),
+    {
+      replaceExistingFilePath: false,
+    },
+  );
+  if (!saved) return false;
+  removeDownloadJob(state, task.jobId || task.id || task.signature);
+  persistCompletedJobs(
+    loadCompletedJobs().filter(
+      (legacyJob) =>
+        legacyJob.filePath !== task.filePath &&
+        (legacyJob.jobId || legacyJob.id) !== (task.jobId || task.id),
+    ),
+  );
+  persistFailedQueue();
+  markAsDownloaded(task.url, resolveDownloadKind(task));
+  updateQueueDisplay();
+  showToast(t("queue.item.archiveRetry.success"), "success");
+  return true;
+}
+
+async function migrateLegacyCompletedJobs() {
+  const legacyJobs = loadCompletedJobs();
+  if (!legacyJobs.length) return;
+  try {
+    const loaded = await window.electron.invoke("load-history");
+    const historyEntries = Array.isArray(loaded)
+      ? loaded
+      : Array.isArray(loaded?.entries)
+        ? loaded.entries
+        : [];
+    const knownPaths = new Set(
+      historyEntries
+        .map((entry) => String(entry?.filePath || ""))
+        .filter(Boolean),
+    );
+    const additions = legacyJobs
+      .filter((job) => job.filePath && !knownPaths.has(String(job.filePath)))
+      .map(buildHistoryEntryFromQueueJob);
+    const saveResult = additions.length
+      ? await window.electron.invoke("save-history", [
+          ...additions,
+          ...historyEntries,
+        ])
+      : { success: true };
+    if (saveResult?.success === false) {
+      throw new Error(saveResult.error || "History migration failed");
+    }
+    persistCompletedJobs([]);
+    additions.forEach((entry) =>
+      markAsDownloaded(entry.sourceUrl, entry.downloadKind),
+    );
+    await updateDownloadCount();
+  } catch (error) {
+    console.error("Failed to migrate completed queue jobs:", error);
+    legacyJobs.forEach((job) => {
+      const identity = job.jobId || job.id || job.signature;
+      if (!findDownloadJob(state, identity)) {
+        upsertDownloadJob(state, createHistoryRecoveryJob(job));
+      }
+    });
+    persistFailedQueue();
+    updateQueueDisplay();
+    showToast(t("queue.migration.historyFailed"), "error");
+  }
+}
+
 function normalizeSelection(selection) {
   if (selection && typeof selection === "object" && selection.enqueue) {
     return { payload: selection.payload, enqueue: true };
@@ -1705,6 +1800,7 @@ const downloadVideo = async (url, quality, options = {}) => {
     jobId,
   });
   const requestedDownloadKind = resolveDownloadKind(quality);
+  let historyRecorded = false;
   try {
     const response = await window.electron.invoke(
       "download-video",
@@ -1803,11 +1899,14 @@ const downloadVideo = async (url, quality, options = {}) => {
         sourceUrl,
       };
 
-      await addNewEntryToHistory(newLogEntry, {
-        replaceExistingFilePath: false,
-      });
-      markAsDownloaded(sourceUrl || url, requestedDownloadKind);
-      await updateDownloadCount();
+      historyRecorded =
+        (await addNewEntryToHistory(newLogEntry, {
+          replaceExistingFilePath: false,
+        })) !== false;
+      if (historyRecorded) {
+        markAsDownloaded(sourceUrl || url, requestedDownloadKind);
+        await updateDownloadCount();
+      }
 
       if (historyContainer) historyContainer.scrollTop = 0;
     } catch (postProcessError) {
@@ -1819,7 +1918,7 @@ const downloadVideo = async (url, quality, options = {}) => {
 
     window.localStorage.setItem("lastDownloadedFile", filePath);
     openLastVideoButton.disabled = false;
-    return { ok: true, filePath };
+    return { ok: true, filePath, historyRecorded };
   } catch (error) {
     if (error.message === "Download cancelled") {
       showToast(t("download.cancelled"), "warning");
@@ -1900,24 +1999,14 @@ function pumpDownloadPool(reason = "auto") {
   }
 }
 
-async function resolveQueueStartMode(pendingCount) {
-  if (pendingCount <= 1) return QUEUE_START_MODE.all;
-  const result = await showConfirmationDialog({
-    title: t("queue.startChoice.title"),
-    subtitle: t("queue.startChoice.subtitle"),
-    message: t("queue.startChoice.message", { count: pendingCount }),
-    confirmText: t("queue.startChoice.all"),
-    cancelText: t("queue.startChoice.single"),
-    tone: "warning",
-    confirmResult: QUEUE_START_MODE.all,
-    cancelResult: QUEUE_START_MODE.single,
-    closeResult: false,
-  });
-  return result;
-}
-
-function startSinglePendingQueueItem() {
-  const next = getPendingDownloadJobs(state)[0];
+function startPendingQueueItem(identity) {
+  const next = findDownloadJob(state, identity);
+  if (
+    next?.status !== JOB_STATUS.pending &&
+    next?.status !== JOB_STATUS.paused
+  ) {
+    return false;
+  }
   if (!next) return false;
   const signature = getQueueSignature(next.url, next.quality);
   if (getCurrentDownloadSignatures().has(signature)) return false;
@@ -1933,7 +2022,7 @@ function startSinglePendingQueueItem() {
   persistQueue();
   updateQueueDisplay();
   showQueueStartIndicator();
-  console.log(QUEUE_LOG_TAG, "manual-start-single", {
+  console.log(QUEUE_LOG_TAG, "manual-start-one", {
     url: next.url,
   });
   return true;
@@ -2052,20 +2141,21 @@ const initiateDownload = async (url, quality, options = {}) => {
         });
         persistFailedQueue();
       }
-    } else if (result?.ok) {
-      upsertDownloadJob(state, {
-        id: jobId,
-        jobId,
-        title: resolvedTitle,
-        url,
-        quality,
-        status: JOB_STATUS.done,
-        stage: "finalize",
-        progress: 100,
-        filePath: result.filePath || "",
-        signature,
-      });
-      persistCompletedQueue();
+    } else if (result?.ok && !result.historyRecorded) {
+      upsertDownloadJob(
+        state,
+        createHistoryRecoveryJob({
+          id: jobId,
+          jobId,
+          title: resolvedTitle,
+          url,
+          quality,
+          filePath: result.filePath || "",
+          signature,
+          createdAt: activeEntry?.createdAt,
+        }),
+      );
+      persistFailedQueue();
     } else {
       removeDownloadJob(
         state,
@@ -2284,6 +2374,66 @@ const handleDownloadButtonClick = async (options = {}) => {
   }
 };
 
+async function resolveQueueClearTarget() {
+  const filter = getDownloadQueueFilter();
+  if (filter === "pending" || filter === "error") return filter;
+  if (filter === "active") return false;
+  return showConfirmationDialog({
+    title: t("queue.clear.confirm.title"),
+    subtitle: t("queue.clear.confirm.subtitle"),
+    message: t("queue.clear.confirm.message"),
+    confirmText: t("queue.clear.confirm.confirm"),
+    cancelText: t("queue.clear.confirm.cancel"),
+    tone: "danger",
+    choices: [
+      {
+        value: "pending",
+        label: t("queue.clear.choice.pending"),
+        description: t("queue.clear.choice.pending.description"),
+      },
+      {
+        value: "error",
+        label: t("queue.clear.choice.error"),
+        description: t("queue.clear.choice.error.description"),
+      },
+      {
+        value: "all",
+        label: t("queue.clear.choice.all"),
+        description: t("queue.clear.choice.all.description"),
+      },
+    ],
+    defaultChoice: "all",
+  });
+}
+
+function clearQueueJobs(target) {
+  const statuses =
+    target === "pending"
+      ? [JOB_STATUS.pending, JOB_STATUS.paused]
+      : target === "error"
+        ? [JOB_STATUS.failed]
+        : [JOB_STATUS.pending, JOB_STATUS.paused, JOB_STATUS.failed];
+  const removedJobs = ensureDownloadJobsState(state).filter((job) =>
+    statuses.includes(job.status),
+  );
+  if (!removedJobs.length) return false;
+  const pausedBeforeRemoval = Boolean(state.suppressAutoPump);
+  replaceDownloadJobsByStatus(state, statuses, []);
+  persistQueue();
+  persistFailedQueue();
+  if (target === "all" || target === "pending") {
+    state.suppressAutoPump = false;
+    state.queuePaused = false;
+    persistQueuePausedState();
+  }
+  updateQueueDisplay();
+  showQueueRemovalUndo(removedJobs, "queue.cleared", {
+    restorePauseState: target === "all" || target === "pending",
+    pausedBeforeRemoval,
+  });
+  return true;
+}
+
 function initDownloadButton() {
   initDownloadQueueFilter(() => updateQueueDisplay());
 
@@ -2313,39 +2463,11 @@ function initDownloadButton() {
 
   if (queueClearButton) {
     queueClearButton.addEventListener("click", async () => {
-      if (
-        !getPendingDownloadJobs(state).length &&
-        !getFailedDownloadJobs(state).length &&
-        !getCompletedDownloadJobs(state).length
-      )
-        return;
-      const removedJobs = ensureDownloadJobsState(state).filter((job) =>
-        [
-          JOB_STATUS.pending,
-          JOB_STATUS.paused,
-          JOB_STATUS.failed,
-          JOB_STATUS.done,
-        ].includes(job.status),
-      );
-      replaceDownloadJobsByStatus(
-        state,
-        [
-          JOB_STATUS.pending,
-          JOB_STATUS.paused,
-          JOB_STATUS.failed,
-          JOB_STATUS.done,
-        ],
-        [],
-      );
-      persistQueue();
-      persistFailedQueue();
-      persistCompletedQueue();
-      state.suppressAutoPump = false;
-      state.queuePaused = false;
-      persistQueuePausedState();
-      updateQueueDisplay();
-      console.log(QUEUE_LOG_TAG, "clear");
-      showQueueRemovalUndo(removedJobs, "queue.cleared");
+      const target = await resolveQueueClearTarget();
+      if (!target) return;
+      if (clearQueueJobs(target)) {
+        console.log(QUEUE_LOG_TAG, "clear", { target });
+      }
     });
   }
 
@@ -2521,14 +2643,19 @@ function initDownloadButton() {
         return;
       }
 
-      const doneActionButton = e.target.closest(
-        "[data-queue-open-done], [data-queue-reveal-done]",
+      const recoveryActionButton = e.target.closest(
+        "[data-queue-open-recovery], [data-queue-reveal-recovery]",
       );
-      if (doneActionButton) {
-        const jobId = String(doneActionButton.dataset.jobId || "").trim();
+      if (recoveryActionButton) {
+        const jobId = String(recoveryActionButton.dataset.jobId || "").trim();
         const task = findDownloadJob(state, jobId);
-        if (task?.status !== JOB_STATUS.done || !task.filePath) return;
-        if (doneActionButton.hasAttribute("data-queue-open-done")) {
+        if (
+          task?.status !== JOB_STATUS.failed ||
+          task.errorCode !== HISTORY_SAVE_ERROR_CODE ||
+          !task.filePath
+        )
+          return;
+        if (recoveryActionButton.hasAttribute("data-queue-open-recovery")) {
           void openCompletedDownload(task);
         } else {
           void revealCompletedDownload(task);
@@ -2541,6 +2668,10 @@ function initDownloadButton() {
         const jobId = String(retryFailedBtn.dataset.jobId || "").trim();
         const task = findDownloadJob(state, jobId);
         if (task?.status !== JOB_STATUS.failed) return;
+        if (task.errorCode === HISTORY_SAVE_ERROR_CODE) {
+          void archiveRecoveredDownload(task);
+          return;
+        }
         if (task.retryable === false) {
           showToast(t("queue.item.retry.disabled"), "warning");
           return;
@@ -2556,6 +2687,16 @@ function initDownloadButton() {
         pumpDownloadPool("auto");
         updateQueueDisplay();
         showToast(t("queue.item.retrying"), "info");
+        return;
+      }
+
+      const startJobButton = e.target.closest("[data-queue-start-job]");
+      if (startJobButton) {
+        const jobId = String(startJobButton.dataset.jobId || "").trim();
+        state.suppressAutoPump = true;
+        state.queuePaused = true;
+        persistQueuePausedState();
+        startPendingQueueItem(jobId);
         return;
       }
 
@@ -2583,17 +2724,6 @@ function initDownloadButton() {
 
       const btn = e.target.closest("[data-queue-remove]");
       const failedRemoveBtn = e.target.closest("[data-queue-remove-failed]");
-      const doneRemoveBtn = e.target.closest("[data-queue-remove-done]");
-      if (doneRemoveBtn) {
-        const jobId = String(doneRemoveBtn.dataset.jobId || "").trim();
-        const task = findDownloadJob(state, jobId);
-        if (task?.status !== JOB_STATUS.done) return;
-        removeDownloadJob(state, jobId);
-        persistCompletedQueue();
-        updateQueueDisplay();
-        showQueueRemovalUndo([task], "queue.item.removed");
-        return;
-      }
       if (failedRemoveBtn) {
         const jobId = String(failedRemoveBtn.dataset.jobId || "").trim();
         const task = findDownloadJob(state, jobId);
@@ -2625,23 +2755,14 @@ function initDownloadButton() {
   }
 
   if (queueStartButton) {
-    queueStartButton.addEventListener("click", async () => {
+    queueStartButton.addEventListener("click", () => {
       const pendingCount = getPendingDownloadJobs(state).length;
-      if (pendingCount === 0 || getActiveDownloadJobs(state).length > 0) return;
-      const startMode = await resolveQueueStartMode(pendingCount);
-      if (!startMode) return;
-      if (startMode === QUEUE_START_MODE.single) {
-        state.suppressAutoPump = true;
-        state.queuePaused = true;
-        persistQueuePausedState();
-        startSinglePendingQueueItem();
-      } else {
-        state.suppressAutoPump = false;
-        state.queuePaused = false;
-        persistQueuePausedState();
-        console.log(QUEUE_LOG_TAG, "manual-start");
-        pumpDownloadPool("manual");
-      }
+      if (pendingCount === 0) return;
+      state.suppressAutoPump = false;
+      state.queuePaused = false;
+      persistQueuePausedState();
+      console.log(QUEUE_LOG_TAG, "manual-start-all");
+      pumpDownloadPool("manual");
       updateQueueDisplay();
     });
   }
@@ -2717,17 +2838,7 @@ function initDownloadButton() {
       })),
     );
   }
-  if (getCompletedDownloadJobs(state).length === 0) {
-    replaceDownloadJobsByStatus(
-      state,
-      JOB_STATUS.done,
-      loadCompletedJobs().map((item) => ({
-        ...item,
-        status: JOB_STATUS.done,
-      })),
-    );
-    persistCompletedQueue();
-  }
+  void migrateLegacyCompletedJobs();
   state.suppressAutoPump =
     queuePaused || Boolean(state.suppressAutoPump || state.queuePaused);
   state.queuePaused = state.suppressAutoPump;
@@ -2815,11 +2926,13 @@ function getWebControlSnapshot() {
     jobs,
     queuePaused: Boolean(state.suppressAutoPump || state.queuePaused),
     maxParallelDownloads: Number(state.maxParallelDownloads) || 1,
+    undoClearAvailable: Boolean(
+      webClearUndo && webClearUndo.expiresAt > Date.now(),
+    ),
     counts: {
       pending: getPendingDownloadJobs(state).length,
       running: getActiveDownloadJobs(state).length,
       failed: getFailedDownloadJobs(state).length,
-      done: getCompletedDownloadJobs(state).length,
     },
   };
 }
@@ -2866,6 +2979,15 @@ function startWebControlQueue() {
   return getWebControlSnapshot();
 }
 
+function startWebControlJob(payload = {}) {
+  const jobId = String(payload.jobId || payload.id || "").trim();
+  state.suppressAutoPump = true;
+  state.queuePaused = true;
+  persistQueuePausedState();
+  startPendingQueueItem(jobId);
+  return getWebControlSnapshot();
+}
+
 async function cancelWebControlJob(payload = {}) {
   const jobId = String(payload.jobId || payload.id || "").trim();
   const task = findDownloadJob(state, jobId);
@@ -2882,7 +3004,7 @@ async function cancelWebControlJob(payload = {}) {
   return getWebControlSnapshot();
 }
 
-function retryWebControlJob(payload = {}) {
+async function retryWebControlJob(payload = {}) {
   const jobId = String(payload.jobId || payload.id || "").trim();
   const task = findDownloadJob(state, jobId);
   const tasks =
@@ -2891,6 +3013,10 @@ function retryWebControlJob(payload = {}) {
       : getFailedDownloadJobs(state).filter(
           (entry) => entry.retryable !== false,
         );
+  if (tasks.length === 1 && tasks[0]?.errorCode === HISTORY_SAVE_ERROR_CODE) {
+    await archiveRecoveredDownload(tasks[0]);
+    return getWebControlSnapshot();
+  }
   for (const entry of tasks) {
     if (entry.retryable === false) continue;
     removeDownloadJob(state, entry.jobId || entry.id || entry.signature);
@@ -2918,7 +3044,6 @@ function removeWebControlJob(payload = {}) {
   removeDownloadJob(state, jobId);
   persistQueue();
   persistFailedQueue();
-  persistCompletedQueue();
   updateQueueDisplay();
   return getWebControlSnapshot();
 }
@@ -2930,33 +3055,70 @@ function clearWebControlJobs(payload = {}) {
   const statuses =
     target === "failed"
       ? [JOB_STATUS.failed]
-      : target === "done"
-        ? [JOB_STATUS.done]
-        : target === "pending"
-          ? [JOB_STATUS.pending, JOB_STATUS.paused]
-          : [
-              JOB_STATUS.pending,
-              JOB_STATUS.paused,
-              JOB_STATUS.failed,
-              JOB_STATUS.done,
-            ];
+      : target === "pending"
+        ? [JOB_STATUS.pending, JOB_STATUS.paused]
+        : [JOB_STATUS.pending, JOB_STATUS.paused, JOB_STATUS.failed];
+  const removedJobs = ensureDownloadJobsState(state)
+    .filter((job) => statuses.includes(job.status))
+    .map((job) => ({ ...job }));
+  const pausedBeforeRemoval = Boolean(state.suppressAutoPump);
   clearDownloadJobsByStatus(state, statuses);
   persistQueue();
   persistFailedQueue();
-  persistCompletedQueue();
   if (target === "all" || target === "pending") {
     state.suppressAutoPump = false;
     state.queuePaused = false;
     persistQueuePausedState();
   }
+  webClearUndo = removedJobs.length
+    ? {
+        jobs: removedJobs,
+        pausedBeforeRemoval,
+        restorePauseState: target === "all" || target === "pending",
+        expiresAt: Date.now() + 8000,
+      }
+    : null;
   updateQueueDisplay();
   return getWebControlSnapshot();
 }
 
-async function openWebControlCompleted(payload = {}, reveal = false) {
+function undoWebControlClear() {
+  if (!webClearUndo || webClearUndo.expiresAt <= Date.now()) {
+    webClearUndo = null;
+    return getWebControlSnapshot();
+  }
+  const current = ensureDownloadJobsState(state).map((job) => ({ ...job }));
+  const restoredIds = new Set(
+    webClearUndo.jobs.map((job) =>
+      String(job.jobId || job.id || job.signature),
+    ),
+  );
+  setDownloadJobs(state, [
+    ...webClearUndo.jobs,
+    ...current.filter(
+      (job) => !restoredIds.has(String(job.jobId || job.id || job.signature)),
+    ),
+  ]);
+  if (webClearUndo.restorePauseState) {
+    state.suppressAutoPump = webClearUndo.pausedBeforeRemoval;
+    state.queuePaused = webClearUndo.pausedBeforeRemoval;
+    persistQueuePausedState();
+  }
+  webClearUndo = null;
+  persistQueue();
+  persistFailedQueue();
+  updateQueueDisplay();
+  return getWebControlSnapshot();
+}
+
+async function openWebControlRecovery(payload = {}, reveal = false) {
   const jobId = String(payload.jobId || payload.id || "").trim();
   const task = findDownloadJob(state, jobId);
-  if (task?.status === JOB_STATUS.done && task.filePath) {
+  if (
+    task?.status === JOB_STATUS.failed &&
+    task.errorCode === HISTORY_SAVE_ERROR_CODE &&
+    task.filePath
+  ) {
     if (reveal) {
       await revealCompletedDownload(task);
     } else {
@@ -2974,6 +3136,8 @@ async function handleWebControlDownloaderAction(action, payload = {}) {
       return addWebControlDownload({ ...payload, start: true });
     case "downloader:start-pending":
       return startWebControlQueue();
+    case "downloader:start-one":
+      return startWebControlJob(payload);
     case "downloader:pause":
       return setWebControlQueuePaused(true);
     case "downloader:resume":
@@ -2986,10 +3150,12 @@ async function handleWebControlDownloaderAction(action, payload = {}) {
       return removeWebControlJob(payload);
     case "downloader:clear":
       return clearWebControlJobs(payload);
+    case "downloader:undo-clear":
+      return undoWebControlClear();
     case "downloader:open":
-      return openWebControlCompleted(payload, false);
+      return openWebControlRecovery(payload, false);
     case "downloader:reveal":
-      return openWebControlCompleted(payload, true);
+      return openWebControlRecovery(payload, true);
     default:
       throw new Error(`Unknown downloader action: ${action}`);
   }

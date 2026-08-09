@@ -152,11 +152,6 @@
                     >0 в очереди</span
                   >
                   <span
-                    id="queue-done-count"
-                    class="queue-count-pill queue-count-pill--done"
-                    >0 готово</span
-                  >
-                  <span
                     id="queue-failed-count"
                     class="queue-count-pill queue-count-pill--failed"
                     >0 ошибок</span
@@ -177,41 +172,31 @@
                 <button
                   id="pause-queue"
                   class="queue-action-button queue-action-button--pause"
-                  aria-label="Пауза очереди"
+                  aria-label="Не запускать следующие"
+                  title="Не запускать следующие"
                 ></button>
                 <button
-                  data-clear="failed"
-                  class="queue-action-button queue-action-button--ghost"
-                  aria-label="Очистить ошибки"
-                  title="Очистить ошибки"
-                >
-                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-                    <path
-                      d="M3 6h18M8 6V4h8v2m-1 5v6M9 11v6M5 6l1 14h12l1-14"
-                    />
-                  </svg>
-                </button>
-                <button
-                  data-clear="done"
-                  class="queue-action-button queue-action-button--ghost"
-                  aria-label="Очистить готовые"
-                  title="Очистить готовые"
-                >
-                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="m20 6-11 11-5-5" />
-                  </svg>
-                </button>
-                <button
-                  data-clear="all"
+                  id="clear-queue"
                   class="queue-action-button queue-action-button--clear"
-                  aria-label="Очистить всё"
-                  title="Очистить всё"
+                  aria-label="Очистить текущую категорию"
+                  title="Очистить текущую категорию"
                 >
                   <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
                     <path
                       d="M3 6h18M8 6V4h8v2m-1 5v6M9 11v6M5 6l1 14h12l1-14"
                     />
                   </svg>
+                </button>
+                <button
+                  id="undo-clear-queue"
+                  class="queue-action-button queue-action-button--ghost"
+                  title="Отменить очистку"
+                  hidden
+                >
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M9 14 4 9l5-5M4 9h10a6 6 0 0 1 6 6v1" />
+                  </svg>
+                  <span>Отменить</span>
                 </button>
               </div>
             </div>
@@ -261,17 +246,6 @@
               >
                 <span>Ошибки</span>
                 <span class="queue-filter-count" data-filter-count="failed"
-                  >0</span
-                >
-              </button>
-              <button
-                type="button"
-                class="queue-filter-button"
-                data-filter="done"
-                aria-pressed="false"
-              >
-                <span>Готово</span>
-                <span class="queue-filter-count" data-filter-count="done"
                   >0</span
                 >
               </button>

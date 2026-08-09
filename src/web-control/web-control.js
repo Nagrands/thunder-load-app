@@ -2,8 +2,8 @@ const createCompactQualityController =
   window.WebCompactQuality.createCompactQuality;
 const createRouterController = window.WebControlRouter.createWebRouter;
 const bindBeforeUnload = window.WebSettings.bindSettingsBeforeUnload;
-const createSettingsController =
-  window.WebSettings.createWebSettingsController;
+const createSettingsController = window.WebSettings.createWebSettingsController;
+const HISTORY_SAVE_ERROR_CODE = "HISTORY_SAVE_FAILED";
 
 const ICONS = {
   archiveX:
@@ -37,20 +37,20 @@ const el = {
   qualityStatus: document.getElementById("quality-status"),
   queue: document.getElementById("queue-list"),
   pause: document.getElementById("pause-queue"),
+  clearQueue: document.getElementById("clear-queue"),
+  undoClearQueue: document.getElementById("undo-clear-queue"),
   settingsModal: document.getElementById("settings-modal"),
   settingsSaveStatus: document.getElementById("settings-save-status"),
   counts: {
     pending: document.getElementById("queue-count"),
     running: document.getElementById("queue-active-count"),
     failed: document.getElementById("queue-failed-count"),
-    done: document.getElementById("queue-done-count"),
   },
   filterCounts: {
     all: document.querySelector('[data-filter-count="all"]'),
     active: document.querySelector('[data-filter-count="active"]'),
     pending: document.querySelector('[data-filter-count="pending"]'),
     failed: document.querySelector('[data-filter-count="failed"]'),
-    done: document.querySelector('[data-filter-count="done"]'),
   },
   settings: {
     downloadPath: document.getElementById("setting-download-path"),
@@ -104,7 +104,6 @@ function escapeHtml(value) {
 function getStatusLabel(job = {}) {
   const labels = {
     cancelled: "Отменено",
-    done: "Готово",
     failed: "Ошибка",
     paused: "Пауза",
     pending: "Ожидает",
@@ -117,7 +116,6 @@ function getStatusClass(job = {}) {
   const status = String(job.status || "pending");
   if (status === "running") return "is-running";
   if (status === "failed") return "is-failed";
-  if (status === "done") return "is-done";
   if (status === "cancelled") return "is-cancelled";
   return "is-pending";
 }
@@ -127,11 +125,9 @@ function getFilterCounts(state = {}) {
   const active = counts.running || 0;
   const pending = counts.pending || 0;
   const failed = counts.failed || 0;
-  const done = counts.done || 0;
   return {
     active,
-    all: active + pending + failed + done,
-    done,
+    all: active + pending + failed,
     failed,
     pending,
   };
@@ -151,12 +147,25 @@ function renderSummary(state = {}) {
   el.counts.pending.textContent = `${counts.pending || 0} в очереди`;
   el.counts.running.textContent = `${counts.running || 0} активно`;
   el.counts.failed.textContent = `${counts.failed || 0} ошибок`;
-  el.counts.done.textContent = `${counts.done || 0} готово`;
   Object.entries(filterCounts).forEach(([key, value]) => {
     if (el.filterCounts[key]) el.filterCounts[key].textContent = String(value);
   });
   el.pause.innerHTML = state.queuePaused ? ICONS.play : ICONS.pause;
   el.pause.classList.toggle("is-active", state.queuePaused === true);
+  el.pause.title = state.queuePaused
+    ? "Продолжить запуск очереди"
+    : "Не запускать следующие";
+  el.pause.setAttribute("aria-label", el.pause.title);
+  const clearableCount =
+    queueFilter === "active"
+      ? 0
+      : queueFilter === "pending"
+        ? counts.pending || 0
+        : queueFilter === "failed"
+          ? counts.failed || 0
+          : (counts.pending || 0) + (counts.failed || 0);
+  el.clearQueue.disabled = clearableCount <= 0;
+  el.undoClearQueue.hidden = state.undoClearAvailable !== true;
   el.jobSummaryTitle.textContent =
     counts.running > 0
       ? "Идёт загрузка"
@@ -197,18 +206,25 @@ function renderEmptyQueue(filtered = false) {
 function renderQueueActions(job = {}, id = "") {
   const isRunning = job.status === "running";
   const isFailed = job.status === "failed";
-  const isDone = job.status === "done";
+  const isPending = job.status === "pending" || job.status === "paused";
+  const isHistoryRecovery =
+    isFailed &&
+    job.errorCode === HISTORY_SAVE_ERROR_CODE &&
+    Boolean(job.filePath);
   const actions = [
     isRunning
       ? `<button data-action="downloader:cancel" data-id="${id}" title="Отмена">${ICONS.x}<span>Отмена</span></button>`
       : "",
-    isFailed
-      ? `<button data-action="downloader:retry" data-id="${id}" title="Повтор">${ICONS.refresh}<span>Повтор</span></button>`
+    isPending
+      ? `<button data-action="downloader:start-one" data-id="${id}" title="Запустить эту">${ICONS.play}<span>Запустить эту</span></button>`
       : "",
-    isDone
+    isFailed
+      ? `<button data-action="downloader:retry" data-id="${id}" title="${isHistoryRecovery ? "Повторить запись в Историю" : "Повтор"}" ${job.retryable === false && !isHistoryRecovery ? "disabled" : ""}>${ICONS.refresh}<span>${isHistoryRecovery ? "В Историю" : "Повтор"}</span></button>`
+      : "",
+    isHistoryRecovery
       ? `<button data-action="downloader:open" data-id="${id}" title="Открыть">${ICONS.external}<span>Открыть</span></button>`
       : "",
-    isDone
+    isHistoryRecovery
       ? `<button data-action="downloader:reveal" data-id="${id}" title="Показать в папке">${ICONS.folder}<span>Папка</span></button>`
       : "",
     !isRunning
@@ -277,7 +293,10 @@ function renderState(state = {}) {
 function renderQueueLoading() {
   el.queue.innerHTML = Array.from(
     { length: 3 },
-    (_, index) => `<div class="queue-item queue-item-skeleton" aria-hidden="true">
+    (
+      _,
+      index,
+    ) => `<div class="queue-item queue-item-skeleton" aria-hidden="true">
       <span class="queue-skeleton-index">${index + 1}</span>
       <span class="queue-skeleton-copy"><span></span><span></span></span>
       <span class="queue-skeleton-chip"></span>
@@ -303,7 +322,9 @@ async function sendAction(action, payload = {}) {
 }
 
 function showDiscardSettingsDialog() {
-  const russian = String(navigator.language || "").toLowerCase().startsWith("ru");
+  const russian = String(navigator.language || "")
+    .toLowerCase()
+    .startsWith("ru");
   const copy = russian
     ? {
         title: "Сбросить несохранённые изменения?",
@@ -342,23 +363,82 @@ function showDiscardSettingsDialog() {
       event.preventDefault();
       finish(false);
     };
-    root.querySelector("[data-confirmation-cancel]").addEventListener(
-      "click",
-      () => finish(false),
-      { once: true },
-    );
-    root.querySelector("[data-confirmation-confirm]").addEventListener(
-      "click",
-      () => finish(true),
-      { once: true },
-    );
-    root.querySelector(".web-confirmation__backdrop").addEventListener(
-      "click",
-      () => finish(false),
-      { once: true },
-    );
+    root
+      .querySelector("[data-confirmation-cancel]")
+      .addEventListener("click", () => finish(false), { once: true });
+    root
+      .querySelector("[data-confirmation-confirm]")
+      .addEventListener("click", () => finish(true), { once: true });
+    root
+      .querySelector(".web-confirmation__backdrop")
+      .addEventListener("click", () => finish(false), { once: true });
     document.addEventListener("keydown", onKeydown, true);
     root.querySelector("[data-confirmation-cancel]").focus();
+  });
+}
+
+function showQueueClearDialog() {
+  const russian = String(navigator.language || "")
+    .toLowerCase()
+    .startsWith("ru");
+  const copy = russian
+    ? {
+        title: "Что очистить?",
+        message: "Активные загрузки не будут затронуты.",
+        pending: "Ожидающие",
+        failed: "Ошибки",
+        all: "Всё неактивное",
+        cancel: "Отмена",
+      }
+    : {
+        title: "What should be cleared?",
+        message: "Active downloads will not be affected.",
+        pending: "Pending jobs",
+        failed: "Errors",
+        all: "All inactive jobs",
+        cancel: "Cancel",
+      };
+  const previousFocus = document.activeElement;
+  const root = document.createElement("div");
+  root.className = "web-confirmation";
+  root.innerHTML = `<div class="web-confirmation__backdrop"></div>
+    <section class="web-confirmation__dialog" role="dialog" aria-modal="true" aria-labelledby="web-queue-clear-title">
+      <h2 id="web-queue-clear-title">${copy.title}</h2>
+      <p>${copy.message}</p>
+      <div class="web-confirmation__actions">
+        <button type="button" data-clear-choice="pending">${copy.pending}</button>
+        <button type="button" data-clear-choice="failed">${copy.failed}</button>
+        <button type="button" class="is-danger" data-clear-choice="all">${copy.all}</button>
+        <button type="button" data-clear-choice="">${copy.cancel}</button>
+      </div>
+    </section>`;
+  document.body.appendChild(root);
+  return new Promise((resolve) => {
+    const finish = (choice) => {
+      document.removeEventListener("keydown", onKeydown, true);
+      root.remove();
+      previousFocus?.focus?.();
+      resolve(choice || false);
+    };
+    const onKeydown = (event) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      finish(false);
+    };
+    root.querySelectorAll("[data-clear-choice]").forEach((button) => {
+      button.addEventListener(
+        "click",
+        () => finish(button.dataset.clearChoice),
+        {
+          once: true,
+        },
+      );
+    });
+    root
+      .querySelector(".web-confirmation__backdrop")
+      .addEventListener("click", () => finish(false), { once: true });
+    document.addEventListener("keydown", onKeydown, true);
+    root.querySelector('[data-clear-choice="all"]').focus();
   });
 }
 
@@ -474,10 +554,21 @@ el.urlInput.addEventListener("keydown", (event) => {
   });
 });
 
-document.querySelectorAll("[data-clear]").forEach((button) => {
-  button.addEventListener("click", () => {
-    void sendAction("downloader:clear", { target: button.dataset.clear });
-  });
+document.getElementById("clear-queue").addEventListener("click", async () => {
+  const target =
+    queueFilter === "pending"
+      ? "pending"
+      : queueFilter === "failed"
+        ? "failed"
+        : queueFilter === "active"
+          ? false
+          : await showQueueClearDialog();
+  if (!target) return;
+  await sendAction("downloader:clear", { target });
+});
+
+el.undoClearQueue.addEventListener("click", () => {
+  void sendAction("downloader:undo-clear");
 });
 
 el.queue.addEventListener("click", (event) => {
@@ -558,7 +649,9 @@ renderQueueLoading();
 Promise.all([refreshState(), settingsController.refreshRemote()]).catch(
   (error) => {
     el.jobSummaryTitle.textContent = "Веб-интерфейс недоступен";
-    el.jobSummaryMeta.textContent = String(error?.message || "Ошибка соединения");
+    el.jobSummaryMeta.textContent = String(
+      error?.message || "Ошибка соединения",
+    );
     window.ThunderWebUiState?.apply(el.queue, {
       kind: "error",
       operationId: "web-control:initial-state",

@@ -83,7 +83,7 @@ describe("historyIpcHandlers", () => {
     const { CHANNELS, mainWindow } = register();
     const history = [{ id: "one" }, { id: "two" }];
 
-    await handlers[CHANNELS.SAVE_HISTORY](null, history);
+    const result = await handlers[CHANNELS.SAVE_HISTORY](null, history);
 
     expect(JSON.parse(fs.readFileSync(historyFilePath, "utf8"))).toEqual(
       history,
@@ -92,6 +92,20 @@ describe("historyIpcHandlers", () => {
       "history-updated",
       { count: 2 },
     );
+    expect(result).toEqual({ success: true, count: 2 });
+  });
+
+  test("save-history returns a structured failure", async () => {
+    const { CHANNELS, mainWindow } = register();
+    const writeSpy = jest
+      .spyOn(fs.promises, "writeFile")
+      .mockRejectedValueOnce(new Error("disk error"));
+
+    const result = await handlers[CHANNELS.SAVE_HISTORY](null, [{ id: "one" }]);
+
+    expect(result).toEqual({ success: false, error: "disk error" });
+    expect(mainWindow.webContents.send).not.toHaveBeenCalled();
+    writeSpy.mockRestore();
   });
 
   test("get-download-count reads history length", async () => {

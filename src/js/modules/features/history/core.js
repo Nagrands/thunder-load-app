@@ -3853,6 +3853,7 @@ const addNewEntryToHistory = async (
   newEntryRaw,
   { replaceExistingFilePath = true } = {},
 ) => {
+  const previousHistory = [...getHistoryData()];
   try {
     const normalized = await normalizeEntry(newEntryRaw);
     normalized._highlight = true;
@@ -3876,7 +3877,10 @@ const addNewEntryToHistory = async (
 
     setHistoryData(updated);
     state.historyPage = 1;
-    await window.electron.invoke("save-history", updated);
+    const saveResult = await window.electron.invoke("save-history", updated);
+    if (saveResult?.success === false) {
+      throw new Error(saveResult.error || "History save failed");
+    }
     if (removedPreviews.length) {
       try {
         await window.electron.invoke("delete-history-preview", removedPreviews);
@@ -3887,9 +3891,12 @@ const addNewEntryToHistory = async (
     filterAndSortHistory(state.currentSearchQuery, state.currentSortOrder);
 
     await updateDownloadCount();
+    return true;
   } catch (error) {
+    setHistoryData(previousHistory);
     console.error("Ошибка при добавлении записи в историю:", error);
     showToast(t("history.toast.addError"), "error");
+    return false;
   }
 };
 

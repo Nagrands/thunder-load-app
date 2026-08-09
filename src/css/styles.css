@@ -20841,11 +20841,6 @@ body.low-effects .player-form-modal__hero, body.low-effects .player-form-modal__
   border-color: rgba(255, 93, 88, 0.34);
   color: #ff9ca2;
 }
-.download-queue-info .queue-count-pill--done {
-  background: rgba(81, 203, 132, 0.18);
-  border-color: rgba(81, 203, 132, 0.35);
-  color: #88e3a3;
-}
 .download-queue-info .queue-count-pill.hidden {
   display: none;
 }

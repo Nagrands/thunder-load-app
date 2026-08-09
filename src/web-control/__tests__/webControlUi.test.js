@@ -40,7 +40,10 @@ describe("web control UI contract", () => {
     ];
 
     scripts.forEach((file) => {
-      const source = fs.readFileSync(path.resolve(__dirname, "..", file), "utf8");
+      const source = fs.readFileSync(
+        path.resolve(__dirname, "..", file),
+        "utf8",
+      );
       vm.runInContext(source, context, { filename: file });
     });
 
@@ -78,6 +81,19 @@ describe("web control UI contract", () => {
     expect(source).toContain('class="queue-item-actions" role="menu"');
     expect(source).toContain('event.key === "Escape"');
     expect(source).toContain("toggle?.focus()");
+    expect(source).toContain('data-action="downloader:start-one"');
+    expect(source).toContain('sendAction("downloader:undo-clear")');
+  });
+
+  it("does not expose completed jobs as a normal queue category", () => {
+    const html = fs.readFileSync(
+      path.resolve(__dirname, "../index.html"),
+      "utf8",
+    );
+    expect(html).not.toContain('data-filter="done"');
+    expect(html).not.toContain('id="queue-done-count"');
+    expect(html).toContain('id="clear-queue"');
+    expect(html).toContain('id="undo-clear-queue"');
   });
 
   it("accepts one HTTP URL and rejects multi-value input", () => {
