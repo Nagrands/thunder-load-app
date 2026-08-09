@@ -102,6 +102,21 @@ function readIcnsPngFrames(filePath) {
 }
 
 describe("Thunder brand asset contract", () => {
+  test("Windows app and NSIS packages use the approved Thunder ICO", () => {
+    const packageJson = JSON.parse(
+      fs.readFileSync(path.join(ROOT, "package.json"), "utf8"),
+    );
+    const approvedIcon = "assets/icons/app/app-icon.ico";
+
+    expect(packageJson.build.win.icon).toBe(approvedIcon);
+    expect(packageJson.build.nsis).toEqual(
+      expect.objectContaining({
+        installerIcon: approvedIcon,
+        uninstallerIcon: approvedIcon,
+      }),
+    );
+  });
+
   test("runtime icon paths resolve from Electron app.getAppPath", () => {
     expect(
       resolveIconPathFromApp(

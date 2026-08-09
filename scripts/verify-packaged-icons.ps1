@@ -25,8 +25,50 @@ function Get-BitmapHash {
   }
 }
 
+function Get-NormalizedBitmap {
+  param(
+    [System.Drawing.Icon]$Icon,
+    [int]$Size = 64
+  )
+
+  $bitmap = [System.Drawing.Bitmap]::new($Size, $Size)
+  $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
+  try {
+    $graphics.Clear([System.Drawing.Color]::White)
+    $graphics.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
+    $graphics.PixelOffsetMode = [System.Drawing.Drawing2D.PixelOffsetMode]::HighQuality
+    $graphics.DrawIcon($Icon, [System.Drawing.Rectangle]::new(0, 0, $Size, $Size))
+  } finally {
+    $graphics.Dispose()
+  }
+  return $bitmap
+}
+
+function Get-BitmapSimilarity {
+  param(
+    [System.Drawing.Bitmap]$Actual,
+    [System.Drawing.Bitmap]$Expected
+  )
+
+  [double]$difference = 0
+  [double]$maximumDifference = 255 * 3 * $Actual.Width * $Actual.Height
+  for ($y = 0; $y -lt $Actual.Height; $y++) {
+    for ($x = 0; $x -lt $Actual.Width; $x++) {
+      $actualPixel = $Actual.GetPixel($x, $y)
+      $expectedPixel = $Expected.GetPixel($x, $y)
+      $difference += [Math]::Abs($actualPixel.R - $expectedPixel.R)
+      $difference += [Math]::Abs($actualPixel.G - $expectedPixel.G)
+      $difference += [Math]::Abs($actualPixel.B - $expectedPixel.B)
+    }
+  }
+  return 1 - ($difference / $maximumDifference)
+}
+
 function Assert-ThunderIcon {
-  param([string]$Executable)
+  param(
+    [string]$Executable,
+    [bool]$AllowNsisRendering = $false
+  )
 
   $embeddedIcon = [System.Drawing.Icon]::ExtractAssociatedIcon($Executable)
   if ($null -eq $embeddedIcon) {
@@ -40,11 +82,25 @@ function Assert-ThunderIcon {
       $embeddedIcon.Height
     )
     try {
-      $embeddedBitmap = $embeddedIcon.ToBitmap()
-      $sourceBitmap = $sourceIcon.ToBitmap()
+      $embeddedBitmap = if ($AllowNsisRendering) {
+        Get-NormalizedBitmap -Icon $embeddedIcon
+      } else {
+        $embeddedIcon.ToBitmap()
+      }
+      $sourceBitmap = if ($AllowNsisRendering) {
+        Get-NormalizedBitmap -Icon $sourceIcon
+      } else {
+        $sourceIcon.ToBitmap()
+      }
       try {
-        if ((Get-BitmapHash $embeddedBitmap) -ne (Get-BitmapHash $sourceBitmap)) {
-          throw "Embedded icon in $Executable does not match the Thunder ICO"
+        if ($AllowNsisRendering) {
+          $similarity = Get-BitmapSimilarity -Actual $embeddedBitmap -Expected $sourceBitmap
+          Write-Host "NSIS icon similarity for $Executable`: $($similarity.ToString('P2'))"
+          if ($similarity -lt 0.95) {
+            throw "Embedded icon in $Executable does not visually match the Thunder ICO"
+          }
+        } elseif ((Get-BitmapHash $embeddedBitmap) -ne (Get-BitmapHash $sourceBitmap)) {
+          throw "Embedded icon in $Executable does not exactly match the Thunder ICO"
         }
       } finally {
         $embeddedBitmap.Dispose()
@@ -73,7 +129,9 @@ if (-not ($executables | Where-Object Name -like "Thunder Setup*.exe")) {
 }
 
 foreach ($executable in $executables) {
-  Assert-ThunderIcon -Executable $executable.FullName
+  Assert-ThunderIcon `
+    -Executable $executable.FullName `
+    -AllowNsisRendering ($executable.Name -like "Thunder Setup*.exe")
 }
 
 Write-Host "Verified Thunder ICO in $($executables.Count) packaged Windows executable(s)."

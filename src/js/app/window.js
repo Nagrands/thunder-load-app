@@ -307,9 +307,14 @@ function createWindow(
   const winIco = resolveIconPathFrom(baseAssetsPath, "APP_ICON_ICO");
 
   // В dev Electron часто не подхватывает .icns → используем PNG; в prod предпочитаем .icns.
-  // Windows всегда получает Thunder ICO явно, включая packaged-окно.
-  const bwIconCandidates =
-    process.platform === "darwin"
+  // В packaged Windows не задаём icon: Windows возьмёт ресурс из Thunder.exe.
+  // Путь app.getAppPath() внутри пакета указывает на app.asar и не должен
+  // переопределять системную иконку окна.
+  const usePackagedWindowsExecutableIcon =
+    process.platform === "win32" && app.isPackaged;
+  const bwIconCandidates = usePackagedWindowsExecutableIcon
+    ? []
+    : process.platform === "darwin"
       ? app.isPackaged
         ? [macIcns, macPng]
         : [macPng]

@@ -149,7 +149,9 @@
       "icon": "assets/icons/app/app-icon.ico"
     },
     "nsis": {
-      "perMachine": true
+      "perMachine": true,
+      "installerIcon": "assets/icons/app/app-icon.ico",
+      "uninstallerIcon": "assets/icons/app/app-icon.ico"
     },
     "linux": {
       "target": [
