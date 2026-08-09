@@ -6,6 +6,16 @@
 $breakpoint-mobile: 668px;
 $breakpoint-tablet: 1280px;
 
+// Application responsive contract. Keep these aligned with renderer matchMedia
+// queries and the viewport matrix documented by responsive contract tests.
+$breakpoint-app-wide: 1180px;
+$breakpoint-app-compact: 1179px;
+$breakpoint-app-narrow: 960px;
+$breakpoint-app-dense: 840px;
+$breakpoint-app-zoom: 720px;
+$breakpoint-app-short: 620px;
+$breakpoint-app-low-height: 540px;
+
 $modal-padding: 14px;
 $modal-border-radius: 24px;
 $modal-max-width: 600px;

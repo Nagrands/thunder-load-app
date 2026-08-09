@@ -1,8 +1,8 @@
 ## Автотесты (Jest)
 
 - Автосборка списка: `npm run test-check:sync-tests`
-- Найдено файлов: 152
-- Найдено тест-кейсов (test/it): 1314
+- Найдено файлов: 153
+- Найдено тест-кейсов (test/it): 1320
 
 <!-- AUTO-JEST-TESTS:START -->
 
@@ -1156,6 +1156,13 @@
 - [ ] serializes errors without exposing a stack
 - [ ] does not throw when diagnostics bridge is unavailable
 
+### `src/js/modules/__tests__/responsiveStyles.test.js` (5)
+- [ ] defines the supported desktop viewport tiers
+- [ ] keeps one scroll owner and protects fixed shell space
+- [ ] preserves the original desktop content density
+- [ ] uses icon-first navigation and overlay media-library sidebar
+- [ ] preserves two-column Web Control fields until phone width
+
 ### `src/js/modules/__tests__/scrollbarVisibility.test.js` (1)
 - [ ] shows scrollbars during wheel activity and hides them after idle
 
@@ -1277,10 +1284,11 @@
 - [ ] keeps download actions disabled when downloader is unavailable
 - [ ] marks history as not hydrated by default
 
-### `src/js/modules/__tests__/tabSystem.test.js` (7)
+### `src/js/modules/__tests__/tabSystem.test.js` (8)
 - [ ] does not append a tab wrapper into itself when re-rendering an emptied tab
 - [ ] keeps the latest tab visible after rapid hotkey-style switching
 - [ ] keeps generated tabs and panels accessible
+- [ ] keeps compact-navigation labels synchronized
 - [ ] mounts and disposes an icon-only navigation proxy
 - [ ] keeps Downloader available when legacy developer preference exists
 - [ ] keeps products tab hidden until developer mode is enabled

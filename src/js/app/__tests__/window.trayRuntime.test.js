@@ -23,7 +23,7 @@ jest.mock("electron", () => {
       this.minimize = jest.fn();
       this.close = jest.fn();
       this.getSize = jest.fn(() => [1280, 740]);
-      this.getMinimumSize = jest.fn(() => [890, 540]);
+      this.getMinimumSize = jest.fn(() => [800, 500]);
       this.setSize = jest.fn();
       this.loadFile = jest.fn(() => Promise.resolve());
       this.setMenuBarVisibility = jest.fn();
@@ -158,6 +158,8 @@ describe("tray runtime behavior", () => {
     expect(require("electron").BrowserWindow).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({
+        minWidth: 800,
+        minHeight: 500,
         icon: expect.stringContaining("assets/icons/app/app-icon.ico"),
         webPreferences: expect.objectContaining({
           enableBlinkFeatures: "AudioVideoTracks",

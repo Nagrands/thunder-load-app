@@ -95,12 +95,29 @@ describe("TabSystem", () => {
     const panel = document.querySelector('[data-tab-id="now-playing"]');
     expect(button.getAttribute("role")).toBe("tab");
     expect(button.getAttribute("aria-selected")).toBe("true");
+    expect(button.getAttribute("aria-label")).toBe("Now Playing");
+    expect(button.getAttribute("title")).toBe("Now Playing");
+    expect(button.dataset.bsToggle).toBe("tooltip");
     expect(button.getAttribute("aria-controls")).toBe(panel.id);
     expect(panel.getAttribute("role")).toBe("tabpanel");
     expect(panel.getAttribute("aria-labelledby")).toBe(button.id);
     expect(document.body.classList.contains("is-now-playing-active")).toBe(
       true,
     );
+  });
+
+  test("keeps compact-navigation labels synchronized", () => {
+    const tabs = new TabSystem(".group-menu", "#main-view");
+    tabs.addTab("download", "Download", "fa-solid fa-download", () =>
+      document.createElement("div"),
+    );
+
+    tabs.setTabLabel("download", "Загрузчик");
+
+    const button = document.querySelector('[data-menu="download"]');
+    expect(button.querySelector(".menu-text").textContent).toBe("Загрузчик");
+    expect(button.getAttribute("aria-label")).toBe("Загрузчик");
+    expect(button.getAttribute("title")).toBe("Загрузчик");
   });
 
   test("mounts and disposes an icon-only navigation proxy", () => {
@@ -135,18 +152,18 @@ describe("TabSystem", () => {
       navigation.querySelector('[data-tab-target="products"]').style.display,
     ).toBe("none");
     expect(
-      navigation.querySelector('[data-tab-target="download"]').getAttribute(
-        "aria-label",
-      ),
+      navigation
+        .querySelector('[data-tab-target="download"]')
+        .getAttribute("aria-label"),
     ).toBe("Download");
     expect(
       navigation.querySelector('[data-tab-target="download"]').dataset.bsToggle,
     ).toBe("tooltip");
 
     tabs.setTabLabel("download", "Загрузчик");
-    expect(
-      navigation.querySelector('[data-tab-target="download"]').title,
-    ).toBe("Загрузчик");
+    expect(navigation.querySelector('[data-tab-target="download"]').title).toBe(
+      "Загрузчик",
+    );
 
     localStorage.setItem("developerToolsUnlocked", "true");
     window.dispatchEvent(

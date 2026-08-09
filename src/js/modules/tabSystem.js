@@ -51,6 +51,10 @@ export default class TabSystem {
     btn.id = `app-tab-${id}`;
     btn.setAttribute("role", "tab");
     btn.setAttribute("aria-selected", "false");
+    btn.setAttribute("aria-label", label);
+    btn.setAttribute("title", label);
+    btn.dataset.bsToggle = "tooltip";
+    btn.dataset.bsPlacement = "bottom";
     btn.tabIndex = -1;
     btn.dataset.menu = id;
     btn.dataset.tabgen = "true";
@@ -86,6 +90,8 @@ export default class TabSystem {
     if (!rec?.labelEl) return;
     rec.label = label;
     rec.labelEl.textContent = label;
+    rec.button.setAttribute("aria-label", label);
+    rec.button.setAttribute("title", label);
     this._syncNavigationProxies();
   }
 
@@ -143,9 +149,7 @@ export default class TabSystem {
   }
 
   _syncNavigationProxies() {
-    this.navigationProxies.forEach((proxy) =>
-      this._syncNavigationProxy(proxy),
-    );
+    this.navigationProxies.forEach((proxy) => this._syncNavigationProxy(proxy));
   }
 
   activateTab(id) {

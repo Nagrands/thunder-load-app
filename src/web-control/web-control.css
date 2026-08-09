@@ -1353,10 +1353,41 @@ button:disabled {
       calc(12px + env(safe-area-inset-left, 0px));
   }
 
+  .toolbar-settings-button,
+  .clear-button,
+  .small-button,
+  .large-button,
+  .queue-action-button,
+  .queue-filter-button,
+  .settings-tab,
+  .settings-modal__close {
+    position: relative;
+    touch-action: manipulation;
+  }
+
+  .toolbar-settings-button::after,
+  .clear-button::after,
+  .small-button::after,
+  .large-button::after,
+  .queue-action-button::after,
+  .queue-filter-button::after,
+  .settings-tab::after,
+  .settings-modal__close::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+    transform: translate(-50%, -50%);
+  }
+
   .url-input-main,
-  .compact-quality-panel,
   .settings-field-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+  .compact-quality-panel {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .url-input-leading {
     min-width: 0;
@@ -1424,6 +1455,7 @@ button:disabled {
     margin: 0;
     border-width: 0;
     border-radius: 0;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
   .settings-modal__layout {
     grid-template-columns: minmax(0, 1fr);
@@ -1452,6 +1484,9 @@ button:disabled {
 }
 
 @media (max-width: 420px) {
+  .compact-quality-panel {
+    grid-template-columns: minmax(0, 1fr);
+  }
   .queue-actions {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }

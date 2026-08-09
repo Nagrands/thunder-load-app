@@ -29,3 +29,6 @@
 
 // Платформенные стили
 @use "platform/macos";
+
+// Cross-surface adaptive overrides must load after feature styles.
+@use "responsive/adaptive";
