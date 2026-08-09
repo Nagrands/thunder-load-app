@@ -25,6 +25,8 @@ jest.mock("../filterAndSortHistory.js", () => ({
   filterAndSortHistory: jest.fn(),
 }));
 
+let historyUpdatedListener = null;
+
 const setupDom = () => {
   document.body.innerHTML = `
     <div class="input-container">
@@ -130,6 +132,10 @@ const setupDom = () => {
 
   global.window.electron = {
     invoke: jest.fn(),
+    onHistoryUpdated: jest.fn((listener) => {
+      historyUpdatedListener = listener;
+      return jest.fn();
+    }),
     tools: {
       analyzeMediaFile: jest.fn().mockResolvedValue({
         success: true,
@@ -218,6 +224,7 @@ describe("Downloader history list", () => {
   beforeEach(() => {
     jest.resetModules();
     localStorage.clear();
+    historyUpdatedListener = null;
     setupDom();
   });
 
@@ -320,6 +327,82 @@ describe("Downloader history list", () => {
     await hydration;
   });
 
+  test("marks hidden history stale and reloads it once on the next open", async () => {
+    jest.useFakeTimers();
+    window.electron.invoke.mockImplementation((channel) => {
+      if (channel === "load-history") {
+        return Promise.resolve([createEntry({ id: "fresh" })]);
+      }
+      if (channel === "check-file-exists") return Promise.resolve(true);
+      return Promise.resolve(null);
+    });
+    const { initHistory } = await import("../history.js");
+    const { state } = await import("../state.js");
+
+    initHistory();
+    historyUpdatedListener({ count: 3 });
+
+    expect(document.getElementById("total-downloads").textContent).toBe("3");
+    expect(state.historyStale).toBe(true);
+    expect(window.electron.invoke).not.toHaveBeenCalledWith("load-history");
+
+    document.getElementById("open-history").click();
+    await jest.advanceTimersByTimeAsync(0);
+
+    expect(
+      window.electron.invoke.mock.calls.filter(
+        ([channel]) => channel === "load-history",
+      ),
+    ).toHaveLength(1);
+    expect(state.historyStale).toBe(false);
+    jest.useRealTimers();
+  });
+
+  test("coalesces open-history updates without resetting view state", async () => {
+    jest.useFakeTimers();
+    localStorage.setItem("historyVisible", "true");
+    localStorage.setItem("lastSearch", "Entry");
+    localStorage.setItem("historySourceFilter", "example.com");
+    localStorage.setItem("historyPageSize", "4");
+    localStorage.setItem("historyDensity", "compact");
+    const entries = Array.from({ length: 8 }, (_, index) =>
+      createEntry({ id: String(index + 1), fileName: `Entry ${index + 1}` }),
+    );
+    window.electron.invoke.mockImplementation((channel) => {
+      if (channel === "load-history") return Promise.resolve(entries);
+      if (channel === "check-file-exists") return Promise.resolve(true);
+      return Promise.resolve(null);
+    });
+    const { initHistory, initHistoryState } = await import("../history.js");
+    const { state } = await import("../state.js");
+
+    initHistory();
+    await initHistoryState();
+    window.electron.invoke.mockClear();
+    state.historyPage = 2;
+    state.selectedEntries = ["6"];
+
+    historyUpdatedListener({ count: 9 });
+    historyUpdatedListener({ count: 10 });
+    historyUpdatedListener({ count: 8 });
+    await jest.advanceTimersByTimeAsync(119);
+    expect(window.electron.invoke).not.toHaveBeenCalledWith("load-history");
+    await jest.advanceTimersByTimeAsync(1);
+
+    expect(
+      window.electron.invoke.mock.calls.filter(
+        ([channel]) => channel === "load-history",
+      ),
+    ).toHaveLength(1);
+    expect(state.historyPage).toBe(2);
+    expect(state.currentSearchQuery).toBe("Entry");
+    expect(state.historySourceFilter).toBe("example.com");
+    expect(state.historyDensity).toBe("compact");
+    expect(state.selectedEntries).toEqual(["6"]);
+    expect(state.historyStale).toBe(false);
+    jest.useRealTimers();
+  });
+
   test("renders compact pagination controls with page-size options", async () => {
     const { renderHistory } = await import("../history.js");
     const entries = Array.from({ length: 12 }, (_, idx) =>
@@ -351,6 +434,27 @@ describe("Downloader history list", () => {
     ]);
     expect(pageSize.value).toBe("10");
     expect(pagination.querySelector(".bk-select-wrapper")).not.toBeNull();
+  });
+
+  test("preserves surviving selections when history rows are rendered again", async () => {
+    const entries = [
+      createEntry({ id: "kept", fileName: "Kept" }),
+      createEntry({ id: "removed", fileName: "Removed" }),
+    ];
+    const { renderHistory } = await import("../history.js");
+    const { state, setHistoryData } = await import("../state.js");
+    setHistoryData(entries);
+    state.selectedEntries = ["kept", "removed"];
+    renderHistory(entries);
+
+    const remaining = [entries[0]];
+    setHistoryData(remaining);
+    renderHistory(remaining);
+
+    expect(state.selectedEntries).toEqual(["kept"]);
+    expect(
+      document.querySelector('.history-row__checkbox[data-id="kept"]').checked,
+    ).toBe(true);
   });
 
   test("hides pagination for empty history", async () => {

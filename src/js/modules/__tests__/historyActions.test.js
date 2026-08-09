@@ -75,11 +75,25 @@ describe("historyActions", () => {
     jest.dontMock("../i18n.js");
   });
 
-  test("refresh button updates search query and pulls history", async () => {
-    localStorage.setItem("history", JSON.stringify([{ id: "1" }]));
-
+  test("refresh button preserves selection and pulls history from disk", async () => {
+    window.electron.invoke.mockImplementation(async (channel) => {
+      if (channel === "load-history") {
+        return [
+          {
+            id: "kept",
+            fileName: "Kept",
+            filePath: "/tmp/kept.mp4",
+            sourceUrl: "https://example.com/kept",
+          },
+        ];
+      }
+      if (channel === "check-file-exists") return true;
+      if (channel === "get-file-size") return 0;
+      return null;
+    });
     const { initHistoryActions } = await import("../historyActions.js");
     const { state } = await import("../state.js");
+    state.selectedEntries = ["kept"];
 
     initHistoryActions();
     document
@@ -90,22 +104,21 @@ describe("historyActions", () => {
 
     expect(state.currentSearchQuery).toBe("test");
     expect(localStorage.getItem("lastSearch")).toBe("test");
-    expect(state.downloadHistory).toEqual([{ id: "1" }]);
+    expect(state.selectedEntries).toEqual(["kept"]);
+    expect(window.electron.invoke).toHaveBeenCalledWith("load-history");
   });
 
   const setupClearHistoryTest = async (clearMode, initialHistory) => {
     const showConfirmationDialog = jest.fn(async () => clearMode);
     const showToast = jest.fn();
     const renderHistory = jest.fn();
-    const updateDownloadCount = jest.fn(async () => {});
     const clearHistorySelection = jest.fn();
     const setFilterInputValue = jest.fn();
 
     jest.doMock("../modals.js", () => ({ showConfirmationDialog }));
     jest.doMock("../history.js", () => ({
-      loadHistory: jest.fn(async () => {}),
+      refreshHistoryFromDisk: jest.fn(async () => {}),
       renderHistory,
-      updateDownloadCount,
       clearHistorySelection,
     }));
     jest.doMock("../historyFilter.js", () => ({ setFilterInputValue }));
@@ -136,7 +149,6 @@ describe("historyActions", () => {
       showConfirmationDialog,
       showToast,
       renderHistory,
-      updateDownloadCount,
       clearHistorySelection,
       setFilterInputValue,
       state,
@@ -171,7 +183,6 @@ describe("historyActions", () => {
     expect(ctx.getHistoryData()).toEqual([]);
     expect(ctx.clearHistorySelection).toHaveBeenCalled();
     expect(ctx.setFilterInputValue).toHaveBeenCalledWith("");
-    expect(ctx.updateDownloadCount).toHaveBeenCalled();
     expect(ctx.showToast).toHaveBeenCalledWith(
       "history.toast.deletedEntries:2",
       "info",
@@ -262,7 +273,6 @@ describe("historyActions", () => {
       "save-history",
       initialHistory,
     );
-    expect(ctx.updateDownloadCount).toHaveBeenCalledTimes(2);
   });
 
   test("clear history problem mode cleans previews only for removed entries", async () => {

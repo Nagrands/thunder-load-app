@@ -49,6 +49,7 @@ try {
     // main -> renderer events (subscribed via window.electron.on)
     "download-complete",
     "download-path-changed",
+    "history-updated",
     "open-settings",
     "open-site",
     "get-auto-launch-status",
@@ -366,6 +367,7 @@ try {
    * @property {(channel: string, listener: (...args: any[]) => void) => (() => void)|undefined} on
    * @property {(channel: string, ...args: any[]) => void} send
    * @property {(listener: (...args: any[]) => void) => (() => void)|undefined} onShowWhatsNew
+   * @property {(listener: (payload: { count?: number }) => void) => (() => void)|undefined} onHistoryUpdated
    * @property {{
    *   getAvailability: () => Promise<any>,
    *   getVersions: () => Promise<any>,
@@ -426,6 +428,10 @@ try {
 
     // Специальные подписки
     onShowWhatsNew: (callback) => safeOn("show-whats-new", callback),
+    onHistoryUpdated: (callback) => {
+      if (typeof callback !== "function") return undefined;
+      return safeOn("history-updated", callback);
+    },
 
     // Инструменты
     tools: {
@@ -568,7 +574,10 @@ try {
       },
       setLevel: async (level) => {
         const response = await safeInvoke("diagnostics:set-level", level);
-        if (!response?.ok) throw new Error(response?.error?.message || "Unable to set diagnostics level");
+        if (!response?.ok)
+          throw new Error(
+            response?.error?.message || "Unable to set diagnostics level",
+          );
         return response.data;
       },
       export: () => safeInvoke("diagnostics:export"),

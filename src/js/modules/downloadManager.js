@@ -3,11 +3,7 @@
 import { historyContainer } from "./domElements.js";
 import { state, updateButtonState } from "./state.js";
 import { showLoading, showToast } from "./toast.js";
-import {
-  addNewEntryToHistory,
-  updateDownloadCount,
-  getHistoryData,
-} from "./history.js";
+import { addNewEntryToHistory, getHistoryData } from "./history.js";
 import { isValidUrl, isSupportedUrl, normalizeUrlInput } from "./validation.js";
 import {
   urlInput,
@@ -1772,7 +1768,6 @@ async function migrateLegacyCompletedJobs() {
     additions.forEach((entry) =>
       markAsDownloaded(entry.sourceUrl, entry.downloadKind),
     );
-    await updateDownloadCount();
   } catch (error) {
     console.error("Failed to migrate completed queue jobs:", error);
     legacyJobs.forEach((job) => {
@@ -1905,7 +1900,6 @@ const downloadVideo = async (url, quality, options = {}) => {
         })) !== false;
       if (historyRecorded) {
         markAsDownloaded(sourceUrl || url, requestedDownloadKind);
-        await updateDownloadCount();
       }
 
       if (historyContainer) historyContainer.scrollTop = 0;

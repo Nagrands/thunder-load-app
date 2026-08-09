@@ -37,6 +37,7 @@ import { getVideoPreview } from "../../videoInfoBroker.js";
 const HISTORY_IMAGE_PLACEHOLDER = "../assets/img/thumbnail-unavailable.png";
 const HISTORY_PAGE_SIZES = [4, 10, 20];
 const HISTORY_TOGGLE_ANIMATION_MS = 260;
+const HISTORY_UPDATE_DEBOUNCE_MS = 120;
 const HISTORY_FILTER_DEFAULTS = {
   source: "",
   sortKey: "date",
@@ -106,6 +107,9 @@ let activeHistoryInspectorEntryId = "";
 let activeHistoryInspectorRoot = null;
 let activeHistoryInspectorTrigger = null;
 let historyLoadPromise = null;
+let historyUpdateTimer = null;
+let historyUpdateGeneration = 0;
+let historyUpdateBound = false;
 
 const HISTORY_FILTERS_COLLAPSED_KEY = "historyFiltersCollapsed";
 
@@ -2636,7 +2640,6 @@ document
     );
     // ВСТАВКА: лог после перерисовки
     console.log("После перерисовки renderHistory:", getHistoryData());
-    await updateDownloadCount();
     updateDeleteSelectedButton();
 
     let cleanupTimer = null;
@@ -2674,7 +2677,6 @@ document
           );
           updateRestoreButton();
         }
-        await updateDownloadCount();
         showToast(t("history.toast.deleteCancelled"), "success");
       },
     );
@@ -2738,7 +2740,6 @@ async function restoreDeletedEntries() {
   updateRestoreButton();
   await window.electron.invoke("save-history", merged);
   filterAndSortHistory(state.currentSearchQuery, state.currentSortOrder, true);
-  await updateDownloadCount();
   showToast(
     t("history.toast.restoredEntries", { count: buffer.length }),
     "success",
@@ -2871,7 +2872,7 @@ function renderHistory(entries, meta = {}) {
   disposeAllTooltips(); // очистка старых тултипов перед новой инициализацией
 
   clearHistoryContainer(container);
-  clearHistorySelection();
+  syncSelectedEntriesWith(getHistoryData());
 
   if (isEmpty) {
     const hasActiveFilters =
@@ -2929,7 +2930,6 @@ function renderHistory(entries, meta = {}) {
   const filtersRow = document.querySelector(".history-filters-row");
   if (filtersRow) filtersRow.classList.remove("hidden");
 
-  syncSelectedEntriesWith(pageEntries);
   let lastGroupKey = null;
   const groupCounts = getHistoryGroupCounts(pageEntries);
   pageEntries.forEach((entry) => {
@@ -2981,7 +2981,7 @@ async function initHistoryState() {
     bindHistorySearchClearVisibility();
     syncHistorySelectValues();
     applyHistoryFiltersState();
-    await loadHistory(true); // 👈 forceRender=true — гарантируем перерисовку
+    await refreshHistoryFromDisk();
 
     setFilterInputValue(state.currentSearchQuery || "");
     updateSearchClearButtonVisibility();
@@ -3010,6 +3010,10 @@ function initHistory() {
   syncHistorySelectValues();
   bindHistoryMoreMenu();
   applyHistoryDensity();
+  if (!historyUpdateBound && window.electron?.onHistoryUpdated) {
+    historyUpdateBound = true;
+    window.electron.onHistoryUpdated(handleHistoryUpdated);
+  }
   historySourceFilterSelect?.addEventListener("change", (e) => {
     state.historySourceFilter = e.target.value || "";
     localStorage.setItem("historySourceFilter", state.historySourceFilter);
@@ -3083,7 +3087,16 @@ function initHistory() {
     const newVisibility = !state.historyVisible;
     toggleHistoryVisibility(newVisibility);
     setHistoryPanelVisible(state.historyVisible);
-    if (state.historyVisible) loadHistory();
+    if (
+      state.historyVisible &&
+      (state.historyStale || !state.historyHydrated)
+    ) {
+      if (historyUpdateTimer) {
+        window.clearTimeout(historyUpdateTimer);
+        historyUpdateTimer = null;
+      }
+      void refreshHistoryFromDisk();
+    }
     // queueMicrotask(() => initTooltips());
     // if (tooltipInstance) tooltipInstance.hide();
   });
@@ -3106,22 +3119,6 @@ function initHistory() {
 const sortHistory = (order = "desc") => {
   state.currentSortOrder = order;
   filterAndSortHistory(state.currentSearchQuery, state.currentSortOrder, true);
-};
-
-const updateDownloadCount = async () => {
-  try {
-    const count = await window.electron.invoke("get-download-count");
-    updateHistoryHeaderStats({
-      count,
-      sizeBytes: getHistoryStats(getHistoryData()).sizeBytes,
-    });
-  } catch (error) {
-    updateHistoryHeaderStats({ count: 0, sizeBytes: 0 });
-    if (error.code !== "ENOENT") {
-      console.error("Error getting download count:", error);
-      showToast(t("history.toast.countError"), "error");
-    }
-  }
 };
 
 function syncHistoryHeaderStatsFromCache() {
@@ -3151,23 +3148,7 @@ const loadHistory = async (forceRender = false) => {
 
     setHistoryData(entries);
     state.historyHydrated = true;
-    state.historyPage = 1;
 
-    const hasRealEntries = entries.length > 0;
-    const filteredEntries = entries.filter((entry) =>
-      (entry.fileName || "")
-        .toLowerCase()
-        .includes(state.currentSearchQuery.toLowerCase()),
-    );
-
-    if (hasRealEntries && filteredEntries.length === 0) {
-      console.warn("⚠️ Активный фильтр скрывает все записи. Выполняем сброс.");
-      state.currentSearchQuery = "";
-      localStorage.removeItem("lastSearch");
-      setFilterInputValue("");
-    }
-
-    // ✅ Только один вызов, с флагом принудительной перерисовки
     filterAndSortHistory(
       state.currentSearchQuery,
       state.currentSortOrder,
@@ -3185,11 +3166,53 @@ const loadHistory = async (forceRender = false) => {
   } catch (error) {
     console.error("Ошибка загрузки истории:", error);
     showToast(t("history.toast.loadError"), "error");
-    return [];
+    return null;
   } finally {
     historyLoadPromise = null;
   }
 };
+
+const refreshHistoryFromDisk = async () => {
+  const requestedGeneration = historyUpdateGeneration;
+  const entries = await loadHistory(true);
+  if (entries === null) return null;
+
+  if (requestedGeneration === historyUpdateGeneration) {
+    state.historyStale = false;
+  } else if (state.historyVisible) {
+    scheduleHistoryUpdateReload();
+  }
+  return entries;
+};
+
+function scheduleHistoryUpdateReload(delay = HISTORY_UPDATE_DEBOUNCE_MS) {
+  if (!state.historyVisible) return;
+  if (historyUpdateTimer) window.clearTimeout(historyUpdateTimer);
+  historyUpdateTimer = window.setTimeout(() => {
+    historyUpdateTimer = null;
+    void refreshHistoryFromDisk();
+  }, delay);
+}
+
+function handleHistoryUpdated(payload = {}) {
+  historyUpdateGeneration += 1;
+  state.historyStale = true;
+
+  const count = Number(payload?.count);
+  if (Number.isFinite(count) && count >= 0) {
+    updateHistoryHeaderStats({
+      count,
+      sizeBytes: getHistoryStats(getHistoryData()).sizeBytes,
+    });
+  }
+
+  if (state.historyVisible) {
+    scheduleHistoryUpdateReload();
+  } else if (historyUpdateTimer) {
+    window.clearTimeout(historyUpdateTimer);
+    historyUpdateTimer = null;
+  }
+}
 
 const addNewEntryToHistory = async (
   newEntryRaw,
@@ -3232,7 +3255,6 @@ const addNewEntryToHistory = async (
     }
     filterAndSortHistory(state.currentSearchQuery, state.currentSortOrder);
 
-    await updateDownloadCount();
     return true;
   } catch (error) {
     setHistoryData(previousHistory);
@@ -3248,8 +3270,8 @@ export {
   getHistoryData,
   renderHistory,
   sortHistory,
-  updateDownloadCount,
   loadHistory,
+  refreshHistoryFromDisk,
   addNewEntryToHistory,
   updateDeleteSelectedButton,
   clearHistorySelection,

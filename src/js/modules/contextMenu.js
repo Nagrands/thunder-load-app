@@ -31,11 +31,7 @@ import { urlInput, downloadButton } from "./domElements.js";
 import { history, historyContainer, contextMenu } from "./domElements.js";
 import { showToast } from "./toast.js";
 import { showConfirmationDialog as showConfirmationModal } from "./modals.js";
-import {
-  rememberDeletedEntries,
-  updateDownloadCount,
-  sortHistory,
-} from "./history.js";
+import { rememberDeletedEntries, sortHistory } from "./history.js";
 import { state, updateButtonState } from "./state.js";
 import { t } from "./i18n.js";
 import { registerDismissibleOverlay } from "./overlayManager.js";
@@ -421,7 +417,6 @@ async function handleDeleteEntry(logEntry) {
     );
 
     if (wasDeleted) {
-      await updateDownloadCount();
       sortHistory(state.currentSortOrder);
       let cleanupTimer = previewPath
         ? setTimeout(() => {
@@ -460,7 +455,6 @@ async function handleDeleteEntry(logEntry) {
             state.currentSortOrder,
             true,
           );
-          await updateDownloadCount();
           showToast(t("history.toast.deleteCancelled"), "success");
         },
         true,

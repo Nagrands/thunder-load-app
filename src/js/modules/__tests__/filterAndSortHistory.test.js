@@ -52,7 +52,7 @@ describe("filterAndSortHistory", () => {
     expect(localStorage.getItem("historySourceFilter")).toBe("youtube.com");
   });
 
-  test("clears stale source filter after history hydration", async () => {
+  test("preserves a source filter with no current matches", async () => {
     localStorage.setItem("historySourceFilter", "youtube.com");
     mockState.historyHydrated = true;
     mockState.historySourceFilter = "youtube.com";
@@ -67,7 +67,11 @@ describe("filterAndSortHistory", () => {
 
     filterAndSortHistory("", "desc", true);
 
-    expect(mockState.historySourceFilter).toBe("");
-    expect(localStorage.getItem("historySourceFilter")).toBeNull();
+    expect(mockState.historySourceFilter).toBe("youtube.com");
+    expect(localStorage.getItem("historySourceFilter")).toBe("youtube.com");
+    expect(mockRenderHistory).toHaveBeenCalledWith(
+      [],
+      expect.objectContaining({ totalEntries: 0 }),
+    );
   });
 });

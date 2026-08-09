@@ -107,12 +107,7 @@ const compareValues = (a, b, order = "desc") => {
   return order === "asc" ? cmp : -cmp;
 };
 
-function filterAndSortHistory(
-  query,
-  sortOrder = "desc",
-  forceRender = false,
-  _isRetry = false,
-) {
+function filterAndSortHistory(query, sortOrder = "desc", forceRender = false) {
   const allEntries = getHistoryData();
   const q = query.trim().toLowerCase();
   const sourceFilter = (state.historySourceFilter || "").toLowerCase();
@@ -122,30 +117,6 @@ function filterAndSortHistory(
   if (q !== lastQuery) {
     lastQuery = q;
     state.historyPage = 1;
-  }
-
-  // Сброс "зависших" фильтров, когда таких значений больше нет в данных.
-  const availableHosts = new Set();
-  allEntries.forEach((entry) => {
-    const host = getHost(entry.sourceUrl).toLowerCase();
-    if (host) availableHosts.add(host);
-  });
-
-  let filtersNormalized = false;
-  if (
-    state.historyHydrated &&
-    sourceFilter &&
-    !availableHosts.has(sourceFilter)
-  ) {
-    state.historySourceFilter = "";
-    try {
-      localStorage.removeItem("historySourceFilter");
-    } catch {}
-    filtersNormalized = true;
-  }
-  if (filtersNormalized && !_isRetry) {
-    // Повторяем фильтрацию с очищенными фильтрами, чтобы вернуть результаты.
-    return filterAndSortHistory(query, sortOrder, true, true);
   }
 
   // Поддерживаем валидный размер страницы (с сохранением в localStorage).

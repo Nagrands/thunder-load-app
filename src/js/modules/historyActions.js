@@ -7,9 +7,8 @@ import {
   clearFilterInputButton,
 } from "./domElements.js";
 import {
-  loadHistory,
+  refreshHistoryFromDisk,
   renderHistory,
-  updateDownloadCount,
   clearHistorySelection,
 } from "./history.js";
 import { setFilterInputValue } from "./historyFilter.js";
@@ -125,7 +124,6 @@ async function handleClearHistory() {
 
     resetHistoryViewAfterClear(remainingHistory);
     await window.electron.invoke("save-history", remainingHistory);
-    await updateDownloadCount();
 
     let cleanupTimer = schedulePreviewCleanup(previewPaths);
 
@@ -142,8 +140,6 @@ async function handleClearHistory() {
         state.downloadHistory = [...previousHistory];
         setHistoryData(previousHistory);
         await window.electron.invoke("save-history", previousHistory);
-        await loadHistory(true);
-        await updateDownloadCount();
         showToast(t("history.toast.deleteCancelled"), "success");
       },
     );
@@ -168,15 +164,11 @@ function initHistoryActions() {
         historyArea.classList.add("is-refreshing");
       }
       try {
-        // ✅ сброс выбранных записей
-        clearHistorySelection();
-
         state.currentSearchQuery = filterInput.value.trim();
         localStorage.setItem("lastSearch", state.currentSearchQuery);
 
-        await loadHistory(true);
-        const rawHistory = JSON.parse(localStorage.getItem("history")) || [];
-        state.downloadHistory = rawHistory;
+        const entries = await refreshHistoryFromDisk();
+        if (entries === null) return;
 
         showToast(t("history.refresh.success"), "info");
       } catch (error) {
