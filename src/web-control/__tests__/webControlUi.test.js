@@ -33,6 +33,7 @@ describe("web control UI contract", () => {
   it("loads browser helpers and the entry-point aliases without global collisions", () => {
     const context = vm.createContext({ window: {} });
     const scripts = [
+      "web-ui-state.js",
       "web-control-router.js",
       "web-compact-quality.js",
       "web-settings.js",
@@ -66,6 +67,17 @@ describe("web control UI contract", () => {
     expect(html).toContain('class="toolbar-settings-button"');
     expect(html).toContain('id="compact-video-quality"');
     expect(html).toContain('id="compact-audio-quality"');
+  });
+
+  it("provides a touch and keyboard accessible queue action menu", () => {
+    const source = fs.readFileSync(
+      path.resolve(__dirname, "../web-control.js"),
+      "utf8",
+    );
+    expect(source).toContain('data-menu-toggle aria-haspopup="menu"');
+    expect(source).toContain('class="queue-item-actions" role="menu"');
+    expect(source).toContain('event.key === "Escape"');
+    expect(source).toContain("toggle?.focus()");
   });
 
   it("accepts one HTTP URL and rejects multi-value input", () => {

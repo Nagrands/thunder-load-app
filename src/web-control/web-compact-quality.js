@@ -34,7 +34,12 @@ function createCompactQuality({
 
   const setStatus = (text, tone = "muted") => {
     status.textContent = text;
-    status.dataset.tone = tone;
+    if (window.ThunderWebUiState?.apply) {
+      window.ThunderWebUiState.apply(status, { kind: tone });
+    } else {
+      status.dataset.tone = tone;
+      status.dataset.uiState = tone === "muted" ? "idle" : tone;
+    }
   };
 
   const setActionsDisabled = (disabled) => {

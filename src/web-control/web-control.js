@@ -19,6 +19,7 @@ const ICONS = {
   pause:
     '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg>',
   play: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7Z"/></svg>',
+  more: '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>',
   refresh:
     '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.6-6.4M21 3v6h-6"/></svg>',
   trash:
@@ -165,6 +166,17 @@ function renderSummary(state = {}) {
   el.jobSummaryMeta.textContent = `Активные: ${counts.running || 0}, ожидают: ${
     counts.pending || 0
   }, ошибки: ${counts.failed || 0}`;
+  window.ThunderWebUiState?.apply(el.jobSummaryMeta, {
+    kind:
+      counts.running > 0
+        ? "loading"
+        : counts.failed > 0
+          ? "warning"
+          : counts.pending > 0
+            ? "idle"
+            : "success",
+    operationId: counts.running > 0 ? "queue-active" : "",
+  });
 }
 
 function renderEmptyQueue(filtered = false) {
@@ -179,6 +191,7 @@ function renderEmptyQueue(filtered = false) {
         : "Добавьте URL выше, чтобы начать."
     }</p>
   </div>`;
+  window.ThunderWebUiState?.apply(el.queue, { kind: "empty" });
 }
 
 function renderQueueActions(job = {}, id = "") {
@@ -245,10 +258,35 @@ function renderState(state = {}) {
           <span class="queue-quality-chip">${quality}</span>
           <span class="queue-stage-chip">${progress}%</span>
         </div>
-        <div class="queue-item-actions">${renderQueueActions(job, id)}</div>
+        <div class="queue-item-actions-wrap">
+          <button type="button" class="queue-item-menu-toggle" data-menu-toggle aria-haspopup="menu" aria-expanded="false" title="Действия">${ICONS.more}<span class="visually-hidden">Действия</span></button>
+          <div class="queue-item-actions" role="menu" hidden>${renderQueueActions(job, id)}</div>
+        </div>
       </article>`;
     })
     .join("");
+  window.ThunderWebUiState?.apply(el.queue, {
+    kind: visibleJobs.some((job) => job.status === "running")
+      ? "loading"
+      : visibleJobs.some((job) => job.status === "failed")
+        ? "warning"
+        : "success",
+  });
+}
+
+function renderQueueLoading() {
+  el.queue.innerHTML = Array.from(
+    { length: 3 },
+    (_, index) => `<div class="queue-item queue-item-skeleton" aria-hidden="true">
+      <span class="queue-skeleton-index">${index + 1}</span>
+      <span class="queue-skeleton-copy"><span></span><span></span></span>
+      <span class="queue-skeleton-chip"></span>
+    </div>`,
+  ).join("");
+  window.ThunderWebUiState?.apply(el.queue, {
+    kind: "loading",
+    operationId: "web-control:initial-state",
+  });
 }
 
 async function refreshState() {
@@ -382,9 +420,36 @@ document.querySelectorAll("[data-clear]").forEach((button) => {
 });
 
 el.queue.addEventListener("click", (event) => {
+  const menuToggle = event.target.closest("[data-menu-toggle]");
+  if (menuToggle) {
+    const actions = menuToggle.parentElement?.querySelector(
+      ".queue-item-actions",
+    );
+    const open = actions?.hidden !== false;
+    el.queue.querySelectorAll(".queue-item-actions").forEach((menu) => {
+      menu.hidden = true;
+      menu.parentElement
+        ?.querySelector("[data-menu-toggle]")
+        ?.setAttribute("aria-expanded", "false");
+    });
+    if (actions) actions.hidden = !open;
+    menuToggle.setAttribute("aria-expanded", String(open));
+    if (open) actions?.querySelector("button:not(:disabled)")?.focus();
+    return;
+  }
   const button = event.target.closest("[data-action]");
   if (!button) return;
   void sendAction(button.dataset.action, { jobId: button.dataset.id });
+});
+
+document.addEventListener("click", (event) => {
+  if (event.target.closest?.(".queue-item-actions-wrap")) return;
+  el.queue.querySelectorAll(".queue-item-actions").forEach((menu) => {
+    menu.hidden = true;
+    menu.parentElement
+      ?.querySelector("[data-menu-toggle]")
+      ?.setAttribute("aria-expanded", "false");
+  });
 });
 
 document
@@ -392,6 +457,15 @@ document
   .addEventListener("click", () => void settingsController.save());
 
 document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    el.queue.querySelectorAll(".queue-item-actions").forEach((menu) => {
+      if (menu.hidden) return;
+      menu.hidden = true;
+      const toggle = menu.parentElement?.querySelector("[data-menu-toggle]");
+      toggle?.setAttribute("aria-expanded", "false");
+      toggle?.focus();
+    });
+  }
   if (
     event.key === "Escape" &&
     el.settingsModal.classList.contains("is-open")
@@ -419,9 +493,14 @@ try {
 
 bindBeforeUnload(settingsController.isDirty);
 
+renderQueueLoading();
 Promise.all([refreshState(), settingsController.refreshRemote()]).catch(
   (error) => {
     el.jobSummaryTitle.textContent = "Веб-интерфейс недоступен";
     el.jobSummaryMeta.textContent = String(error?.message || "Ошибка соединения");
+    window.ThunderWebUiState?.apply(el.queue, {
+      kind: "error",
+      operationId: "web-control:initial-state",
+    });
   },
 );

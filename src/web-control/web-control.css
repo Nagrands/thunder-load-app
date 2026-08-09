@@ -624,7 +624,7 @@ button:disabled {
   grid-template-columns: auto minmax(0, 1fr) auto auto;
   gap: 12px;
   align-items: center;
-  overflow: hidden;
+  overflow: visible;
   border: 1px solid rgba(255, 255, 255, 0.105);
   border-radius: 15px;
   background:
@@ -749,6 +749,102 @@ button:disabled {
   flex-wrap: wrap;
   gap: 7px;
   justify-content: flex-end;
+}
+
+.queue-item-actions-wrap {
+  position: relative;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.queue-item-skeleton {
+  pointer-events: none;
+}
+
+.queue-skeleton-index,
+.queue-skeleton-copy span,
+.queue-skeleton-chip {
+  display: block;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--border) 75%, transparent),
+    color-mix(in srgb, var(--text-muted) 24%, transparent),
+    color-mix(in srgb, var(--border) 75%, transparent)
+  );
+  background-size: 200% 100%;
+  animation: queue-skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+.queue-skeleton-index {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.queue-skeleton-copy {
+  display: grid;
+  flex: 1;
+  gap: 0.5rem;
+}
+
+.queue-skeleton-copy span:first-child {
+  width: min(24rem, 72%);
+  height: 0.85rem;
+}
+
+.queue-skeleton-copy span:last-child {
+  width: min(18rem, 52%);
+  height: 0.65rem;
+}
+
+.queue-skeleton-chip {
+  width: 5rem;
+  height: 1.5rem;
+}
+
+@keyframes queue-skeleton-shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.queue-item-menu-toggle {
+  display: inline-grid;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  color: rgba(231, 240, 252, 0.82);
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  cursor: pointer;
+  place-items: center;
+}
+
+.queue-item-menu-toggle:hover,
+.queue-item-menu-toggle:focus-visible,
+.queue-item-menu-toggle[aria-expanded="true"] {
+  color: #fff;
+  background: rgba(var(--color-accent-rgb), 0.12);
+  border-color: rgba(var(--color-accent-rgb), 0.38);
+}
+
+.queue-item-actions[role="menu"] {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 6px);
+  right: 0;
+  display: grid;
+  min-width: 170px;
+  padding: 7px;
+  background: rgba(8, 15, 27, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
+}
+
+.queue-item-actions[role="menu"][hidden] {
+  display: none;
 }
 
 .queue-item-actions button {
@@ -1123,6 +1219,41 @@ button:disabled {
 
 .settings-save-button.is-loading {
   cursor: wait;
+}
+
+[data-ui-state="loading"] {
+  --web-state-tone: var(--accent);
+}
+
+[data-ui-state="success"] {
+  --web-state-tone: #42d68b;
+}
+
+[data-ui-state="warning"] {
+  --web-state-tone: #f0bd52;
+}
+
+[data-ui-state="error"] {
+  --web-state-tone: #ff6b72;
+}
+
+[data-ui-state="empty"] {
+  --web-state-tone: var(--muted);
+}
+
+[data-ui-state="loading"] .queue-progress-line {
+  transition: width 180ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
 }
 
 .settings-save-button {
