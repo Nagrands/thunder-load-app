@@ -48,6 +48,7 @@ let currentLogEntry = null;
 let contextMenuInitialized = false;
 const HISTORY_ENTRY_UNDO_MS = 8000;
 const HISTORY_PREVIEW_CLEANUP_MS = 8500;
+const CONTEXT_MENU_VIEWPORT_MARGIN = 10;
 
 const escapeHtml = (value = "") =>
   String(value)
@@ -158,8 +159,9 @@ async function showContextMenu(event, logEntry) {
   setMenuItemDisabled(openFolderItem, !fileExists);
   setMenuItemDisabled(deleteFileItem, !fileExists);
 
-  // Получаем координаты клика (учитывая прокрутку страницы)
-  const { pageX: clickPageX, pageY: clickPageY } = event;
+  // Меню закреплено относительно viewport, поэтому используем client-координаты.
+  // Это не позволяет прокрутке body повторно смещать меню.
+  const { clientX: clickX, clientY: clickY } = event;
 
   // Получаем размеры и границы контекстного меню
   contextMenu.style.display = "block"; // Временно показываем, чтобы получить размеры
@@ -168,28 +170,22 @@ async function showContextMenu(event, logEntry) {
   const menuHeight = menuRect.height;
   const windowWidth = window.innerWidth;
   const windowHeight = window.innerHeight;
-  const scrollX = window.scrollX;
-  const scrollY = window.scrollY;
-
-  let adjustedX = clickPageX;
-  let adjustedY = clickPageY;
-
-  // Проверка, не выходит ли меню за границы окна
-  if (clickPageX + menuWidth > scrollX + windowWidth) {
-    adjustedX = scrollX + windowWidth - menuWidth - 10;
-  }
-
-  if (clickPageY + menuHeight > scrollY + windowHeight) {
-    adjustedY = scrollY + windowHeight - menuHeight - 10;
-  }
-
-  if (adjustedY < scrollY) {
-    adjustedY = scrollY + 10;
-  }
-
-  if (adjustedX < scrollX) {
-    adjustedX = scrollX + 10;
-  }
+  const maxX = Math.max(
+    CONTEXT_MENU_VIEWPORT_MARGIN,
+    windowWidth - menuWidth - CONTEXT_MENU_VIEWPORT_MARGIN,
+  );
+  const maxY = Math.max(
+    CONTEXT_MENU_VIEWPORT_MARGIN,
+    windowHeight - menuHeight - CONTEXT_MENU_VIEWPORT_MARGIN,
+  );
+  const adjustedX = Math.min(
+    Math.max(clickX, CONTEXT_MENU_VIEWPORT_MARGIN),
+    maxX,
+  );
+  const adjustedY = Math.min(
+    Math.max(clickY, CONTEXT_MENU_VIEWPORT_MARGIN),
+    maxY,
+  );
 
   // Устанавливаем корректные координаты
   contextMenu.style.top = `${adjustedY}px`;

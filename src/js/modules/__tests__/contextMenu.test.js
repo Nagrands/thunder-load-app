@@ -73,7 +73,7 @@ const setupDom = () => {
     <input id="filter-input" />
     <button id="history-density-compact"></button>
     <button id="history-density-comfort"></button>
-    <nav id="context-menu" style="display:none; position:absolute;">
+    <nav id="context-menu" style="display:none; position:fixed;">
       <ul role="menu">
         <li role="none">
           <button id="open-video" type="button" role="menuitem">Open video</button>
@@ -153,6 +153,32 @@ describe("context menu UI", () => {
 
     expect(document.getElementById("context-menu").style.display).toBe("block");
     expect(document.activeElement).toBe(document.getElementById("open-video"));
+  });
+
+  test("positions the menu from viewport coordinates when body is scrolled", async () => {
+    const menu = document.getElementById("context-menu");
+    menu.getBoundingClientRect = jest.fn(() => ({
+      width: 230,
+      height: 300,
+    }));
+    const { initContextMenu } = await import("../contextMenu.js");
+    initContextMenu();
+
+    const event = new MouseEvent("contextmenu", {
+      bubbles: true,
+      cancelable: true,
+      clientX: 600,
+      clientY: 200,
+    });
+    Object.defineProperties(event, {
+      pageX: { value: 1000 },
+      pageY: { value: 800 },
+    });
+    document.querySelector(".log-entry").dispatchEvent(event);
+    await flush();
+
+    expect(menu.style.left).toBe("600px");
+    expect(menu.style.top).toBe("200px");
   });
 
   test("supports ArrowUp/ArrowDown/Home/End keyboard navigation", async () => {
@@ -325,7 +351,9 @@ describe("context menu UI", () => {
     await handleDeleteEntry(entry);
 
     expect(mockShowToast).toHaveBeenCalledWith(
-      expect.stringContaining("history.toast.deletedEntry<br><strong>Test file</strong>."),
+      expect.stringContaining(
+        "history.toast.deletedEntry<br><strong>Test file</strong>.",
+      ),
       "info",
       8000,
       null,
@@ -335,10 +363,9 @@ describe("context menu UI", () => {
     );
     const undo = mockShowToast.mock.calls.at(-1)[4];
     await undo();
-    expect(window.electron.invoke).toHaveBeenCalledWith(
-      "save-history",
-      [expect.objectContaining({ id: 42 })],
-    );
+    expect(window.electron.invoke).toHaveBeenCalledWith("save-history", [
+      expect.objectContaining({ id: 42 }),
+    ]);
   });
 
   test("deletes history entry when stored id is a string", async () => {

@@ -18784,7 +18784,7 @@ hr {
 }
 
 .context-menu {
-  position: absolute;
+  position: fixed;
   display: none;
   z-index: 1200;
   min-width: 230px;
