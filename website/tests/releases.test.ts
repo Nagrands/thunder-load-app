@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { classifyAsset, normalizeReleases, preferredAsset, type GitHubRelease } from "@/lib/releases";
+import { classifyAsset, downloadableAssets, normalizeReleases, preferredAsset, type GitHubRelease } from "@/lib/releases";
 
 const baseRelease: GitHubRelease = {
   id: 1,
@@ -79,5 +79,31 @@ describe("release assets", () => {
     ]);
     expect(releases).toHaveLength(1);
     expect(releases[0].prerelease).toBe(true);
+  });
+
+  it("exposes only officially supported desktop installers", () => {
+    const releases = normalizeReleases([{
+      ...baseRelease,
+      assets: [
+        {
+          id: 201,
+          name: "Thunder-Setup-2.0.0.exe",
+          content_type: "application/octet-stream",
+          size: 20,
+          updated_at: "2026-07-30T10:03:00Z",
+          browser_download_url: "https://example.com/windows.exe"
+        },
+        {
+          id: 202,
+          name: "Thunder-2.0.0-x86_64.AppImage",
+          content_type: "application/octet-stream",
+          size: 30,
+          updated_at: "2026-07-30T10:03:00Z",
+          browser_download_url: "https://example.com/linux.AppImage"
+        }
+      ]
+    }]);
+
+    expect(downloadableAssets(releases[0]).map((asset) => asset.platform)).toEqual(["windows"]);
   });
 });

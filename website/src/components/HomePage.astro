@@ -63,8 +63,7 @@ const copy = isRu ? {
   questions: [
     ["Приложение бесплатное?", "Да, Thunder распространяется через официальный GitHub-репозиторий."],
     ["Какие сайты поддерживаются?", "Thunder использует yt-dlp, поэтому фактический список источников зависит от его актуальной версии."],
-    ["Почему macOS показывает предупреждение?", "Текущие сборки macOS не подписаны и не нотаризованы. Загружайте DMG только с официальной страницы релиза и проверяйте опубликованные хеш-суммы."],
-    ["Когда появится Linux?", "AppImage уже можно собрать из исходников, но официальный автоматический Linux-релиз планируется."]
+    ["Почему macOS показывает предупреждение?", "Текущие сборки macOS не подписаны и не нотаризованы. Загружайте DMG только с официальной страницы релиза и проверяйте опубликованные хеш-суммы."]
   ]
 } : {
   heroBadge: `Thunder ${latest.version} is available`,
@@ -92,8 +91,7 @@ const copy = isRu ? {
   questions: [
     ["Is Thunder free?", "Thunder is distributed through the official GitHub repository. Licensing terms will be published separately."],
     ["Which sites are supported?", "Thunder uses yt-dlp, so the effective source list depends on its current version."],
-    ["Why does macOS show a warning?", "Current macOS builds are not signed or notarized. Download the DMG only from the official release and verify the published SHA-256."],
-    ["When is Linux coming?", "An AppImage can already be built from source, but an official automated Linux release is still planned."]
+    ["Why does macOS show a warning?", "Current macOS builds are not signed or notarized. Download the DMG only from the official release and verify the published SHA-256."]
   ]
 };
 
@@ -149,12 +147,12 @@ const faqJsonLd = {
       <a href={localizedUrl(locale, "releases")} class="release-pill">
         <Sparkles size={15} /> {copy.heroBadge} <ArrowRight size={15} />
       </a>
-      <h1>{copy.heroTitle}<br /><span class="gradient-text">{copy.heroAccent}</span></h1>
+      <h1 class="display-title">{copy.heroTitle}<br /><span class="gradient-text">{copy.heroAccent}</span></h1>
       <p>{copy.heroLead}</p>
       <div class="hero-actions">
-        <a class="button button-primary" href={localizedUrl(locale, "download")}><Download size={20} /> {copy.download}</a>
-        <a class="button" href={SITE.repository} target="_blank" rel="noreferrer"><GitFork size={19} /> GitHub</a>
-        <a class="button button-ghost" href={localizedUrl(locale, "docs")}>{copy.docs} <ArrowRight size={17} /></a>
+        <a class="button button-primary hero-action" href={localizedUrl(locale, "download")}><Download size={20} /> {copy.download}</a>
+        <a class="button hero-action" href={SITE.repository} target="_blank" rel="noreferrer"><GitFork size={19} /> GitHub</a>
+        <a class="button button-ghost hero-action" href={localizedUrl(locale, "docs")}>{copy.docs} <ArrowRight size={17} /></a>
       </div>
       <div class="hero-trust">
         <span><ScanLine size={16} /> {copy.trusted}</span>
@@ -185,16 +183,19 @@ const faqJsonLd = {
   <div class="container">
     <div class="section-heading reveal">
       <p class="eyebrow">{copy.featuresEyebrow}</p>
-      <h2>{copy.featuresTitle}</h2>
-      <p>{copy.featuresLead}</p>
+      <h2 class="display-title">{copy.featuresTitle}</h2>
+      <p class="section-lead">{copy.featuresLead}</p>
     </div>
     <div class="highlights-grid">
-      {highlights.map((item) => {
+      {highlights.map((item, index) => {
         const [title, description] = item[locale];
         const Icon = item.icon;
         return (
           <article class="feature-card glass reveal">
-            <div class="icon-box"><Icon size={23} /></div>
+            <div class="feature-card-top">
+              <div class="icon-box"><Icon size={23} /></div>
+              <span>{String(index + 1).padStart(2, "0")}</span>
+            </div>
             <h3>{title}</h3>
             <p>{description}</p>
           </article>
@@ -208,7 +209,7 @@ const faqJsonLd = {
   <div class="container">
     <div class="section-heading reveal">
       <p class="eyebrow">{copy.galleryEyebrow}</p>
-      <h2>{copy.galleryTitle}</h2>
+      <h2 class="display-title">{copy.galleryTitle}</h2>
       <p>{copy.galleryLead}</p>
     </div>
     <ScreenshotGallery locale={locale} />
@@ -219,16 +220,16 @@ const faqJsonLd = {
   <div class="container">
     <div class="section-heading reveal">
       <p class="eyebrow">{copy.productsEyebrow}</p>
-      <h2>{copy.productsTitle}</h2>
+      <h2 class="display-title">{copy.productsTitle}</h2>
     </div>
     <div class="product-grid">
-      {productCards.map((item) => {
+      {productCards.map((item, index) => {
         const [title, description] = item[locale];
         const Icon = item.icon;
         return (
           <article class="product-card glass reveal">
-            <Icon size={25} />
-            <div><h3>{title}</h3><p>{description}</p></div>
+            <div class="product-icon"><Icon size={25} /></div>
+            <div class="product-copy"><span>{String(index + 1).padStart(2, "0")}</span><h3>{title}</h3><p>{description}</p></div>
           </article>
         );
       })}
@@ -258,9 +259,7 @@ const faqJsonLd = {
           <article class="platform-card glass">
             <div>
               <strong>{platform.name}</strong>
-              <span class:list={["status", platform.status]}>
-                {platform.status === "supported" ? (isRu ? "Поддерживается" : "Supported") : (isRu ? "Планируется" : "Planned")}
-              </span>
+              <span class="status supported">{isRu ? "Поддерживается" : "Supported"}</span>
             </div>
             <small>{platform.requirements} · {platform.architectures.join(" / ")}</small>
           </article>
@@ -358,16 +357,35 @@ const faqJsonLd = {
     margin-bottom: 24px;
   }
 
+  .display-title {
+    font-family: ui-rounded, "SF Pro Rounded", "Segoe UI", sans-serif;
+    font-weight: 760;
+    letter-spacing: -0.055em;
+  }
+
   .hero-copy > p {
     max-width: 620px;
     font-size: clamp(1.05rem, 1.8vw, 1.22rem);
   }
 
   .hero-actions {
-    display: flex;
+    display: grid;
+    width: min(100%, 620px);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     margin-top: 34px;
-    flex-wrap: wrap;
     gap: 10px;
+  }
+
+  .hero-action {
+    min-height: 54px;
+    padding-inline: 16px;
+    border-radius: 16px;
+    box-shadow: inset 0 1px rgb(255 255 255 / 0.05);
+  }
+
+  .hero-action.button-ghost {
+    border-color: rgb(133 201 255 / 0.14);
+    background: rgb(10 20 36 / 0.38);
   }
 
   .hero-trust {
@@ -397,8 +415,15 @@ const faqJsonLd = {
     z-index: 2;
     padding: 8px;
     border-radius: 24px;
-    transform: perspective(1200px) rotateY(-5deg) rotateX(2deg);
+    transform: perspective(1200px) rotateY(var(--hero-rotate-y, -5deg)) rotateX(var(--hero-rotate-x, 2deg));
+    transform-style: preserve-3d;
+    transition: transform 220ms var(--ease), box-shadow 220ms var(--ease);
+    will-change: transform;
     box-shadow: 0 36px 120px rgb(0 0 0 / 0.48), 0 0 80px rgb(10 139 255 / 0.12);
+  }
+
+  .hero-visual:hover .app-frame {
+    box-shadow: 0 42px 140px rgb(0 0 0 / 0.52), 0 0 100px rgb(10 139 255 / 0.2);
   }
 
   .app-frame img {
@@ -451,28 +476,107 @@ const faqJsonLd = {
     gap: 16px;
   }
 
+  .feature-card {
+    min-height: 300px;
+    padding: 26px;
+  }
+
+  .feature-card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  .feature-card-top .icon-box {
+    margin-bottom: 28px;
+  }
+
+  .feature-card-top > span,
+  .product-copy > span {
+    color: rgb(133 201 255 / 0.4);
+    font-family: Orbitron, sans-serif;
+    font-size: 0.66rem;
+    letter-spacing: 0.14em;
+  }
+
+  .feature-card h3 {
+    margin-bottom: 10px;
+  }
+
+  .feature-card p {
+    margin: 0;
+  }
+
+  .section-lead {
+    margin-top: 22px;
+  }
+
   .interface-section {
     background: linear-gradient(180deg, transparent, rgb(10 139 255 / 0.025), transparent);
   }
 
   .product-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 14px;
   }
 
   .product-card {
-    display: flex;
-    min-height: 170px;
-    padding: 24px;
-    flex-direction: column;
-    justify-content: space-between;
+    position: relative;
+    display: grid;
+    min-height: 158px;
+    grid-template-columns: auto 1fr;
+    padding: 26px;
+    align-items: center;
+    gap: 20px;
     border-radius: 20px;
     color: #7be7ff;
+    overflow: hidden;
+    transition: transform 220ms var(--ease), border-color 220ms var(--ease), box-shadow 220ms var(--ease);
+  }
+
+  .product-card::after {
+    position: absolute;
+    right: -50px;
+    bottom: -90px;
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    content: "";
+    pointer-events: none;
+    background: rgb(22 216 255 / 0.11);
+    filter: blur(34px);
+  }
+
+  .product-card:nth-child(4n + 2)::after,
+  .product-card:nth-child(4n + 3)::after {
+    background: rgb(45 156 255 / 0.14);
+  }
+
+  .product-card:hover {
+    border-color: rgb(22 216 255 / 0.38);
+    transform: translateY(-5px);
+    box-shadow: 0 28px 80px rgb(0 0 0 / 0.34), 0 0 42px rgb(10 139 255 / 0.08);
+  }
+
+  .product-icon {
+    display: grid;
+    width: 54px;
+    height: 54px;
+    place-items: center;
+    border: 1px solid rgb(22 216 255 / 0.24);
+    border-radius: 17px;
+    background: linear-gradient(145deg, rgb(22 216 255 / 0.14), rgb(45 156 255 / 0.06));
+    box-shadow: inset 0 1px rgb(255 255 255 / 0.06), 0 12px 34px rgb(10 139 255 / 0.12);
+  }
+
+  .product-copy {
+    position: relative;
+    z-index: 1;
   }
 
   .product-card h3 {
-    margin: 24px 0 6px;
+    margin: 8px 0 6px;
   }
 
   .product-card p {
@@ -555,11 +659,6 @@ const faqJsonLd = {
     background: rgb(62 227 107 / 0.08);
   }
 
-  .status.planned {
-    color: #f6dc77;
-    background: rgb(255 212 59 / 0.08);
-  }
-
   .release-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -633,7 +732,8 @@ const faqJsonLd = {
     }
 
     .app-frame {
-      transform: none;
+      --hero-rotate-x: 0deg;
+      --hero-rotate-y: 0deg;
     }
 
     .highlights-grid,
@@ -662,6 +762,7 @@ const faqJsonLd = {
 
     .hero-actions {
       display: grid;
+      grid-template-columns: 1fr;
     }
 
     .highlights-grid,

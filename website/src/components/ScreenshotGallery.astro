@@ -1,5 +1,6 @@
 ---
 import { Picture } from "astro:assets";
+import { Pause, Play } from "@lucide/astro";
 import downloader from "@/assets/screenshots/thunder-download.png";
 import tools from "@/assets/screenshots/thunder-tools.png";
 import player from "@/assets/screenshots/thunder-player.png";
@@ -15,21 +16,36 @@ const imageMap = { "thunder-download.png": downloader, "thunder-tools.png": tool
 ---
 
 <div class="gallery glass reveal" data-gallery>
-  <div class="gallery-tabs" role="tablist" aria-label={locale === "ru" ? "Разделы приложения" : "Application sections"}>
-    {mediaGallery.map((item, index) => (
-      <button
-        type="button"
-        role="tab"
-        id={`tab-${item.id}`}
-        aria-controls={`panel-${item.id}`}
-        aria-selected={index === 0 ? "true" : "false"}
-        tabindex={index === 0 ? "0" : "-1"}
-        data-gallery-tab={item.id}
-      >
-        {item.labels[locale]}
-      </button>
-    ))}
+  <div class="gallery-toolbar">
+    <div class="gallery-tabs" role="tablist" aria-label={locale === "ru" ? "Разделы приложения" : "Application sections"}>
+      {mediaGallery.map((item, index) => (
+        <button
+          type="button"
+          role="tab"
+          id={`tab-${item.id}`}
+          aria-controls={`panel-${item.id}`}
+          aria-selected={index === 0 ? "true" : "false"}
+          tabindex={index === 0 ? "0" : "-1"}
+          data-gallery-tab={item.id}
+        >
+          {item.labels[locale]}
+        </button>
+      ))}
+    </div>
+    <button
+      class="gallery-toggle"
+      type="button"
+      data-gallery-toggle
+      aria-pressed="false"
+      aria-label={locale === "ru" ? "Остановить автопрокрутку" : "Pause autoplay"}
+      data-pause-label={locale === "ru" ? "Остановить автопрокрутку" : "Pause autoplay"}
+      data-play-label={locale === "ru" ? "Запустить автопрокрутку" : "Start autoplay"}
+    >
+      <Pause size={17} data-pause-icon />
+      <Play size={17} data-play-icon />
+    </button>
   </div>
+  <div class="gallery-progress" aria-hidden="true"><span data-gallery-progress></span></div>
   <div class="gallery-stage">
     {mediaGallery.map((item, index) => (
       <div
@@ -61,6 +77,15 @@ const imageMap = { "thunder-download.png": downloader, "thunder-tools.png": tool
       gallery.dataset.ready = "true";
       const tabs = [...gallery.querySelectorAll<HTMLButtonElement>("[data-gallery-tab]")];
       const panels = [...gallery.querySelectorAll<HTMLElement>("[data-gallery-panel]")];
+      const progress = gallery.querySelector<HTMLElement>("[data-gallery-progress]");
+      const toggle = gallery.querySelector<HTMLButtonElement>("[data-gallery-toggle]");
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const controller = new AbortController();
+      let autoplayTimer = 0;
+      let interactionPaused = false;
+      let userPaused = false;
+
+      document.addEventListener("astro:before-swap", () => controller.abort(), { once: true });
 
       const activate = (tab: HTMLButtonElement) => {
         const id = tab.dataset.galleryTab;
@@ -74,8 +99,29 @@ const imageMap = { "thunder-download.png": downloader, "thunder-tools.png": tool
         });
       };
 
+      const restartProgress = () => {
+        if (!progress) return;
+        progress.classList.remove("is-running");
+        void progress.offsetWidth;
+        progress.classList.add("is-running");
+      };
+
+      const scheduleAutoplay = () => {
+        window.clearTimeout(autoplayTimer);
+        if (reduceMotion || interactionPaused || userPaused || document.hidden) return;
+        restartProgress();
+        autoplayTimer = window.setTimeout(() => {
+          const current = tabs.findIndex((tab) => tab.getAttribute("aria-selected") === "true");
+          activate(tabs[(current + 1) % tabs.length]);
+          scheduleAutoplay();
+        }, 5200);
+      };
+
       tabs.forEach((tab, index) => {
-        tab.addEventListener("click", () => activate(tab));
+        tab.addEventListener("click", () => {
+          activate(tab);
+          scheduleAutoplay();
+        }, { signal: controller.signal });
         tab.addEventListener("keydown", (event) => {
           if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
           event.preventDefault();
@@ -86,8 +132,40 @@ const imageMap = { "thunder-download.png": downloader, "thunder-tools.png": tool
               : (index + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
           tabs[nextIndex].focus();
           activate(tabs[nextIndex]);
-        });
+          scheduleAutoplay();
+        }, { signal: controller.signal });
       });
+
+      toggle?.addEventListener("click", () => {
+        userPaused = !userPaused;
+        toggle.setAttribute("aria-pressed", String(userPaused));
+        toggle.setAttribute("aria-label", userPaused ? toggle.dataset.playLabel ?? "" : toggle.dataset.pauseLabel ?? "");
+        gallery.classList.toggle("is-user-paused", userPaused);
+        scheduleAutoplay();
+      }, { signal: controller.signal });
+
+      gallery.addEventListener("pointerenter", () => {
+        interactionPaused = true;
+        window.clearTimeout(autoplayTimer);
+        progress?.classList.remove("is-running");
+      }, { signal: controller.signal });
+      gallery.addEventListener("pointerleave", () => {
+        interactionPaused = false;
+        scheduleAutoplay();
+      }, { signal: controller.signal });
+      gallery.addEventListener("focusin", () => {
+        interactionPaused = true;
+        window.clearTimeout(autoplayTimer);
+        progress?.classList.remove("is-running");
+      }, { signal: controller.signal });
+      gallery.addEventListener("focusout", (event) => {
+        if (gallery.contains(event.relatedTarget as Node | null)) return;
+        interactionPaused = false;
+        scheduleAutoplay();
+      }, { signal: controller.signal });
+      document.addEventListener("visibilitychange", scheduleAutoplay, { signal: controller.signal });
+      controller.signal.addEventListener("abort", () => window.clearTimeout(autoplayTimer), { once: true });
+      scheduleAutoplay();
     });
   };
   initializeGalleries();
@@ -105,6 +183,62 @@ const imageMap = { "thunder-download.png": downloader, "thunder-tools.png": tool
     padding: 4px 4px 12px;
     gap: 4px;
     overflow-x: auto;
+  }
+
+  .gallery-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .gallery-toggle {
+    display: grid;
+    width: 38px;
+    height: 38px;
+    flex: 0 0 auto;
+    place-items: center;
+    border: 1px solid rgb(133 201 255 / 0.14);
+    border-radius: 11px;
+    color: #9bb5d1;
+    background: rgb(18 29 45 / 0.58);
+    cursor: pointer;
+  }
+
+  .gallery-toggle:hover {
+    border-color: rgb(22 216 255 / 0.36);
+    color: #eaf8ff;
+  }
+
+  .gallery-toggle [data-play-icon],
+  .gallery.is-user-paused .gallery-toggle [data-pause-icon] {
+    display: none;
+  }
+
+  .gallery.is-user-paused .gallery-toggle [data-play-icon] {
+    display: block;
+  }
+
+  .gallery-progress {
+    height: 2px;
+    margin: -5px 8px 10px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgb(133 201 255 / 0.08);
+  }
+
+  .gallery-progress span {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--cyan-400), var(--blue-600));
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+
+  .gallery-progress span.is-running {
+    animation: gallery-progress 5.2s linear forwards;
   }
 
   .gallery-tabs button {
@@ -151,5 +285,16 @@ const imageMap = { "thunder-download.png": downloader, "thunder-tools.png": tool
     background: #0a8bff;
     filter: blur(80px);
     opacity: 0.25;
+  }
+
+  @keyframes gallery-progress {
+    to { transform: scaleX(1); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .gallery-progress,
+    .gallery-toggle {
+      display: none;
+    }
   }
 </style>

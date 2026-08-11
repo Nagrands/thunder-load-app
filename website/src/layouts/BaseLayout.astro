@@ -124,6 +124,30 @@ const fullTitle = title === "Thunder" ? title : `${title} — Thunder`;
             },
             { passive: true, signal: controller.signal }
           );
+
+          const frame = heroVisual.querySelector<HTMLElement>(".app-frame");
+          const supportsHover = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+          if (frame && supportsHover) {
+            heroVisual.addEventListener(
+              "pointermove",
+              (event) => {
+                const bounds = heroVisual.getBoundingClientRect();
+                const horizontal = (event.clientX - bounds.left) / bounds.width - 0.5;
+                const vertical = (event.clientY - bounds.top) / bounds.height - 0.5;
+                frame.style.setProperty("--hero-rotate-y", `${horizontal * 16}deg`);
+                frame.style.setProperty("--hero-rotate-x", `${vertical * -6}deg`);
+              },
+              { signal: controller.signal }
+            );
+            heroVisual.addEventListener(
+              "pointerleave",
+              () => {
+                frame.style.removeProperty("--hero-rotate-y");
+                frame.style.removeProperty("--hero-rotate-x");
+              },
+              { signal: controller.signal }
+            );
+          }
         }
       };
 

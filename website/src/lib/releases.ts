@@ -161,7 +161,7 @@ export function getReleases(): Promise<Release[]> {
 }
 
 export function downloadableAssets(release: Release) {
-  return release.assets.filter((asset) => asset.kind === "installer");
+  return release.assets.filter((asset) => asset.kind === "installer" && (asset.platform === "windows" || asset.platform === "macos"));
 }
 
 export function preferredAsset(release: Release, platform: ReleasePlatform, arch?: ReleaseArch) {

@@ -23,23 +23,14 @@ export const platforms = [
   {
     id: "windows",
     name: "Windows",
-    status: "supported",
     requirements: "Windows 10/11",
     architectures: ["x64"]
   },
   {
     id: "macos",
     name: "macOS",
-    status: "supported",
     requirements: "macOS 12+",
     architectures: ["Apple silicon", "Intel"]
-  },
-  {
-    id: "linux",
-    name: "Linux",
-    status: "planned",
-    requirements: "AppImage",
-    architectures: ["x64"]
   }
 ] as const;
 

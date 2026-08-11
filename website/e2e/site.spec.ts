@@ -8,6 +8,15 @@ test("home navigation and screenshot tabs work", async ({ page }) => {
   await toolsTab.click();
   await expect(toolsTab).toHaveAttribute("aria-selected", "true");
   await expect(page.getByRole("tabpanel", { name: "Инструменты" })).toBeVisible();
+  await expect(page.getByText(/Linux/i)).toHaveCount(0);
+});
+
+test("screenshot gallery advances automatically", async ({ page }) => {
+  await page.goto("ru/");
+  const toolsTab = page.getByRole("tab", { name: "Инструменты" });
+  await expect(toolsTab).toHaveAttribute("aria-selected", "false");
+  await page.waitForTimeout(5_400);
+  await expect(toolsTab).toHaveAttribute("aria-selected", "true");
 });
 
 test("language switch preserves the section", async ({ page }) => {

@@ -1,5 +1,5 @@
 ---
-import { Apple, Check, Download, ExternalLink, MonitorDown } from "@lucide/astro";
+import { Apple, Check, ExternalLink, MonitorDown } from "@lucide/astro";
 import type { Locale } from "@/config/site";
 import type { Release } from "@/lib/releases";
 import { preferredAsset } from "@/lib/releases";
@@ -23,7 +23,6 @@ const copy = locale === "ru" ? {
   mac: "Скачать для macOS",
   macArm: "Apple silicon",
   macIntel: "Intel",
-  linux: "Linux пока планируется",
   all: "Все варианты загрузки",
   published: "Дата публикации",
   secure: "Прямой файл из GitHub"
@@ -34,7 +33,6 @@ const copy = locale === "ru" ? {
   mac: "Download for macOS",
   macArm: "Apple silicon",
   macIntel: "Intel",
-  linux: "Linux is planned",
   all: "All download options",
   published: "Published",
   secure: "Direct file from GitHub"
@@ -65,10 +63,6 @@ const copy = locale === "ru" ? {
         {macIntel && <a class="button" href={macIntel.url}>{copy.macIntel}<small>{formatBytes(macIntel.size, locale)}</small></a>}
       </div>
     )}
-    <div class="linux-action platform-action" data-platform-action="linux">
-      <Download size={19} />
-      <span>{copy.linux}</span>
-    </div>
     <a class="button all-downloads" href={localizedUrl(locale, "download")}>
       {copy.all} <ExternalLink size={17} />
     </a>
@@ -149,24 +143,8 @@ const copy = locale === "ru" ? {
     font-weight: 700;
   }
 
-  .linux-action {
-    display: flex;
-    min-height: 48px;
-    align-items: center;
-    gap: 9px;
-    padding: 0 18px;
-    border: 1px dashed rgb(255 212 59 / 0.25);
-    border-radius: 13px;
-    color: #c6b977;
-    background: rgb(255 212 59 / 0.035);
-  }
-
   .download-panel[data-platform="windows"] [data-platform-action="windows"],
   .download-panel[data-platform="macos"] [data-platform-action="macos"] {
-    order: -2;
-  }
-
-  .download-panel[data-platform="linux"] [data-platform-action="linux"] {
     order: -2;
   }
 

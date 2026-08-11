@@ -1,5 +1,5 @@
 ---
-import { Apple, Download, MonitorDown, Terminal } from "@lucide/astro";
+import { Apple, Download, MonitorDown } from "@lucide/astro";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import PageHero from "@/components/PageHero.astro";
 import DownloadPanel from "@/components/DownloadPanel.astro";
@@ -46,8 +46,9 @@ const jsonLd = {
     </div>
     <div class="asset-list">
       {downloadableAssets(latest).map((asset) => {
-        const Icon = asset.platform === "windows" ? MonitorDown : asset.platform === "macos" ? Apple : Terminal;
-        const platform = asset.platform === "windows" ? "Windows" : asset.platform === "macos" ? "macOS" : "Linux";
+        const isWindows = asset.platform === "windows";
+        const Icon = isWindows ? MonitorDown : Apple;
+        const platform = isWindows ? "Windows" : "macOS";
         return (
           <article class="asset-card glass">
             <div class="asset-icon"><Icon size={22} /></div>
