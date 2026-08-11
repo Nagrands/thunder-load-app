@@ -1286,6 +1286,16 @@
           <i data-lucide="check-square"></i>
           <span data-i18n="history.bulk.selected">Выбрано</span>
           <span id="history-selected-count">0</span>
+          <button
+            id="history-clear-selection"
+            class="history-bulk-clear"
+            type="button"
+            aria-label="Снять выделение"
+            data-i18n-aria="history.bulk.clear"
+            data-i18n="history.bulk.clear"
+          >
+            Снять выделение
+          </button>
         </div>
         <div class="history-bulk-actions" role="toolbar" aria-label="Массовые действия" data-i18n-aria="history.bulk.actions">
           <button id="history-select-page" class="history-bulk-action" type="button" data-i18n="history.bulk.selectPage">Выбрать страницу</button>
@@ -1298,16 +1308,6 @@
           </button>
           <button id="delete-selected" class="history-bulk-action history-bulk-action--danger" type="button" aria-label="Удалить выбранные записи" data-i18n-aria="history.deleteSelected">
             <i data-lucide="trash-2"></i><span data-i18n="history.bulk.delete">Удалить выбранные</span>
-          </button>
-          <button
-            id="history-clear-selection"
-            class="history-bulk-clear"
-            type="button"
-            aria-label="Снять выделение"
-            data-i18n-aria="history.bulk.clear"
-            data-i18n="history.bulk.clear"
-          >
-            Снять выделение
           </button>
         </div>
       </div>

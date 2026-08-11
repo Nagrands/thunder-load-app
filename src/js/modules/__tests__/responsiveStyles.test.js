@@ -11,6 +11,10 @@ describe("application responsive contract", () => {
     path.join(root, "src/scss/responsive/_adaptive.scss"),
     "utf8",
   );
+  const history = fs.readFileSync(
+    path.join(root, "src/scss/components/_history.scss"),
+    "utf8",
+  );
   const webControl = fs.readFileSync(
     path.join(root, "src/web-control/web-control.css"),
     "utf8",
@@ -75,6 +79,14 @@ describe("application responsive contract", () => {
     expect(denseContract).toContain(
       ".app-footer__zone--center {\n      display: flex;",
     );
+  });
+
+  test("keeps the History bulk toolbar compact without wrapping button labels", () => {
+    expect(history).toContain(".history-bulk-bar {");
+    expect(history).toContain("padding: 6px 8px");
+    expect(history).toContain("min-height: 28px");
+    expect(history).toContain("white-space: nowrap");
+    expect(history).toContain("font-size: 0.72rem");
   });
 
   test("preserves two-column Web Control fields until phone width", () => {

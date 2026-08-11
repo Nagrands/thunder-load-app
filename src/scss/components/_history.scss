@@ -741,14 +741,14 @@
 // 6.  Bulk Bar
 // ===================================================================
 .history-bulk-bar {
-  margin-top: 12px;
-  padding: 8px 12px;
-  border-radius: 14px;
+  margin-top: 8px;
+  padding: 6px 8px;
+  border-radius: 12px;
   background: rgba(var(--color-accent-rgb), 0.085);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
 
   &.hidden {
     display: none;
@@ -760,22 +760,24 @@
   align-items: center;
   justify-content: flex-end;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 4px;
 }
 
 .history-bulk-action,
 .history-bulk-clear {
-  min-height: 32px;
-  padding: 6px 11px;
+  min-height: 28px;
+  padding: 4px 8px;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.18);
   background: rgba(255, 255, 255, 0.05);
   color: var(--color-highlight);
-  font-size: 0.78rem;
+  font-size: 0.72rem;
+  line-height: 1.15;
+  white-space: nowrap;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 4px;
   transition:
     background 0.2s ease,
     border-color 0.2s ease,
@@ -794,8 +796,8 @@
   }
 
   svg {
-    width: 14px;
-    height: 14px;
+    width: 13px;
+    height: 13px;
   }
 }
 
@@ -808,9 +810,14 @@
 .history-bulk-info {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-size: 0.9rem;
+  flex-shrink: 0;
+  gap: 6px;
+  font-size: 0.82rem;
   color: var(--color-highlight);
+
+  .history-bulk-clear {
+    margin-left: 2px;
+  }
 }
 
 .history-bulk-clear {
