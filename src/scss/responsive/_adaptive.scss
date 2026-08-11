@@ -211,6 +211,18 @@ body {
     display: none;
   }
 
+  .app-footer--nav-mode {
+    .app-footer__bar {
+      grid-template-areas:
+        "lead actions"
+        "center center";
+    }
+
+    .app-footer__zone--center {
+      display: flex;
+    }
+  }
+
   .app-footer__action {
     width: 42px;
     min-width: 42px;

@@ -61,6 +61,22 @@ describe("application responsive contract", () => {
     expect(adaptive).toContain("translateX(-105%)");
   });
 
+  test("keeps footer navigation visible at the minimum window width", () => {
+    const denseContract = adaptive.slice(
+      adaptive.indexOf("@media (max-width: variables.$breakpoint-app-dense)"),
+      adaptive.indexOf("@media (max-width: variables.$breakpoint-app-zoom)"),
+    );
+
+    expect(denseContract).toContain(
+      ".app-footer__zone--center {\n    display: none;",
+    );
+    expect(denseContract).toContain(".app-footer--nav-mode");
+    expect(denseContract).toContain('"lead actions"\n        "center center"');
+    expect(denseContract).toContain(
+      ".app-footer__zone--center {\n      display: flex;",
+    );
+  });
+
   test("preserves two-column Web Control fields until phone width", () => {
     expect(webControl).toContain("@media (max-width: 720px)");
     expect(webControl).toContain(

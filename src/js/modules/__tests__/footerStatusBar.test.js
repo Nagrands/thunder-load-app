@@ -112,6 +112,10 @@ describe("footerStatusBar", () => {
 
   afterEach(() => {
     jest.useRealTimers();
+    delete document.body.scrollTo;
+    delete document.body.scrollHeight;
+    delete document.body.clientHeight;
+    delete document.body.scrollTop;
   });
 
   async function loadModule() {
@@ -381,6 +385,44 @@ describe("footerStatusBar", () => {
       top: 0,
       behavior: "smooth",
     });
+  });
+
+  test("scrolls the body to top when it owns the page overflow", async () => {
+    Object.defineProperty(document.body, "scrollHeight", {
+      value: 1200,
+      configurable: true,
+    });
+    Object.defineProperty(document.body, "clientHeight", {
+      value: 500,
+      configurable: true,
+    });
+    Object.defineProperty(document.body, "scrollTop", {
+      value: 48,
+      configurable: true,
+      writable: true,
+    });
+    document.body.scrollTo = jest.fn(() => {
+      document.body.scrollTop = 0;
+      document.body.dispatchEvent(new Event("scroll"));
+    });
+    window.electron.invoke.mockResolvedValue("1.4.4");
+    const { initFooterStatusBar } = await loadModule();
+
+    initFooterStatusBar();
+    await Promise.resolve();
+    jest.advanceTimersByTime(95);
+    const backToTop = document.getElementById("footer-back-to-top");
+    backToTop.focus();
+    backToTop.click();
+
+    expect(document.body.scrollTo).toHaveBeenCalledWith({
+      top: 0,
+      behavior: "smooth",
+    });
+    expect(window.scrollTo).not.toHaveBeenCalled();
+    expect(document.activeElement).not.toBe(backToTop);
+    expect(document.querySelector(".center-menu .group-menu")).not.toBeNull();
+    expect(document.querySelector("#footer-tab-nav .group-menu")).toBeNull();
   });
 
   test("keeps footer controller stable when IntersectionObserver is unavailable", async () => {

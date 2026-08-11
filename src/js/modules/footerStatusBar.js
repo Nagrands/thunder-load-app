@@ -253,6 +253,7 @@ function bindFallbackScrollObserver() {
   };
 
   window.addEventListener("scroll", handleScroll, { passive: true });
+  document.body?.addEventListener("scroll", handleScroll, { passive: true });
   window.addEventListener("resize", handleScroll);
   state.fallbackBound = true;
 }
@@ -318,14 +319,37 @@ function handleResize() {
   setupNavigationObserver();
 }
 
-function scrollToTop() {
+function scrollElementToTop(element) {
+  if (!element) return false;
+
   try {
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    if (typeof element.scrollTo === "function") {
+      element.scrollTo({ top: 0, behavior: "smooth" });
+      return true;
+    }
   } catch {
     try {
-      window.scrollTo(0, 0);
+      element.scrollTo(0, 0);
+      return true;
     } catch {}
   }
+
+  if ("scrollTop" in element) {
+    element.scrollTop = 0;
+    return true;
+  }
+
+  return false;
+}
+
+function scrollToTop() {
+  dom.backToTopAction?.blur();
+
+  const bodyOwnsScroll =
+    document.body && document.body.scrollHeight > document.body.clientHeight;
+  if (bodyOwnsScroll && scrollElementToTop(document.body)) return;
+  if (scrollElementToTop(window)) return;
+  scrollElementToTop(document.scrollingElement);
 }
 
 function initFooterStatusBar() {
