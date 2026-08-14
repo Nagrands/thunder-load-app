@@ -9,6 +9,7 @@ import { initSettings } from "../settings.js";
 import { initUrlInputHandler } from "../urlInputHandler.js";
 import { initDownloaderAvailability } from "../downloaderAvailability.js";
 import { initDownloaderSelectionCard } from "../downloaderSelectionCard.js";
+import { initBatchReviewController } from "../features/batchReview/controller.js";
 import { initSort } from "../sort.js";
 import { initHistoryFilter } from "../historyFilter.js";
 import { initHistoryActions } from "../features/history/actions.js";
@@ -82,6 +83,7 @@ async function runCriticalInitialization(mainView) {
   initDeveloperModeFooterVisibility();
   initDeveloperModeTopBarVisibility();
   initDownloaderSelectionCard();
+  const batchReviewRuntime = initBatchReviewController();
   initUrlInputHandler();
   initDownloaderAvailability();
   initHistory();
@@ -99,6 +101,7 @@ async function runCriticalInitialization(mainView) {
       disposeStatusListener?.();
       disposeI18nListener?.();
       disposeWindowControls();
+      batchReviewRuntime?.dispose?.();
       tabsRuntime.dispose?.();
     },
   };

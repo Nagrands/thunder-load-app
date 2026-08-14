@@ -26,11 +26,18 @@ import {
   hideDownloaderLivePreview,
 } from "./downloaderLivePreview.js";
 import { PREVIEW_EVENT } from "./downloaderSelectionCard.js";
+import {
+  openBatchReview,
+  openPlaylistReview,
+  resetBatchReview,
+} from "./features/batchReview/controller.js";
+import { extractBatchUrls } from "./features/batchReview/model.js";
 
 const clearButton = document.getElementById("clear-url");
 const pasteButton = document.getElementById("paste-url");
 const selectFolderButton = document.getElementById("select-folder");
 const sourceLinkButton = document.getElementById("url-source-link");
+const openBatchButton = document.getElementById("open-batch-review");
 const urlErrorEl = document.getElementById("url-inline-error");
 const previewSpinner = document.getElementById("url-preview-spinner");
 const helperTextEl = document.getElementById("url-helper-text");
@@ -89,6 +96,24 @@ function initUrlInputHandler() {
     if (selectFolderButton) {
       selectFolderButton.classList.remove("hidden"); // папка должна быть всегда видна (если не загрузка)
     }
+  };
+
+  const applyReviewResult = (result, { updateInput = false } = {}) => {
+    if (!result?.urls?.length) return;
+    if (updateInput) {
+      urlInput.value = result.urls[0];
+      toggleButtons();
+      syncShellState();
+      urlInput.dispatchEvent(new Event("force-preview"));
+    }
+    window.dispatchEvent(
+      new CustomEvent("downloader:batch-reviewed", { detail: result }),
+    );
+  };
+
+  const openBatchFromText = async (text, source = "manual") => {
+    const result = await openBatchReview({ text, source });
+    applyReviewResult(result, { updateInput: true });
   };
 
   let previewTimer = null;
@@ -398,7 +423,7 @@ function initUrlInputHandler() {
     let playlistMetaEl = document.getElementById("preview-playlist-meta");
     let previewActionsEl = document.getElementById("preview-actions");
     let currentOnlyBtn = document.getElementById("preview-current-only");
-    let addAllBtn = document.getElementById("preview-enqueue-all");
+    let chooseItemsBtn = document.getElementById("preview-choose-items");
     if (!card || !previewTitleEl || !img) return;
     livePreviewButton = document.getElementById("preview-open-live");
     if (!data || !data.success) {
@@ -408,7 +433,7 @@ function initUrlInputHandler() {
       card.hidden = true;
       card.classList.remove("pos-top");
       setStateClass("has-preview", false);
-      if (addAllBtn) addAllBtn.style.display = "none";
+      if (chooseItemsBtn) chooseItemsBtn.style.display = "none";
       if (livePreviewButton) {
         livePreviewButton.classList.add("hidden");
         livePreviewButton.classList.remove("is-active");
@@ -549,42 +574,51 @@ function initUrlInputHandler() {
         currentOnlyBtn.innerHTML = `<i class="fa-solid fa-circle-play"></i> ${t("input.url.preview.currentOnly")}`;
         currentOnlyBtn.style.display = "";
       }
-      if (playlistEntries.length && !addAllBtn) {
-        addAllBtn = document.createElement("button");
-        addAllBtn.id = "preview-enqueue-all";
-        addAllBtn.className = "preview-action-button";
-        addAllBtn.innerHTML = `<i class="fa-solid fa-list"></i> ${t("input.url.preview.addAll", { count: playlistEntries.length })}`;
-        addAllBtn.setAttribute("data-bs-toggle", "tooltip");
-        addAllBtn.setAttribute("data-bs-placement", "top");
-        addAllBtn.setAttribute("title", t("input.url.preview.addAllTitle"));
-        previewActionsEl?.appendChild(addAllBtn);
+      if (playlistEntries.length && !chooseItemsBtn) {
+        chooseItemsBtn = document.createElement("button");
+        chooseItemsBtn.id = "preview-choose-items";
+        chooseItemsBtn.className = "preview-action-button";
+        chooseItemsBtn.innerHTML = `<i class="fa-solid fa-list-check"></i> ${t("batchReview.chooseItems", { count: playlistEntries.length })}`;
+        chooseItemsBtn.setAttribute("data-bs-toggle", "tooltip");
+        chooseItemsBtn.setAttribute("data-bs-placement", "top");
+        chooseItemsBtn.setAttribute("title", t("batchReview.chooseItemsTitle"));
+        previewActionsEl?.appendChild(chooseItemsBtn);
         try {
           initTooltips();
         } catch (_) {}
-      } else if (playlistEntries.length && addAllBtn) {
-        addAllBtn.innerHTML = `<i class="fa-solid fa-list"></i> ${t("input.url.preview.addAll", { count: playlistEntries.length })}`;
-        addAllBtn.style.display = "";
+      } else if (playlistEntries.length && chooseItemsBtn) {
+        chooseItemsBtn.innerHTML = `<i class="fa-solid fa-list-check"></i> ${t("batchReview.chooseItems", { count: playlistEntries.length })}`;
+        chooseItemsBtn.style.display = "";
         try {
           initTooltips();
         } catch (_) {}
-      } else if (addAllBtn) {
-        addAllBtn.style.display = "none";
+      } else if (chooseItemsBtn) {
+        chooseItemsBtn.style.display = "none";
       }
-      if (addAllBtn && playlistEntries.length) {
-        addAllBtn.onclick = () => {
-          try {
-            const ev = new CustomEvent("queue:addMany", {
-              detail: { urls: playlistEntries },
-            });
-            window.dispatchEvent(ev);
-          } catch (_) {}
+      if (chooseItemsBtn && playlistEntries.length) {
+        chooseItemsBtn.onclick = async () => {
+          const items = Array.isArray(data.playlistItems)
+            ? data.playlistItems
+            : playlistEntries.map((url, index) => ({
+                id: `playlist-${index}`,
+                index: index + 1,
+                url,
+                title: url,
+                available: true,
+              }));
+          const result = await openPlaylistReview({
+            sourceUrl: data.webpage_url || urlInput.value,
+            items,
+          });
+          applyReviewResult(result);
         };
       }
       currentOnlyBtn.onclick = () => {
+        resetBatchReview("playlist-current");
         document.getElementById("download-button")?.click();
       };
-    } else if (addAllBtn) {
-      addAllBtn.style.display = "none";
+    } else if (chooseItemsBtn) {
+      chooseItemsBtn.style.display = "none";
       if (currentOnlyBtn) currentOnlyBtn.style.display = "none";
       playlistMetaEl?.classList.add("hidden");
       if (playlistMetaEl) playlistMetaEl.innerHTML = "";
@@ -794,12 +828,8 @@ function initUrlInputHandler() {
           );
           return;
         }
+        renderPreview(info);
         await syncBackgroundPreview(info);
-        window.dispatchEvent(
-          new CustomEvent(PREVIEW_EVENT, {
-            detail: { info, url: normalizedUrl },
-          }),
-        );
       } catch (_) {
         const currentUrl = normalizeUrlInput(urlInput.value).trim();
         if (requestId === previewRequestId && currentUrl === normalizedUrl) {
@@ -971,6 +1001,7 @@ function initUrlInputHandler() {
   });
 
   urlInput.addEventListener("input", (event) => {
+    if (event.isTrusted) resetBatchReview("input-change");
     if (!isDownloaderAvailable()) {
       setPreviewLoading(false);
       renderPreview(null);
@@ -1081,6 +1112,7 @@ function initUrlInputHandler() {
   });
 
   clearButton.addEventListener("click", () => {
+    resetBatchReview("clear");
     urlInput.value = "";
     hasInteracted = false;
     toggleButtons();
@@ -1100,6 +1132,10 @@ function initUrlInputHandler() {
   pasteButton.addEventListener("click", async () => {
     if (!isDownloaderAvailable()) return;
     const text = (await navigator.clipboard.readText()) || "";
+    if (extractBatchUrls(text).length > 1) {
+      await openBatchFromText(text, "clipboard");
+      return;
+    }
     hasInteracted = false;
     urlInput.value = normalizeUrlInput(text.trim());
     toggleButtons();
@@ -1107,6 +1143,17 @@ function initUrlInputHandler() {
     urlInput.dispatchEvent(new Event("input", { bubbles: true })); // запускаем реакцию
     urlInput.dispatchEvent(new Event("force-preview"));
     urlInput.focus();
+  });
+
+  openBatchButton?.addEventListener("click", () => {
+    void openBatchFromText(urlInput.value, "button");
+  });
+
+  urlInput.addEventListener("paste", (event) => {
+    const text = event.clipboardData?.getData("text") || "";
+    if (extractBatchUrls(text).length <= 1) return;
+    event.preventDefault();
+    void openBatchFromText(text, "paste");
   });
 
   sourceLinkButton?.addEventListener("click", async () => {
@@ -1215,7 +1262,9 @@ function initUrlInputHandler() {
           e.dataTransfer.getData("text") ||
           ""
         ).trim();
-        if (text) {
+        if (extractBatchUrls(text).length > 1) {
+          void openBatchFromText(text, "drop");
+        } else if (text) {
           hasInteracted = false;
           urlInput.value = normalizeUrlInput(text);
           hideInlineError();

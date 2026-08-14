@@ -62,9 +62,6 @@ export const coreTranslations = {
     "input.url.error.unsupported": "Этот источник пока не поддерживается.",
     "input.url.error.invalidOrUnsupported":
       "Проверьте ссылку: нужен корректный URL поддерживаемого источника.",
-    "input.url.preview.addAll": "Добавить все ({count})",
-    "input.url.preview.addAllTitle":
-      "Добавить все элементы плейлиста в очередь",
     "input.url.preview.currentOnly": "Текущий ролик",
     "input.url.preview.currentOnlyTitle":
       "Скачать или добавить в очередь только текущий ролик по выбранному режиму",
@@ -529,8 +526,6 @@ export const coreTranslations = {
     "input.url.error.unsupported": "This source is not supported yet.",
     "input.url.error.invalidOrUnsupported":
       "Check the link: enter a valid URL from a supported source.",
-    "input.url.preview.addAll": "Add all ({count})",
-    "input.url.preview.addAllTitle": "Add all playlist items to the queue",
     "input.url.preview.currentOnly": "Current item",
     "input.url.preview.currentOnlyTitle":
       "Download or queue only the current item using the selected mode",

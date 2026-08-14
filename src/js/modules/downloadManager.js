@@ -63,6 +63,14 @@ import { createIncrementalQueueRenderer } from "./features/queue/renderer.js";
 import { createQueueCardMarkup } from "./features/queue/cards.js";
 import { createQueueActionMenu } from "./features/queue/actionMenu.js";
 import { openSettings } from "./settingsModal.js";
+import {
+  getBatchReviewDraft,
+  resetBatchReview,
+} from "./features/batchReview/controller.js";
+import {
+  canonicalizeBatchUrl as normalizeUrl,
+  extractBatchUrls as extractUrls,
+} from "./features/batchReview/model.js";
 
 const queueInfo = document.getElementById("download-queue-info");
 const queueIndicator = document.getElementById("queue-start-indicator");
@@ -73,6 +81,7 @@ const jobSummaryTitle = document.getElementById("downloader-job-summary-title");
 const jobSummaryMeta = document.getElementById("downloader-job-summary-meta");
 const QUEUE_LOG_TAG = "[queue]";
 const HISTORY_SAVE_ERROR_CODE = "HISTORY_SAVE_FAILED";
+const BATCH_REVIEW_HANDLER_KEY = "__thunderLoadBatchReviewSubmitHandler";
 
 let downloadedUrlCache = { ts: 0, map: new Map() };
 let lastDownloadIntentWarmup = { url: "", ts: 0 };
@@ -803,77 +812,6 @@ function loadQueueFromStorage() {
   return restored;
 }
 
-function normalizeUrl(u) {
-  try {
-    const url = new URL(String(u).trim());
-    // strip common tracking params but keep meaningful like 't' (timestamp)
-    const toDelete = [
-      "utm_source",
-      "utm_medium",
-      "utm_campaign",
-      "utm_term",
-      "utm_content",
-      "si",
-      "spm",
-      "fbclid",
-      "gclid",
-      "yclid",
-      "mc_cid",
-      "mc_eid",
-      "feature",
-    ];
-    toDelete.forEach((k) => url.searchParams.delete(k));
-    // remove trailing slash for consistency
-    if (url.pathname !== "/" && url.pathname.endsWith("/")) {
-      url.pathname = url.pathname.replace(/\/+$/, "");
-    }
-    // If short youtu.be link — canonicalize to youtube.com/watch?v=ID
-    const hostLower = url.hostname.toLowerCase();
-    if (hostLower === "youtu.be") {
-      const videoId = url.pathname.replace(/^\/+/, "");
-      if (videoId) {
-        url.hostname = "www.youtube.com";
-        url.pathname = "/watch";
-        url.searchParams.set("v", videoId);
-      }
-    }
-
-    // drop hash except time-like (#t=) to reduce dupes
-    if (!/^t=/.test(url.hash?.slice(1) || "")) url.hash = "";
-    url.username = "";
-    url.password = "";
-    // remove playlist parameter when a specific video is requested
-    const youtubeHostPattern = /(^|\.)youtube\.com$/;
-    if (
-      (youtubeHostPattern.test(hostLower) || hostLower === "youtu.be") &&
-      url.searchParams.has("v")
-    ) {
-      url.searchParams.delete("list");
-    }
-    return url.toString();
-  } catch {
-    return (u || "").trim();
-  }
-}
-
-function extractUrls(raw) {
-  if (!raw) return [];
-  const re = /(https?:\/\/[^\s'"<>]+)/gi;
-  const out = [];
-  let m;
-  while ((m = re.exec(raw))) out.push(m[1]);
-  // если ре не нашёл — fallback разбивка по пробелам
-  if (out.length === 0) {
-    out.push(
-      ...String(raw)
-        .split(/\s+|,|;|\n|\r/)
-        .map((s) => s.trim())
-        .filter((s) => /^https?:\/\//i.test(s)),
-    );
-  }
-  return out;
-}
-
 function summarizeEnqueueResult(res) {
   const parts = [];
   if (res.added) parts.push(t("queue.summary.added", { count: res.added }));
@@ -1405,7 +1343,6 @@ function updateQueueDisplay() {
   updateDownloaderTabLabel();
 }
 
-let lastChosenQuality = null;
 let lastChosenQualityLabel = null;
 let progressResetTimer = null;
 let queueDragState = null;
@@ -1522,6 +1459,7 @@ const persistLastQuality = (quality) => {
 };
 
 const clearUrlInputAfterSubmit = () => {
+  resetBatchReview("submitted");
   if (!urlInput) return;
   urlInput.value = "";
   try {
@@ -1973,7 +1911,81 @@ const initiateDownload = async (url, quality, options = {}) => {
   }
 };
 
+async function submitBatchUrls(urls, options = {}, context = {}) {
+  const validUrls = (Array.isArray(urls) ? urls : [])
+    .map(normalizeUrl)
+    .filter((url) => isValidUrl(url) && isSupportedUrl(url));
+  if (!validUrls.length) {
+    showToast(t("download.url.invalid"), "warning");
+    return null;
+  }
+  const selection = await resolveDownloaderSelection(validUrls[0]);
+  const payload = selection?.mediaPayload;
+  if (!payload) {
+    showToast(t("quality.quick.batchMediaRequired"), "warning");
+    return null;
+  }
+  const downloadedMap =
+    context.downloadedMap || (await getDownloadedUrlMap());
+  lastChosenQualityLabel =
+    typeof payload === "string" ? payload : payload.label || null;
+  persistLastQuality(lastChosenQualityLabel);
+  const maxActive =
+    Number(state.maxParallelDownloads) || PARALLEL_DOWNLOAD_LIMIT;
+  const controller = getQueueController();
+  const existingSignatures = new Set(
+    controller
+      .getSnapshot()
+      .jobs.map((job) => getQueueSignature(job.url, job.quality)),
+  );
+  const result = enqueueMany(validUrls, payload, {
+    ...options,
+    downloadedMap,
+  });
+  if (!options.enqueueOnly && result.added > 0) {
+    const availableSlots = Math.max(
+      0,
+      maxActive - getActiveDownloadJobs(state).length,
+    );
+    const jobsBySignature = new Map(
+      controller
+        .getSnapshot()
+        .jobs.filter(
+          (job) =>
+            !existingSignatures.has(getQueueSignature(job.url, job.quality)),
+        )
+        .map((job) => [getQueueSignature(job.url, job.quality), job]),
+    );
+    validUrls
+      .map((url) => jobsBySignature.get(getQueueSignature(url, payload)))
+      .filter(Boolean)
+      .slice(0, availableSlots)
+      .forEach((job) => {
+        const identity = job?.jobId || job?.id || job?.signature;
+        if (identity) controller.startOne(identity);
+      });
+  }
+  if (result.added === 0 && result.alreadyDownloaded > 0) {
+    showToast(t("download.url.downloaded"), "info");
+  } else {
+    showToast(
+      t("queue.summary.toast", { summary: summarizeEnqueueResult(result) }),
+      "info",
+    );
+  }
+  clearUrlInputAfterSubmit();
+  return result;
+}
+
 const handleDownloadButtonClick = async (options = {}) => {
+  const reviewed = getBatchReviewDraft();
+  if (reviewed?.confirmed && reviewed.urls.length > 1) {
+    await submitBatchUrls(reviewed.urls, {
+      ...options,
+      enqueueOnly: Boolean(options.enqueueOnly),
+    });
+    return;
+  }
   const raw = urlInput.value.trim();
   const maxActive =
     Number(state.maxParallelDownloads) || PARALLEL_DOWNLOAD_LIMIT;
@@ -2000,55 +2012,7 @@ const handleDownloadButtonClick = async (options = {}) => {
 
   // Если несколько: стартуем первый/добавляем остальные в очередь
   if (validUrls.length > 1) {
-    const first = validUrls[0];
-    const selection = await resolveSelectionForUrl(first);
-    const payload = selection?.mediaPayload;
-    if (!payload) {
-      showToast(t("quality.quick.batchMediaRequired"), "warning");
-      return;
-    }
-    lastChosenQuality = payload;
-    lastChosenQualityLabel =
-      typeof payload === "string" ? payload : payload.label || null;
-    persistLastQuality(lastChosenQualityLabel);
-
-    if (isPoolFull || options.enqueueOnly) {
-      const res = enqueueMany(validUrls, payload, {
-        ...options,
-        downloadedMap,
-      });
-      if (res.added === 0 && res.alreadyDownloaded > 0) {
-        showToast(t("download.url.downloaded"), "info");
-        return;
-      }
-      showToast(
-        t("queue.summary.toast", { summary: summarizeEnqueueResult(res) }),
-        "info",
-      );
-    } else {
-      const pendingByMode = validUrls.filter(
-        (u) => !isAlreadyDownloaded(u, downloadedMap, payload),
-      );
-      if (pendingByMode.length === 0) {
-        showToast(t("download.url.downloaded"), "info");
-        return;
-      }
-      const firstPending = pendingByMode[0];
-      const restPending = pendingByMode.slice(1);
-      initiateDownload(firstPending, payload, { fromQueue: false });
-      const res = enqueueMany(restPending, payload, {
-        ...options,
-        downloadedMap,
-      });
-      if (res.added || res.duplicates || res.invalid || res.alreadyDownloaded) {
-        showToast(
-          t("queue.summary.toast", { summary: summarizeEnqueueResult(res) }),
-          "info",
-        );
-      }
-      pumpDownloadPool("auto");
-    }
-    clearUrlInputAfterSubmit();
+    await submitBatchUrls(validUrls, options, { downloadedMap });
     return;
   }
 
@@ -2069,7 +2033,6 @@ const handleDownloadButtonClick = async (options = {}) => {
   }
   const payload = availablePayloads[0];
   const companionPayloads = availablePayloads.slice(1);
-  lastChosenQuality = payload;
   lastChosenQualityLabel =
     typeof payload === "string" ? payload : payload.label || null;
   persistLastQuality(lastChosenQualityLabel);
@@ -2525,20 +2488,22 @@ function initDownloadButton() {
   }
   updateQueueDisplay();
 
-  // Пакетное добавление ссылок в очередь (из предпросмотра плейлиста)
-  window.addEventListener("queue:addMany", async (e) => {
-    const urls = Array.isArray(e.detail?.urls) ? e.detail.urls : [];
-    const q = e.detail?.quality || lastChosenQuality || t("quality.source");
-    const downloadedMap = await getDownloadedUrlMap();
-    const res = enqueueMany(urls, q, { downloadedMap });
-    console.log(QUEUE_LOG_TAG, "enqueueMany-event", { count: urls.length });
-    if (res.added || res.duplicates || res.invalid || res.alreadyDownloaded) {
-      showToast(
-        t("queue.summary.toast", { summary: summarizeEnqueueResult(res) }),
-        "info",
-      );
-    }
-  });
+  if (window[BATCH_REVIEW_HANDLER_KEY]) {
+    window.removeEventListener(
+      "downloader:batch-reviewed",
+      window[BATCH_REVIEW_HANDLER_KEY],
+    );
+  }
+  window[BATCH_REVIEW_HANDLER_KEY] = (event) => {
+    const urls = Array.isArray(event.detail?.urls) ? event.detail.urls : [];
+    void submitBatchUrls(urls, {
+      enqueueOnly: event.detail?.action === "enqueue",
+    });
+  };
+  window.addEventListener(
+    "downloader:batch-reviewed",
+    window[BATCH_REVIEW_HANDLER_KEY],
+  );
 
   window.addEventListener("i18n:changed", () => {
     updateQueueDisplay();
@@ -2645,6 +2610,7 @@ export {
   downloadVideo,
   initiateDownload,
   handleDownloadButtonClick,
+  submitBatchUrls,
   initDownloadButton,
   updateQueueDisplay,
   resetDownloadUiState,

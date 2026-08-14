@@ -1540,9 +1540,9 @@
 - [ ] closing the preview card clears the downloader background video
 - [ ] switching from YouTube preview to another source clears stale video background
 - [ ] background recovery refreshes current YouTube preview without showing an error
-- [ ] renders playlist summary and add-all action inside preview
+- [ ] renders playlist summary and choose-items action inside preview
 - [ ] playlist current-item action reuses the normal download flow
-- [ ] playlist add-all action dispatches queue:addMany with entries
+- [ ] playlist review dispatches selected items
 - [ ] opens current source URL when clicking the source icon button
 
 ### `src/js/modules/__tests__/videoInfoBroker.test.js` (6)

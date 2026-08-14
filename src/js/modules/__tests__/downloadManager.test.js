@@ -810,6 +810,97 @@ describe("downloadManager enqueueOnly behavior", () => {
     });
   });
 
+  it("applies one media payload to a reviewed batch without subtitle companions", async () => {
+    await jest.isolateModulesAsync(async () => {
+      const mediaPayload = { type: "pair", label: "1080p + audio" };
+      const subtitlePayload = {
+        type: "subtitle-only",
+        downloadKind: "subtitle",
+        label: "RU subtitles",
+        subtitleLang: "ru",
+      };
+      jest.doMock("../history", () => ({ getHistoryData: jest.fn(() => []) }));
+      jest.doMock("../downloaderSelectionCard", () => ({
+        resolveDownloaderSelection: jest.fn().mockResolvedValue({
+          mediaPayload,
+          subtitlePayloads: [subtitlePayload],
+          summary: { text: "MP4 · H.264 + AAC" },
+        }),
+      }));
+
+      const { state } = require("../state");
+      const { submitBatchUrls } = require("../downloadManager");
+      await submitBatchUrls(
+        ["https://example.com/a", "https://example.com/b"],
+        { enqueueOnly: true },
+      );
+
+      expect(pendingJobs(state)).toHaveLength(2);
+      expect(pendingJobs(state).map((job) => job.quality)).toEqual([
+        mediaPayload,
+        mediaPayload,
+      ]);
+    });
+  });
+
+  it("starts reviewed batch jobs in free slots and leaves the rest pending", async () => {
+    await jest.isolateModulesAsync(async () => {
+      const never = new Promise(() => {});
+      window.electron.invoke.mockImplementation((channel) =>
+        channel === "download-video" ? never : Promise.resolve(null),
+      );
+      jest.doMock("../history", () => ({ getHistoryData: jest.fn(() => []) }));
+
+      const { state } = require("../state");
+      const { submitBatchUrls } = require("../downloadManager");
+      state.maxParallelDownloads = 2;
+
+      const result = await submitBatchUrls([
+        "https://example.com/a",
+        "https://example.com/b",
+        "https://example.com/c",
+      ]);
+
+      expect(result.added).toBe(3);
+      expect(activeJobs(state)).toHaveLength(2);
+      expect(pendingJobs(state)).toHaveLength(1);
+      expect(
+        window.electron.invoke.mock.calls.filter(
+          ([channel]) => channel === "download-video",
+        ),
+      ).toHaveLength(2);
+    });
+  });
+
+  it("keeps reviewed batch jobs pending when the pool is saturated", async () => {
+    await jest.isolateModulesAsync(async () => {
+      jest.doMock("../history", () => ({ getHistoryData: jest.fn(() => []) }));
+
+      const { state } = require("../state");
+      const { submitBatchUrls } = require("../downloadManager");
+      state.maxParallelDownloads = 2;
+      setActiveJobs(state, [
+        { jobId: "active-a", url: "https://example.com/active-a", quality: "Source" },
+        { jobId: "active-b", url: "https://example.com/active-b", quality: "Source" },
+      ]);
+
+      const result = await submitBatchUrls([
+        "https://example.com/a",
+        "https://example.com/b",
+      ]);
+
+      expect(result.added).toBe(2);
+      expect(activeJobs(state)).toHaveLength(2);
+      expect(pendingJobs(state)).toHaveLength(2);
+      expect(window.electron.invoke).not.toHaveBeenCalledWith(
+        "download-video",
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+  });
+
   it("allows a subtitle-only unified selection", async () => {
     await jest.isolateModulesAsync(async () => {
       const subtitlePayload = {

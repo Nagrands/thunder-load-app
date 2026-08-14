@@ -27,6 +27,7 @@ const buildDom = () => {
               <span class="url-input-statusline__dot"></span>
               <span id="url-helper-text" class="url-helper-text"></span>
             </div>
+            <button id="open-batch-review" type="button"></button>
           <div class="url-input-shortcuts"></div>
           </div>
           <nav class="button-group downloader-action-row url-input-action-row">
@@ -108,6 +109,8 @@ describe("urlInputHandler", () => {
   let clearDownloaderBackgroundPreviewMock;
   let hideDownloaderLivePreviewMock;
   let isDownloaderAvailableMock;
+  let openBatchReviewMock;
+  let openPlaylistReviewMock;
   let initUrlInputHandler;
 
   const loadModule = () => {
@@ -138,6 +141,11 @@ describe("urlInputHandler", () => {
       }));
       jest.doMock("../downloaderSelectionCard.js", () => ({
         PREVIEW_EVENT: "downloader:preview-info",
+      }));
+      jest.doMock("../features/batchReview/controller.js", () => ({
+        openBatchReview: openBatchReviewMock,
+        openPlaylistReview: openPlaylistReviewMock,
+        resetBatchReview: jest.fn(),
       }));
       jest.doMock("../downloaderAvailability.js", () => ({
         isDownloaderAvailable: isDownloaderAvailableMock,
@@ -201,11 +209,11 @@ describe("urlInputHandler", () => {
           if (key === "input.url.preview.kicker") {
             return "Предпросмотр";
           }
-          if (key === "input.url.preview.addAll") {
-            return `Добавить все (${vars.count})`;
+          if (key === "batchReview.chooseItems") {
+            return `Выбрать элементы (${vars.count})`;
           }
-          if (key === "input.url.preview.addAllTitle") {
-            return "Добавить все элементы плейлиста в очередь";
+          if (key === "batchReview.chooseItemsTitle") {
+            return "Выбрать отдельные элементы плейлиста";
           }
           if (key === "input.url.preview.currentOnly") {
             return "Текущий ролик";
@@ -247,6 +255,8 @@ describe("urlInputHandler", () => {
     clearDownloaderBackgroundPreviewMock = jest.fn();
     hideDownloaderLivePreviewMock = jest.fn();
     isDownloaderAvailableMock = jest.fn(() => true);
+    openBatchReviewMock = jest.fn().mockResolvedValue(null);
+    openPlaylistReviewMock = jest.fn().mockResolvedValue(null);
     window.electron = {
       invoke: jest.fn(),
       ipcRenderer: { invoke: getVideoInfoMock },
@@ -293,6 +303,22 @@ describe("urlInputHandler", () => {
     expect(navigator.clipboard.readText).not.toHaveBeenCalled();
     expect(input.value).toBe("");
     expect(updateButtonStateMock).not.toHaveBeenCalled();
+  });
+
+  test("opens batch review when clipboard contains multiple URLs", async () => {
+    const { pasteBtn, input } = getState();
+    navigator.clipboard.readText.mockResolvedValueOnce(
+      "https://example.com/a\nhttps://example.com/b",
+    );
+
+    pasteBtn.click();
+    await flushPromises();
+
+    expect(openBatchReviewMock).toHaveBeenCalledWith({
+      text: "https://example.com/a\nhttps://example.com/b",
+      source: "clipboard",
+    });
+    expect(input.value).toBe("");
   });
 
   test("shows inline error on blur for invalid URL", () => {
@@ -1203,7 +1229,7 @@ describe("urlInputHandler", () => {
     expect(previewCard.textContent).toContain("3 элементов");
     expect(previewCard.textContent).toContain("Всего: 7:00");
     expect(previewCard.textContent).toContain("Текущий ролик");
-    expect(previewCard.textContent).toContain("Добавить все (3)");
+    expect(previewCard.textContent).toContain("Выбрать элементы (3)");
     expect(helperText.textContent).toContain("Это плейлист");
   });
 
@@ -1230,10 +1256,15 @@ describe("urlInputHandler", () => {
     expect(clickSpy).toHaveBeenCalledTimes(1);
   });
 
-  test("playlist add-all action dispatches queue:addMany with entries", async () => {
+  test("playlist review dispatches selected items", async () => {
     const { input } = getState();
     const listener = jest.fn();
-    window.addEventListener("queue:addMany", listener);
+    window.addEventListener("downloader:batch-reviewed", listener);
+    openPlaylistReviewMock.mockResolvedValueOnce({
+      mode: "playlist",
+      urls: ["https://example.com/b"],
+      action: "enqueue",
+    });
     getVideoInfoMock.mockResolvedValueOnce({
       success: true,
       title: "Playlist demo",
@@ -1248,11 +1279,18 @@ describe("urlInputHandler", () => {
     jest.advanceTimersByTime(600);
     await flushPromises();
 
-    document.getElementById("preview-enqueue-all").click();
+    document.getElementById("preview-choose-items").click();
+    await flushPromises();
 
     expect(listener).toHaveBeenCalledTimes(1);
+    expect(openPlaylistReviewMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        items: expect.arrayContaining([
+          expect.objectContaining({ url: "https://example.com/a" }),
+        ]),
+      }),
+    );
     expect(listener.mock.calls[0][0].detail.urls).toEqual([
-      "https://example.com/a",
       "https://example.com/b",
     ]);
   });

@@ -24,6 +24,7 @@ describe("main view header template", () => {
     const redesignedShellHtml = template.slice(inputStart, cardStart);
 
     expect(redesignedShellHtml).toContain('id="url-helper-text"');
+    expect(redesignedShellHtml).toContain('id="open-batch-review"');
     expect(redesignedShellHtml).toContain('id="download-destination-path"');
     expect(redesignedShellHtml).not.toContain("downloader-view-mode");
     expect(redesignedShellHtml).toContain('for="url"');
@@ -44,5 +45,20 @@ describe("main view header template", () => {
     );
     expect(queueTemplate).toContain('id="open-last-video"');
     expect(queueTemplate).toContain('id="open-folder"');
+
+    const mainViewTemplate = fs.readFileSync(
+      path.resolve(process.cwd(), "templates/partials/main-view.njk"),
+      "utf8",
+    );
+    const batchTemplate = fs.readFileSync(
+      path.resolve(
+        process.cwd(),
+        "templates/partials/main-view/batch-review.njk",
+      ),
+      "utf8",
+    );
+    expect(mainViewTemplate).toContain("partials/main-view/batch-review.njk");
+    expect(batchTemplate).toContain('id="batch-review-modal"');
+    expect(batchTemplate).toContain('data-action="batch-review-download"');
   });
 });
