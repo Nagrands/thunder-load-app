@@ -10,14 +10,15 @@ const buildWrapper = () => {
       <div class="input-container">
         <div class="url-entry-shell">
           <div class="url-input-wrapper">
-            <nav class="button-group">
-              <button id="open-last-video"></button>
-              <button id="open-folder"></button>
-            </nav>
           </div>
         </div>
       </div>
     </header>
+    <section class="downloads-toolbar">
+      <strong>Downloads</strong>
+      <button id="open-last-video"></button>
+      <button id="open-folder"></button>
+    </section>
     <div id="download-queue-info" class="download-queue-info hidden"></div>
     <div id="queue-start-indicator" class="queue-start-indicator hidden"></div>
     <section id="history-container">
@@ -71,8 +72,12 @@ describe("downloaderView hero", () => {
     expect(
       wrapper.querySelector("#downloader-media-inspector-slot"),
     ).toBeNull();
+    expect(wrapper.querySelector(".downloads-toolbar")).not.toBeNull();
     expect(
-      wrapper.querySelector("header .url-input-wrapper nav.button-group"),
+      wrapper.querySelector(".downloads-toolbar #open-last-video"),
+    ).not.toBeNull();
+    expect(
+      wrapper.querySelector(".downloads-toolbar #open-folder"),
     ).not.toBeNull();
     expect(wrapper.querySelector(".downloader-breadcrumbs")).toBeNull();
   });

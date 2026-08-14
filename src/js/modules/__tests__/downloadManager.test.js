@@ -38,7 +38,13 @@ beforeEach(() => {
 describe("downloadManager queue persistence", () => {
   beforeEach(() => {
     jest.resetModules();
-    jest.dontMock("../compactDownloaderQuality");
+    jest.doMock("../downloaderSelectionCard", () => ({
+      resolveDownloaderSelection: jest.fn().mockResolvedValue({
+        mediaPayload: "Source",
+        subtitlePayloads: [],
+        summary: { text: "Source" },
+      }),
+    }));
     localStorage.clear();
     buildDom();
     global.window = global.window || {};
@@ -250,7 +256,13 @@ describe("downloadManager queue persistence", () => {
 describe("downloadManager intent warmup", () => {
   beforeEach(() => {
     jest.resetModules();
-    jest.dontMock("../compactDownloaderQuality");
+    jest.doMock("../downloaderSelectionCard", () => ({
+      resolveDownloaderSelection: jest.fn().mockResolvedValue({
+        mediaPayload: "Source",
+        subtitlePayloads: [],
+        summary: { text: "Source" },
+      }),
+    }));
     localStorage.clear();
     buildDom();
     global.window = global.window || {};
@@ -329,7 +341,13 @@ describe("downloadManager intent warmup", () => {
 describe("downloadManager queue format readiness", () => {
   beforeEach(() => {
     jest.resetModules();
-    jest.dontMock("../compactDownloaderQuality");
+    jest.doMock("../downloaderSelectionCard", () => ({
+      resolveDownloaderSelection: jest.fn().mockResolvedValue({
+        mediaPayload: "Source",
+        subtitlePayloads: [],
+        summary: { text: "Source" },
+      }),
+    }));
     localStorage.clear();
     buildDom();
     global.window = global.window || {};
@@ -432,7 +450,13 @@ describe("downloadManager queue format readiness", () => {
 describe("downloadManager enqueueOnly behavior", () => {
   beforeEach(() => {
     jest.resetModules();
-    jest.dontMock("../compactDownloaderQuality");
+    jest.doMock("../downloaderSelectionCard", () => ({
+      resolveDownloaderSelection: jest.fn().mockResolvedValue({
+        mediaPayload: "Source",
+        subtitlePayloads: [],
+        summary: { text: "Source" },
+      }),
+    }));
     localStorage.clear();
     buildDom();
     global.window = global.window || {};
@@ -462,27 +486,23 @@ describe("downloadManager enqueueOnly behavior", () => {
         getHistoryData: jest.fn(() => []),
         updateDownloadCount: jest.fn(async () => {}),
       }));
-      jest.doMock("../downloadQualityModal", () => ({
-        openDownloadQualityModal: jest.fn().mockResolvedValue("Source"),
-      }));
       const { state } = require("../state");
       const { handleDownloadButtonClick } = require("../downloadManager");
-      const { openDownloadQualityModal } = require("../downloadQualityModal");
+      const {
+        resolveDownloaderSelection,
+      } = require("../downloaderSelectionCard");
       const urlInput = document.getElementById("url");
       urlInput.value = "https://example.com/a";
       await handleDownloadButtonClick({ enqueueOnly: true });
-      expect(openDownloadQualityModal).toHaveBeenCalledWith(
+      expect(resolveDownloaderSelection).toHaveBeenCalledWith(
         "https://example.com/a",
-        expect.objectContaining({
-          enqueueOnly: true,
-        }),
       );
       expect(state.downloadQueue).toHaveLength(1);
       expect(state.isDownloading).toBe(false);
     });
   });
 
-  it("does not request formats when adding a URL to the queue", async () => {
+  it("resolves unified metadata before adding a URL to the queue", async () => {
     await jest.isolateModulesAsync(async () => {
       jest.doMock("../domElements", () => ({
         urlInput: document.getElementById("url"),
@@ -620,38 +640,7 @@ describe("downloadManager enqueueOnly behavior", () => {
     });
   });
 
-  it("keeps URL when quality modal is cancelled", async () => {
-    await jest.isolateModulesAsync(async () => {
-      jest.doMock("../domElements", () => ({
-        urlInput: document.getElementById("url"),
-        downloadButton: document.getElementById("download-button"),
-        enqueueButton: document.getElementById("enqueue-button"),
-        downloadCancelButton: document.getElementById("download-cancel"),
-        buttonText: document.querySelector(".button-text"),
-        progressBarContainer: document.getElementById("progress-bar-container"),
-        progressBar: document.getElementById("progress-bar"),
-        openLastVideoButton: document.getElementById("open-last-video"),
-        queueClearButton: document.getElementById("queue-clear-button"),
-        historyContainer: null,
-      }));
-      jest.doMock("../history", () => ({
-        getHistoryData: jest.fn(() => []),
-      }));
-      jest.doMock("../downloadQualityModal", () => ({
-        openDownloadQualityModal: jest.fn().mockResolvedValue(null),
-      }));
-
-      const { handleDownloadButtonClick } = require("../downloadManager");
-      const urlInput = document.getElementById("url");
-      urlInput.value = "https://example.com/cancel";
-
-      await handleDownloadButtonClick();
-
-      expect(urlInput.value).toBe("https://example.com/cancel");
-    });
-  });
-
-  it("uses compact quality payload without opening modal in compact mode", async () => {
+  it("uses the unified card media payload without opening the advanced modal", async () => {
     await jest.isolateModulesAsync(async () => {
       const compactPayload = {
         type: "pair",
@@ -676,14 +665,12 @@ describe("downloadManager enqueueOnly behavior", () => {
         updateDownloadCount: jest.fn(async () => {}),
         getHistoryData: jest.fn(() => []),
       }));
-      jest.doMock("../downloadQualityModal", () => ({
-        openDownloadQualityModal: jest.fn().mockResolvedValue("Source"),
-      }));
-      jest.doMock("../compactDownloaderQuality", () => ({
-        isCompactDownloaderMode: jest.fn(() => true),
-        resolveCompactQualityPayload: jest
-          .fn()
-          .mockResolvedValue(compactPayload),
+      jest.doMock("../downloaderSelectionCard", () => ({
+        resolveDownloaderSelection: jest.fn().mockResolvedValue({
+          mediaPayload: compactPayload,
+          subtitlePayloads: [],
+          summary: { text: "MP4 • H.264 + AAC" },
+        }),
       }));
       window.electron.invoke.mockResolvedValue({
         fileName: "Video",
@@ -694,17 +681,15 @@ describe("downloadManager enqueueOnly behavior", () => {
       });
 
       const { handleDownloadButtonClick } = require("../downloadManager");
-      const { openDownloadQualityModal } = require("../downloadQualityModal");
       const {
-        resolveCompactQualityPayload,
-      } = require("../compactDownloaderQuality");
+        resolveDownloaderSelection,
+      } = require("../downloaderSelectionCard");
       const urlInput = document.getElementById("url");
       urlInput.value = "https://example.com/compact";
 
       await handleDownloadButtonClick();
 
-      expect(openDownloadQualityModal).not.toHaveBeenCalled();
-      expect(resolveCompactQualityPayload).toHaveBeenCalledWith(
+      expect(resolveDownloaderSelection).toHaveBeenCalledWith(
         "https://example.com/compact",
       );
       expect(window.electron.invoke).toHaveBeenCalledWith(
@@ -716,7 +701,7 @@ describe("downloadManager enqueueOnly behavior", () => {
     });
   });
 
-  it("keeps auto-open modal behavior when compact mode forces the quality modal", async () => {
+  it("does not start a download when unified selection is unavailable", async () => {
     await jest.isolateModulesAsync(async () => {
       jest.doMock("../domElements", () => ({
         urlInput: document.getElementById("url"),
@@ -733,29 +718,88 @@ describe("downloadManager enqueueOnly behavior", () => {
       jest.doMock("../history", () => ({
         getHistoryData: jest.fn(() => []),
       }));
-      jest.doMock("../downloadQualityModal", () => ({
-        openDownloadQualityModal: jest.fn().mockResolvedValue(null),
-      }));
-      jest.doMock("../compactDownloaderQuality", () => ({
-        isCompactDownloaderMode: jest.fn(() => true),
-        resolveCompactQualityPayload: jest.fn(),
+      jest.doMock("../downloaderSelectionCard", () => ({
+        resolveDownloaderSelection: jest.fn().mockResolvedValue(null),
       }));
 
       const { handleDownloadButtonClick } = require("../downloadManager");
-      const { openDownloadQualityModal } = require("../downloadQualityModal");
       const {
-        resolveCompactQualityPayload,
-      } = require("../compactDownloaderQuality");
+        resolveDownloaderSelection,
+      } = require("../downloaderSelectionCard");
       const urlInput = document.getElementById("url");
       urlInput.value = "https://example.com/auto";
 
-      await handleDownloadButtonClick({ forceQualityModal: true });
+      await handleDownloadButtonClick();
 
-      expect(resolveCompactQualityPayload).not.toHaveBeenCalled();
-      expect(openDownloadQualityModal).toHaveBeenCalledWith(
+      expect(resolveDownloaderSelection).toHaveBeenCalledWith(
         "https://example.com/auto",
-        expect.objectContaining({ cachedInfo: null }),
       );
+      expect(window.electron.invoke).not.toHaveBeenCalledWith(
+        "download-video",
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+  });
+
+  it("adds media and subtitle companion as independent pending jobs", async () => {
+    await jest.isolateModulesAsync(async () => {
+      const mediaPayload = { type: "pair", label: "1080p + audio" };
+      const subtitlePayload = {
+        type: "subtitle-only",
+        downloadKind: "subtitle",
+        label: "RU subtitles",
+        subtitleLang: "ru",
+      };
+      jest.doMock("../history", () => ({ getHistoryData: jest.fn(() => []) }));
+      jest.doMock("../downloaderSelectionCard", () => ({
+        resolveDownloaderSelection: jest.fn().mockResolvedValue({
+          mediaPayload,
+          subtitlePayloads: [subtitlePayload],
+          summary: { text: "MP4 · H.264 + AAC" },
+        }),
+      }));
+
+      const { state } = require("../state");
+      const { handleDownloadButtonClick } = require("../downloadManager");
+      document.getElementById("url").value = "https://example.com/companions";
+
+      await handleDownloadButtonClick({ enqueueOnly: true });
+
+      expect(state.downloadQueue).toHaveLength(2);
+      expect(state.downloadQueue.map((job) => job.quality)).toEqual([
+        mediaPayload,
+        subtitlePayload,
+      ]);
+    });
+  });
+
+  it("allows a subtitle-only unified selection", async () => {
+    await jest.isolateModulesAsync(async () => {
+      const subtitlePayload = {
+        type: "subtitle-only",
+        downloadKind: "subtitle",
+        label: "EN subtitles",
+        subtitleLang: "en",
+      };
+      jest.doMock("../history", () => ({ getHistoryData: jest.fn(() => []) }));
+      jest.doMock("../downloaderSelectionCard", () => ({
+        resolveDownloaderSelection: jest.fn().mockResolvedValue({
+          mediaPayload: null,
+          subtitlePayloads: [subtitlePayload],
+          summary: { text: "Subtitles · EN" },
+        }),
+      }));
+
+      const { state } = require("../state");
+      const { handleDownloadButtonClick } = require("../downloadManager");
+      document.getElementById("url").value = "https://example.com/subtitles";
+
+      await handleDownloadButtonClick({ enqueueOnly: true });
+
+      expect(state.downloadQueue).toHaveLength(1);
+      expect(state.downloadQueue[0].quality).toEqual(subtitlePayload);
     });
   });
 
@@ -778,10 +822,11 @@ describe("downloadManager enqueueOnly behavior", () => {
           { sourceUrl: "https://example.com/a", quality: "Source" },
         ]),
       }));
-      jest.doMock("../downloadQualityModal", () => ({
-        openDownloadQualityModal: jest.fn().mockResolvedValue({
-          type: "audio-only",
-          label: "Audio",
+      jest.doMock("../downloaderSelectionCard", () => ({
+        resolveDownloaderSelection: jest.fn().mockResolvedValue({
+          mediaPayload: { type: "audio-only", label: "Audio" },
+          subtitlePayloads: [],
+          summary: { text: "Audio" },
         }),
       }));
       const { state } = require("../state");
@@ -793,180 +838,18 @@ describe("downloadManager enqueueOnly behavior", () => {
       expect(state.downloadQueue[0].quality.type).toBe("audio-only");
     });
   });
-
-  it("passes forceAudioOnly to quality modal for audio-only flow", async () => {
-    await jest.isolateModulesAsync(async () => {
-      jest.doMock("../domElements", () => ({
-        urlInput: document.getElementById("url"),
-        downloadButton: document.getElementById("download-button"),
-        enqueueButton: document.getElementById("enqueue-button"),
-        downloadCancelButton: document.getElementById("download-cancel"),
-        buttonText: document.querySelector(".button-text"),
-        progressBarContainer: document.getElementById("progress-bar-container"),
-        progressBar: document.getElementById("progress-bar"),
-        openLastVideoButton: document.getElementById("open-last-video"),
-        queueClearButton: document.getElementById("queue-clear-button"),
-        historyContainer: null,
-      }));
-      jest.doMock("../history", () => ({
-        getHistoryData: jest.fn(() => []),
-      }));
-      jest.doMock("../downloadQualityModal", () => ({
-        openDownloadQualityModal: jest.fn().mockResolvedValue({
-          type: "audio-only",
-          label: "Audio",
-        }),
-      }));
-
-      const { handleDownloadButtonClick } = require("../downloadManager");
-      const { openDownloadQualityModal } = require("../downloadQualityModal");
-      const urlInput = document.getElementById("url");
-
-      urlInput.value = "https://example.com/audio";
-      await handleDownloadButtonClick({ forceAudioOnly: true });
-
-      expect(openDownloadQualityModal).toHaveBeenCalledWith(
-        "https://example.com/audio",
-        expect.objectContaining({
-          forceAudioOnly: true,
-          enqueueOnly: undefined,
-        }),
-      );
-    });
-  });
-
-  it("does not pass remembered quality label when audio profile is selected", async () => {
-    await jest.isolateModulesAsync(async () => {
-      localStorage.setItem("downloadQualityProfile", "audio");
-      localStorage.setItem("downloadLastQuality", "1080p");
-
-      jest.doMock("../domElements", () => ({
-        urlInput: document.getElementById("url"),
-        downloadButton: document.getElementById("download-button"),
-        enqueueButton: document.getElementById("enqueue-button"),
-        downloadCancelButton: document.getElementById("download-cancel"),
-        buttonText: document.querySelector(".button-text"),
-        progressBarContainer: document.getElementById("progress-bar-container"),
-        progressBar: document.getElementById("progress-bar"),
-        openLastVideoButton: document.getElementById("open-last-video"),
-        queueClearButton: document.getElementById("queue-clear-button"),
-        historyContainer: null,
-      }));
-      jest.doMock("../history", () => ({
-        getHistoryData: jest.fn(() => []),
-      }));
-      jest.doMock("../downloadQualityModal", () => ({
-        openDownloadQualityModal: jest.fn().mockResolvedValue("Source"),
-      }));
-
-      const { handleDownloadButtonClick } = require("../downloadManager");
-      const { openDownloadQualityModal } = require("../downloadQualityModal");
-      const urlInput = document.getElementById("url");
-
-      urlInput.value = "https://example.com/a";
-      await handleDownloadButtonClick({ enqueueOnly: true });
-
-      expect(openDownloadQualityModal).toHaveBeenCalledWith(
-        "https://example.com/a",
-        expect.objectContaining({
-          defaultQualityProfile: "audio",
-          preferredLabel: null,
-        }),
-      );
-    });
-  });
-
-  it("allows overriding the quality profile with the best preset", async () => {
-    await jest.isolateModulesAsync(async () => {
-      localStorage.setItem("downloadQualityProfile", "remember");
-      localStorage.setItem("downloadLastQuality", "1080p");
-
-      jest.doMock("../domElements", () => ({
-        urlInput: document.getElementById("url"),
-        downloadButton: document.getElementById("download-button"),
-        enqueueButton: document.getElementById("enqueue-button"),
-        downloadCancelButton: document.getElementById("download-cancel"),
-        buttonText: document.querySelector(".button-text"),
-        progressBarContainer: document.getElementById("progress-bar-container"),
-        progressBar: document.getElementById("progress-bar"),
-        openLastVideoButton: document.getElementById("open-last-video"),
-        queueClearButton: document.getElementById("queue-clear-button"),
-        historyContainer: null,
-      }));
-      jest.doMock("../history", () => ({
-        getHistoryData: jest.fn(() => []),
-      }));
-      jest.doMock("../downloadQualityModal", () => ({
-        openDownloadQualityModal: jest.fn().mockResolvedValue("Source"),
-      }));
-
-      const { handleDownloadButtonClick } = require("../downloadManager");
-      const { openDownloadQualityModal } = require("../downloadQualityModal");
-      const urlInput = document.getElementById("url");
-
-      urlInput.value = "https://example.com/best";
-      await handleDownloadButtonClick({ presetProfile: "best" });
-
-      expect(openDownloadQualityModal).toHaveBeenCalledWith(
-        "https://example.com/best",
-        expect.objectContaining({
-          defaultQualityProfile: "best",
-          presetQuality: expect.any(String),
-        }),
-      );
-    });
-  });
-
-  it("passes cached preview info to the quality modal", async () => {
-    await jest.isolateModulesAsync(async () => {
-      const cachedInfo = {
-        success: true,
-        title: "Cached title",
-        formats: [{ format_id: "18", vcodec: "h264", acodec: "aac" }],
-      };
-      window.__videoInfoCache = new Map([
-        ["https://example.com/cached", cachedInfo],
-      ]);
-      jest.doMock("../domElements", () => ({
-        urlInput: document.getElementById("url"),
-        downloadButton: document.getElementById("download-button"),
-        enqueueButton: document.getElementById("enqueue-button"),
-        downloadCancelButton: document.getElementById("download-cancel"),
-        buttonText: document.querySelector(".button-text"),
-        progressBarContainer: document.getElementById("progress-bar-container"),
-        progressBar: document.getElementById("progress-bar"),
-        openLastVideoButton: document.getElementById("open-last-video"),
-        queueClearButton: document.getElementById("queue-clear-button"),
-        historyContainer: null,
-      }));
-      jest.doMock("../history", () => ({
-        getHistoryData: jest.fn(() => []),
-      }));
-      jest.doMock("../downloadQualityModal", () => ({
-        openDownloadQualityModal: jest.fn().mockResolvedValue("Source"),
-      }));
-
-      const { handleDownloadButtonClick } = require("../downloadManager");
-      const { openDownloadQualityModal } = require("../downloadQualityModal");
-      const urlInput = document.getElementById("url");
-
-      urlInput.value = "https://example.com/cached";
-      await handleDownloadButtonClick();
-
-      expect(openDownloadQualityModal).toHaveBeenCalledWith(
-        "https://example.com/cached",
-        expect.objectContaining({
-          cachedInfo,
-        }),
-      );
-    });
-  });
 });
 
 describe("downloadManager job summary", () => {
   beforeEach(() => {
     jest.resetModules();
-    jest.dontMock("../compactDownloaderQuality");
+    jest.doMock("../downloaderSelectionCard", () => ({
+      resolveDownloaderSelection: jest.fn().mockResolvedValue({
+        mediaPayload: "Source",
+        subtitlePayloads: [],
+        summary: { text: "Source" },
+      }),
+    }));
     localStorage.clear();
     buildDom();
     global.window = global.window || {};
@@ -1194,7 +1077,13 @@ describe("downloadManager job summary", () => {
 describe("downloadManager queue smart logic", () => {
   beforeEach(() => {
     jest.resetModules();
-    jest.dontMock("../compactDownloaderQuality");
+    jest.doMock("../downloaderSelectionCard", () => ({
+      resolveDownloaderSelection: jest.fn().mockResolvedValue({
+        mediaPayload: "Source",
+        subtitlePayloads: [],
+        summary: { text: "Source" },
+      }),
+    }));
     localStorage.clear();
     buildDom();
     global.window = global.window || {};
@@ -1363,11 +1252,19 @@ describe("downloadManager queue smart logic", () => {
       jest.doMock("../history", () => ({
         getHistoryData: jest.fn(() => []),
       }));
-      jest.doMock("../downloadQualityModal", () => ({
-        openDownloadQualityModal: jest
+      jest.doMock("../downloaderSelectionCard", () => ({
+        resolveDownloaderSelection: jest
           .fn()
-          .mockResolvedValueOnce("Source")
-          .mockResolvedValueOnce({ type: "audio-only", label: "Audio" }),
+          .mockResolvedValueOnce({
+            mediaPayload: "Source",
+            subtitlePayloads: [],
+            summary: { text: "Source" },
+          })
+          .mockResolvedValueOnce({
+            mediaPayload: { type: "audio-only", label: "Audio" },
+            subtitlePayloads: [],
+            summary: { text: "Audio" },
+          }),
       }));
       const { state } = require("../state");
       const { handleDownloadButtonClick } = require("../downloadManager");
@@ -1402,8 +1299,12 @@ describe("downloadManager queue smart logic", () => {
       jest.doMock("../history", () => ({
         getHistoryData: jest.fn(() => []),
       }));
-      jest.doMock("../downloadQualityModal", () => ({
-        openDownloadQualityModal: jest.fn().mockResolvedValue("Source"),
+      jest.doMock("../downloaderSelectionCard", () => ({
+        resolveDownloaderSelection: jest.fn().mockResolvedValue({
+          mediaPayload: "Source",
+          subtitlePayloads: [],
+          summary: { text: "Source" },
+        }),
       }));
       const { state } = require("../state");
       const { handleDownloadButtonClick } = require("../downloadManager");
@@ -2576,7 +2477,13 @@ describe("downloadManager queue smart logic", () => {
 describe("downloadManager progress activity class", () => {
   beforeEach(() => {
     jest.resetModules();
-    jest.dontMock("../compactDownloaderQuality");
+    jest.doMock("../downloaderSelectionCard", () => ({
+      resolveDownloaderSelection: jest.fn().mockResolvedValue({
+        mediaPayload: "Source",
+        subtitlePayloads: [],
+        summary: { text: "Source" },
+      }),
+    }));
     localStorage.clear();
     buildDom();
     global.window = global.window || {};
@@ -3158,7 +3065,13 @@ describe("downloadManager parallel pool", () => {
 
   beforeEach(() => {
     jest.resetModules();
-    jest.dontMock("../compactDownloaderQuality");
+    jest.doMock("../downloaderSelectionCard", () => ({
+      resolveDownloaderSelection: jest.fn().mockResolvedValue({
+        mediaPayload: "Source",
+        subtitlePayloads: [],
+        summary: { text: "Source" },
+      }),
+    }));
     localStorage.clear();
     buildDom();
     global.window = global.window || {};
@@ -3933,7 +3846,13 @@ describe("downloadManager pool loading toast", () => {
 
   beforeEach(() => {
     jest.resetModules();
-    jest.dontMock("../compactDownloaderQuality");
+    jest.doMock("../downloaderSelectionCard", () => ({
+      resolveDownloaderSelection: jest.fn().mockResolvedValue({
+        mediaPayload: "Source",
+        subtitlePayloads: [],
+        summary: { text: "Source" },
+      }),
+    }));
     localStorage.clear();
     buildDom();
     global.window = global.window || {};
@@ -4358,7 +4277,13 @@ describe("downloadManager History recovery actions", () => {
 
   beforeEach(() => {
     jest.resetModules();
-    jest.dontMock("../compactDownloaderQuality");
+    jest.doMock("../downloaderSelectionCard", () => ({
+      resolveDownloaderSelection: jest.fn().mockResolvedValue({
+        mediaPayload: "Source",
+        subtitlePayloads: [],
+        summary: { text: "Source" },
+      }),
+    }));
     localStorage.clear();
     buildDom();
     window.electron = {
@@ -4671,7 +4596,13 @@ describe("downloadManager legacy completed migration", () => {
 
   beforeEach(() => {
     jest.resetModules();
-    jest.dontMock("../compactDownloaderQuality");
+    jest.doMock("../downloaderSelectionCard", () => ({
+      resolveDownloaderSelection: jest.fn().mockResolvedValue({
+        mediaPayload: "Source",
+        subtitlePayloads: [],
+        summary: { text: "Source" },
+      }),
+    }));
     localStorage.clear();
     buildDom();
     window.electron = {
@@ -5145,7 +5076,13 @@ describe("downloadManager active job cancellation", () => {
 
   beforeEach(() => {
     jest.resetModules();
-    jest.dontMock("../compactDownloaderQuality");
+    jest.doMock("../downloaderSelectionCard", () => ({
+      resolveDownloaderSelection: jest.fn().mockResolvedValue({
+        mediaPayload: "Source",
+        subtitlePayloads: [],
+        summary: { text: "Source" },
+      }),
+    }));
     localStorage.clear();
     buildDom();
   });
@@ -5283,7 +5220,13 @@ describe("downloadManager active job cancellation", () => {
 describe("downloadManager queue filters", () => {
   beforeEach(() => {
     jest.resetModules();
-    jest.dontMock("../compactDownloaderQuality");
+    jest.doMock("../downloaderSelectionCard", () => ({
+      resolveDownloaderSelection: jest.fn().mockResolvedValue({
+        mediaPayload: "Source",
+        subtitlePayloads: [],
+        summary: { text: "Source" },
+      }),
+    }));
     localStorage.clear();
     buildDom();
     window.electron = {

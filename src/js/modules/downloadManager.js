@@ -23,11 +23,7 @@ import {
   queueClearButton,
   queueRetryFailedButton,
 } from "./domElements.js";
-import { openDownloadQualityModal } from "./downloadQualityModal.js";
-import {
-  isCompactDownloaderMode,
-  resolveCompactQualityPayload,
-} from "./compactDownloaderQuality.js";
+import { resolveDownloaderSelection } from "./downloaderSelectionCard.js";
 import { initTooltips } from "./tooltipInitializer.js";
 import { showConfirmationDialog } from "./modals.js";
 import { t } from "./i18n.js";
@@ -1018,13 +1014,6 @@ function getQueueSignature(url, quality) {
   return `${normalizedUrl}::${kind}::${label}`;
 }
 
-function isSameQueueTask(a, b) {
-  if (!a || !b) return false;
-  return (
-    getQueueSignature(a.url, a.quality) === getQueueSignature(b.url, b.quality)
-  );
-}
-
 function buildDownloadedUrlMap(entries = []) {
   const map = new Map();
   for (const entry of entries) {
@@ -1626,42 +1615,12 @@ function resetDownloadUiState(options = {}) {
   syncDownloadPoolToast();
 }
 
-const QUALITY_PROFILE_KEY = "downloadQualityProfile";
 const QUALITY_LAST_KEY = "downloadLastQuality";
-const QUALITY_PROFILE_DEFAULT = "remember";
-
-const readQualityProfile = () => {
-  try {
-    const raw =
-      window.localStorage.getItem(QUALITY_PROFILE_KEY) ||
-      QUALITY_PROFILE_DEFAULT;
-    return raw === "audio" || raw === "remember" || raw === "best"
-      ? raw
-      : QUALITY_PROFILE_DEFAULT;
-  } catch {
-    return QUALITY_PROFILE_DEFAULT;
-  }
-};
-
-const readLastQuality = () => {
-  try {
-    return window.localStorage.getItem(QUALITY_LAST_KEY) || null;
-  } catch {
-    return null;
-  }
-};
 
 const persistLastQuality = (quality) => {
   try {
     if (quality) window.localStorage.setItem(QUALITY_LAST_KEY, quality);
   } catch {}
-};
-
-const resolvePresetQuality = (profile = readQualityProfile()) => {
-  if (profile === "audio") return t("quality.audioOnly");
-  if (profile === "best") return t("quality.source");
-  const remembered = lastChosenQualityLabel || readLastQuality();
-  return remembered || t("quality.source");
 };
 
 const clearUrlInputAfterSubmit = () => {
@@ -1789,13 +1748,6 @@ async function migrateLegacyCompletedJobs() {
     updateQueueDisplay();
     showToast(t("queue.migration.historyFailed"), "error");
   }
-}
-
-function normalizeSelection(selection) {
-  if (selection && typeof selection === "object" && selection.enqueue) {
-    return { payload: selection.payload, enqueue: true };
-  }
-  return { payload: selection, enqueue: false };
 }
 
 const downloadVideo = async (url, quality, options = {}) => {
@@ -2216,43 +2168,30 @@ const handleDownloadButtonClick = async (options = {}) => {
   }
   const downloadedMap = await getDownloadedUrlMap();
 
-  const resolveSelectionForUrl = async (url, qualityProfile) => {
-    if (isCompactDownloaderMode() && !options.forceQualityModal) {
-      const payload = await resolveCompactQualityPayload(url);
-      if (!payload) {
-        showToast(t("quality.compact.invalidSelection"), "warning");
-        return null;
-      }
-      return payload;
+  const resolveSelectionForUrl = async (url) => {
+    const selection = await resolveDownloaderSelection(url);
+    if (!selection) {
+      showToast(t("quality.quick.invalidSelection"), "warning");
+      return null;
     }
-    return openDownloadQualityModal(url, {
-      presetQuality: resolvePresetQuality(qualityProfile),
-      defaultQualityProfile: qualityProfile,
-      preferredLabel:
-        qualityProfile === "remember"
-          ? lastChosenQualityLabel || readLastQuality()
-          : null,
-      forceAudioOnly: options.forceAudioOnly,
-      enqueueOnly: options.enqueueOnly,
-      cachedInfo: getCachedVideoInfo(url),
-    });
+    return selection;
   };
 
   // Если несколько: стартуем первый/добавляем остальные в очередь
   if (validUrls.length > 1) {
     const first = validUrls[0];
-    const qualityProfile = options.presetProfile || readQualityProfile();
-    const selectionRaw = await resolveSelectionForUrl(first, qualityProfile);
-    if (!selectionRaw) return;
-    const selection = normalizeSelection(selectionRaw);
-    const payload = selection.payload;
-    const enqueueFromModal = selection.enqueue;
+    const selection = await resolveSelectionForUrl(first);
+    const payload = selection?.mediaPayload;
+    if (!payload) {
+      showToast(t("quality.quick.batchMediaRequired"), "warning");
+      return;
+    }
     lastChosenQuality = payload;
     lastChosenQualityLabel =
       typeof payload === "string" ? payload : payload.label || null;
     persistLastQuality(lastChosenQualityLabel);
 
-    if (isPoolFull || options.enqueueOnly || enqueueFromModal) {
+    if (isPoolFull || options.enqueueOnly) {
       const res = enqueueMany(validUrls, payload, {
         ...options,
         downloadedMap,
@@ -2294,84 +2233,53 @@ const handleDownloadButtonClick = async (options = {}) => {
 
   // Один URL
   const url = validUrls[0];
-  const qualityProfile = options.presetProfile || readQualityProfile();
-  const selectionRaw = await resolveSelectionForUrl(url, qualityProfile);
-  if (!selectionRaw) return;
-  const selection = normalizeSelection(selectionRaw);
-  const payload = selection.payload;
-  const enqueueFromModal = selection.enqueue;
+  const selection = await resolveSelectionForUrl(url);
+  if (!selection) return;
+  const payloads = [
+    selection.mediaPayload,
+    ...(selection.subtitlePayloads || []),
+  ].filter(Boolean);
+  const availablePayloads = payloads.filter(
+    (payload) => !isAlreadyDownloaded(url, downloadedMap, payload),
+  );
+  if (!availablePayloads.length) {
+    showToast(t("download.url.downloaded"), "info");
+    return;
+  }
+  const payload = availablePayloads[0];
+  const companionPayloads = availablePayloads.slice(1);
   lastChosenQuality = payload;
   lastChosenQualityLabel =
     typeof payload === "string" ? payload : payload.label || null;
   persistLastQuality(lastChosenQualityLabel);
-  if (isAlreadyDownloaded(url, downloadedMap, payload)) {
-    showToast(t("download.url.downloaded"), "info");
-    return;
-  }
-  if (isPoolFull || options.enqueueOnly || enqueueFromModal) {
-    const candidateTask = { url, quality: payload };
-    const candidateSignature = getQueueSignature(url, payload);
-    const activeSignatures = getCurrentDownloadSignatures();
-    const failedSignatures = getFailedSignatures();
-    if (activeSignatures.has(candidateSignature)) {
-      showToast(t("download.url.active"), "warning");
-      return;
-    }
-    if (failedSignatures.has(candidateSignature)) {
-      showToast(t("download.url.queued"), "info");
-      return;
-    }
-    if (
-      getPendingDownloadJobs(state).some((item) =>
-        isSameQueueTask(item, candidateTask),
-      )
-    ) {
-      showToast(t("download.url.queued"), "info");
-      return;
-    }
-    if (getPendingDownloadJobs(state).length >= QUEUE_MAX) {
-      showToast(
-        t("queue.summary.toast", {
-          summary: summarizeEnqueueResult({
-            added: 0,
-            duplicates: 0,
-            activeDup: 0,
-            invalid: 0,
-            capped: 1,
-            alreadyDownloaded: 0,
-          }),
-        }),
-        "warning",
-      );
-      return;
-    }
-    const queuedItem = normalizeQueueItem({
-      url,
-      quality: payload,
-      status: "pending",
-    });
-    upsertDownloadJob(state, {
-      ...queuedItem,
-      status: JOB_STATUS.pending,
-    });
-    const queuedSignature = getQueueSignature(url, payload);
-    void ensureQueueTitle(url, {
-      signature: queuedSignature,
-      onResolved: (title) => {
-        const pendingJob = findDownloadJob(state, queuedSignature);
-        if (!title || !pendingJob || pendingJob.title === title) return;
-        patchDownloadJob(state, queuedSignature, { title });
-        persistQueue();
-        updateQueueDisplay();
+  if (isPoolFull || options.enqueueOnly) {
+    const result = availablePayloads.reduce(
+      (summary, quality) => {
+        const next = enqueueMany([url], quality, { ...options, downloadedMap });
+        Object.keys(summary).forEach((key) => {
+          summary[key] += Number(next[key]) || 0;
+        });
+        return summary;
       },
-    });
-    persistQueue();
-    console.log(QUEUE_LOG_TAG, "enqueueOne", { url, from: "modal/button" });
-    showToast(t("queue.added"), "info");
+      {
+        added: 0,
+        duplicates: 0,
+        activeDup: 0,
+        invalid: 0,
+        capped: 0,
+        alreadyDownloaded: 0,
+      },
+    );
+    showToast(
+      t("queue.summary.toast", { summary: summarizeEnqueueResult(result) }),
+      "info",
+    );
     clearUrlInputAfterSubmit();
-    updateQueueDisplay();
   } else {
     initiateDownload(url, payload, { fromQueue: false });
+    companionPayloads.forEach((quality) => {
+      enqueueMany([url], quality, { ...options, downloadedMap });
+    });
     pumpDownloadPool("auto");
     clearUrlInputAfterSubmit();
   }
@@ -2446,14 +2354,8 @@ function initDownloadButton() {
   downloadButton.addEventListener("click", async () => {
     const opts = {
       enqueueOnly: downloadButton.dataset.enqueueOnly === "1",
-      forceAudioOnly: downloadButton.dataset.forceAudioOnly === "1",
-      forceQualityModal: downloadButton.dataset.forceQualityModal === "1",
-      presetProfile: downloadButton.dataset.presetProfile || "",
     };
     delete downloadButton.dataset.enqueueOnly;
-    delete downloadButton.dataset.forceAudioOnly;
-    delete downloadButton.dataset.forceQualityModal;
-    delete downloadButton.dataset.presetProfile;
     await handleDownloadButtonClick(opts);
   });
 
@@ -3162,7 +3064,6 @@ export {
   initDownloadButton,
   updateQueueDisplay,
   resetDownloadUiState,
-  resolvePresetQuality,
   loadQueueFromStorage,
   persistQueue,
   getWebControlSnapshot,

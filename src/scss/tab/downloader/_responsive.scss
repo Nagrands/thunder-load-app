@@ -1,0 +1,77 @@
+@media (max-width: 1080px) {
+  #preview-card.downloader-selection-card {
+    grid-template-columns: minmax(210px, 34%) minmax(0, 1fr);
+    grid-template-areas:
+      "thumb body"
+      "quality quality";
+
+    .preview-thumb-wrap {
+      min-height: 150px;
+    }
+  }
+
+  .downloader-selection-card__quality {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .downloader-quality-field {
+    grid-template-columns: 28px minmax(0, 1fr);
+
+    select {
+      grid-column: 1 / -1;
+    }
+  }
+
+  .downloader-selection-card__summary,
+  .downloader-selection-card__actions {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 720px) {
+  .download-destination {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .download-destination__label {
+    display: none;
+  }
+
+  #preview-card.downloader-selection-card {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "thumb"
+      "body"
+      "quality";
+  }
+
+  .downloader-selection-card__quality {
+    grid-template-columns: 1fr;
+  }
+
+  .downloader-selection-card__summary,
+  .downloader-selection-card__actions {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 520px) {
+  .downloader-view .url-input-main {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .downloader-view .url-input-leading {
+    display: none;
+  }
+
+  .downloader-selection-card__actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .downloader-view .url-input-wrapper--downloader,
+  .downloader-view .url-drop-zone {
+    transition: none;
+  }
+}

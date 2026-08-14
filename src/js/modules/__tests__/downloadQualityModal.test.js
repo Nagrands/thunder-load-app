@@ -31,6 +31,7 @@ const buildDom = () => {
           <div class="quality-hotkeys">
             <div class="quality-hotkeys-main">
               <span class="hotkey-chip"><kbd>Enter</kbd> <span id="download-quality-hotkey-confirm-label">скачать</span></span>
+              <span id="download-quality-hotkey-enqueue" class="hotkey-chip"><kbd>A</kbd> в очередь</span>
             </div>
           </div>
         </div>
@@ -1403,6 +1404,45 @@ describe("downloadQualityModal close behavior", () => {
       await expect(modalPromise).resolves.toMatchObject({
         subtitleLang: "pt-BR",
       });
+    });
+  });
+
+  it("returns the selected payload in apply mode without enqueue controls", async () => {
+    await jest.isolateModulesAsync(async () => {
+      jest.doMock("../toast", () => ({ showToast: jest.fn() }));
+      const { openDownloadQualityModal } = require("../downloadQualityModal");
+
+      const modalPromise = openDownloadQualityModal(
+        "https://example.com/video",
+        { confirmationMode: "apply" },
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(
+        document
+          .getElementById("download-quality-action-enqueue")
+          .classList.contains("hidden"),
+      ).toBe(true);
+      expect(
+        document
+          .getElementById("download-quality-hotkey-enqueue")
+          .classList.contains("hidden"),
+      ).toBe(true);
+      expect(
+        document.getElementById("download-quality-primary").textContent,
+      ).toContain("Применить");
+
+      document.getElementById("download-quality-primary").click();
+      await expect(modalPromise).resolves.toMatchObject({
+        label: expect.any(String),
+      });
+      expect(window.electron.invoke).not.toHaveBeenCalledWith(
+        "download-video",
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+      );
     });
   });
 });

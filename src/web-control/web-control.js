@@ -59,7 +59,6 @@ const el = {
     theme: document.getElementById("setting-theme"),
     language: document.getElementById("setting-language"),
     fontSize: document.getElementById("setting-font-size"),
-    autoOpenQualityModal: document.getElementById("setting-auto-quality"),
     openOnCopyUrl: document.getElementById("setting-open-copy"),
     openOnDownloadComplete: document.getElementById("setting-open-complete"),
     disableCompleteModal: document.getElementById("setting-disable-complete"),

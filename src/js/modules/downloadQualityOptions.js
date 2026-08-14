@@ -1,4 +1,34 @@
 const MP3_AUDIO_EXT = "mp3";
+const SUBTITLE_OUTPUT_EXT = "srt";
+
+const toFiniteNumber = (value) => {
+  const number = Number(value);
+  return Number.isFinite(number) && number > 0 ? number : 0;
+};
+
+const getFormatSize = (fmt = {}, duration = 0) => {
+  const exact = toFiniteNumber(fmt.filesize);
+  if (exact) return { bytes: exact, approximate: false };
+  const approximate = toFiniteNumber(fmt.filesize_approx);
+  if (approximate) return { bytes: approximate, approximate: true };
+  const bitrate = toFiniteNumber(fmt.tbr || fmt.vbr || fmt.abr);
+  const seconds = toFiniteNumber(duration);
+  return bitrate && seconds
+    ? { bytes: (bitrate * 1000 * seconds) / 8, approximate: true }
+    : { bytes: 0, approximate: false };
+};
+
+const normalizeCodec = (value = "") => {
+  const codec = String(value || "").trim();
+  if (!codec || codec === "none") return "";
+  if (/^avc1/i.test(codec)) return "H.264";
+  if (/^(hev1|hvc1|hevc)/i.test(codec)) return "H.265";
+  if (/^vp09|^vp9/i.test(codec)) return "VP9";
+  if (/^av01|^av1/i.test(codec)) return "AV1";
+  if (/^mp4a/i.test(codec)) return "AAC";
+  if (/^opus/i.test(codec)) return "Opus";
+  return codec.split(".")[0].toUpperCase();
+};
 
 const extractHeight = (fmt) => {
   if (fmt?.height) return Number(fmt.height) || 0;
@@ -115,6 +145,7 @@ function buildCompactQualityOptions(info, t) {
       title: resolution || fmt.format_note || fmt.format_id,
       meta: describeFormat(fmt, t),
       fmt,
+      size: getFormatSize(fmt, info?.duration),
       payload: buildOptionPayload({
         type: "video-only",
         label: t("quality.label.videoNoAudio", {
@@ -140,6 +171,7 @@ function buildCompactQualityOptions(info, t) {
         title: resolution || fmt.format_note || fmt.format_id,
         meta: describeFormat(fmt, t),
         fmt,
+        size: getFormatSize(fmt, info?.duration),
         payload: buildOptionPayload({
           type: "muxed",
           label: resolution || fmt.format_note || t("quality.label.video"),
@@ -172,6 +204,7 @@ function buildCompactQualityOptions(info, t) {
       title: fmt.format_note || `${bitrate}kbps`,
       meta: `${(fmt.ext || "m4a").toUpperCase()} • ${codecLabel(fmt)} • ${bitrate} kbps`,
       fmt,
+      size: getFormatSize(fmt, info?.duration),
       payload: buildOptionPayload({
         type: "audio-only",
         label: fmt.format_note || t("quality.label.audio"),
@@ -194,6 +227,7 @@ function buildCompactQualityOptions(info, t) {
       title: t("quality.label.audioMp3"),
       meta: t("quality.desc.audioMp3", { bitrate }),
       fmt: bestAudio,
+      size: getFormatSize(bestAudio, info?.duration),
       payload: buildOptionPayload({
         type: "audio-only",
         label: t("quality.label.audioMp3"),
@@ -204,6 +238,20 @@ function buildCompactQualityOptions(info, t) {
         resolution: t("quality.label.audioMp3"),
         fps: null,
       }),
+    });
+  }
+
+  if (videoOptions.some((option) => option.source === "muxed")) {
+    const muxedFormat = videoOptions[0]?.fmt || null;
+    audioOptions.unshift({
+      id: "audio-included",
+      kind: "included",
+      source: "muxed",
+      title: t("quality.quick.audioIncluded"),
+      meta: muxedFormat ? describeFormat(muxedFormat, t) : "",
+      fmt: muxedFormat,
+      size: muxedFormat ? getFormatSize(muxedFormat, info?.duration) : null,
+      payload: null,
     });
   }
 
@@ -224,14 +272,153 @@ function buildCompactQualityOptions(info, t) {
   };
 }
 
+function collectSubtitleTracks(info) {
+  const normalize = (items, source) =>
+    (Array.isArray(items) ? items : [])
+      .map((track) => ({
+        lang: String(track?.lang || "").trim(),
+        source,
+      }))
+      .filter((track) => track.lang);
+  return [
+    ...normalize(info?.subtitles, "manual"),
+    ...normalize(info?.automatic_captions, "automatic"),
+  ].sort((left, right) => {
+    const score = (track) => {
+      const lang = track.lang.toLowerCase();
+      const languageScore = lang === "ru" ? 30 : lang === "en" ? 20 : 0;
+      return languageScore + (track.source === "manual" ? 10 : 0);
+    };
+    return score(right) - score(left) || left.lang.localeCompare(right.lang);
+  });
+}
+
+function buildSubtitleQualityOptions(info, t) {
+  const off = {
+    id: "subtitle-off",
+    kind: "none",
+    title: t("quality.quick.subtitlesOff"),
+    meta: "",
+    payload: null,
+  };
+  return [
+    off,
+    ...collectSubtitleTracks(info).map((track) => {
+      const sourceLabel = t(
+        track.source === "automatic"
+          ? "quality.subtitle.sourceAutomatic"
+          : "quality.subtitle.sourceManual",
+      );
+      const title = t("quality.subtitle.optionTitle", {
+        lang: track.lang.toUpperCase(),
+        source: sourceLabel,
+      });
+      return {
+        id: `subtitle-${track.source}-${track.lang}`,
+        kind: "subtitle",
+        title,
+        meta: sourceLabel,
+        payload: {
+          type: "subtitle-only",
+          downloadKind: "subtitle",
+          label: title,
+          videoFormatId: null,
+          audioFormatId: null,
+          videoExt: null,
+          audioExt: null,
+          resolution: track.lang,
+          fps: null,
+          subtitleLang: track.lang,
+          subtitleSource: track.source,
+          subtitleFormat: SUBTITLE_OUTPUT_EXT,
+        },
+      };
+    }),
+  ];
+}
+
+function formatBytes(bytes) {
+  const value = toFiniteNumber(bytes);
+  if (!value) return "";
+  const units = ["B", "KB", "MB", "GB", "TB"];
+  const index = Math.min(
+    Math.floor(Math.log(value) / Math.log(1024)),
+    units.length - 1,
+  );
+  const amount = value / 1024 ** index;
+  return `${amount >= 100 || index === 0 ? amount.toFixed(0) : amount.toFixed(1)} ${units[index]}`;
+}
+
+function buildOutputSummary({ videoOption, audioOption, t }) {
+  const mediaPayload = buildCompactPayload({ videoOption, audioOption, t });
+  if (!mediaPayload) {
+    return {
+      text: t("quality.quick.subtitleOnlySummary"),
+      container: SUBTITLE_OUTPUT_EXT.toUpperCase(),
+      codecs: [],
+      sizeBytes: 0,
+      approximate: false,
+    };
+  }
+  const formats = [videoOption?.fmt, audioOption?.fmt].filter(Boolean);
+  const uniqueFormats = Array.from(new Set(formats));
+  const sizes = uniqueFormats.map((fmt) =>
+    fmt === videoOption?.fmt ? videoOption?.size : audioOption?.size,
+  );
+  const sizeBytes = sizes.reduce((sum, size) => sum + (size?.bytes || 0), 0);
+  const approximate = sizes.some((size) => size?.bytes && size.approximate);
+  const codecs = Array.from(
+    new Set(
+      uniqueFormats
+        .flatMap((fmt) => [
+          normalizeCodec(fmt?.vcodec),
+          normalizeCodec(fmt?.acodec),
+        ])
+        .filter(Boolean),
+    ),
+  );
+  const container = String(
+    mediaPayload.videoExt ||
+      mediaPayload.audioExt ||
+      uniqueFormats[0]?.ext ||
+      "",
+  ).toUpperCase();
+  const size = formatBytes(sizeBytes);
+  const parts = [container, codecs.join(" + ")].filter(Boolean);
+  parts.push(
+    size
+      ? `${approximate ? "≈ " : ""}${size}`
+      : t("quality.quick.sizeUnavailable"),
+  );
+  return { text: parts.join(" • "), container, codecs, sizeBytes, approximate };
+}
+
+function buildDownloaderSelection({
+  videoOption,
+  audioOption,
+  subtitleOption,
+  t,
+}) {
+  const mediaPayload = buildCompactPayload({ videoOption, audioOption, t });
+  const subtitlePayloads = subtitleOption?.payload
+    ? [subtitleOption.payload]
+    : [];
+  if (!mediaPayload && !subtitlePayloads.length) return null;
+  return {
+    mediaPayload,
+    subtitlePayloads,
+    summary: buildOutputSummary({ videoOption, audioOption, t }),
+  };
+}
+
 function buildCompactPayload({ videoOption, audioOption, t }) {
   if (!videoOption || !audioOption) return null;
   if (videoOption.kind === "none" && audioOption.kind === "none") return null;
   if (videoOption.kind === "none") return audioOption.payload;
+  if (videoOption.source === "muxed") return videoOption.payload;
   if (audioOption.kind === "none") {
     return videoOption.source === "video-only" ? videoOption.payload : null;
   }
-  if (videoOption.source === "muxed") return videoOption.payload;
   if (!audioOption.fmt) return videoOption.payload;
   const { resolution, fps, videoExt } = formatOptionData(videoOption.fmt);
   return buildOptionPayload({
@@ -269,7 +456,10 @@ function buildWebCompactQualityOptions(info, t) {
 }
 
 export {
+  buildDownloaderSelection,
   buildCompactPayload,
   buildCompactQualityOptions,
+  buildOutputSummary,
+  buildSubtitleQualityOptions,
   buildWebCompactQualityOptions,
 };

@@ -9,6 +9,7 @@ function buildDom() {
     <button id="open-folder"></button>
     <button id="open-last-video"></button>
     <button id="select-folder"></button>
+    <strong id="download-destination-path"></strong>
   `;
 }
 
@@ -144,6 +145,12 @@ describe("downloadActions", () => {
     expect(showToastMock).toHaveBeenCalledWith(
       "Downloads folder changed to: /Users/test/Downloads",
       "success",
+    );
+    expect(
+      document.getElementById("download-destination-path").textContent,
+    ).toBe("/Users/test/Downloads");
+    expect(document.getElementById("download-destination-path").title).toBe(
+      "/Users/test/Downloads",
     );
   });
 });

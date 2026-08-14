@@ -1,3 +1,35 @@
+  <section class="downloads-toolbar" aria-label="Загрузки" data-i18n-aria="downloader.downloads.title">
+    <div class="downloads-toolbar__title">
+      <span aria-hidden="true"><i data-lucide="download"></i></span>
+      <strong data-i18n="downloader.downloads.title">Загрузки</strong>
+    </div>
+    <div class="downloads-toolbar__actions">
+      <button
+        id="open-last-video"
+        data-shortcut-action="downloads.last.open"
+        class="queue-action-button queue-action-button--ghost"
+        aria-label="Открыть последнее скачанное видео"
+        data-i18n-aria="actions.openLast"
+        title="Последнее видео"
+        data-i18n-title="actions.lastVideo"
+        disabled
+      >
+        <i class="fa fa-play" aria-hidden="true"></i>
+      </button>
+      <button
+        id="open-folder"
+        data-shortcut-action="downloads.folder.open"
+        class="queue-action-button queue-action-button--ghost"
+        aria-label="Открыть папку с видео"
+        data-i18n-aria="actions.openFolder"
+        title="Папка с видео"
+        data-i18n-title="actions.videoFolder"
+      >
+        <i data-lucide="folder-open"></i>
+      </button>
+    </div>
+  </section>
+
   <div id="download-queue-info" class="download-queue-info hidden">
     <div class="queue-header">
       <div class="queue-header-left">
@@ -22,6 +54,18 @@
         </div>
       </div>
       <div class="queue-actions">
+        <button
+          id="download-cancel"
+          class="queue-action-button queue-action-button--danger"
+          aria-label="Отменить скачивание"
+          data-i18n-aria="actions.cancelDownload"
+          title="Отменить скачивание"
+          data-i18n-title="actions.cancelDownload"
+          disabled
+        >
+          <i data-lucide="square-x"></i>
+          <span id="download-cancel-count" class="cancel-count hidden">0</span>
+        </button>
         <button
           id="queue-start-button"
           class="queue-action-button queue-action-button--start"

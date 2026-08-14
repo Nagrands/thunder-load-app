@@ -107,7 +107,6 @@ describe("urlInputHandler", () => {
   let applyDownloaderBackgroundPreviewMock;
   let clearDownloaderBackgroundPreviewMock;
   let hideDownloaderLivePreviewMock;
-  let isCompactDownloaderModeMock;
   let isDownloaderAvailableMock;
   let initUrlInputHandler;
 
@@ -137,9 +136,8 @@ describe("urlInputHandler", () => {
         STATE_EVENT: "downloader:live-preview-state",
         hideDownloaderLivePreview: hideDownloaderLivePreviewMock,
       }));
-      jest.doMock("../compactDownloaderQuality.js", () => ({
+      jest.doMock("../downloaderSelectionCard.js", () => ({
         PREVIEW_EVENT: "downloader:preview-info",
-        isCompactDownloaderMode: isCompactDownloaderModeMock,
       }));
       jest.doMock("../downloaderAvailability.js", () => ({
         isDownloaderAvailable: isDownloaderAvailableMock,
@@ -248,7 +246,6 @@ describe("urlInputHandler", () => {
     applyDownloaderBackgroundPreviewMock = jest.fn().mockResolvedValue(true);
     clearDownloaderBackgroundPreviewMock = jest.fn();
     hideDownloaderLivePreviewMock = jest.fn();
-    isCompactDownloaderModeMock = jest.fn(() => false);
     isDownloaderAvailableMock = jest.fn(() => true);
     window.electron = {
       invoke: jest.fn(),
@@ -296,25 +293,6 @@ describe("urlInputHandler", () => {
     expect(navigator.clipboard.readText).not.toHaveBeenCalled();
     expect(input.value).toBe("");
     expect(updateButtonStateMock).not.toHaveBeenCalled();
-  });
-
-  test("hides action row when URL is empty and shows it after input", () => {
-    const { input, actionRow } = getState();
-
-    expect(actionRow.hidden).toBe(true);
-    expect(actionRow.getAttribute("aria-hidden")).toBe("true");
-
-    input.value = "https://example.com/video";
-    input.dispatchEvent(new Event("input", { bubbles: true }));
-
-    expect(actionRow.hidden).toBe(false);
-    expect(actionRow.getAttribute("aria-hidden")).toBe("false");
-
-    input.value = "";
-    input.dispatchEvent(new Event("input", { bubbles: true }));
-
-    expect(actionRow.hidden).toBe(true);
-    expect(actionRow.getAttribute("aria-hidden")).toBe("true");
   });
 
   test("shows inline error on blur for invalid URL", () => {
@@ -423,48 +401,6 @@ describe("urlInputHandler", () => {
     expect(clickSpy).toHaveBeenCalledTimes(1);
   });
 
-  test("auto-opens quality selection after pasted URL resolves with preview and formats", async () => {
-    const { pasteBtn, downloadBtn } = getState();
-    downloadBtn.disabled = false;
-    const clickSpy = jest.spyOn(downloadBtn, "click");
-    getVideoInfoMock.mockResolvedValueOnce({
-      success: true,
-      title: "Demo title",
-      duration: 90,
-      thumbnail: "https://example.com/thumb.jpg",
-      formats: [{ format_id: "18", vcodec: "h264", acodec: "aac" }],
-    });
-
-    pasteBtn.click();
-    await flushPromises();
-    await flushPromises();
-    jest.runOnlyPendingTimers();
-    await flushPromises();
-
-    expect(clickSpy).toHaveBeenCalledTimes(1);
-    expect(downloadBtn.dataset.forceQualityModal).toBe("1");
-  });
-
-  test("auto-opens quality selection when recognized preview has no loaded formats yet", async () => {
-    const { pasteBtn, downloadBtn } = getState();
-    downloadBtn.disabled = false;
-    const clickSpy = jest.spyOn(downloadBtn, "click");
-    getVideoInfoMock.mockResolvedValueOnce({
-      success: true,
-      title: "Demo title",
-      duration: 90,
-      thumbnail: "https://example.com/thumb.jpg",
-    });
-
-    pasteBtn.click();
-    await flushPromises();
-    await flushPromises();
-    jest.runOnlyPendingTimers();
-    await flushPromises();
-
-    expect(clickSpy).toHaveBeenCalledTimes(1);
-  });
-
   test("warms full video info after a recognized preview without blocking preview render", async () => {
     const { input, previewCard } = getState();
     const previewListener = jest.fn();
@@ -551,72 +487,7 @@ describe("urlInputHandler", () => {
     });
   });
 
-  test("auto-opens quality selection when yt-dlp returns preview only in thumbnails", async () => {
-    const { pasteBtn, downloadBtn } = getState();
-    downloadBtn.disabled = false;
-    const clickSpy = jest.spyOn(downloadBtn, "click");
-    getVideoInfoMock.mockResolvedValueOnce({
-      success: true,
-      title: "Demo title",
-      duration: 90,
-      thumbnails: [{ url: "https://example.com/thumb.jpg" }],
-      formats: [{ format_id: "18", vcodec: "h264", acodec: "aac" }],
-    });
-
-    pasteBtn.click();
-    await flushPromises();
-    await flushPromises();
-    jest.runOnlyPendingTimers();
-    await flushPromises();
-
-    expect(clickSpy).toHaveBeenCalledTimes(1);
-  });
-
-  test("auto-opens quality selection for pasted URL that already has loaded formats", async () => {
-    const { input, downloadBtn } = getState();
-    const url = "https://youtube.com/watch?v=test";
-    downloadBtn.disabled = false;
-    const clickSpy = jest.spyOn(downloadBtn, "click");
-    getVideoInfoMock.mockResolvedValueOnce({
-      success: true,
-      title: "Demo title",
-      duration: 90,
-      thumbnail: "https://example.com/thumb.jpg",
-      formats: [{ format_id: "18", vcodec: "h264", acodec: "aac" }],
-    });
-
-    input.value = url;
-    input.dispatchEvent(new Event("input", { bubbles: true }));
-    jest.advanceTimersByTime(600);
-    await flushPromises();
-    await flushPromises();
-
-    expect(getVideoInfoMock).toHaveBeenCalledTimes(1);
-    expect(clickSpy).not.toHaveBeenCalled();
-
-    const pasteEvent = new Event("paste", { bubbles: true });
-    Object.defineProperty(pasteEvent, "clipboardData", {
-      value: {
-        getData: (type) => (type === "text" ? url : ""),
-      },
-    });
-    input.dispatchEvent(pasteEvent);
-    input.value = url;
-    const inputEvent = new Event("input", { bubbles: true });
-    Object.defineProperty(inputEvent, "inputType", {
-      value: "insertFromPaste",
-    });
-    input.dispatchEvent(inputEvent);
-    jest.advanceTimersByTime(600);
-    await flushPromises();
-    jest.runOnlyPendingTimers();
-    await flushPromises();
-
-    expect(getVideoInfoMock).toHaveBeenCalledTimes(1);
-    expect(clickSpy).toHaveBeenCalledTimes(1);
-  });
-
-  test("normalizes native pasted URL before preview and auto-open", async () => {
+  test("normalizes native pasted URL before preview without auto-download", async () => {
     const { input, downloadBtn } = getState();
     downloadBtn.disabled = false;
     const clickSpy = jest.spyOn(downloadBtn, "click");
@@ -654,7 +525,7 @@ describe("urlInputHandler", () => {
       "get-video-preview",
       "https://youtube.com/watch?v=test",
     );
-    expect(clickSpy).toHaveBeenCalledTimes(1);
+    expect(clickSpy).not.toHaveBeenCalled();
   });
 
   test("starts preview immediately after native paste without debounce delay", async () => {
@@ -684,37 +555,6 @@ describe("urlInputHandler", () => {
       "get-video-preview",
       "https://youtube.com/watch?v=fast",
     );
-  });
-
-  test("auto-opens quality selection when force-preview requests it", async () => {
-    const { input, downloadBtn } = getState();
-    downloadBtn.disabled = false;
-    const clickSpy = jest.spyOn(downloadBtn, "click");
-    getVideoInfoMock.mockResolvedValueOnce({
-      success: true,
-      title: "Demo title",
-      duration: 90,
-      thumbnail: "https://example.com/thumb.jpg",
-    });
-
-    input.value = "https://youtube.com/watch?v=retry";
-    input.dispatchEvent(new Event("input", { bubbles: true }));
-    input.dispatchEvent(
-      new CustomEvent("force-preview", {
-        detail: { autoOpenQuality: true },
-      }),
-    );
-
-    await flushPromises();
-    await flushPromises();
-    jest.runOnlyPendingTimers();
-    await flushPromises();
-
-    expect(getVideoInfoMock).toHaveBeenCalledWith(
-      "get-video-preview",
-      "https://youtube.com/watch?v=retry",
-    );
-    expect(clickSpy).toHaveBeenCalledTimes(1);
   });
 
   test("force-preview reuses cached preview for the same URL", async () => {
@@ -804,124 +644,6 @@ describe("urlInputHandler", () => {
 
     expect(previewCard.textContent).toContain("New preview");
     expect(previewCard.textContent).not.toContain("Old preview");
-  });
-
-  test("does not auto-open quality selection after paste in compact mode", async () => {
-    isCompactDownloaderModeMock.mockReturnValue(true);
-    const { pasteBtn, downloadBtn } = getState();
-    downloadBtn.disabled = false;
-    const clickSpy = jest.spyOn(downloadBtn, "click");
-    getVideoInfoMock.mockResolvedValueOnce({
-      success: true,
-      title: "Demo title",
-      duration: 90,
-      thumbnail: "https://example.com/thumb.jpg",
-      formats: [{ format_id: "18", vcodec: "h264", acodec: "aac" }],
-    });
-
-    pasteBtn.click();
-    await flushPromises();
-    await flushPromises();
-    jest.runOnlyPendingTimers();
-    await flushPromises();
-
-    expect(getVideoInfoMock).toHaveBeenCalledWith(
-      "get-video-preview",
-      "https://youtube.com/watch?v=test",
-    );
-    expect(clickSpy).not.toHaveBeenCalled();
-    expect(downloadBtn.dataset.forceQualityModal).toBeUndefined();
-  });
-
-  test("does not auto-open quality selection when force-preview requests it in compact mode", async () => {
-    isCompactDownloaderModeMock.mockReturnValue(true);
-    const { input, downloadBtn } = getState();
-    downloadBtn.disabled = false;
-    const clickSpy = jest.spyOn(downloadBtn, "click");
-    getVideoInfoMock.mockResolvedValueOnce({
-      success: true,
-      title: "Demo title",
-      duration: 90,
-      thumbnail: "https://example.com/thumb.jpg",
-    });
-
-    input.value = "https://youtube.com/watch?v=retry";
-    input.dispatchEvent(new Event("input", { bubbles: true }));
-    input.dispatchEvent(
-      new CustomEvent("force-preview", {
-        detail: { autoOpenQuality: true },
-      }),
-    );
-
-    await flushPromises();
-    await flushPromises();
-    jest.runOnlyPendingTimers();
-    await flushPromises();
-
-    expect(getVideoInfoMock).toHaveBeenCalledWith(
-      "get-video-preview",
-      "https://youtube.com/watch?v=retry",
-    );
-    expect(clickSpy).not.toHaveBeenCalled();
-    expect(downloadBtn.dataset.forceQualityModal).toBeUndefined();
-  });
-
-  test("does not auto-open quality selection when preview image is missing", async () => {
-    const { pasteBtn, downloadBtn } = getState();
-    downloadBtn.disabled = false;
-    const clickSpy = jest.spyOn(downloadBtn, "click");
-    getVideoInfoMock.mockResolvedValueOnce({
-      success: true,
-      title: "Demo title",
-      duration: 90,
-      formats: [{ format_id: "18", vcodec: "h264", acodec: "aac" }],
-    });
-
-    pasteBtn.click();
-    await flushPromises();
-    await flushPromises();
-    jest.runOnlyPendingTimers();
-
-    expect(clickSpy).not.toHaveBeenCalled();
-  });
-
-  test("does not auto-open quality selection when content is not recognized", async () => {
-    const { pasteBtn, downloadBtn } = getState();
-    downloadBtn.disabled = false;
-    const clickSpy = jest.spyOn(downloadBtn, "click");
-    getVideoInfoMock.mockResolvedValueOnce({
-      success: true,
-      thumbnail: "https://example.com/thumb.jpg",
-      formats: [{ format_id: "18", vcodec: "h264", acodec: "aac" }],
-    });
-
-    pasteBtn.click();
-    await flushPromises();
-    await flushPromises();
-    jest.runOnlyPendingTimers();
-
-    expect(clickSpy).not.toHaveBeenCalled();
-  });
-
-  test("does not auto-open quality selection when the setting is disabled", async () => {
-    localStorage.setItem("downloadAutoOpenQualityModal", "0");
-    const { pasteBtn, downloadBtn } = getState();
-    downloadBtn.disabled = false;
-    const clickSpy = jest.spyOn(downloadBtn, "click");
-    getVideoInfoMock.mockResolvedValueOnce({
-      success: true,
-      title: "Demo title",
-      duration: 90,
-      thumbnail: "https://example.com/thumb.jpg",
-      formats: [{ format_id: "18", vcodec: "h264", acodec: "aac" }],
-    });
-
-    pasteBtn.click();
-    await flushPromises();
-    await flushPromises();
-    jest.runOnlyPendingTimers();
-
-    expect(clickSpy).not.toHaveBeenCalled();
   });
 
   test("does not request preview for invalid URL and keeps preview hidden", () => {
@@ -1083,108 +805,6 @@ describe("urlInputHandler", () => {
     expect(wrapper.classList.contains("has-preview")).toBe(true);
     expect(container.classList.contains("has-preview")).toBe(true);
     expect(clearDownloaderBackgroundPreviewMock).toHaveBeenCalled();
-  });
-
-  test("renders preview card metadata in detailed and compact modes", async () => {
-    const { input, previewCard, container } = getState();
-    const zoneSelector =
-      ".preview-card__thumb,.preview-card__body,.preview-card__actions,.preview-card__controls";
-    const initialZones = Array.from(previewCard.querySelectorAll(zoneSelector))
-      .map((el) => el.className)
-      .join("|");
-    isCompactDownloaderModeMock.mockReturnValue(true);
-    container.classList.add("is-downloader-compact");
-    getVideoInfoMock.mockResolvedValueOnce({
-      success: true,
-      title: "Demo title",
-      duration: 204,
-      thumbnail: "https://example.com/thumb.jpg",
-      webpage_url: "https://www.youtube.com/watch?v=demo",
-      filesize_approx: 320 * 1024 * 1024,
-      formats: [
-        {
-          format_id: "v1",
-          ext: "webm",
-          vcodec: "vp9",
-          height: 2160,
-          fps: 24,
-        },
-        {
-          format_id: "a1",
-          ext: "m4a",
-          abr: 128,
-          acodec: "mp4a.40.2",
-        },
-      ],
-    });
-
-    input.value = "https://www.youtube.com/watch?v=demo";
-    input.dispatchEvent(new Event("input", { bubbles: true }));
-    jest.advanceTimersByTime(600);
-    await flushPromises();
-
-    expect(previewCard.style.display).not.toBe("none");
-    expect(
-      previewCard
-        .querySelector(".preview-card__thumb")
-        .contains(document.getElementById("preview-thumb")),
-    ).toBe(true);
-    expect(
-      previewCard
-        .querySelector(".preview-card__body")
-        .contains(document.getElementById("preview-title")),
-    ).toBe(true);
-    expect(previewCard.querySelector(".preview-card__actions")).toBe(
-      document.getElementById("preview-actions"),
-    );
-    expect(
-      previewCard
-        .querySelector(".preview-card__controls")
-        .contains(document.getElementById("preview-collapse")),
-    ).toBe(true);
-    expect(
-      Array.from(previewCard.querySelectorAll(zoneSelector))
-        .map((el) => el.className)
-        .join("|"),
-    ).toBe(initialZones);
-    expect(previewCard.className).not.toMatch(/compact/i);
-    expect(document.getElementById("preview-title").textContent).toBe(
-      "Demo title",
-    );
-    expect(document.getElementById("preview-duration").textContent).toBe("");
-    expect(document.getElementById("preview-duration").classList).toContain(
-      "hidden",
-    );
-    expect(
-      document.getElementById("preview-duration-overlay").textContent,
-    ).toBe("3:24");
-    expect(
-      document.getElementById("preview-duration-overlay").classList,
-    ).not.toContain("hidden");
-    expect(document.getElementById("preview-source").textContent).toContain(
-      "YouTube",
-    );
-    expect(document.getElementById("preview-quality").textContent).toContain(
-      "4K",
-    );
-    expect(document.getElementById("preview-quality").textContent).toContain(
-      "24fps",
-    );
-    expect(document.getElementById("preview-ready").classList).not.toContain(
-      "hidden",
-    );
-    expect(document.getElementById("preview-details").textContent).toContain(
-      "WEBM",
-    );
-    expect(document.getElementById("preview-details").textContent).toContain(
-      "M4A",
-    );
-
-    document.getElementById("preview-collapse").click();
-    expect(previewCard.classList.contains("is-collapsed")).toBe(true);
-    expect(
-      document.getElementById("preview-collapse").getAttribute("aria-expanded"),
-    ).toBe("false");
   });
 
   test("enables downloader background video for YouTube preview candidates", async () => {

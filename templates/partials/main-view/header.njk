@@ -1,87 +1,24 @@
-<!-- Меню в правом верхнем углу -->
 <header>
-  <!-- Input Container -->
   <div class="input-container">
     <div class="url-entry-shell">
       <div class="url-input-wrapper url-input-wrapper--downloader">
         <div class="url-input-main">
           <div class="url-input-leading">
-            <button
-              type="button"
-              class="url-input-leading__icon url-source-link"
-              id="url-source-link"
-              aria-label="Открыть источник"
-              data-i18n-aria="input.url.openSource"
-              title="Открыть источник"
-              data-i18n-title="input.url.openSource"
-            >
-              <i id="icon-url-globe" class="fas fa-globe search-icon" aria-hidden="true"></i>
+            <button type="button" class="url-input-leading__icon url-source-link" id="url-source-link" aria-label="Открыть источник" data-i18n-aria="input.url.openSource" title="Открыть источник" data-i18n-title="input.url.openSource">
+              <i id="icon-url-globe" class="fas fa-link search-icon" aria-hidden="true"></i>
             </button>
             <span class="url-input-leading__label" data-i18n="input.url.label">URL</span>
           </div>
-
           <div class="url-input-field">
-            <input
-              type="text"
-              id="url"
-              placeholder="Введите URL видео или аудио"
-              aria-label="Введите URL видео или аудио"
-              data-i18n-placeholder="input.url.placeholder"
-              data-i18n-aria="input.url.aria"
-            />
-            <span
-              id="url-preview-spinner"
-              class="url-preview-spinner hidden"
-              aria-hidden="true"
-              title="Загрузка превью"
-              data-i18n-title="input.url.preview.loading"
-            >
-              <i class="fa-solid fa-spinner fa-spin"></i>
-            </span>
+            <input type="text" id="url" placeholder="Введите URL видео или аудио" aria-label="Введите URL видео или аудио" data-i18n-placeholder="input.url.placeholder" data-i18n-aria="input.url.aria" />
+            <span id="url-preview-spinner" class="url-preview-spinner hidden" aria-hidden="true" title="Загрузка превью" data-i18n-title="input.url.preview.loading"><i class="fa-solid fa-spinner fa-spin"></i></span>
           </div>
-
           <div class="button-grid" aria-label="Действия поля URL" data-i18n-aria="input.url.actions">
-            <button
-              id="paste-url"
-              type="button"
-              class="paste-button hidden"
-              aria-label="Вставить из буфера"
-              data-i18n-aria="input.paste"
-              data-bs-toggle="tooltip"
-              data-bs-placement="top"
-              title="Вставить из буфера"
-              data-i18n-title="input.paste"
-            >
-              <i class="fas fa-paste"></i>
-              <span></span>
+            <button id="paste-url" type="button" class="paste-button hidden" aria-label="Вставить из буфера" data-i18n-aria="input.paste" title="Вставить из буфера" data-i18n-title="input.paste">
+              <i class="fas fa-paste" aria-hidden="true"></i><span data-i18n="input.paste">Вставить</span>
             </button>
-            <button
-              id="clear-url"
-              type="button"
-              class="clear-button hidden"
-              aria-label="Очистить поле URL"
-              data-i18n-aria="input.clear"
-              data-bs-toggle="tooltip"
-              data-bs-placement="top"
-              title="Очистить"
-              data-i18n-title="input.clear"
-            >
-              <i class="fa-solid fa-xmark"></i>
-              <span data-i18n="input.url.action.clear">Очистить</span>
-            </button>
-            <button
-              id="select-folder"
-              type="button"
-              class="folder-button"
-              aria-label="Выбор папки"
-              data-i18n-aria="input.folder"
-              data-bs-toggle="tooltip"
-              data-bs-placement="top"
-              title="Выбор папки"
-              data-i18n-title="input.folder"
-            >
-              <i class="fas fa-folder-open"></i>
-              <span data-i18n="input.url.action.folder">Папка</span>
+            <button id="clear-url" type="button" class="clear-button hidden" aria-label="Очистить поле URL" data-i18n-aria="input.clear" title="Очистить" data-i18n-title="input.clear">
+              <i class="fa-solid fa-xmark" aria-hidden="true"></i><span data-i18n="input.url.action.clear">Очистить</span>
             </button>
           </div>
         </div>
@@ -89,177 +26,37 @@
         <div class="url-input-service-row">
           <div class="url-input-statusline">
             <span class="url-input-statusline__dot" aria-hidden="true"></span>
-            <span id="url-helper-text" class="url-helper-text" data-i18n="input.url.helper">
-              Вставьте ссылку или перетащите её сюда
-            </span>
-          </div>
-          <div
-            class="downloader-view-mode"
-            role="group"
-            aria-label="Режим отображения загрузчика"
-            data-i18n-aria="quality.compact.modeGroup"
-          >
-            <button
-              id="downloader-view-detailed"
-              type="button"
-              class="downloader-view-mode__btn active"
-              aria-pressed="true"
-              aria-label="Подробно"
-              title="Подробно"
-              data-bs-toggle="tooltip"
-              data-bs-placement="top"
-              data-i18n-aria="quality.compact.modeDetailed"
-              data-i18n-title="quality.compact.modeDetailed"
-            >
-              <i class="fa-solid fa-list-ul" aria-hidden="true"></i>
-            </button>
-            <button
-              id="downloader-view-compact"
-              type="button"
-              class="downloader-view-mode__btn"
-              aria-pressed="false"
-              aria-label="Компактно"
-              title="Компактно"
-              data-bs-toggle="tooltip"
-              data-bs-placement="top"
-              data-i18n-aria="quality.compact.modeCompact"
-              data-i18n-title="quality.compact.modeCompact"
-            >
-              <i class="fa-solid fa-table-cells-large" aria-hidden="true"></i>
-            </button>
-            <span
-              id="downloader-view-mode-label"
-              class="downloader-view-mode__label"
-              data-i18n="quality.compact.modeDetailed"
-            >
-              Подробно
-            </span>
+            <span id="url-helper-text" class="url-helper-text" data-i18n="input.url.helper">Вставьте ссылку или перетащите её сюда</span>
           </div>
         </div>
 
+        <div class="download-destination" data-ui="download-destination">
+          <span class="download-destination__icon" aria-hidden="true"><i class="fa-regular fa-folder-open"></i></span>
+          <span class="download-destination__label" data-i18n="downloader.destination.label">Сохранить в</span>
+          <strong id="download-destination-path" class="download-destination__path" data-i18n="downloader.destination.loading">Загрузка пути…</strong>
+          <button id="select-folder" type="button" class="download-destination__change" aria-label="Изменить папку загрузки" data-i18n-aria="downloader.destination.change" data-i18n="downloader.destination.change">Изменить</button>
+        </div>
+
         <label class="url-drop-zone" for="url">
-          <span class="url-drop-zone__icon" aria-hidden="true">
-            <i class="fa-solid fa-cloud-arrow-down"></i>
-          </span>
-          <strong class="url-drop-zone__title" data-i18n="input.url.drop.title">
-            Перетащите ссылку сюда
-          </strong>
-          <span class="url-drop-zone__hint" data-i18n="input.url.drop.hint">
-            или вставьте её из буфера обмена
-          </span>
+          <span class="url-drop-zone__icon" aria-hidden="true"><i class="fa-solid fa-cloud-arrow-down"></i></span>
+          <strong class="url-drop-zone__title" data-i18n="input.url.drop.title">Перетащите ссылку сюда</strong>
+          <span class="url-drop-zone__hint" data-i18n="input.url.drop.hint">или вставьте её из буфера обмена</span>
         </label>
-
-        <nav
-          class="button-group downloader-action-row url-input-action-row"
-          aria-label="Основные действия"
-          data-i18n-aria="actions.primary"
-        >
-          <section
-            id="compact-quality-panel"
-            class="compact-quality-panel"
-            aria-label="Компактный выбор качества"
-            data-i18n-aria="quality.compact.panel"
-            hidden
-            aria-hidden="true"
-          >
-            <div class="compact-quality-panel__grid">
-              <div class="compact-quality-field">
-                <label id="compact-video-quality-label" for="compact-video-quality" data-i18n="quality.compact.video">Видео</label>
-                <select id="compact-video-quality" class="compact-quality-select" aria-labelledby="compact-video-quality-label"></select>
-              </div>
-              <div class="compact-quality-field">
-                <label id="compact-audio-quality-label" for="compact-audio-quality" data-i18n="quality.compact.audio">Аудио</label>
-                <select id="compact-audio-quality" class="compact-quality-select" aria-labelledby="compact-audio-quality-label"></select>
-              </div>
-            </div>
-            <p
-              id="compact-quality-status"
-              class="compact-quality-status hidden"
-              role="status"
-              aria-live="polite"
-            ></p>
-          </section>
-
-          <button
-            id="open-last-video"
-            data-shortcut-action="downloads.last.open"
-            class="small-button btn btn-sm btn-secondary downloader-action-row__aside"
-            aria-label="Открыть последнее скачанное видео"
-            data-i18n-aria="actions.openLast"
-            disabled
-            data-bs-toggle="tooltip"
-            data-bs-placement="top"
-            title="Последнее видео"
-            data-i18n-title="actions.lastVideo"
-          >
-            <i class="fa fa-play" aria-hidden="true"></i>
-          </button>
-
-          <div class="download-quality-group downloader-action-row__primary">
-            <button id="download-button" class="large-button btn btn-lg btn-primary downloader-action-row__download" data-shortcut-action="downloads.start" disabled aria-disabled="true">
-              <i class="fas fa-download"></i>
-              <span class="button-text" data-i18n="actions.download">Скачать</span>
-            </button>
-
-            <button
-              id="download-cancel"
-              class="small-button btn btn-sm btn-danger downloader-action-row__cancel"
-              aria-label="Отменить скачивание"
-              data-i18n-aria="actions.cancelDownload"
-              disabled
-              data-bs-toggle="tooltip"
-              data-bs-placement="top"
-              title="Отменить скачивание"
-              data-i18n-title="actions.cancelDownload"
-            >
-              <i class="fa-solid fa-xmark"></i>
-              <span id="download-cancel-count" class="cancel-count hidden">0</span>
-            </button>
-          </div>
-
-          <button
-            id="open-folder"
-            data-shortcut-action="downloads.folder.open"
-            class="small-button btn btn-sm btn-secondary downloader-action-row__aside"
-            aria-label="Открыть папку с видео"
-            data-i18n-aria="actions.openFolder"
-            data-bs-toggle="tooltip"
-            data-bs-placement="top"
-            title="Папка с видео"
-            data-i18n-title="actions.videoFolder"
-          >
-            <i class="fa-regular fa-folder-open"></i>
-          </button>
-        </nav>
-
       </div>
       <div id="url-inline-error" class="url-inline-error hidden" role="status" aria-live="polite"></div>
     </div>
-    <!-- Preview -->
-    <div id="preview-card" class="preview-card" style="display: none">
+
+    <section id="preview-card" class="preview-card downloader-selection-card" data-ui="downloader-selection-card" aria-labelledby="preview-title" hidden>
       <div class="preview-card__thumb preview-media">
         <div class="preview-thumb-wrap">
-          <img
-            id="preview-thumb"
-            alt="Превью"
-            data-i18n-alt="preview.alt"
-            loading="lazy"
-            style="display: none"
-          />
-          <button
-            id="preview-open-live"
-            class="preview-live-play hidden"
-            type="button"
-            aria-label="Открыть live preview"
-            data-i18n-aria="input.url.preview.openLiveTitle"
-            title="Открыть live preview"
-            data-i18n-title="input.url.preview.openLiveTitle"
-          >
+          <img id="preview-thumb" alt="Превью" data-i18n-alt="preview.alt" loading="lazy" hidden />
+          <button id="preview-open-live" class="preview-live-play hidden" type="button" aria-label="Открыть предпросмотр" data-i18n-aria="input.url.preview.openLiveTitle" title="Открыть предпросмотр" data-i18n-title="input.url.preview.openLiveTitle">
             <i class="fa-solid fa-play" aria-hidden="true"></i>
           </button>
           <span id="preview-duration-overlay" class="preview-duration-overlay hidden"></span>
         </div>
       </div>
+
       <div class="preview-card__body preview-meta">
         <div class="preview-kicker" data-i18n="input.url.preview.kicker">Предпросмотр</div>
         <div id="preview-title" class="preview-title"></div>
@@ -267,74 +64,60 @@
           <span id="preview-source" class="preview-chip preview-chip--source hidden"></span>
           <small id="preview-duration" class="preview-chip preview-chip--duration hidden"></small>
           <span id="preview-quality" class="preview-chip preview-chip--quality hidden"></span>
-          <span id="preview-ready" class="preview-chip preview-chip--ready hidden">
-            <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
-            <span data-i18n="input.url.preview.ready">Готово к скачиванию</span>
-          </span>
+          <span id="preview-ready" class="preview-chip preview-chip--ready hidden"><i class="fa-solid fa-circle-check" aria-hidden="true"></i><span data-i18n="input.url.preview.ready">Готово к скачиванию</span></span>
         </div>
         <div id="preview-details" class="preview-details hidden"></div>
+        <div id="preview-actions" class="preview-card__actions preview-actions"></div>
       </div>
-      <div id="preview-actions" class="preview-card__actions preview-actions"></div>
+
+      <div class="downloader-selection-card__quality" aria-label="Быстрый выбор формата" data-i18n-aria="quality.quick.group">
+        <label class="downloader-quality-field" for="downloader-video-quality">
+          <span class="downloader-quality-field__icon" aria-hidden="true"><i class="fa-solid fa-film"></i></span>
+          <span class="downloader-quality-field__copy"><span class="downloader-quality-field__label" data-i18n="quality.quick.video">Видео</span><span id="downloader-video-meta" class="downloader-quality-field__meta"></span></span>
+          <select id="downloader-video-quality" disabled></select>
+        </label>
+        <label class="downloader-quality-field" for="downloader-audio-quality">
+          <span class="downloader-quality-field__icon" aria-hidden="true"><i class="fa-solid fa-music"></i></span>
+          <span class="downloader-quality-field__copy"><span class="downloader-quality-field__label" data-i18n="quality.quick.audio">Аудио</span><span id="downloader-audio-meta" class="downloader-quality-field__meta"></span></span>
+          <select id="downloader-audio-quality" disabled></select>
+        </label>
+        <label class="downloader-quality-field" for="downloader-subtitle-quality">
+          <span class="downloader-quality-field__icon" aria-hidden="true"><i class="fa-solid fa-closed-captioning"></i></span>
+          <span class="downloader-quality-field__copy"><span class="downloader-quality-field__label" data-i18n="quality.quick.subtitles">Субтитры</span><span id="downloader-subtitle-meta" class="downloader-quality-field__meta"></span></span>
+          <select id="downloader-subtitle-quality" disabled></select>
+        </label>
+
+        <div class="downloader-selection-card__summary">
+          <span id="downloader-output-summary" data-i18n="quality.quick.summaryWaiting">Формат будет показан после анализа ссылки</span>
+          <span id="downloader-quality-status" class="downloader-quality-status" role="status" aria-live="polite"></span>
+        </div>
+        <button id="downloader-advanced-formats" type="button" class="downloader-advanced-formats" data-i18n="quality.quick.advanced" disabled>Расширенные форматы…</button>
+        <div class="downloader-selection-card__actions">
+          <button id="enqueue-button" type="button" class="btn btn-secondary downloader-selection-card__enqueue" data-i18n="quality.split.action.enqueue" disabled aria-disabled="true">Добавить в очередь</button>
+          <button id="download-button" type="button" class="large-button btn btn-lg btn-primary downloader-selection-card__download" data-shortcut-action="downloads.start" disabled aria-disabled="true">
+            <i class="fas fa-download" aria-hidden="true"></i><span class="button-text" data-i18n="actions.download">Скачать</span>
+          </button>
+        </div>
+      </div>
+
       <div class="preview-card__controls">
-        <button
-          id="preview-collapse"
-          class="preview-collapse"
-          type="button"
-          aria-label="Свернуть предпросмотр"
-          data-i18n-aria="input.url.preview.collapse"
-        >
-          <i class="fa-solid fa-chevron-up" aria-hidden="true"></i>
-        </button>
-        <button
-          class="preview-close"
-          type="button"
-          aria-label="Закрыть предпросмотр"
-          data-i18n-aria="input.url.preview.close"
-        >
-          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
-        </button>
+        <button id="preview-collapse" class="preview-collapse" type="button" aria-label="Свернуть предпросмотр" data-i18n-aria="input.url.preview.collapse"><i class="fa-solid fa-chevron-up" aria-hidden="true"></i></button>
+        <button class="preview-close" type="button" aria-label="Закрыть предпросмотр" data-i18n-aria="input.url.preview.close"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
       </div>
-    </div>
+    </section>
   </div>
 </header>
-<div
-  id="preview-live-player"
-  class="preview-live-player-modal modal-overlay hidden"
-  aria-hidden="true"
-  aria-modal="true"
-  role="dialog"
-  aria-labelledby="preview-live-title"
->
+
+<div id="preview-live-player" class="preview-live-player-modal modal-overlay hidden" aria-hidden="true" aria-modal="true" role="dialog" aria-labelledby="preview-live-title">
   <div class="preview-live-player-modal__dialog">
     <div class="preview-live-player-modal__header">
       <div class="preview-live-player-modal__heading">
         <span class="preview-live-player-modal__eyebrow" data-i18n="input.url.preview.liveTitle">Live preview</span>
         <strong id="preview-live-title" class="preview-live-player-modal__title" data-i18n="input.url.preview.liveTitle">Live preview</strong>
-        <div id="preview-live-meta" class="preview-live-player-modal__meta hidden">
-          <span id="preview-live-source" class="preview-live-player-modal__badge hidden"></span>
-          <span id="preview-live-duration" class="preview-live-player-modal__badge hidden"></span>
-        </div>
+        <div id="preview-live-meta" class="preview-live-player-modal__meta hidden"><span id="preview-live-source" class="preview-live-player-modal__badge hidden"></span><span id="preview-live-duration" class="preview-live-player-modal__badge hidden"></span></div>
       </div>
-      <button
-        id="preview-live-close"
-        type="button"
-        class="preview-live-player-modal__close"
-        aria-label="Закрыть live preview"
-        data-i18n-aria="input.url.preview.liveClose"
-        title="Закрыть live preview"
-        data-i18n-title="input.url.preview.liveClose"
-      >
-        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
-      </button>
+      <button id="preview-live-close" type="button" class="preview-live-player-modal__close" aria-label="Закрыть live preview" data-i18n-aria="input.url.preview.liveClose" title="Закрыть live preview" data-i18n-title="input.url.preview.liveClose"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
     </div>
-    <video
-      id="preview-live-video"
-      class="preview-live-player-modal__video"
-      controls
-      playsinline
-      preload="metadata"
-    >
-      <source id="preview-live-video-source" />
-    </video>
+    <video id="preview-live-video" class="preview-live-player-modal__video" controls playsinline preload="metadata"><source id="preview-live-video-source" /></video>
   </div>
 </div>

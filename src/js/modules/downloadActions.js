@@ -10,6 +10,17 @@ import { initDownloadButton } from "./downloadManager.js";
 import { showToast } from "./toast.js";
 import { t } from "./i18n.js";
 
+const destinationPath = document.getElementById("download-destination-path");
+
+function syncDownloadDestination(path = "") {
+  if (!destinationPath) return;
+  const value = String(path || "").trim();
+  destinationPath.textContent =
+    value || t("downloader.destination.unavailable");
+  destinationPath.title = value;
+  destinationPath.removeAttribute("data-i18n");
+}
+
 /**
  * Открывает актуальную папку загрузок или местоположение последнего файла.
  */
@@ -110,13 +121,13 @@ async function handleSelectDownloadFolder() {
 /**
  * Функция для инициализации действий загрузки
  */
-function initDownloadActions() {
+async function initDownloadActions() {
   console.log("Инициализация downloadActions");
   // Слушаем событие изменения пути загрузки
   window.electron.on("download-path-changed", (newPath) => {
     console.log(`Путь загрузки изменен: ${newPath}`);
+    syncDownloadDestination(newPath);
     showToast(t("download.folder.changed", { path: newPath }), "success");
-    // при необходимости обновляем UI здесь
   });
   window.electron.on("download-complete", ({ filePath }) => {
     if (!filePath) return;
@@ -143,12 +154,16 @@ function initDownloadActions() {
   selectFolderButton.addEventListener("click", handleSelectDownloadFolder);
 
   // Получаем текущий путь загрузки из main process
-  window.electron.invoke("get-download-path").then((path) => {
+  try {
+    const path = await window.electron.invoke("get-download-path");
     if (path) {
       console.log(`Текущий путь загрузки: ${path}`);
-      // при необходимости обновляем UI здесь
     }
-  });
+    syncDownloadDestination(path);
+  } catch (error) {
+    console.error("Error resolving download path:", error);
+    syncDownloadDestination("");
+  }
 }
 
 export { initDownloadActions };

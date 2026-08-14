@@ -28,7 +28,6 @@ const BOOLEAN_SETTINGS = new Set([
   "openOnCopyUrl",
   "openOnDownloadComplete",
   "disableCompleteModal",
-  "autoOpenQualityModal",
   "showToolsStatus",
 ]);
 const THEME_SETTINGS = new Set([
@@ -50,16 +49,6 @@ const SETTINGS_KEYS = new Set([
   "fontSize",
   "language",
 ]);
-
-function readLocalFlag(key, defaultValue) {
-  try {
-    const value = localStorage.getItem(key);
-    if (value === null) return defaultValue;
-    return value !== "0" && value !== "false";
-  } catch {
-    return defaultValue;
-  }
-}
 
 function normalizeQualityProfile(value) {
   return QUALITY_PROFILE_SETTINGS.has(value) ? value : QUALITY_PROFILE_DEFAULT;
@@ -128,7 +117,6 @@ async function getWebControlSettings() {
     qualityProfile: normalizeQualityProfile(
       localStorage.getItem(QUALITY_PROFILE_KEY),
     ),
-    autoOpenQualityModal: readLocalFlag("downloadAutoOpenQualityModal", true),
     openOnCopyUrl: Boolean(openOnCopyUrl),
     openOnDownloadComplete: Boolean(openOnDownloadComplete),
     disableCompleteModal: Boolean(disableCompleteModal),
@@ -151,12 +139,6 @@ async function setBooleanSetting(key, value) {
     );
   } else if (key === "disableCompleteModal") {
     await window.electron.invoke("set-disable-complete-modal-status", enabled);
-  } else if (key === "autoOpenQualityModal") {
-    if (enabled) {
-      localStorage.removeItem("downloadAutoOpenQualityModal");
-    } else {
-      localStorage.setItem("downloadAutoOpenQualityModal", "0");
-    }
   } else if (key === "showToolsStatus") {
     if (enabled) {
       localStorage.removeItem("downloaderToolsStatusHidden");

@@ -25,10 +25,7 @@ import {
   STATE_EVENT as LIVE_PREVIEW_STATE_EVENT,
   hideDownloaderLivePreview,
 } from "./downloaderLivePreview.js";
-import {
-  PREVIEW_EVENT,
-  isCompactDownloaderMode,
-} from "./compactDownloaderQuality.js";
+import { PREVIEW_EVENT } from "./downloaderSelectionCard.js";
 
 const clearButton = document.getElementById("clear-url");
 const pasteButton = document.getElementById("paste-url");
@@ -43,7 +40,6 @@ const LIVE_PREVIEW_RETRY_HANDLER_KEY =
   "__thunderLoadDownloaderLivePreviewRetryHandler";
 const LIVE_PREVIEW_STATE_HANDLER_KEY =
   "__thunderLoadDownloaderLivePreviewStateHandler";
-const AUTO_OPEN_QUALITY_MODAL_KEY = "downloadAutoOpenQualityModal";
 const FULL_INFO_WARMUP_DELAY_MS = 900;
 
 function initUrlInputHandler() {
@@ -51,7 +47,6 @@ function initUrlInputHandler() {
 
   const inputContainer = document.querySelector(".input-container");
   const wrapperEl = document.querySelector(".url-input-wrapper");
-  const actionRowEl = document.querySelector(".url-input-action-row");
 
   const setStateClass = (className, enabled) => {
     wrapperEl?.classList.toggle(className, enabled);
@@ -77,10 +72,6 @@ function initUrlInputHandler() {
     const isEmpty = normalized === "";
     setStateClass("is-empty", isEmpty);
     setStateClass("has-value", !isEmpty);
-    if (actionRowEl) {
-      actionRowEl.hidden = isEmpty;
-      actionRowEl.setAttribute("aria-hidden", isEmpty ? "true" : "false");
-    }
     if (sourceLinkButton) {
       sourceLinkButton.disabled = !(
         normalized &&
@@ -109,67 +100,8 @@ function initUrlInputHandler() {
   let livePreviewButton = null;
   let currentLivePreview = null;
   let livePreviewOpen = false;
-  let pendingAutoQualityUrl = "";
   let fullInfoWarmupTimer = null;
   let fullInfoWarmupUrl = "";
-  let lastPreviewData = null;
-
-  const isAutoQualityModalEnabled = () => {
-    try {
-      return localStorage.getItem(AUTO_OPEN_QUALITY_MODAL_KEY) !== "0";
-    } catch {
-      return true;
-    }
-  };
-
-  const shouldAutoOpenQualityModal = () =>
-    isAutoQualityModalEnabled() && !isCompactDownloaderMode();
-
-  const markAutoQualityCandidate = (value) => {
-    if (!shouldAutoOpenQualityModal()) {
-      pendingAutoQualityUrl = "";
-      return;
-    }
-    const normalized = normalizeUrlInput(value).trim();
-    pendingAutoQualityUrl =
-      normalized && isValidUrl(normalized) && isSupportedUrl(normalized)
-        ? normalized
-        : "";
-  };
-
-  const hasPreviewImage = (data) => {
-    if (String(data?.thumbnail || "").trim()) return true;
-    if (!Array.isArray(data?.thumbnails)) return false;
-    return data.thumbnails.some((thumb) => String(thumb?.url || "").trim());
-  };
-
-  const hasRecognizedPreviewInfo = (data) =>
-    !!data?.success &&
-    !!String(data?.title || "").trim() &&
-    hasPreviewImage(data);
-
-  const maybeOpenQualityModalAfterPaste = (url, data) => {
-    if (!pendingAutoQualityUrl || pendingAutoQualityUrl !== url) return;
-    if (!shouldAutoOpenQualityModal() || !hasRecognizedPreviewInfo(data)) {
-      pendingAutoQualityUrl = "";
-      return;
-    }
-    const qualityModal = document.getElementById("download-quality-modal");
-    if (qualityModal?.classList.contains("is-open")) {
-      pendingAutoQualityUrl = "";
-      return;
-    }
-    const downloadBtn = document.getElementById("download-button");
-    updateButtonState();
-    if (!downloadBtn || downloadBtn.disabled) return;
-    pendingAutoQualityUrl = "";
-    setTimeout(() => {
-      if (!downloadBtn.disabled) {
-        downloadBtn.dataset.forceQualityModal = "1";
-        downloadBtn.click();
-      }
-    }, 0);
-  };
 
   const setPreviewLoading = (isLoading) => {
     wrapperEl?.classList.toggle("is-preview-loading", isLoading);
@@ -473,6 +405,7 @@ function initUrlInputHandler() {
       currentLivePreview = null;
       livePreviewOpen = false;
       card.style.display = "none";
+      card.hidden = true;
       card.classList.remove("pos-top");
       setStateClass("has-preview", false);
       if (addAllBtn) addAllBtn.style.display = "none";
@@ -490,7 +423,6 @@ function initUrlInputHandler() {
       );
       return;
     }
-    lastPreviewData = data;
     const previewUrl = lastPreviewUrl || data.webpage_url || data.original_url;
     try {
       setCachedVideoInfo(previewUrl || urlInput.value.trim(), data);
@@ -515,11 +447,14 @@ function initUrlInputHandler() {
     if (data.thumbnail) {
       img.src = data.thumbnail;
       img.style.display = "";
+      img.hidden = false;
     } else {
       img.removeAttribute("src");
       img.style.display = "none";
+      img.hidden = true;
     }
     card.style.display = data.title || data.thumbnail ? "" : "none";
+    card.hidden = !(data.title || data.thumbnail);
     card.classList.add("visible");
     card.classList.remove("is-collapsed");
     setStateClass("has-preview", card.style.display !== "none");
@@ -679,6 +614,7 @@ function initUrlInputHandler() {
         currentLivePreview = null;
         livePreviewOpen = false;
         card.style.display = "none";
+        card.hidden = true;
         card.classList.remove("visible");
         card.classList.remove("pos-top");
         setStateClass("has-preview", false);
@@ -847,11 +783,15 @@ function initUrlInputHandler() {
           fullInfoWarmupUrl = "";
         }
         const currentUrl = normalizeUrlInput(urlInput.value).trim();
-        if (
-          requestId !== previewRequestId ||
-          currentUrl !== normalizedUrl ||
-          !info?.success
-        ) {
+        if (requestId !== previewRequestId || currentUrl !== normalizedUrl) {
+          return;
+        }
+        if (!info?.success) {
+          window.dispatchEvent(
+            new CustomEvent(PREVIEW_EVENT, {
+              detail: { info: null, url: normalizedUrl, error: true },
+            }),
+          );
           return;
         }
         await syncBackgroundPreview(info);
@@ -861,6 +801,14 @@ function initUrlInputHandler() {
           }),
         );
       } catch (_) {
+        const currentUrl = normalizeUrlInput(urlInput.value).trim();
+        if (requestId === previewRequestId && currentUrl === normalizedUrl) {
+          window.dispatchEvent(
+            new CustomEvent(PREVIEW_EVENT, {
+              detail: { info: null, url: normalizedUrl, error: true },
+            }),
+          );
+        }
       } finally {
         if (fullInfoWarmupUrl === normalizedUrl) {
           fullInfoWarmupUrl = "";
@@ -941,13 +889,10 @@ function initUrlInputHandler() {
       cancelFullInfoWarmup(url);
       setPreviewLoading(false);
       renderPreview(null);
-      pendingAutoQualityUrl = "";
-      lastPreviewData = null;
       return;
     }
     if (url === lastPreviewUrl) {
       setPreviewLoading(false);
-      maybeOpenQualityModalAfterPaste(url, lastPreviewData);
       return; // не повторяем
     }
     lastPreviewUrl = url;
@@ -964,20 +909,15 @@ function initUrlInputHandler() {
         showInlineErrorText(fetchError);
         renderPreview(null);
         clearFullInfoWarmup();
-        pendingAutoQualityUrl = "";
-        lastPreviewData = null;
         return;
       }
       renderPreview(data);
       await syncBackgroundPreview(data);
       scheduleFullInfoWarmup(url, data, currentRequest);
-      maybeOpenQualityModalAfterPaste(url, data);
     } catch {
       if (currentRequest !== previewRequestId) return;
       renderPreview(null);
       clearFullInfoWarmup();
-      pendingAutoQualityUrl = "";
-      lastPreviewData = null;
     } finally {
       if (currentRequest !== previewRequestId) return;
       setPreviewLoading(false);
@@ -985,10 +925,8 @@ function initUrlInputHandler() {
   };
 
   // Внешний триггер принудительного показа предпросмотра (например, из истории → Повторить)
-  urlInput.addEventListener("force-preview", async (event) => {
+  urlInput.addEventListener("force-preview", async () => {
     if (!isDownloaderAvailable()) {
-      pendingAutoQualityUrl = "";
-      lastPreviewData = null;
       setPreviewLoading(false);
       renderPreview(null);
       updateButtonState();
@@ -1001,15 +939,10 @@ function initUrlInputHandler() {
     lastPreviewUrl = "";
     // вызываем немедленно без debounce
     const url = forcedUrl;
-    if (event?.detail?.autoOpenQuality === true) {
-      markAutoQualityCandidate(url);
-    }
     if (!isValidUrl(url) || !isSupportedUrl(url)) {
       cancelFullInfoWarmup(url);
       setPreviewLoading(false);
       renderPreview(null);
-      pendingAutoQualityUrl = "";
-      lastPreviewData = null;
       return;
     }
     lastPreviewUrl = url;
@@ -1024,53 +957,32 @@ function initUrlInputHandler() {
         showInlineErrorText(fetchError);
         renderPreview(null);
         clearFullInfoWarmup();
-        pendingAutoQualityUrl = "";
-        lastPreviewData = null;
         return;
       }
       renderPreview(data);
       await syncBackgroundPreview(data);
       scheduleFullInfoWarmup(url, data);
-      maybeOpenQualityModalAfterPaste(url, data);
     } catch {
       renderPreview(null);
       clearFullInfoWarmup();
-      pendingAutoQualityUrl = "";
-      lastPreviewData = null;
     } finally {
       setPreviewLoading(false);
     }
   });
 
-  urlInput.addEventListener("paste", (event) => {
-    const text = event.clipboardData?.getData?.("text") || "";
-    if (text) {
-      markAutoQualityCandidate(text);
-    } else {
-      pendingAutoQualityUrl = "__pending_native_paste__";
-    }
-  });
-
   urlInput.addEventListener("input", (event) => {
     if (!isDownloaderAvailable()) {
-      pendingAutoQualityUrl = "";
-      lastPreviewData = null;
       setPreviewLoading(false);
       renderPreview(null);
       updateButtonState();
       return;
     }
-    const isPasteInput =
-      event?.inputType === "insertFromPaste" ||
-      pendingAutoQualityUrl === "__pending_native_paste__";
+    const isPasteInput = event?.inputType === "insertFromPaste";
     if (isPasteInput) {
       normalizeInputValue();
     }
     toggleButtons();
     const val = urlInput.value.trim();
-    if (isPasteInput) {
-      markAutoQualityCandidate(val);
-    }
     syncUrlUiState({ showError: false });
     // Если поле пустое — моментально скрываем превью без ожидания debounce
     if (val === "") {
@@ -1079,7 +991,6 @@ function initUrlInputHandler() {
       cancelStalePreviewRequest("");
       cancelFullInfoWarmup("");
       lastPreviewUrl = "";
-      lastPreviewData = null;
       livePreviewOpen = false;
       setPreviewLoading(false);
       renderPreview(null);
@@ -1125,7 +1036,6 @@ function initUrlInputHandler() {
       hasInteracted = false;
       urlInput.value = "";
       lastPreviewUrl = "";
-      lastPreviewData = null;
       cancelFullInfoWarmup("");
       livePreviewOpen = false;
       setPreviewLoading(false);
@@ -1145,7 +1055,6 @@ function initUrlInputHandler() {
     if (!validation.isValid) {
       e.preventDefault();
       lastPreviewUrl = "";
-      lastPreviewData = null;
       cancelFullInfoWarmup("");
       renderPreview(null);
       return;
@@ -1177,7 +1086,6 @@ function initUrlInputHandler() {
     toggleButtons();
     // Немедленно скрываем превью
     lastPreviewUrl = "";
-    lastPreviewData = null;
     cancelFullInfoWarmup("");
     livePreviewOpen = false;
     setPreviewLoading(false);
@@ -1194,8 +1102,6 @@ function initUrlInputHandler() {
     const text = (await navigator.clipboard.readText()) || "";
     hasInteracted = false;
     urlInput.value = normalizeUrlInput(text.trim());
-    lastPreviewData = null;
-    markAutoQualityCandidate(urlInput.value);
     toggleButtons();
     hideInlineError();
     urlInput.dispatchEvent(new Event("input", { bubbles: true })); // запускаем реакцию

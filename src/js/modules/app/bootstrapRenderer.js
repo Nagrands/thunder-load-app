@@ -8,7 +8,7 @@ import { initWhatsNewModal } from "../whatsNewModal.js";
 import { initSettings } from "../settings.js";
 import { initUrlInputHandler } from "../urlInputHandler.js";
 import { initDownloaderAvailability } from "../downloaderAvailability.js";
-import { initCompactDownloaderQuality } from "../compactDownloaderQuality.js";
+import { initDownloaderSelectionCard } from "../downloaderSelectionCard.js";
 import { initSort } from "../sort.js";
 import { initHistoryFilter } from "../historyFilter.js";
 import { initHistoryActions } from "../features/history/actions.js";
@@ -81,7 +81,7 @@ async function runCriticalInitialization(mainView) {
 
   initDeveloperModeFooterVisibility();
   initDeveloperModeTopBarVisibility();
-  initCompactDownloaderQuality();
+  initDownloaderSelectionCard();
   initUrlInputHandler();
   initDownloaderAvailability();
   initHistory();

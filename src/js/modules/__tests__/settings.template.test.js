@@ -34,7 +34,7 @@ describe("settings template structure", () => {
   test("keeps preview live player trigger on the thumbnail", () => {
     const indexPath = path.resolve(process.cwd(), "src/index.html");
     const html = fs.readFileSync(indexPath, "utf8");
-    const previewStart = html.indexOf('<div id="preview-card"');
+    const previewStart = html.indexOf('<section id="preview-card"');
     const livePlayerStart = html.indexOf('<div\n  id="preview-live-player"');
     const previewHtml = html.slice(previewStart, livePlayerStart);
     const thumbStart = previewHtml.indexOf('class="preview-thumb-wrap"');
@@ -71,8 +71,12 @@ describe("settings template structure", () => {
     expect(html).toContain('id="settings-diagnostics-debug-toggle"');
     expect(html).toContain('id="settings-diagnostics-export"');
     ["ru", "en"].forEach((language) => {
-      expect(settingsTranslations[language]["settings.diagnostics.title"]).toBeTruthy();
-      expect(settingsTranslations[language]["settings.diagnostics.export"]).toBeTruthy();
+      expect(
+        settingsTranslations[language]["settings.diagnostics.title"],
+      ).toBeTruthy();
+      expect(
+        settingsTranslations[language]["settings.diagnostics.export"],
+      ).toBeTruthy();
     });
   });
 
@@ -361,16 +365,6 @@ describe("settings template structure", () => {
     );
     expect(generalPaneHtml).not.toContain(
       '<span data-i18n="settings.about.checkUpdates">',
-    );
-  });
-
-  test("includes auto quality modal toggle in downloader settings", () => {
-    const indexPath = path.resolve(process.cwd(), "src/index.html");
-    const html = fs.readFileSync(indexPath, "utf8");
-
-    expect(html).toContain('id="settings-auto-open-quality-modal"');
-    expect(html).toContain(
-      'data-i18n-html="settings.downloader.autoQualityModal"',
     );
   });
 

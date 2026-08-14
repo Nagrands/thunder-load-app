@@ -105,6 +105,9 @@ const hintTextEl = document.getElementById("download-quality-hint-text");
 const hotkeyConfirmLabelEl = document.getElementById(
   "download-quality-hotkey-confirm-label",
 );
+const hotkeyEnqueueEl = document.getElementById(
+  "download-quality-hotkey-enqueue",
+);
 
 const bytesToSize = (bytes) => {
   if (!bytes || Number(bytes) <= 0) return "";
@@ -135,6 +138,7 @@ const state = {
   info: null,
   forceAudio: false,
   enqueueOnly: false,
+  confirmationMode: "download",
   defaultQualityProfile: "remember",
   defaultQuality: "Source",
   currentUrl: "",
@@ -298,25 +302,40 @@ function isQueueConfirmMode() {
   return !!state.enqueueOnly;
 }
 
+function isApplyConfirmMode() {
+  return state.confirmationMode === "apply";
+}
+
 function syncConfirmUi() {
+  hotkeyEnqueueEl?.classList.toggle("hidden", isApplyConfirmMode());
   if (hintTextEl) {
     hintTextEl.textContent = t(
-      isQueueConfirmMode() ? "quality.hint.queue" : "quality.hint",
+      isApplyConfirmMode()
+        ? "quality.hint.apply"
+        : isQueueConfirmMode()
+          ? "quality.hint.queue"
+          : "quality.hint",
     );
   }
   if (hotkeyConfirmLabelEl) {
     hotkeyConfirmLabelEl.textContent = t(
-      isQueueConfirmMode()
-        ? "quality.hotkey.confirmQueue"
-        : "quality.hotkey.confirm",
+      isApplyConfirmMode()
+        ? "quality.hotkey.apply"
+        : isQueueConfirmMode()
+          ? "quality.hotkey.confirmQueue"
+          : "quality.hotkey.confirm",
     );
   }
   const option = state.selectedOption;
   if (primaryBtn) {
     if (option) {
-      renderPrimaryButtonLabel(`(${option.payload.label})`, {
-        queue: isQueueConfirmMode(),
-      });
+      if (isApplyConfirmMode()) {
+        primaryBtn.innerHTML = `<i class="fa-solid fa-check" aria-hidden="true"></i><strong>${escapeHTML(t("quality.apply"))}</strong> <span>(${escapeHTML(option.payload.label)})</span>`;
+      } else {
+        renderPrimaryButtonLabel(`(${option.payload.label})`, {
+          queue: isQueueConfirmMode(),
+        });
+      }
     } else {
       renderPrimaryButtonLabel(
         t(
@@ -328,6 +347,7 @@ function syncConfirmUi() {
       );
     }
   }
+  actionEnqueueBtn?.classList.toggle("hidden", isApplyConfirmMode());
 }
 
 function focusSelectedOption() {
@@ -1538,6 +1558,7 @@ function bindEvents() {
       }
       if (
         !isEditableTarget &&
+        !isApplyConfirmMode() &&
         !event.ctrlKey &&
         !event.metaKey &&
         !event.altKey &&
@@ -1582,6 +1603,12 @@ async function openDownloadQualityModal(url, opts = {}) {
   bindEvents();
   state.forceAudio = !!opts.forceAudioOnly;
   state.enqueueOnly = !!opts.enqueueOnly;
+  state.confirmationMode =
+    opts.confirmationMode === "apply" ? "apply" : "download";
+  actionEnqueueBtn?.classList.toggle(
+    "hidden",
+    state.confirmationMode === "apply",
+  );
   state.shouldFocusSelection = true;
   state.defaultQualityProfile =
     opts.defaultQualityProfile === "audio" ? "audio" : "remember";
