@@ -1,6 +1,5 @@
 import {
   clearDownloadJobsByStatus,
-  JOB_STATUS,
   getActiveDownloadJobs,
   getCompletedDownloadJobs,
   getFailedDownloadJobs,
@@ -8,7 +7,8 @@ import {
   removeDownloadJob,
   replaceDownloadJobsByStatus,
   upsertDownloadJob,
-} from "../downloadJobs.js";
+} from "../features/queue/store.js";
+import { JOB_STATUS } from "../features/queue/model.js";
 
 describe("downloadJobs selectors", () => {
   test("uses downloadJobs as the only queue state", () => {

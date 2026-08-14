@@ -2,7 +2,7 @@
 
 import { state } from "./state.js";
 import { buttonText, progressBarContainer } from "./domElements.js";
-import { getActiveDownloadJobs } from "./downloadJobs.js";
+import { getActiveDownloadJobs } from "./features/queue/store.js";
 import { t } from "./i18n.js";
 import { updateDownloadTabProgress } from "./downloadTabUi.js";
 

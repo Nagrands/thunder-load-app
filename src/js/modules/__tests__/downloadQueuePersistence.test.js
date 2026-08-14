@@ -1,7 +1,7 @@
 import {
   loadCompletedJobs,
   persistCompletedJobs,
-} from "../downloadQueuePersistence.js";
+} from "../features/queue/repository.js";
 
 const STORAGE_KEY = "downloadCompletedQueue";
 

@@ -25,6 +25,46 @@ const buildDom = () => {
   `;
 };
 
+const jobsWithStatus = (state, statuses) => {
+  const allowed = Array.isArray(statuses) ? statuses : [statuses];
+  return state.downloadJobs.filter((job) => allowed.includes(job.status));
+};
+
+const replaceJobs = (state, statuses, jobs, fallbackStatus) => {
+  const allowed = Array.isArray(statuses) ? statuses : [statuses];
+  state.downloadJobs = [
+    ...state.downloadJobs.filter((job) => !allowed.includes(job.status)),
+    ...(Array.isArray(jobs) ? jobs : []).map((job) => {
+      const signature =
+        job.signature || `${job.url || ""}::${JSON.stringify(job.quality)}`;
+      return {
+        ...job,
+        id: job.id || job.jobId || signature,
+        jobId: job.jobId || job.id || signature,
+        signature,
+        status: allowed.includes(job.status) ? job.status : fallbackStatus,
+        retryable:
+          typeof job.retryable === "boolean"
+            ? job.retryable
+            : fallbackStatus === "failed",
+      };
+    }),
+  ];
+};
+
+const activeJobs = (state) => jobsWithStatus(state, "running");
+const pendingJobs = (state) => jobsWithStatus(state, ["pending", "paused"]);
+const failedJobs = (state) => jobsWithStatus(state, "failed");
+const completedJobs = (state) => jobsWithStatus(state, "done");
+const setActiveJobs = (state, jobs) =>
+  replaceJobs(state, "running", jobs, "running");
+const setPendingJobs = (state, jobs) =>
+  replaceJobs(state, ["pending", "paused"], jobs, "pending");
+const setFailedJobs = (state, jobs) =>
+  replaceJobs(state, "failed", jobs, "failed");
+const setCompletedJobs = (state, jobs) =>
+  replaceJobs(state, "done", jobs, "done");
+
 beforeEach(() => {
   delete window.__videoInfoCache;
   delete window.__videoInfoBrokerState;
@@ -147,7 +187,7 @@ describe("downloadManager queue persistence", () => {
       }));
       const { state } = require("../state");
       const { persistQueue } = require("../downloadManager");
-      state.downloadQueue = [{ url: "https://example.com/a", quality: "q1" }];
+      setPendingJobs(state, [{ url: "https://example.com/a", quality: "q1" }]);
       persistQueue();
       const raw = localStorage.getItem("downloadQueue");
       expect(raw).toBeTruthy();
@@ -179,11 +219,11 @@ describe("downloadManager queue persistence", () => {
       const { state } = require("../state");
       const { persistQueue } = require("../downloadManager");
 
-      state.downloadQueue = [{ url: "https://example.com/a", quality: "q1" }];
+      setPendingJobs(state, [{ url: "https://example.com/a", quality: "q1" }]);
       persistQueue();
       expect(localStorage.getItem("downloadQueue")).toBeTruthy();
 
-      state.downloadQueue = [];
+      setPendingJobs(state, []);
       persistQueue();
       expect(localStorage.getItem("downloadQueue")).toBeNull();
     });
@@ -238,8 +278,8 @@ describe("downloadManager queue persistence", () => {
 
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(state.downloadQueue).toHaveLength(1);
-      expect(state.downloadQueue[0].title).toBe("Resolved title");
+      expect(pendingJobs(state)).toHaveLength(1);
+      expect(pendingJobs(state)[0].title).toBe("Resolved title");
 
       const raw = localStorage.getItem("downloadQueue");
       const parsed = JSON.parse(raw || "[]");
@@ -492,7 +532,7 @@ describe("downloadManager enqueueOnly behavior", () => {
       expect(resolveDownloaderSelection).toHaveBeenCalledWith(
         "https://example.com/a",
       );
-      expect(state.downloadQueue).toHaveLength(1);
+      expect(pendingJobs(state)).toHaveLength(1);
       expect(state.isDownloading).toBe(false);
     });
   });
@@ -587,7 +627,7 @@ describe("downloadManager enqueueOnly behavior", () => {
       const urlInput = document.getElementById("url");
       urlInput.value = "https://example.com/a";
       await handleDownloadButtonClick({ enqueueOnly: true });
-      expect(state.downloadQueue).toHaveLength(0);
+      expect(pendingJobs(state)).toHaveLength(0);
       expect(state.isDownloading).toBe(false);
       expect(urlInput.value).toBe("https://example.com/a");
     });
@@ -629,8 +669,8 @@ describe("downloadManager enqueueOnly behavior", () => {
       const urlInput = document.getElementById("url");
       urlInput.value = "https://example.com/a";
       await handleDownloadButtonClick({ enqueueOnly: true });
-      expect(state.downloadQueue).toHaveLength(1);
-      expect(state.downloadQueue[0].url).toBe("https://example.com/a");
+      expect(pendingJobs(state)).toHaveLength(1);
+      expect(pendingJobs(state)[0].url).toBe("https://example.com/a");
       expect(state.isDownloading).toBe(false);
     });
   });
@@ -762,8 +802,8 @@ describe("downloadManager enqueueOnly behavior", () => {
 
       await handleDownloadButtonClick({ enqueueOnly: true });
 
-      expect(state.downloadQueue).toHaveLength(2);
-      expect(state.downloadQueue.map((job) => job.quality)).toEqual([
+      expect(pendingJobs(state)).toHaveLength(2);
+      expect(pendingJobs(state).map((job) => job.quality)).toEqual([
         mediaPayload,
         subtitlePayload,
       ]);
@@ -793,8 +833,8 @@ describe("downloadManager enqueueOnly behavior", () => {
 
       await handleDownloadButtonClick({ enqueueOnly: true });
 
-      expect(state.downloadQueue).toHaveLength(1);
-      expect(state.downloadQueue[0].quality).toEqual(subtitlePayload);
+      expect(pendingJobs(state)).toHaveLength(1);
+      expect(pendingJobs(state)[0].quality).toEqual(subtitlePayload);
     });
   });
 
@@ -829,8 +869,8 @@ describe("downloadManager enqueueOnly behavior", () => {
       const urlInput = document.getElementById("url");
       urlInput.value = "https://example.com/a";
       await handleDownloadButtonClick({ enqueueOnly: true });
-      expect(state.downloadQueue).toHaveLength(1);
-      expect(state.downloadQueue[0].quality.type).toBe("audio-only");
+      expect(pendingJobs(state)).toHaveLength(1);
+      expect(pendingJobs(state)[0].quality.type).toBe("audio-only");
     });
   });
 });
@@ -884,7 +924,7 @@ describe("downloadManager job summary", () => {
       const { state } = require("../state");
       const { updateQueueDisplay } = require("../downloadManager");
 
-      state.activeDownloads = [
+      setActiveJobs(state, [
         {
           jobId: "job-1",
           title: "Demo video",
@@ -893,10 +933,10 @@ describe("downloadManager job summary", () => {
           progress: 42,
           stage: "download",
         },
-      ];
-      state.downloadQueue = [];
-      state.failedDownloads = [];
-      state.completedDownloads = [];
+      ]);
+      setPendingJobs(state, []);
+      setFailedJobs(state, []);
+      setCompletedJobs(state, []);
 
       updateQueueDisplay();
 
@@ -944,7 +984,7 @@ describe("downloadManager job summary", () => {
       const { state } = require("../state");
       const { updateQueueDisplay } = require("../downloadManager");
 
-      state.activeDownloads = [
+      setActiveJobs(state, [
         {
           jobId: "job-2",
           title: "Audio demo",
@@ -955,10 +995,10 @@ describe("downloadManager job summary", () => {
           stage: "download",
           createdAt: Date.now() - 10000,
         },
-      ];
-      state.downloadQueue = [];
-      state.failedDownloads = [];
-      state.completedDownloads = [];
+      ]);
+      setPendingJobs(state, []);
+      setFailedJobs(state, []);
+      setCompletedJobs(state, []);
 
       updateQueueDisplay();
 
@@ -999,7 +1039,7 @@ describe("downloadManager job summary", () => {
       const { state } = require("../state");
       const { updateQueueDisplay } = require("../downloadManager");
 
-      state.failedDownloads = [
+      setFailedJobs(state, [
         {
           jobId: "fail-1",
           title: "Restricted video",
@@ -1008,7 +1048,7 @@ describe("downloadManager job summary", () => {
           errorCode: "AUTH_REQUIRED",
           retryable: false,
         },
-      ];
+      ]);
 
       updateQueueDisplay();
 
@@ -1047,7 +1087,7 @@ describe("downloadManager job summary", () => {
       const { state } = require("../state");
       const { updateQueueDisplay } = require("../downloadManager");
 
-      state.failedDownloads = [
+      setFailedJobs(state, [
         {
           jobId: "fail-2",
           title: "Retry all",
@@ -1056,7 +1096,7 @@ describe("downloadManager job summary", () => {
           errorCode: "NETWORK_TIMEOUT",
           retryable: true,
         },
-      ];
+      ]);
 
       updateQueueDisplay();
 
@@ -1149,7 +1189,7 @@ describe("downloadManager queue smart logic", () => {
         updateQueueDisplay,
       } = require("../downloadManager");
 
-      state.failedDownloads = [
+      setFailedJobs(state, [
         {
           jobId: "f1",
           title: "Retryable",
@@ -1166,16 +1206,16 @@ describe("downloadManager queue smart logic", () => {
           retryable: false,
           errorCode: "AUTH_REQUIRED",
         },
-      ];
+      ]);
 
       initDownloadButton();
       updateQueueDisplay();
       document.getElementById("queue-retry-failed-button").click();
 
-      expect(state.activeDownloads).toHaveLength(1);
-      expect(state.activeDownloads[0].url).toBe("https://example.com/a");
-      expect(state.failedDownloads).toHaveLength(1);
-      expect(state.failedDownloads[0].url).toBe("https://example.com/b");
+      expect(activeJobs(state)).toHaveLength(1);
+      expect(activeJobs(state)[0].url).toBe("https://example.com/a");
+      expect(failedJobs(state)).toHaveLength(1);
+      expect(failedJobs(state)[0].url).toBe("https://example.com/b");
     });
   });
 
@@ -1211,14 +1251,14 @@ describe("downloadManager queue smart logic", () => {
         updateQueueDisplay,
       } = require("../downloadManager");
 
-      state.completedDownloads = [
+      setCompletedJobs(state, [
         {
           jobId: "d1",
           title: "Done",
           url: "https://example.com/done",
           quality: "Source",
         },
-      ];
+      ]);
 
       initDownloadButton();
       updateQueueDisplay();
@@ -1270,9 +1310,9 @@ describe("downloadManager queue smart logic", () => {
       urlInput.value = "https://example.com/a";
       await handleDownloadButtonClick({ enqueueOnly: true });
 
-      expect(state.downloadQueue).toHaveLength(2);
-      expect(state.downloadQueue[0].quality).toBe("Source");
-      expect(state.downloadQueue[1].quality.type).toBe("audio-only");
+      expect(pendingJobs(state)).toHaveLength(2);
+      expect(pendingJobs(state)[0].quality).toBe("Source");
+      expect(pendingJobs(state)[1].quality.type).toBe("audio-only");
     });
   });
 
@@ -1310,7 +1350,7 @@ describe("downloadManager queue smart logic", () => {
       urlInput.value = "https://example.com/a";
       await handleDownloadButtonClick({ enqueueOnly: true });
 
-      expect(state.downloadQueue).toHaveLength(1);
+      expect(pendingJobs(state)).toHaveLength(1);
     });
   });
 
@@ -1348,10 +1388,10 @@ describe("downloadManager queue smart logic", () => {
         updateQueueDisplay,
       } = require("../downloadManager");
 
-      state.downloadQueue = [
+      setPendingJobs(state, [
         { url: "https://example.com/a", quality: "Source" },
         { url: "https://example.com/b", quality: "Source" },
-      ];
+      ]);
       initDownloadButton();
       updateQueueDisplay();
 
@@ -1363,7 +1403,7 @@ describe("downloadManager queue smart logic", () => {
       firstHandle.dispatchEvent(
         new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }),
       );
-      expect(state.downloadQueue[0].url).toBe("https://example.com/b");
+      expect(pendingJobs(state)[0].url).toBe("https://example.com/b");
 
       const secondHandle = document.querySelector(
         '.queue-item[data-queue-pending-index="1"] [data-queue-drag-handle]',
@@ -1371,7 +1411,7 @@ describe("downloadManager queue smart logic", () => {
       secondHandle.dispatchEvent(
         new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true }),
       );
-      expect(state.downloadQueue[0].url).toBe("https://example.com/a");
+      expect(pendingJobs(state)[0].url).toBe("https://example.com/a");
     });
   });
 
@@ -1409,11 +1449,11 @@ describe("downloadManager queue smart logic", () => {
         updateQueueDisplay,
       } = require("../downloadManager");
 
-      state.downloadQueue = [
+      setPendingJobs(state, [
         { url: "https://example.com/a", quality: "Source" },
         { url: "https://example.com/b", quality: "Source" },
         { url: "https://example.com/c", quality: "Source" },
-      ];
+      ]);
       initDownloadButton();
       updateQueueDisplay();
 
@@ -1452,7 +1492,7 @@ describe("downloadManager queue smart logic", () => {
       Object.defineProperty(drop, "clientY", { value: 104 });
       firstRow.dispatchEvent(drop);
 
-      expect(state.downloadQueue.map((item) => item.url)).toEqual([
+      expect(pendingJobs(state).map((item) => item.url)).toEqual([
         "https://example.com/c",
         "https://example.com/a",
         "https://example.com/b",
@@ -1496,11 +1536,11 @@ describe("downloadManager queue smart logic", () => {
           updateQueueDisplay,
         } = require("../downloadManager");
 
-        state.downloadQueue = [
+        setPendingJobs(state, [
           { url: "https://example.com/a", quality: "Source" },
           { url: "https://example.com/b", quality: "Source" },
           { url: "https://example.com/c", quality: "Source" },
-        ];
+        ]);
         initDownloadButton();
         updateQueueDisplay();
 
@@ -1516,7 +1556,7 @@ describe("downloadManager queue smart logic", () => {
           }),
         );
 
-        expect(state.downloadQueue.map((item) => item.url)).toEqual(
+        expect(pendingJobs(state).map((item) => item.url)).toEqual(
           expectedUrls,
         );
         expect(
@@ -1565,11 +1605,11 @@ describe("downloadManager queue smart logic", () => {
           updateQueueDisplay,
         } = require("../downloadManager");
 
-        state.downloadQueue = [
+        setPendingJobs(state, [
           { url: "https://example.com/a", quality: "Source" },
           { url: "https://example.com/b", quality: "Source" },
           { url: "https://example.com/c", quality: "Source" },
-        ];
+        ]);
         initDownloadButton();
         updateQueueDisplay();
 
@@ -1586,7 +1626,7 @@ describe("downloadManager queue smart logic", () => {
           }),
         );
 
-        expect(state.downloadQueue.map((item) => item.url)).toEqual(
+        expect(pendingJobs(state).map((item) => item.url)).toEqual(
           expectedUrls,
         );
         expect(
@@ -1640,7 +1680,10 @@ describe("downloadManager queue smart logic", () => {
           { url: "https://example.com/c", quality: "Source" },
         ];
 
-        state.downloadQueue = initialQueue.map((item) => ({ ...item }));
+        setPendingJobs(
+          state,
+          initialQueue.map((item) => ({ ...item })),
+        );
         initDownloadButton();
         updateQueueDisplay();
         localStorage.removeItem("downloadQueue");
@@ -1656,7 +1699,7 @@ describe("downloadManager queue smart logic", () => {
           }),
         );
 
-        expect(state.downloadQueue.map((item) => item.url)).toEqual(
+        expect(pendingJobs(state).map((item) => item.url)).toEqual(
           initialQueue.map((item) => item.url),
         );
         expect(localStorage.getItem("downloadQueue")).toBeNull();
@@ -1674,7 +1717,7 @@ describe("downloadManager queue smart logic", () => {
         updateQueueDisplay,
       } = require("../downloadManager");
 
-      state.downloadQueue = [
+      setPendingJobs(state, [
         {
           jobId: "pending-a",
           url: "https://example.com/a",
@@ -1685,7 +1728,7 @@ describe("downloadManager queue smart logic", () => {
           url: "https://example.com/b",
           quality: "Source",
         },
-      ];
+      ]);
       initDownloadButton();
       updateQueueDisplay();
 
@@ -1747,10 +1790,10 @@ describe("downloadManager queue smart logic", () => {
 
       const { state } = require("../state");
       const { updateQueueDisplay } = require("../downloadManager");
-      state.downloadQueue = Array.from({ length: 200 }, (_, idx) => ({
+      setPendingJobs(state, Array.from({ length: 200 }, (_, idx) => ({
         url: `https://example.com/${idx}`,
         quality: "Source",
-      }));
+      })));
       updateQueueDisplay();
 
       const queueItems = document.querySelectorAll("#queue-list li");
@@ -1793,12 +1836,12 @@ describe("downloadManager queue smart logic", () => {
 
       const { state } = require("../state");
       const { updateQueueDisplay } = require("../downloadManager");
-      state.activeDownloads = [
+      setActiveJobs(state, [
         { jobId: "job-a", url: "https://example.com/a", quality: "Source" },
-      ];
-      state.downloadQueue = [
+      ]);
+      setPendingJobs(state, [
         { url: "https://example.com/b", quality: "Source" },
-      ];
+      ]);
       updateQueueDisplay();
 
       const activeSection = document.querySelector(
@@ -1854,9 +1897,9 @@ describe("downloadManager queue smart logic", () => {
 
       const { state } = require("../state");
       const { updateQueueDisplay } = require("../downloadManager");
-      state.downloadQueue = [
+      setPendingJobs(state, [
         { url: "https://example.com/a", quality: "Source" },
-      ];
+      ]);
       updateQueueDisplay();
 
       const queueList = document.getElementById("queue-list");
@@ -1946,9 +1989,9 @@ describe("downloadManager queue smart logic", () => {
         initDownloadButton,
         updateQueueDisplay,
       } = require("../downloadManager");
-      state.failedDownloads = [
+      setFailedJobs(state, [
         { url: "https://example.com/failed", quality: "Source" },
-      ];
+      ]);
 
       initDownloadButton();
       updateQueueDisplay();
@@ -2080,7 +2123,7 @@ describe("downloadManager queue smart logic", () => {
         expect.anything(),
         expect.anything(),
       );
-      expect(state.failedDownloads).toHaveLength(1);
+      expect(failedJobs(state)).toHaveLength(1);
     });
   });
 
@@ -2109,9 +2152,9 @@ describe("downloadManager queue smart logic", () => {
         initDownloadButton,
         updateQueueDisplay,
       } = require("../downloadManager");
-      state.downloadQueue = [
+      setPendingJobs(state, [
         { url: "https://example.com/a", quality: "Source" },
-      ];
+      ]);
       initDownloadButton();
       updateQueueDisplay();
 
@@ -2156,9 +2199,9 @@ describe("downloadManager queue smart logic", () => {
           initDownloadButton,
           updateQueueDisplay,
         } = require("../downloadManager");
-        state.downloadQueue = [
+        setPendingJobs(state, [
           { url: "https://example.com/a", quality: "Source" },
-        ];
+        ]);
         initDownloadButton();
         updateQueueDisplay();
         expect(
@@ -2194,9 +2237,9 @@ describe("downloadManager queue smart logic", () => {
         initDownloadButton,
         updateQueueDisplay,
       } = require("../downloadManager");
-      state.downloadQueue = [
+      setPendingJobs(state, [
         { url: "https://example.com/a", quality: "Source" },
-      ];
+      ]);
       initDownloadButton();
       updateQueueDisplay();
 
@@ -2234,23 +2277,23 @@ describe("downloadManager queue smart logic", () => {
       const pauseBtn = document.getElementById("queue-pause-button");
 
       state.downloadJobs = [];
-      state.activeDownloads = [];
-      state.downloadQueue = [
+      setActiveJobs(state, []);
+      setPendingJobs(state, [
         { url: "https://example.com/a", quality: "Source" },
-      ];
+      ]);
       updateQueueDisplay();
       expect(pauseBtn.disabled).toBe(false);
 
       state.downloadJobs = [];
-      state.activeDownloads = [
+      setActiveJobs(state, [
         { jobId: "job-1", url: "https://example.com/a", quality: "Source" },
-      ];
+      ]);
       updateQueueDisplay();
       expect(pauseBtn.disabled).toBe(false);
 
       state.downloadJobs = [];
-      state.activeDownloads = [];
-      state.downloadQueue = [];
+      setActiveJobs(state, []);
+      setPendingJobs(state, []);
       updateQueueDisplay();
       expect(pauseBtn.disabled).toBe(true);
     });
@@ -2281,24 +2324,24 @@ describe("downloadManager queue smart logic", () => {
       const startBtn = document.getElementById("queue-start-button");
 
       state.downloadJobs = [];
-      state.activeDownloads = [];
-      state.downloadQueue = [
+      setActiveJobs(state, []);
+      setPendingJobs(state, [
         { url: "https://example.com/pending", quality: "Source" },
-      ];
+      ]);
       updateQueueDisplay();
       expect(startBtn.disabled).toBe(false);
 
       state.downloadJobs = [];
-      state.activeDownloads = [
+      setActiveJobs(state, [
         {
           jobId: "job-1",
           url: "https://example.com/active",
           quality: "Source",
         },
-      ];
-      state.downloadQueue = [
+      ]);
+      setPendingJobs(state, [
         { url: "https://example.com/pending", quality: "Source" },
-      ];
+      ]);
       updateQueueDisplay();
       expect(startBtn.disabled).toBe(false);
     });
@@ -2346,17 +2389,17 @@ describe("downloadManager queue smart logic", () => {
       });
 
       state.maxParallelDownloads = 2;
-      state.downloadQueue = [
+      setPendingJobs(state, [
         { url: "https://example.com/pending", quality: "Source" },
-      ];
-      state.activeDownloads = [
+      ]);
+      setActiveJobs(state, [
         {
           jobId: "job-1",
           url: "https://example.com/active",
           quality: "Source",
           progress: 35,
         },
-      ];
+      ]);
       state.suppressAutoPump = false;
       initDownloadButton();
       updateQueueDisplay();
@@ -2366,10 +2409,10 @@ describe("downloadManager queue smart logic", () => {
 
       expect(window.electron.invoke).not.toHaveBeenCalledWith("stop-download");
       expect(state.suppressAutoPump).toBe(true);
-      expect(state.activeDownloads).toHaveLength(1);
-      expect(state.activeDownloads[0].url).toBe("https://example.com/active");
-      expect(state.downloadQueue).toHaveLength(1);
-      expect(state.downloadQueue[0].url).toBe("https://example.com/pending");
+      expect(activeJobs(state)).toHaveLength(1);
+      expect(activeJobs(state)[0].url).toBe("https://example.com/active");
+      expect(pendingJobs(state)).toHaveLength(1);
+      expect(pendingJobs(state)[0].url).toBe("https://example.com/pending");
       expect(localStorage.getItem("downloadQueuePaused")).toBe("1");
 
       pauseBtn.click();
@@ -2384,8 +2427,8 @@ describe("downloadManager queue smart logic", () => {
         "Source",
         expect.stringMatching(/^job-/),
       );
-      expect(state.activeDownloads).toHaveLength(2);
-      expect(state.downloadQueue).toHaveLength(0);
+      expect(activeJobs(state)).toHaveLength(2);
+      expect(pendingJobs(state)).toHaveLength(0);
 
       resolvePendingDownload({
         fileName: "pending.mp4",
@@ -2426,9 +2469,9 @@ describe("downloadManager queue smart logic", () => {
         updateQueueDisplay,
       } = require("../downloadManager");
 
-      state.downloadQueue = [
+      setPendingJobs(state, [
         { url: "https://example.com/pending", quality: "Source" },
-      ];
+      ]);
       initDownloadButton();
       updateQueueDisplay();
 
@@ -2465,10 +2508,10 @@ describe("downloadManager queue smart logic", () => {
       }));
       const { state } = require("../state");
       const { updateQueueDisplay } = require("../downloadManager");
-      state.activeDownloads = [];
-      state.downloadQueue = [];
-      state.failedDownloads = [];
-      state.completedDownloads = [];
+      setActiveJobs(state, []);
+      setPendingJobs(state, []);
+      setFailedJobs(state, []);
+      setCompletedJobs(state, []);
       updateQueueDisplay();
       expect(
         document
@@ -2967,7 +3010,7 @@ describe("downloadManager progress activity class", () => {
       );
 
       expect(result).toBeUndefined();
-      expect(state.activeDownloads).toHaveLength(0);
+      expect(activeJobs(state)).toHaveLength(0);
       expect(state.downloadJobs.some((job) => job.status === "running")).toBe(
         false,
       );
@@ -3051,7 +3094,7 @@ describe("downloadManager progress activity class", () => {
       expect(state.downloadJobs.some((job) => job.status === "running")).toBe(
         false,
       );
-      expect(state.completedDownloads).toHaveLength(0);
+      expect(completedJobs(state)).toHaveLength(0);
       expect(state.isDownloading).toBe(false);
     });
   });
@@ -3109,15 +3152,15 @@ describe("downloadManager parallel pool", () => {
 
       const { state } = require("../state");
       const { initiateDownload } = require("../downloadManager");
-      state.activeDownloads = [
+      setActiveJobs(state, [
         { jobId: "job-1", signature: "sig-1" },
         { jobId: "job-2", signature: "sig-2" },
-      ];
+      ]);
       state.maxParallelDownloads = 2;
 
       await initiateDownload("https://example.com/c", "Source");
-      expect(state.downloadQueue).toHaveLength(1);
-      expect(state.downloadQueue[0]).toMatchObject({
+      expect(pendingJobs(state)).toHaveLength(1);
+      expect(pendingJobs(state)[0]).toMatchObject({
         url: "https://example.com/c",
         quality: "Source",
         status: "pending",
@@ -3188,10 +3231,10 @@ describe("downloadManager parallel pool", () => {
       const { initDownloadButton } = require("../downloadManager");
       const { showConfirmationDialog } = require("../modals");
       state.maxParallelDownloads = 2;
-      state.downloadQueue = [
+      setPendingJobs(state, [
         { url: "https://example.com/a", quality: "Source" },
         { url: "https://example.com/b", quality: "Source" },
-      ];
+      ]);
 
       initDownloadButton();
       document.getElementById("queue-start-button").click();
@@ -3203,7 +3246,7 @@ describe("downloadManager parallel pool", () => {
         ([channel]) => channel === "download-video",
       );
       expect(downloadCalls).toHaveLength(2);
-      expect(state.activeDownloads).toHaveLength(2);
+      expect(activeJobs(state)).toHaveLength(2);
 
       first.resolve("/tmp/a.mp4");
       second.resolve("/tmp/b.mp4");
@@ -3262,10 +3305,10 @@ describe("downloadManager parallel pool", () => {
       const { state } = require("../state");
       const { initDownloadButton } = require("../downloadManager");
       state.maxParallelDownloads = 2;
-      state.downloadQueue = [
+      setPendingJobs(state, [
         { url: "https://example.com/a", quality: "Source" },
         { url: "https://example.com/b", quality: "Source" },
-      ];
+      ]);
 
       initDownloadButton();
       document.querySelector("[data-queue-start-job]").click();
@@ -3277,9 +3320,9 @@ describe("downloadManager parallel pool", () => {
       );
       expect(downloadCalls).toHaveLength(1);
       expect(downloadCalls[0][1]).toBe("https://example.com/a");
-      expect(state.activeDownloads).toHaveLength(1);
-      expect(state.downloadQueue).toHaveLength(1);
-      expect(state.downloadQueue[0].url).toBe("https://example.com/b");
+      expect(activeJobs(state)).toHaveLength(1);
+      expect(pendingJobs(state)).toHaveLength(1);
+      expect(pendingJobs(state)[0].url).toBe("https://example.com/b");
       expect(state.suppressAutoPump).toBe(true);
       expect(state.queuePaused).toBe(true);
 
@@ -3340,9 +3383,9 @@ describe("downloadManager parallel pool", () => {
       const { initDownloadButton } = require("../downloadManager");
       const { showConfirmationDialog } = require("../modals");
       state.maxParallelDownloads = 2;
-      state.downloadQueue = [
+      setPendingJobs(state, [
         { url: "https://example.com/a", quality: "Source" },
-      ];
+      ]);
 
       initDownloadButton();
       document.getElementById("queue-start-button").click();
@@ -3438,13 +3481,13 @@ describe("downloadManager parallel pool", () => {
         "Source",
       );
       await Promise.resolve();
-      expect(state.activeDownloads.length).toBe(1);
+      expect(activeJobs(state).length).toBe(1);
 
       urlInput.value = "https://example.com/new";
       await handleDownloadButtonClick();
 
       expect(started).toContain("https://example.com/new");
-      expect(state.downloadQueue).toHaveLength(0);
+      expect(pendingJobs(state)).toHaveLength(0);
       expect(urlInput.value).toBe("");
       expect(inputEvents).toBeGreaterThan(0);
       expect(submittedEvents).toBe(1);
@@ -3532,9 +3575,9 @@ describe("downloadManager parallel pool", () => {
       const { state } = require("../state");
       const { initiateDownload } = require("../downloadManager");
       state.maxParallelDownloads = 2;
-      state.downloadQueue = [
+      setPendingJobs(state, [
         { url: "https://example.com/c", quality: "Source" },
-      ];
+      ]);
 
       const p1 = initiateDownload("https://example.com/a", "Source");
       const p2 = initiateDownload("https://example.com/b", "Source");
@@ -3557,7 +3600,7 @@ describe("downloadManager parallel pool", () => {
         "Source",
         expect.stringMatching(/^job-/),
       );
-      expect(state.downloadQueue).toHaveLength(0);
+      expect(pendingJobs(state)).toHaveLength(0);
 
       second.resolve("/tmp/b.mp4");
       third.resolve("/tmp/c.mp4");
@@ -3644,7 +3687,7 @@ describe("downloadManager parallel pool", () => {
 
       initDownloadButton();
       state.maxParallelDownloads = 1;
-      state.downloadQueue = [{ url: pendingUrl, quality: "Source" }];
+      setPendingJobs(state, [{ url: pendingUrl, quality: "Source" }]);
 
       const firstPromise = initiateDownload(activeUrl, "Source");
       await Promise.resolve();
@@ -3765,7 +3808,7 @@ describe("downloadManager parallel pool", () => {
 
       initDownloadButton();
       state.maxParallelDownloads = 2;
-      state.downloadQueue = [{ url: pendingUrl, quality: "Source" }];
+      setPendingJobs(state, [{ url: pendingUrl, quality: "Source" }]);
 
       const promiseA = initiateDownload(activeUrlA, "Source");
       const promiseB = initiateDownload(activeUrlB, "Source");
@@ -3931,7 +3974,7 @@ describe("downloadManager pool loading toast", () => {
       state.maxParallelDownloads = 2;
 
       const firstPromise = initiateDownload("https://example.com/a", "Source");
-      const firstJobId = state.activeDownloads[0].jobId;
+      const firstJobId = activeJobs(state)[0].jobId;
       window.dispatchEvent(
         new CustomEvent("download:progress-item", {
           detail: { jobId: firstJobId, progress: 25, phase: "download" },
@@ -3943,7 +3986,7 @@ describe("downloadManager pool loading toast", () => {
       );
 
       const secondPromise = initiateDownload("https://example.com/b", "Source");
-      const secondJobId = state.activeDownloads.find(
+      const secondJobId = activeJobs(state).find(
         (item) => item.jobId !== firstJobId,
       ).jobId;
       window.dispatchEvent(
@@ -4064,9 +4107,9 @@ describe("downloadManager pool loading toast", () => {
       const { showToast } = require("../toast");
       const { initiateDownload } = require("../downloadManager");
       state.maxParallelDownloads = 1;
-      state.downloadQueue = [
+      setPendingJobs(state, [
         { url: "https://example.com/b", quality: "Source" },
-      ];
+      ]);
 
       const firstPromise = initiateDownload("https://example.com/a", "Source");
       first.resolve({ success: true, filePath: "/tmp/a.mp4" });
@@ -4320,7 +4363,7 @@ describe("downloadManager History recovery actions", () => {
 
       await initiateDownload("https://example.com/done", "Source");
 
-      expect(state.completedDownloads).toHaveLength(0);
+      expect(completedJobs(state)).toHaveLength(0);
       expect(state.downloadJobs).toHaveLength(0);
     });
   });
@@ -4424,7 +4467,7 @@ describe("downloadManager History recovery actions", () => {
         "open-download-folder",
         "/tmp/done.mp4",
       );
-      expect(state.failedDownloads).toHaveLength(1);
+      expect(failedJobs(state)).toHaveLength(1);
     });
   });
 
@@ -4473,7 +4516,7 @@ describe("downloadManager History recovery actions", () => {
         "Error revealing completed download:",
         expect.any(Error),
       );
-      expect(state.failedDownloads).toHaveLength(1);
+      expect(failedJobs(state)).toHaveLength(1);
       errorSpy.mockRestore();
     });
   });
@@ -4640,7 +4683,7 @@ describe("downloadManager legacy completed migration", () => {
       });
 
       const { initiateDownload } = require("../downloadManager");
-      const { loadCompletedJobs } = require("../downloadQueuePersistence");
+      const { loadCompletedJobs } = require("../features/queue/repository.js");
 
       await initiateDownload("https://example.com/persisted", "Source");
 
@@ -4655,7 +4698,7 @@ describe("downloadManager legacy completed migration", () => {
       const {
         loadCompletedJobs,
         persistCompletedJobs,
-      } = require("../downloadQueuePersistence");
+      } = require("../features/queue/repository.js");
       persistCompletedJobs([completedJob()]);
 
       const { state } = require("../state");
@@ -4663,7 +4706,7 @@ describe("downloadManager legacy completed migration", () => {
       initDownloadButton();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(state.completedDownloads).toEqual([]);
+      expect(completedJobs(state)).toEqual([]);
       expect(loadCompletedJobs()).toHaveLength(0);
       expect(document.querySelector("[data-queue-remove-done]")).toBeNull();
     });
@@ -4675,7 +4718,7 @@ describe("downloadManager legacy completed migration", () => {
       const {
         loadCompletedJobs,
         persistCompletedJobs,
-      } = require("../downloadQueuePersistence");
+      } = require("../features/queue/repository.js");
       persistCompletedJobs([
         completedJob(),
         completedJob({
@@ -4709,7 +4752,7 @@ describe("downloadManager legacy completed migration", () => {
       const {
         loadCompletedJobs,
         persistCompletedJobs,
-      } = require("../downloadQueuePersistence");
+      } = require("../features/queue/repository.js");
       persistCompletedJobs([
         completedJob(),
         completedJob({
@@ -4737,7 +4780,7 @@ describe("downloadManager legacy completed migration", () => {
   it("opens and reveals a completed job when migration needs recovery", async () => {
     await jest.isolateModulesAsync(async () => {
       mockCompletedPersistenceDependencies();
-      const { persistCompletedJobs } = require("../downloadQueuePersistence");
+      const { persistCompletedJobs } = require("../features/queue/repository.js");
       persistCompletedJobs([completedJob()]);
       window.electron.invoke.mockImplementation(async (channel) => {
         if (channel === "load-history") return [];
@@ -4853,7 +4896,7 @@ describe("downloadManager queue completion semantics", () => {
         ipcRenderer: { invoke: jest.fn() },
         on: jest.fn(),
       };
-      const { persistCompletedJobs } = require("../downloadQueuePersistence");
+      const { persistCompletedJobs } = require("../features/queue/repository.js");
       persistCompletedJobs([
         {
           jobId: "legacy-done",
@@ -4892,7 +4935,7 @@ describe("downloadManager queue completion semantics", () => {
         ipcRenderer: { invoke: jest.fn() },
         on: jest.fn(),
       };
-      const { persistCompletedJobs } = require("../downloadQueuePersistence");
+      const { persistCompletedJobs } = require("../features/queue/repository.js");
       persistCompletedJobs([
         {
           jobId: "legacy-recovery",
@@ -4908,7 +4951,7 @@ describe("downloadManager queue completion semantics", () => {
       initDownloadButton();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(state.failedDownloads).toEqual([
+      expect(failedJobs(state)).toEqual([
         expect.objectContaining({
           filePath: "/tmp/recovery.mp4",
           errorCode: "HISTORY_SAVE_FAILED",
@@ -5159,7 +5202,7 @@ describe("downloadManager active job cancellation", () => {
         ),
       ).toBe(true);
 
-      const targetJob = state.activeDownloads.find(
+      const targetJob = activeJobs(state).find(
         (job) => job.url === targetUrl,
       );
       const cancelButton = Array.from(
@@ -5186,7 +5229,7 @@ describe("downloadManager active job cancellation", () => {
       await Promise.resolve();
       await Promise.resolve();
 
-      expect(state.activeDownloads).toEqual(
+      expect(activeJobs(state)).toEqual(
         expect.arrayContaining([
           expect.objectContaining({ jobId: targetJob.jobId, url: targetUrl }),
           expect.objectContaining({ url: neighbourUrl }),
@@ -5198,10 +5241,10 @@ describe("downloadManager active job cancellation", () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(
-        state.activeDownloads.some((job) => job.jobId === targetJob.jobId),
+        activeJobs(state).some((job) => job.jobId === targetJob.jobId),
       ).toBe(false);
       expect(
-        state.activeDownloads.some((job) => job.url === neighbourUrl),
+        activeJobs(state).some((job) => job.url === neighbourUrl),
       ).toBe(true);
       expect(
         window.electron.invoke.mock.calls.filter(

@@ -36,31 +36,29 @@ import {
   getDownloadErrorDetails,
 } from "./downloadErrorUi.js";
 import {
-  clearDownloadJobsByStatus,
-  JOB_STATUS,
   ensureDownloadJobsState,
   findDownloadJob,
   getActiveDownloadJobs,
   getFailedDownloadJobs,
   getPendingDownloadJobs,
-  patchDownloadJob,
-  removeDownloadJob,
-  replaceDownloadJobsByStatus,
-  setDownloadJobs,
-  upsertDownloadJob,
-} from "./downloadJobs.js";
+} from "./features/queue/store.js";
+import { JOB_STATUS } from "./features/queue/model.js";
 import {
+  createQueueRepository,
   loadCompletedJobs,
   persistCompletedJobs,
-} from "./downloadQueuePersistence.js";
+} from "./features/queue/repository.js";
 import { normalizeWebQualitySelection } from "./webQualitySelection.js";
 import { applyUiState } from "./uiStateController.js";
-import { readQueueJobs, writeQueueJobs } from "./features/queue/persistence.js";
-import { getQueueCounts } from "./features/queue/controller.js";
+import {
+  createQueueController,
+  getQueueCounts,
+} from "./features/queue/controller.js";
 import {
   createWebControlQueueSnapshot,
   normalizeWebControlQuality as adaptWebControlQuality,
 } from "./features/queue/webControlAdapter.js";
+import { createQueueWebControlController } from "./features/queue/webControlController.js";
 import { createIncrementalQueueRenderer } from "./features/queue/renderer.js";
 import { createQueueCardMarkup } from "./features/queue/cards.js";
 import { createQueueActionMenu } from "./features/queue/actionMenu.js";
@@ -78,7 +76,6 @@ const HISTORY_SAVE_ERROR_CODE = "HISTORY_SAVE_FAILED";
 
 let downloadedUrlCache = { ts: 0, map: new Map() };
 let lastDownloadIntentWarmup = { url: "", ts: 0 };
-let webClearUndo = null;
 const DOWNLOAD_INTENT_WARMUP_RETRY_MS = 30 * 1000;
 
 function updateDownloaderTabLabel() {
@@ -116,13 +113,12 @@ function updateDownloaderTabLabel() {
 
 // === Queue helpers ===
 const QUEUE_MAX = 200;
-const QUEUE_STORAGE_KEY = "downloadQueue";
-const QUEUE_FAILED_STORAGE_KEY = "downloadFailedQueue";
-const QUEUE_COLLAPSED_STORAGE_KEY = "downloadQueueCollapsed";
-const QUEUE_PAUSED_STORAGE_KEY = "downloadQueuePaused";
 const PARALLEL_DOWNLOAD_LIMIT = 2;
 const PROGRESS_RENDER_THROTTLE_MS = 220;
 const QUEUE_MAX_LABEL_LEN = 64;
+let queueController = null;
+let queueRepository = null;
+let queueWebControlController = null;
 let lastProgressRenderTs = 0;
 const queueRenderer = queueList
   ? createIncrementalQueueRenderer(queueList)
@@ -135,7 +131,6 @@ const queueActionMenu = queueInfo
   : null;
 let queueItemIdCounter = 1;
 const queueTitleRequestsInFlight = new Map();
-const queuePumpReservations = new Set();
 const cancellingDownloadJobIds = new Set();
 let downloadPoolLoadingToast = null;
 let downloadPoolLoadingToastElement = null;
@@ -368,9 +363,14 @@ async function ensureQueueTitle(url, opts = {}) {
       if (jobId) {
         const active = findActiveDownload(jobId);
         if (active && (!active.title || (!active.thumbnail && info.thumbnail))) {
-          active.title = active.title || title;
-          active.thumbnail = active.thumbnail || info.thumbnail || "";
-          updateQueueDisplay();
+          getQueueController().patch(
+            jobId,
+            {
+              title: active.title || title,
+              thumbnail: active.thumbnail || info.thumbnail || "",
+            },
+            { persist: false },
+          );
         }
       }
       notifyResolved(title, info);
@@ -430,32 +430,6 @@ function ensureQueueFormatsReady(url, quality) {
   void getVideoInfo(url).catch(() => {
     // download-video will surface the same source error in the normal flow.
   });
-}
-
-function refreshPendingQueueTitles() {
-  const pendingJobs = getPendingDownloadJobs(state);
-  if (pendingJobs.length === 0) {
-    return;
-  }
-  for (const item of pendingJobs) {
-    if (!item?.url || item?.title) continue;
-    const signature = getQueueSignature(item.url, item.quality);
-    void ensureQueueTitle(item.url, {
-      signature,
-      onResolved: (title, metadata) => {
-        const pendingJob = findDownloadJob(state, signature);
-        if (!title || pendingJob?.title === title || item.title === title)
-          return;
-        patchDownloadJob(state, signature, {
-          title,
-          thumbnail: metadata?.thumbnail || pendingJob.thumbnail || "",
-        });
-        item.title = title;
-        persistQueue();
-        updateQueueDisplay();
-      },
-    });
-  }
 }
 
 const QUEUE_COLORS = {
@@ -651,7 +625,6 @@ function syncDownloadState() {
   const failedCount = getFailedDownloadJobs(state).length;
   const maxActive =
     Number(state.maxParallelDownloads) || PARALLEL_DOWNLOAD_LIMIT;
-  state.queuePaused = Boolean(state.suppressAutoPump);
   state.isDownloading = activeCount > 0;
   if (activeCount > 0 && buttonText) {
     buttonText.textContent = t("download.pool.status", {
@@ -760,7 +733,7 @@ function findActiveDownload(jobId) {
 }
 
 function addActiveDownload(entry) {
-  upsertDownloadJob(state, {
+  getQueueController().startRunning({
     ...entry,
     status: JOB_STATUS.running,
     stage: entry?.stage || "prepare",
@@ -793,36 +766,18 @@ function getRetryableFailedJobs() {
 
 function removeFailedBySignature(signature) {
   if (!signature) return;
-  removeDownloadJob(
-    state,
-    (item) =>
-      item.status === JOB_STATUS.failed &&
-      getQueueSignature(item.url, item.quality) === signature,
+  const failed = getFailedDownloadJobs(state).find(
+    (item) => getQueueSignature(item.url, item.quality) === signature,
   );
-  persistFailedQueue();
+  if (failed) {
+    getQueueController().remove(failed.jobId || failed.id || failed.signature);
+  }
 }
 
 function persistQueue() {
-  const pendingJobs = getPendingDownloadJobs(state);
-  const count = writeQueueJobs(
-    window.localStorage,
-    QUEUE_STORAGE_KEY,
-    pendingJobs,
-  );
+  getQueueController().persist();
+  const count = getPendingDownloadJobs(state).length;
   if (count) console.log(QUEUE_LOG_TAG, "persist", { count });
-}
-
-function persistFailedQueue() {
-  writeQueueJobs(
-    window.localStorage,
-    QUEUE_FAILED_STORAGE_KEY,
-    getFailedDownloadJobs(state),
-  );
-}
-
-function persistAllQueueCollections() {
-  persistQueue();
-  persistFailedQueue();
 }
 
 function showQueueRemovalUndo(removedJobs, messageKey, options = {}) {
@@ -830,106 +785,22 @@ function showQueueRemovalUndo(removedJobs, messageKey, options = {}) {
   if (!snapshot.length) return;
   const pausedBeforeRemoval = Boolean(options.pausedBeforeRemoval);
   showToast(t(messageKey), "info", 8000, null, () => {
-    const current = ensureDownloadJobsState(state).map((job) => ({ ...job }));
-    const restoredIds = new Set(
-      snapshot.map((job) => String(job.jobId || job.id || job.signature)),
-    );
-    setDownloadJobs(state, [
-      ...snapshot,
-      ...current.filter(
-        (job) => !restoredIds.has(String(job.jobId || job.id || job.signature)),
-      ),
-    ]);
-    if (options.restorePauseState) {
-      state.suppressAutoPump = pausedBeforeRemoval;
-      state.queuePaused = pausedBeforeRemoval;
-      persistQueuePausedState();
-    }
-    persistAllQueueCollections();
-    updateQueueDisplay();
+    getQueueController().restore(snapshot, {
+      paused: options.restorePauseState ? pausedBeforeRemoval : undefined,
+    });
     showToast(t("queue.undo.restored"), "success");
   });
 }
 
-function readQueueCollapsedState() {
-  try {
-    return window.localStorage.getItem(QUEUE_COLLAPSED_STORAGE_KEY) === "1";
-  } catch {
-    return false;
-  }
-}
-
-function persistQueueCollapsedState() {
-  try {
-    if (state.queueCollapsed) {
-      window.localStorage.setItem(QUEUE_COLLAPSED_STORAGE_KEY, "1");
-      return;
-    }
-    window.localStorage.removeItem(QUEUE_COLLAPSED_STORAGE_KEY);
-  } catch {}
-}
-
-function readQueuePausedState() {
-  try {
-    return window.localStorage.getItem(QUEUE_PAUSED_STORAGE_KEY) === "1";
-  } catch {
-    return false;
-  }
-}
-
-function persistQueuePausedState() {
-  try {
-    if (state.suppressAutoPump) {
-      window.localStorage.setItem(QUEUE_PAUSED_STORAGE_KEY, "1");
-      return;
-    }
-    window.localStorage.removeItem(QUEUE_PAUSED_STORAGE_KEY);
-  } catch {}
-}
-
 function loadQueueFromStorage() {
-  const parsed = readQueueJobs(
-    window.localStorage,
-    QUEUE_STORAGE_KEY,
-    (item) => item,
+  getQueueController();
+  const restored = queueRepository.hydrate().jobs.filter((job) =>
+    [JOB_STATUS.pending, JOB_STATUS.paused].includes(job.status),
   );
-  const unique = new Set();
-  const restored = [];
-  const activeSignatures = getCurrentDownloadSignatures();
-  for (const item of parsed) {
-    const normalized = normalizeQueueItem(item);
-    const url = normalized.url;
-    const quality = normalized.quality;
-    if (!isValidUrl(url) || !isSupportedUrl(url)) continue;
-    const signature = getQueueSignature(url, quality);
-    if (!signature || activeSignatures.has(signature) || unique.has(signature))
-      continue;
-    if (restored.length >= QUEUE_MAX) break;
-    unique.add(signature);
-    restored.push({ ...normalized, status: "pending" });
-  }
   console.log(QUEUE_LOG_TAG, "restore", {
-    stored: parsed.length,
     restored: restored.length,
   });
   return restored;
-}
-
-function loadFailedQueueFromStorage() {
-  const parsed = readQueueJobs(
-    window.localStorage,
-    QUEUE_FAILED_STORAGE_KEY,
-    (item) => item,
-  );
-  return parsed
-    .filter(
-      (item) =>
-        isValidUrl(item?.url) &&
-        isSupportedUrl(item?.url) &&
-        item?.quality !== undefined,
-    )
-    .slice(0, QUEUE_MAX)
-    .map((item) => ({ ...normalizeQueueItem(item), status: "error" }));
 }
 
 function normalizeUrl(u) {
@@ -1144,6 +1015,52 @@ function isAlreadyDownloaded(url, downloadedMap, requestedPayload) {
   return kinds.has(resolveDownloadKind(requestedPayload));
 }
 
+async function resolveQueueMetadata(url) {
+  const cached = getCachedVideoInfo(url);
+  if (cached?.title) return cached;
+  try {
+    const metadata = await getVideoPreview(url);
+    return metadata?.success ? metadata : null;
+  } catch {
+    return null;
+  }
+}
+
+function getQueueController() {
+  if (queueController) return queueController;
+  queueRepository = createQueueRepository({
+    storage: window.localStorage,
+    maxJobs: QUEUE_MAX,
+    validateJob: (job) =>
+      isValidUrl(job?.url) &&
+      isSupportedUrl(job?.url) &&
+      job?.quality !== undefined,
+    getSignature: (job) => getQueueSignature(job.url, job.quality),
+  });
+  queueController = createQueueController({
+    state,
+    repository: queueRepository,
+    maxJobs: QUEUE_MAX,
+    normalizeItem: normalizeQueueItem,
+    validateUrl: (url) => isValidUrl(url) && isSupportedUrl(url),
+    getSignature: (job) => getQueueSignature(job.url, job.quality),
+    isAlreadyDownloaded,
+    resolveMetadata: resolveQueueMetadata,
+    startJob: (job) =>
+      initiateDownload(job.url, job.quality, {
+        fromQueue: true,
+        initialTitle: job.title || "",
+      }),
+    onChange: (_snapshot, reason) => {
+      if (reason !== "progress") updateQueueDisplay();
+    },
+    onStarted: (_job, reason) => {
+      if (reason !== "silent") showQueueStartIndicator();
+    },
+  });
+  return queueController;
+}
+
 function markAsDownloaded(url, downloadKind) {
   const normalized = normalizeUrl(url);
   if (!normalized) return;
@@ -1156,83 +1073,14 @@ function markAsDownloaded(url, downloadKind) {
 }
 
 function enqueueMany(urls, quality, options = {}) {
-  ensureDownloadJobsState(state);
-  const activeSignatures = getCurrentDownloadSignatures();
-  const failedSignatures = getFailedSignatures();
-  const existing = new Set(
-    getPendingDownloadJobs(state).map((it) =>
-      getQueueSignature(it.url, it.quality),
-    ),
-  );
-  const downloadedMap = options.downloadedMap || getDownloadedUrlMapSync();
-  let added = 0,
-    duplicates = 0,
-    activeDup = 0,
-    invalid = 0,
-    capped = 0,
-    alreadyDownloaded = 0;
-  for (const raw of urls) {
-    if (!isValidUrl(raw) || !isSupportedUrl(raw)) {
-      invalid++;
-      continue;
-    }
-    const signature = getQueueSignature(raw, quality);
-    if (isAlreadyDownloaded(raw, downloadedMap, quality)) {
-      alreadyDownloaded++;
-      continue;
-    }
-    if (activeSignatures.has(signature)) {
-      activeDup++;
-      continue;
-    }
-    if (failedSignatures.has(signature)) {
-      duplicates++;
-      continue;
-    }
-    if (existing.has(signature)) {
-      duplicates++;
-      continue;
-    }
-    if (getPendingDownloadJobs(state).length >= QUEUE_MAX) {
-      capped++;
-      continue;
-    }
-    const queueItem = normalizeQueueItem({
-      url: raw,
-      quality,
-      status: "pending",
-    });
-    upsertDownloadJob(state, {
-      ...queueItem,
-      status: JOB_STATUS.pending,
-    });
-    void ensureQueueTitle(raw, {
-      signature,
-      onResolved: (title, metadata) => {
-        const pendingJob = findDownloadJob(state, signature);
-        if (!title || !pendingJob || pendingJob.title === title) return;
-        patchDownloadJob(state, signature, {
-          title,
-          thumbnail: metadata?.thumbnail || pendingJob.thumbnail || "",
-        });
-        persistQueue();
-        updateQueueDisplay();
-      },
-    });
-    existing.add(signature);
-    added++;
-  }
-  persistQueue();
-  console.log(QUEUE_LOG_TAG, "enqueueMany", {
-    added,
-    duplicates,
-    activeDup,
-    invalid,
-    capped,
-    alreadyDownloaded,
+  const result = getQueueController().enqueueMany(urls, quality, {
+    ...options,
+    downloadedMap: options.downloadedMap || getDownloadedUrlMapSync(),
   });
-  updateQueueDisplay();
-  return { added, duplicates, activeDup, invalid, capped, alreadyDownloaded };
+  console.log(QUEUE_LOG_TAG, "enqueueMany", {
+    ...result,
+  });
+  return result;
 }
 
 const getQueueStatusMeta = (status, progress) => {
@@ -1322,7 +1170,6 @@ function updateQueueDisplay() {
     if (!activeJobIds.has(jobId)) cancellingDownloadJobIds.delete(jobId);
   }
 
-  state.queuePaused = Boolean(state.suppressAutoPump);
   const totalCounter = document.getElementById("queue-total-count");
   if (totalCounter) totalCounter.textContent = `(${totalVisible})`;
 
@@ -1576,16 +1423,12 @@ function movePendingQueueItem(fromIndex, toIndex) {
   ) {
     return false;
   }
-
-  const [item] = pendingJobs.splice(fromIndex, 1);
-  pendingJobs.splice(toIndex, 0, item);
-  replaceDownloadJobsByStatus(
-    state,
-    [JOB_STATUS.pending, JOB_STATUS.paused],
-    pendingJobs,
+  const item = pendingJobs[fromIndex];
+  const moved = getQueueController().move(
+    item.jobId || item.id || item.signature,
+    toIndex,
   );
-  persistQueue();
-  updateQueueDisplay();
+  if (!moved) return false;
   console.log(QUEUE_LOG_TAG, "move-item", { from: fromIndex, to: toIndex });
   return true;
 }
@@ -1594,26 +1437,19 @@ function handleQueueMenuAction(action, context = {}) {
   const jobId = String(context.jobId || "").trim();
   const fromIndex = findPendingQueueIndex(jobId);
   if (fromIndex < 0) return;
-  const pendingCount = getPendingDownloadJobs(state).length;
   if (action === "move-top" || action === "download-next") {
-    movePendingQueueItem(fromIndex, 0);
+    getQueueController().move(jobId, "top");
     if (action === "download-next") {
-      const maxActive = Number(state.maxParallelDownloads) || PARALLEL_DOWNLOAD_LIMIT;
-      if (getActiveDownloadJobs(state).length < maxActive) {
-        startPendingQueueItem(jobId);
-      }
+      getQueueController().startOne(jobId);
     }
     return;
   }
   if (action === "move-bottom") {
-    movePendingQueueItem(fromIndex, pendingCount - 1);
+    getQueueController().move(jobId, "bottom");
     return;
   }
   if (action === "remove") {
-    const removed = findDownloadJob(state, jobId);
-    removeDownloadJob(state, jobId);
-    persistQueue();
-    updateQueueDisplay();
+    const removed = getQueueController().remove(jobId);
     if (removed) showQueueRemovalUndo([removed], "queue.item.removed");
   }
 }
@@ -1640,9 +1476,11 @@ function resetDownloadUiState(options = {}) {
   } = options;
   clearProgressResetTimer();
   blockDownloadPoolSuccess();
-  state.suppressAutoPump = suppressAutoPump;
+  getQueueController().setPaused(Boolean(suppressAutoPump));
   if (resetActiveDownloads) {
-    clearDownloadJobsByStatus(state, JOB_STATUS.running);
+    getActiveDownloadJobs(state).forEach((job) =>
+      getQueueController().finish(job.jobId, { status: JOB_STATUS.cancelled }),
+    );
   }
   state.isDownloading = false;
   if (downloadButton) {
@@ -1761,7 +1599,7 @@ async function archiveRecoveredDownload(task) {
     },
   );
   if (!saved) return false;
-  removeDownloadJob(state, task.jobId || task.id || task.signature);
+  getQueueController().remove(task.jobId || task.id || task.signature);
   persistCompletedJobs(
     loadCompletedJobs().filter(
       (legacyJob) =>
@@ -1769,9 +1607,7 @@ async function archiveRecoveredDownload(task) {
         (legacyJob.jobId || legacyJob.id) !== (task.jobId || task.id),
     ),
   );
-  persistFailedQueue();
   markAsDownloaded(task.url, resolveDownloadKind(task));
-  updateQueueDisplay();
   showToast(t("queue.item.archiveRetry.success"), "success");
   return true;
 }
@@ -1801,11 +1637,9 @@ async function migrateLegacyCompletedJobs() {
     legacyJobs.forEach((job) => {
       const identity = job.jobId || job.id || job.signature;
       if (!findDownloadJob(state, identity)) {
-        upsertDownloadJob(state, createHistoryRecoveryJob(job));
+        getQueueController().restore([createHistoryRecoveryJob(job)]);
       }
     });
-    persistFailedQueue();
-    updateQueueDisplay();
     showToast(t("queue.migration.historyFailed"), "error");
   }
 }
@@ -1974,43 +1808,9 @@ function showQueueStartIndicator() {
 }
 
 function pumpDownloadPool(reason = "auto") {
-  if (reason === "auto" && state.suppressAutoPump) {
-    return;
-  }
-  let started = 0;
   const activeCount = getActiveDownloadJobs(state).length;
-  const maxActive =
-    Number(state.maxParallelDownloads) || PARALLEL_DOWNLOAD_LIMIT;
-  const reservedSignatures = new Set([
-    ...getCurrentDownloadSignatures(),
-    ...queuePumpReservations,
-  ]);
-  while (
-    getActiveDownloadJobs(state).length < maxActive &&
-    getPendingDownloadJobs(state).length > 0
-  ) {
-    const next = getPendingDownloadJobs(state).find((item) => {
-      const signature = getQueueSignature(item.url, item.quality);
-      return !reservedSignatures.has(signature);
-    });
-    if (!next) break;
-    const signature = getQueueSignature(next.url, next.quality);
-    reservedSignatures.add(signature);
-    queuePumpReservations.add(signature);
-    started += 1;
-    Promise.resolve(
-      initiateDownload(next.url, next.quality, {
-        fromQueue: true,
-        initialTitle: next.title || "",
-      }),
-    ).finally(() => {
-      queuePumpReservations.delete(signature);
-    });
-  }
+  const started = getQueueController().pump(reason);
   if (started > 0) {
-    persistQueue();
-    updateQueueDisplay();
-    if (reason !== "silent") showQueueStartIndicator();
     console.log(QUEUE_LOG_TAG, "pump", {
       reason,
       started,
@@ -2020,32 +1820,9 @@ function pumpDownloadPool(reason = "auto") {
 }
 
 function startPendingQueueItem(identity) {
-  const next = findDownloadJob(state, identity);
-  if (
-    next?.status !== JOB_STATUS.pending &&
-    next?.status !== JOB_STATUS.paused
-  ) {
-    return false;
-  }
-  if (!next) return false;
-  const signature = getQueueSignature(next.url, next.quality);
-  if (getCurrentDownloadSignatures().has(signature)) return false;
-  queuePumpReservations.add(signature);
-  Promise.resolve(
-    initiateDownload(next.url, next.quality, {
-      fromQueue: true,
-      initialTitle: next.title || "",
-    }),
-  ).finally(() => {
-    queuePumpReservations.delete(signature);
-  });
-  persistQueue();
-  updateQueueDisplay();
-  showQueueStartIndicator();
-  console.log(QUEUE_LOG_TAG, "manual-start-one", {
-    url: next.url,
-  });
-  return true;
+  const started = getQueueController().startOne(identity);
+  if (started) console.log(QUEUE_LOG_TAG, "manual-start-one", { identity });
+  return started;
 }
 
 const initiateDownload = async (url, quality, options = {}) => {
@@ -2060,26 +1837,7 @@ const initiateDownload = async (url, quality, options = {}) => {
     Number(state.maxParallelDownloads) || PARALLEL_DOWNLOAD_LIMIT;
   if (getActiveDownloadJobs(state).length >= maxActive) {
     if (!fromQueue) {
-      const queueItem = normalizeQueueItem({ url, quality, status: "pending" });
-      upsertDownloadJob(state, {
-        ...queueItem,
-        status: JOB_STATUS.pending,
-      });
-      void ensureQueueTitle(url, {
-        signature,
-        onResolved: (title, metadata) => {
-          const pendingJob = findDownloadJob(state, signature);
-          if (!title || !pendingJob || pendingJob.title === title) return;
-          patchDownloadJob(state, signature, {
-            title,
-            thumbnail: metadata?.thumbnail || pendingJob.thumbnail || "",
-          });
-          persistQueue();
-          updateQueueDisplay();
-        },
-      });
-      persistQueue();
-      updateQueueDisplay();
+      enqueueMany([url], quality, { downloadedMap: getDownloadedUrlMapSync() });
       showToast(t("download.url.queued"), "info");
     }
     return null;
@@ -2148,7 +1906,7 @@ const initiateDownload = async (url, quality, options = {}) => {
           errorMessage: errorDetails.message,
           retryable: errorDetails.retryable,
         });
-        upsertDownloadJob(state, {
+        getQueueController().finish(jobId, {
           id: jobId,
           jobId,
           title: resolvedTitle,
@@ -2167,11 +1925,10 @@ const initiateDownload = async (url, quality, options = {}) => {
           retryAfterMinutes: errorDetails.retryAfterMinutes,
           failedAt: Date.now(),
         });
-        persistFailedQueue();
       }
     } else if (result?.ok && !result.historyRecorded) {
-      upsertDownloadJob(
-        state,
+      getQueueController().finish(
+        jobId,
         createHistoryRecoveryJob({
           id: jobId,
           jobId,
@@ -2183,18 +1940,10 @@ const initiateDownload = async (url, quality, options = {}) => {
           createdAt: activeEntry?.createdAt,
         }),
       );
-      persistFailedQueue();
     } else {
-      removeDownloadJob(
-        state,
-        (item) => item.jobId === jobId && item.status === JOB_STATUS.running,
-      );
-    }
-    if (result?.error || result?.ok) {
-      removeDownloadJob(
-        state,
-        (item) => item.jobId === jobId && item.status === JOB_STATUS.running,
-      );
+      getQueueController().finish(jobId, {
+        status: result?.cancelled ? JOB_STATUS.cancelled : JOB_STATUS.done,
+      });
     }
 
     recordDownloadPoolResult(result);
@@ -2220,7 +1969,6 @@ const initiateDownload = async (url, quality, options = {}) => {
       }
     }
 
-    pumpDownloadPool("auto");
     syncDownloadPoolToast();
   }
 };
@@ -2388,26 +2136,12 @@ async function resolveQueueClearTarget() {
 }
 
 function clearQueueJobs(target) {
-  const statuses =
-    target === "pending"
-      ? [JOB_STATUS.pending, JOB_STATUS.paused]
-      : target === "error"
-        ? [JOB_STATUS.failed]
-        : [JOB_STATUS.pending, JOB_STATUS.paused, JOB_STATUS.failed];
-  const removedJobs = ensureDownloadJobsState(state).filter((job) =>
-    statuses.includes(job.status),
-  );
+  const removedJobs = getQueueController().clear(target);
   if (!removedJobs.length) return false;
   const pausedBeforeRemoval = Boolean(state.suppressAutoPump);
-  replaceDownloadJobsByStatus(state, statuses, []);
-  persistQueue();
-  persistFailedQueue();
   if (target === "all" || target === "pending") {
-    state.suppressAutoPump = false;
-    state.queuePaused = false;
-    persistQueuePausedState();
+    getQueueController().setPaused(false);
   }
-  updateQueueDisplay();
   showQueueRemovalUndo(removedJobs, "queue.cleared", {
     restorePauseState: target === "all" || target === "pending",
     pausedBeforeRemoval,
@@ -2451,13 +2185,9 @@ function initDownloadButton() {
       const pendingCount = getPendingDownloadJobs(state).length;
       if (activeCount <= 0 && pendingCount <= 0) return;
       const isResuming = state.suppressAutoPump;
-      state.suppressAutoPump = !isResuming;
-      state.queuePaused = !isResuming;
-      persistQueuePausedState();
-      updateQueueDisplay();
+      getQueueController().setPaused(!isResuming);
       if (isResuming) {
         showToast(t("queue.resume.toast"), "info");
-        pumpDownloadPool("manual");
         return;
       }
       showToast(
@@ -2469,9 +2199,7 @@ function initDownloadButton() {
 
   if (queueToggleButton) {
     queueToggleButton.addEventListener("click", () => {
-      state.queueCollapsed = !state.queueCollapsed;
-      persistQueueCollapsedState();
-      updateQueueDisplay();
+      getQueueController().setCollapsed(!state.queueCollapsed);
     });
   }
 
@@ -2699,11 +2427,8 @@ function initDownloadButton() {
           showToast(t("download.url.active"), "warning");
           return;
         }
-        removeDownloadJob(state, jobId);
-        persistFailedQueue();
+        getQueueController().retry(jobId);
         initiateDownload(task.url, task.quality, { fromQueue: false });
-        pumpDownloadPool("auto");
-        updateQueueDisplay();
         showToast(t("queue.item.retrying"), "info");
         return;
       }
@@ -2711,9 +2436,7 @@ function initDownloadButton() {
       const startJobButton = e.target.closest("[data-queue-start-job]");
       if (startJobButton) {
         const jobId = String(startJobButton.dataset.jobId || "").trim();
-        state.suppressAutoPump = true;
-        state.queuePaused = true;
-        persistQueuePausedState();
+        getQueueController().setPaused(true);
         startPendingQueueItem(jobId);
         return;
       }
@@ -2746,9 +2469,7 @@ function initDownloadButton() {
         const jobId = String(failedRemoveBtn.dataset.jobId || "").trim();
         const task = findDownloadJob(state, jobId);
         if (task?.status !== JOB_STATUS.failed) return;
-        removeDownloadJob(state, jobId);
-        persistFailedQueue();
-        updateQueueDisplay();
+        getQueueController().remove(jobId);
         showQueueRemovalUndo([task], "queue.item.removed");
         return;
       }
@@ -2760,9 +2481,7 @@ function initDownloadButton() {
         removed?.status !== JOB_STATUS.paused
       )
         return;
-      removeDownloadJob(state, jobId);
-      persistQueue();
-      updateQueueDisplay();
+      getQueueController().remove(jobId);
       console.log(QUEUE_LOG_TAG, "remove-item", {
         jobId,
         url: removed?.url || "",
@@ -2776,91 +2495,25 @@ function initDownloadButton() {
     queueStartButton.addEventListener("click", () => {
       const pendingCount = getPendingDownloadJobs(state).length;
       if (pendingCount === 0) return;
-      state.suppressAutoPump = false;
-      state.queuePaused = false;
-      persistQueuePausedState();
+      getQueueController().setPaused(false);
       console.log(QUEUE_LOG_TAG, "manual-start-all");
       pumpDownloadPool("manual");
-      updateQueueDisplay();
     });
   }
 
   if (queueRetryFailedButton) {
     queueRetryFailedButton.addEventListener("click", () => {
-      const tasks = getFailedDownloadJobs(state).filter(
-        (task) => task.retryable !== false,
-      );
-      if (!tasks.length) return;
-      const retryableSignatures = new Set(
-        tasks.map((task) => getQueueSignature(task.url, task.quality)),
-      );
-      removeDownloadJob(
-        state,
-        (item) =>
-          item.status === JOB_STATUS.failed &&
-          retryableSignatures.has(getQueueSignature(item.url, item.quality)),
-      );
-      persistFailedQueue();
-      const existing = new Set(
-        getPendingDownloadJobs(state).map((item) =>
-          getQueueSignature(item.url, item.quality),
-        ),
-      );
-      const active = getCurrentDownloadSignatures();
-      let added = 0;
-      for (const task of tasks) {
-        const signature = getQueueSignature(task.url, task.quality);
-        if (existing.has(signature) || active.has(signature)) continue;
-        existing.add(signature);
-        upsertDownloadJob(state, {
-          ...normalizeQueueItem({
-            id: task.id,
-            jobId: task.jobId,
-            title: task.title,
-            url: task.url,
-            quality: task.quality,
-            type: task.type,
-            status: "pending",
-            signature,
-          }),
-          status: JOB_STATUS.pending,
-          stage: "",
-        });
-        added += 1;
-      }
-      persistQueue();
-      updateQueueDisplay();
+      const added = getQueueController().retryAll();
+      if (!added) return;
       pumpDownloadPool("manual");
       showToast(t("queue.retryFailed.toast", { count: added }), "info");
     });
   }
 
-  const queuePaused = readQueuePausedState();
-  if (getPendingDownloadJobs(state).length === 0) {
-    replaceDownloadJobsByStatus(
-      state,
-      [JOB_STATUS.pending, JOB_STATUS.paused],
-      loadQueueFromStorage().map((item) => ({
-        ...item,
-        status: queuePaused ? JOB_STATUS.paused : JOB_STATUS.pending,
-      })),
-    );
-  }
-  if (getFailedDownloadJobs(state).length === 0) {
-    replaceDownloadJobsByStatus(
-      state,
-      JOB_STATUS.failed,
-      loadFailedQueueFromStorage().map((item) => ({
-        ...item,
-        status: JOB_STATUS.failed,
-      })),
-    );
-  }
+  getQueueController().hydrate({
+    preserveJobs: ensureDownloadJobsState(state).length > 0,
+  });
   void migrateLegacyCompletedJobs();
-  state.suppressAutoPump =
-    queuePaused || Boolean(state.suppressAutoPump || state.queuePaused);
-  state.queuePaused = state.suppressAutoPump;
-  state.queueCollapsed = readQueueCollapsedState();
   ensureDownloadJobsState(state);
   if (
     getActiveDownloadJobs(state).length === 0 &&
@@ -2871,7 +2524,6 @@ function initDownloadButton() {
     });
   }
   updateQueueDisplay();
-  refreshPendingQueueTitles();
 
   // Пакетное добавление ссылок в очередь (из предпросмотра плейлиста)
   window.addEventListener("queue:addMany", async (e) => {
@@ -2898,9 +2550,8 @@ function initDownloadButton() {
       1,
       Math.min(2, Number(event?.detail?.limit) || PARALLEL_DOWNLOAD_LIMIT),
     );
-    state.maxParallelDownloads = nextLimit;
+    getQueueController().setParallelLimit(nextLimit);
     syncDownloadState();
-    pumpDownloadPool("auto");
   });
 
   window.addEventListener("download:progress-item", (event) => {
@@ -2910,23 +2561,27 @@ function initDownloadButton() {
       .trim()
       .toLowerCase();
     if (!jobId || !Number.isFinite(progress)) return;
-    const active = findActiveDownload(jobId);
-    if (!active) return;
-    active.progress = Math.max(0, Math.min(100, progress));
-    if (phase === "prepare") active.stage = "prepare";
+    const current = findActiveDownload(jobId);
+    if (!current) return;
+    let stage = current.stage || "prepare";
+    if (phase === "prepare") stage = "prepare";
     if (["download", "video", "audio", "subtitle"].includes(phase)) {
-      active.stage = phase;
+      stage = phase;
     }
-    if (phase === "merge" || phase === "finalize") active.stage = "finalize";
+    if (phase === "merge" || phase === "finalize") stage = "finalize";
+    const metrics = {
+      progress: Math.max(0, Math.min(100, progress)),
+      stage,
+      totalBytesApproximate: Boolean(event?.detail?.totalBytesApproximate),
+    };
     ["downloadedBytes", "totalBytes", "speedBytesPerSec", "etaSeconds"].forEach(
       (key) => {
         const value = Number(event?.detail?.[key]);
-        active[key] = Number.isFinite(value) && value >= 0 ? value : null;
+        metrics[key] = Number.isFinite(value) && value >= 0 ? value : null;
       },
     );
-    active.totalBytesApproximate = Boolean(
-      event?.detail?.totalBytesApproximate,
-    );
+    const active = getQueueController().updateProgress(jobId, metrics);
+    if (!active) return;
     syncDownloadPoolToast();
     const now = Date.now();
     if (now - lastProgressRenderTs < PROGRESS_RENDER_THROTTLE_MS) return;
@@ -2948,237 +2603,42 @@ function normalizeWebControlQuality(value) {
   return adaptWebControlQuality(value, normalizeWebQualitySelection);
 }
 
-function getWebControlSnapshot() {
+function getWebControlSnapshot(options = {}) {
   ensureDownloadJobsState(state);
   return createWebControlQueueSnapshot(state, {
-    undoClearAvailable: Boolean(
-      webClearUndo && webClearUndo.expiresAt > Date.now(),
-    ),
+    undoClearAvailable: Boolean(options.undoClearAvailable),
   });
 }
 
-async function addWebControlDownload(payload = {}) {
-  const rawUrls = Array.isArray(payload.urls)
-    ? payload.urls
-    : extractUrls(payload.url || payload.text || "");
-  const urls = rawUrls.filter((url) => isValidUrl(url) && isSupportedUrl(url));
-  if (!urls.length) {
-    return {
-      ...getWebControlSnapshot(),
-      added: 0,
-      invalid: rawUrls.length || 1,
-    };
-  }
-  const quality = normalizeWebControlQuality(payload.quality);
-  if (payload.start === true && urls.length === 1) {
-    initiateDownload(urls[0], quality, { fromQueue: false });
-  } else {
-    const downloadedMap = await getDownloadedUrlMap();
-    enqueueMany(urls, quality, { downloadedMap });
-  }
-  pumpDownloadPool(payload.start === true ? "manual" : "auto");
-  updateQueueDisplay();
-  return { ...getWebControlSnapshot(), added: urls.length };
-}
-
-function setWebControlQueuePaused(paused) {
-  state.suppressAutoPump = Boolean(paused);
-  state.queuePaused = Boolean(paused);
-  persistQueuePausedState();
-  updateQueueDisplay();
-  if (!paused) pumpDownloadPool("manual");
-  return getWebControlSnapshot();
-}
-
-function startWebControlQueue() {
-  state.suppressAutoPump = false;
-  state.queuePaused = false;
-  persistQueuePausedState();
-  pumpDownloadPool("manual");
-  updateQueueDisplay();
-  return getWebControlSnapshot();
-}
-
-function startWebControlJob(payload = {}) {
-  const jobId = String(payload.jobId || payload.id || "").trim();
-  state.suppressAutoPump = true;
-  state.queuePaused = true;
-  persistQueuePausedState();
-  startPendingQueueItem(jobId);
-  return getWebControlSnapshot();
-}
-
-async function cancelWebControlJob(payload = {}) {
-  const jobId = String(payload.jobId || payload.id || "").trim();
-  const task = findDownloadJob(state, jobId);
-  if (!task) return getWebControlSnapshot();
-  if (task.status === JOB_STATUS.running && task.jobId) {
-    await window.electron.invoke("cancel-download-job", { jobId: task.jobId });
-    return getWebControlSnapshot();
-  }
-  if (task.status === JOB_STATUS.pending || task.status === JOB_STATUS.paused) {
-    removeDownloadJob(state, jobId);
-    persistQueue();
-  }
-  updateQueueDisplay();
-  return getWebControlSnapshot();
-}
-
-async function retryWebControlJob(payload = {}) {
-  const jobId = String(payload.jobId || payload.id || "").trim();
-  const task = findDownloadJob(state, jobId);
-  const tasks =
-    jobId && task?.status === JOB_STATUS.failed
-      ? [task]
-      : getFailedDownloadJobs(state).filter(
-          (entry) => entry.retryable !== false,
-        );
-  if (tasks.length === 1 && tasks[0]?.errorCode === HISTORY_SAVE_ERROR_CODE) {
-    await archiveRecoveredDownload(tasks[0]);
-    return getWebControlSnapshot();
-  }
-  for (const entry of tasks) {
-    if (entry.retryable === false) continue;
-    removeDownloadJob(state, entry.jobId || entry.id || entry.signature);
-    upsertDownloadJob(state, {
-      ...entry,
-      status: JOB_STATUS.pending,
-      stage: "",
-      progress: 0,
-      reason: "",
-      errorCode: "",
+async function handleWebControlDownloaderAction(action, payload = {}) {
+  if (!queueWebControlController) {
+    queueWebControlController = createQueueWebControlController({
+      controller: getQueueController(),
+      extractUrls,
+      validateUrl: (url) => isValidUrl(url) && isSupportedUrl(url),
+      normalizeQuality: normalizeWebControlQuality,
+      getDownloadedMap: getDownloadedUrlMap,
+      getSnapshot: getWebControlSnapshot,
+      startDownload: initiateDownload,
+      cancelActive: (jobId) =>
+        window.electron.invoke("cancel-download-job", { jobId }),
+      retryHistoryRecovery: archiveRecoveredDownload,
+      isHistoryRecovery: (job) =>
+        job?.errorCode === HISTORY_SAVE_ERROR_CODE && Boolean(job.filePath),
+      openRecovery: async (job, reveal) => {
+        if (
+          job?.status !== JOB_STATUS.failed ||
+          job.errorCode !== HISTORY_SAVE_ERROR_CODE ||
+          !job.filePath
+        ) {
+          return;
+        }
+        if (reveal) await revealCompletedDownload(job);
+        else await openCompletedDownload(job);
+      },
     });
   }
-  persistFailedQueue();
-  persistQueue();
-  pumpDownloadPool("manual");
-  updateQueueDisplay();
-  return getWebControlSnapshot();
-}
-
-function removeWebControlJob(payload = {}) {
-  const jobId = String(payload.jobId || payload.id || "").trim();
-  const task = findDownloadJob(state, jobId);
-  if (!task || task.status === JOB_STATUS.running)
-    return getWebControlSnapshot();
-  removeDownloadJob(state, jobId);
-  persistQueue();
-  persistFailedQueue();
-  updateQueueDisplay();
-  return getWebControlSnapshot();
-}
-
-function clearWebControlJobs(payload = {}) {
-  const target = String(payload.target || "all")
-    .trim()
-    .toLowerCase();
-  const statuses =
-    target === "failed"
-      ? [JOB_STATUS.failed]
-      : target === "pending"
-        ? [JOB_STATUS.pending, JOB_STATUS.paused]
-        : [JOB_STATUS.pending, JOB_STATUS.paused, JOB_STATUS.failed];
-  const removedJobs = ensureDownloadJobsState(state)
-    .filter((job) => statuses.includes(job.status))
-    .map((job) => ({ ...job }));
-  const pausedBeforeRemoval = Boolean(state.suppressAutoPump);
-  clearDownloadJobsByStatus(state, statuses);
-  persistQueue();
-  persistFailedQueue();
-  if (target === "all" || target === "pending") {
-    state.suppressAutoPump = false;
-    state.queuePaused = false;
-    persistQueuePausedState();
-  }
-  webClearUndo = removedJobs.length
-    ? {
-        jobs: removedJobs,
-        pausedBeforeRemoval,
-        restorePauseState: target === "all" || target === "pending",
-        expiresAt: Date.now() + 8000,
-      }
-    : null;
-  updateQueueDisplay();
-  return getWebControlSnapshot();
-}
-
-function undoWebControlClear() {
-  if (!webClearUndo || webClearUndo.expiresAt <= Date.now()) {
-    webClearUndo = null;
-    return getWebControlSnapshot();
-  }
-  const current = ensureDownloadJobsState(state).map((job) => ({ ...job }));
-  const restoredIds = new Set(
-    webClearUndo.jobs.map((job) =>
-      String(job.jobId || job.id || job.signature),
-    ),
-  );
-  setDownloadJobs(state, [
-    ...webClearUndo.jobs,
-    ...current.filter(
-      (job) => !restoredIds.has(String(job.jobId || job.id || job.signature)),
-    ),
-  ]);
-  if (webClearUndo.restorePauseState) {
-    state.suppressAutoPump = webClearUndo.pausedBeforeRemoval;
-    state.queuePaused = webClearUndo.pausedBeforeRemoval;
-    persistQueuePausedState();
-  }
-  webClearUndo = null;
-  persistQueue();
-  persistFailedQueue();
-  updateQueueDisplay();
-  return getWebControlSnapshot();
-}
-
-async function openWebControlRecovery(payload = {}, reveal = false) {
-  const jobId = String(payload.jobId || payload.id || "").trim();
-  const task = findDownloadJob(state, jobId);
-  if (
-    task?.status === JOB_STATUS.failed &&
-    task.errorCode === HISTORY_SAVE_ERROR_CODE &&
-    task.filePath
-  ) {
-    if (reveal) {
-      await revealCompletedDownload(task);
-    } else {
-      await openCompletedDownload(task);
-    }
-  }
-  return getWebControlSnapshot();
-}
-
-async function handleWebControlDownloaderAction(action, payload = {}) {
-  switch (action) {
-    case "downloader:add":
-      return addWebControlDownload({ ...payload, start: false });
-    case "downloader:start":
-      return addWebControlDownload({ ...payload, start: true });
-    case "downloader:start-pending":
-      return startWebControlQueue();
-    case "downloader:start-one":
-      return startWebControlJob(payload);
-    case "downloader:pause":
-      return setWebControlQueuePaused(true);
-    case "downloader:resume":
-      return setWebControlQueuePaused(false);
-    case "downloader:cancel":
-      return cancelWebControlJob(payload);
-    case "downloader:retry":
-      return retryWebControlJob(payload);
-    case "downloader:remove":
-      return removeWebControlJob(payload);
-    case "downloader:clear":
-      return clearWebControlJobs(payload);
-    case "downloader:undo-clear":
-      return undoWebControlClear();
-    case "downloader:open":
-      return openWebControlRecovery(payload, false);
-    case "downloader:reveal":
-      return openWebControlRecovery(payload, true);
-    default:
-      throw new Error(`Unknown downloader action: ${action}`);
-  }
+  return queueWebControlController.handle(action, payload);
 }
 
 export {

@@ -22,7 +22,7 @@ describe("state", () => {
         isValidUrl: jest.fn(() => true),
         isSupportedUrl: jest.fn(() => true),
       }));
-      jest.doMock("../downloadJobs.js", () => ({
+      jest.doMock("../features/queue/store.js", () => ({
         getActiveDownloadJobs: jest.fn(() => []),
       }));
       jest.doMock("../downloaderAvailability.js", () => ({
@@ -51,5 +51,9 @@ describe("state", () => {
     const { state } = await import("../state.js");
 
     expect(state.historyHydrated).toBe(false);
+    expect(state).not.toHaveProperty("activeDownloads");
+    expect(state).not.toHaveProperty("downloadQueue");
+    expect(state).not.toHaveProperty("failedDownloads");
+    expect(state).not.toHaveProperty("completedDownloads");
   });
 });
