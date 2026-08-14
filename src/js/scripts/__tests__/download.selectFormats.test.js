@@ -14,26 +14,36 @@ jest.mock("electron-log", () => ({
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
+const storeHolder = {
+  current: null,
+  get(...args) {
+    return this.current?.get?.(...args);
+  },
+};
+const setSharedStore = (store) => {
+  storeHolder.current = store;
+};
 
 const {
   selectFormatsByQuality,
   classifyYtDlpErrorMessage,
   makeYtDlpExitError,
-  _buildSubtitleDownloadArgs,
-  _buildYtDlpCookiesArgs,
-  _buildYtDlpVideoInfoArgs,
-  _buildYtDlpVideoPreviewArgs,
-  _findSubtitleOutputPath,
-  _getVideoInfoCacheTtl,
-  _getPersistentPreviewCachePath,
-  _getPersistentPreviewMetadata,
-  _normalizeSubtitleDownloadOptions,
-  _normalizeYtDlpCookiesSettings,
-  _resolveAvailableOutputPath,
-  _safeMoveFile,
-  _setPersistentPreviewMetadata,
-  setSharedStore,
-} = require("../download.js");
+  buildSubtitleDownloadArgs,
+  buildYtDlpCookiesArgs,
+  buildYtDlpVideoInfoArgs,
+  buildYtDlpVideoPreviewArgs,
+  findSubtitleOutputPath,
+  getVideoInfoCacheTtl,
+  getPersistentPreviewCachePath,
+  getPersistentPreviewMetadata,
+  normalizeSubtitleDownloadOptions,
+  normalizeYtDlpCookiesSettings,
+  resolveAvailableOutputPath,
+  safeMoveFile,
+  setPersistentPreviewMetadata,
+} = require("../../app/download/engine").createDownloadEngine({
+  store: storeHolder,
+});
 
 describe("download output collisions", () => {
   it("preserves existing files and moves output to the next available name", () => {
@@ -48,10 +58,10 @@ describe("download output collisions", () => {
       fs.writeFileSync(firstCollision, "previous-copy");
       fs.writeFileSync(source, "new-download");
 
-      expect(_resolveAvailableOutputPath(target)).toBe(
+      expect(resolveAvailableOutputPath(target)).toBe(
         path.join(tempDir, "video (2).mkv"),
       );
-      const movedPath = _safeMoveFile(source, target);
+      const movedPath = safeMoveFile(source, target);
 
       expect(movedPath).toBe(path.join(tempDir, "video (2).mkv"));
       expect(fs.readFileSync(target, "utf8")).toBe("original");
@@ -69,13 +79,13 @@ describe("yt-dlp cookies args", () => {
   });
 
   it("normalizes cookies settings and defaults to off", () => {
-    expect(_normalizeYtDlpCookiesSettings(null)).toEqual({
+    expect(normalizeYtDlpCookiesSettings(null)).toEqual({
       mode: "off",
       browser: "chrome",
       filePath: "",
     });
     expect(
-      _normalizeYtDlpCookiesSettings({
+      normalizeYtDlpCookiesSettings({
         mode: "unknown",
         browser: "netscape",
         filePath: "bad\u0000path",
@@ -93,9 +103,9 @@ describe("yt-dlp cookies args", () => {
       get: jest.fn(() => ({ mode: "off", browser: "chrome", filePath: "" })),
     });
 
-    expect(_buildYtDlpCookiesArgs()).toEqual([]);
+    expect(buildYtDlpCookiesArgs()).toEqual([]);
     expect(
-      _buildYtDlpVideoInfoArgs("https://youtube.com/watch?v=abc"),
+      buildYtDlpVideoInfoArgs("https://youtube.com/watch?v=abc"),
     ).not.toContain("--cookies");
   });
 
@@ -104,15 +114,15 @@ describe("yt-dlp cookies args", () => {
       get: jest.fn(() => ({ mode: "browser", browser: "chrome" })),
     });
 
-    expect(_buildYtDlpCookiesArgs()).toEqual([
+    expect(buildYtDlpCookiesArgs()).toEqual([
       "--cookies-from-browser",
       "chrome",
     ]);
-    expect(_buildYtDlpVideoInfoArgs("https://youtube.com/watch?v=abc")).toEqual(
+    expect(buildYtDlpVideoInfoArgs("https://youtube.com/watch?v=abc")).toEqual(
       expect.arrayContaining(["--cookies-from-browser", "chrome"]),
     );
     expect(
-      _buildYtDlpVideoPreviewArgs("https://youtube.com/watch?v=abc"),
+      buildYtDlpVideoPreviewArgs("https://youtube.com/watch?v=abc"),
     ).toEqual(expect.arrayContaining(["--cookies-from-browser", "chrome"]));
   });
 
@@ -121,11 +131,11 @@ describe("yt-dlp cookies args", () => {
       get: jest.fn(() => ({ mode: "browser", browser: "chrome" })),
     });
 
-    expect(_buildYtDlpVideoInfoArgs("https://example.com/video")).not.toContain(
+    expect(buildYtDlpVideoInfoArgs("https://example.com/video")).not.toContain(
       "--cookies-from-browser",
     );
     expect(
-      _buildYtDlpVideoPreviewArgs("https://example.com/video"),
+      buildYtDlpVideoPreviewArgs("https://example.com/video"),
     ).not.toContain("--cookies-from-browser");
   });
 
@@ -143,8 +153,8 @@ describe("yt-dlp cookies args", () => {
       })),
     });
 
-    expect(_buildYtDlpCookiesArgs()).toEqual(["--cookies", cookiesPath]);
-    expect(_buildYtDlpVideoInfoArgs("https://youtube.com/watch?v=abc")).toEqual(
+    expect(buildYtDlpCookiesArgs()).toEqual(["--cookies", cookiesPath]);
+    expect(buildYtDlpVideoInfoArgs("https://youtube.com/watch?v=abc")).toEqual(
       expect.arrayContaining(["--cookies", cookiesPath]),
     );
   });
@@ -158,7 +168,7 @@ describe("yt-dlp cookies args", () => {
       })),
     });
 
-    expect(_buildYtDlpCookiesArgs()).toEqual([]);
+    expect(buildYtDlpCookiesArgs()).toEqual([]);
   });
 });
 
@@ -260,7 +270,7 @@ describe("selectFormatsByQuality object fallback", () => {
 describe("subtitle download helpers", () => {
   it("builds manual subtitle-only yt-dlp args with SRT conversion", () => {
     expect(
-      _buildSubtitleDownloadArgs({ lang: "pt-BR", source: "manual" }),
+      buildSubtitleDownloadArgs({ lang: "pt-BR", source: "manual" }),
     ).toEqual(
       expect.arrayContaining([
         "--skip-download",
@@ -277,7 +287,7 @@ describe("subtitle download helpers", () => {
 
   it("builds automatic subtitle args and falls back unsafe languages to English", () => {
     expect(
-      _normalizeSubtitleDownloadOptions({
+      normalizeSubtitleDownloadOptions({
         type: "subtitle-only",
         subtitleLang: "../../ru",
         subtitleSource: "automatic",
@@ -285,15 +295,15 @@ describe("subtitle download helpers", () => {
     ).toMatchObject({ lang: "en", source: "automatic", format: "srt" });
 
     expect(
-      _buildSubtitleDownloadArgs({ lang: "en", source: "automatic" }),
+      buildSubtitleDownloadArgs({ lang: "en", source: "automatic" }),
     ).toEqual(expect.arrayContaining(["--write-auto-subs"]));
     expect(
-      _buildSubtitleDownloadArgs({ lang: "en", source: "automatic" }),
+      buildSubtitleDownloadArgs({ lang: "en", source: "automatic" }),
     ).not.toContain("--write-subs");
   });
 
   it("downloads only the explicitly selected subtitle source", () => {
-    const args = _buildSubtitleDownloadArgs({
+    const args = buildSubtitleDownloadArgs({
       lang: "zh-Hans",
       source: "manual",
     });
@@ -310,7 +320,7 @@ describe("subtitle download helpers", () => {
     const outputPath = path.join(dir, "subs_key.ru.srt");
     fs.writeFileSync(outputPath, "1\n00:00:00,000 --> 00:00:01,000\nText");
 
-    expect(_findSubtitleOutputPath(dir, "subs_key", "ru")).toBe(outputPath);
+    expect(findSubtitleOutputPath(dir, "subs_key", "ru")).toBe(outputPath);
   });
 
   it("falls back to source subtitle artifacts when SRT was not produced", () => {
@@ -320,7 +330,7 @@ describe("subtitle download helpers", () => {
     const outputPath = path.join(dir, "subs_key.zh-Hans.vtt");
     fs.writeFileSync(outputPath, "WEBVTT\n\n00:00.000 --> 00:01.000\nText");
 
-    expect(_findSubtitleOutputPath(dir, "subs_key", "zh-Hans")).toBe(
+    expect(findSubtitleOutputPath(dir, "subs_key", "zh-Hans")).toBe(
       outputPath,
     );
   });
@@ -332,7 +342,7 @@ describe("subtitle download helpers", () => {
     const outputPath = path.join(dir, "subs_key.pt-BR.json3");
     fs.writeFileSync(outputPath, '{"events":[]}');
 
-    expect(_findSubtitleOutputPath(dir, "subs_key", "pt-BR")).toBe(outputPath);
+    expect(findSubtitleOutputPath(dir, "subs_key", "pt-BR")).toBe(outputPath);
   });
 });
 
@@ -378,7 +388,7 @@ describe("yt-dlp error classification helpers", () => {
 
 describe("yt-dlp video info optimization helpers", () => {
   it("adds no-playlist for a YouTube watch link with playlist metadata", () => {
-    const args = _buildYtDlpVideoInfoArgs(
+    const args = buildYtDlpVideoInfoArgs(
       "https://www.youtube.com/watch?v=abc123&list=PL123&index=2",
       "/tmp/ffmpeg",
     );
@@ -390,7 +400,7 @@ describe("yt-dlp video info optimization helpers", () => {
   });
 
   it("keeps playlist URLs eligible for playlist extraction", () => {
-    const args = _buildYtDlpVideoInfoArgs(
+    const args = buildYtDlpVideoInfoArgs(
       "https://www.youtube.com/playlist?list=PL123",
       "/tmp/ffmpeg",
     );
@@ -399,7 +409,7 @@ describe("yt-dlp video info optimization helpers", () => {
   });
 
   it("builds lightweight preview args without format checking", () => {
-    const args = _buildYtDlpVideoPreviewArgs(
+    const args = buildYtDlpVideoPreviewArgs(
       "https://www.youtube.com/watch?v=abc123&list=PL123",
       "/tmp/ffmpeg",
     );
@@ -415,7 +425,7 @@ describe("yt-dlp video info optimization helpers", () => {
   });
 
   it("uses flat playlist extraction only for explicit playlist preview URLs", () => {
-    const args = _buildYtDlpVideoPreviewArgs(
+    const args = buildYtDlpVideoPreviewArgs(
       "https://www.youtube.com/playlist?list=PL123",
       "/tmp/ffmpeg",
     );
@@ -425,18 +435,18 @@ describe("yt-dlp video info optimization helpers", () => {
   });
 
   it("uses a longer cache TTL for normal videos and a short TTL for live videos", () => {
-    expect(_getVideoInfoCacheTtl({ is_live: false })).toBe(10 * 60 * 1000);
-    expect(_getVideoInfoCacheTtl({ is_live: true })).toBe(60 * 1000);
+    expect(getVideoInfoCacheTtl({ is_live: false })).toBe(10 * 60 * 1000);
+    expect(getVideoInfoCacheTtl({ is_live: true })).toBe(60 * 1000);
   });
 
   it("stores lightweight preview metadata in persistent cache without formats", () => {
     const fs = require("fs");
-    const cachePath = _getPersistentPreviewCachePath();
+    const cachePath = getPersistentPreviewCachePath();
     try {
       fs.rmSync(cachePath, { force: true });
     } catch {}
 
-    _setPersistentPreviewMetadata("https://example.com/video", {
+    setPersistentPreviewMetadata("https://example.com/video", {
       title: "Preview title",
       thumbnail: "https://cdn.example.com/thumb.jpg",
       duration: 120,
@@ -444,7 +454,7 @@ describe("yt-dlp video info optimization helpers", () => {
       thumbnails: [{ url: "https://cdn.example.com/1.jpg", width: 320 }],
     });
 
-    const cached = _getPersistentPreviewMetadata("https://example.com/video");
+    const cached = getPersistentPreviewMetadata("https://example.com/video");
 
     expect(cached).toMatchObject({
       success: true,
@@ -464,48 +474,48 @@ describe("yt-dlp video info optimization helpers", () => {
 
   it("does not persist live preview metadata but keeps playlist summary", () => {
     const fs = require("fs");
-    const cachePath = _getPersistentPreviewCachePath();
+    const cachePath = getPersistentPreviewCachePath();
     try {
       fs.rmSync(cachePath, { force: true });
     } catch {}
 
-    _setPersistentPreviewMetadata("live", {
+    setPersistentPreviewMetadata("live", {
       title: "Live",
       is_live: true,
       thumbnail: "https://cdn.example.com/live.jpg",
     });
-    _setPersistentPreviewMetadata("playlist", {
+    setPersistentPreviewMetadata("playlist", {
       title: "Playlist",
       entries: [{ id: "1" }, { id: "2" }],
       thumbnail: "https://cdn.example.com/playlist.jpg",
       playlistDuration: 300,
     });
 
-    expect(_getPersistentPreviewMetadata("live")).toBeNull();
-    expect(_getPersistentPreviewMetadata("playlist")).toMatchObject({
+    expect(getPersistentPreviewMetadata("live")).toBeNull();
+    expect(getPersistentPreviewMetadata("playlist")).toMatchObject({
       title: "Playlist",
       playlistCount: 2,
       playlistDuration: 300,
     });
-    expect(_getPersistentPreviewMetadata("playlist").entries).toBeUndefined();
+    expect(getPersistentPreviewMetadata("playlist").entries).toBeUndefined();
   });
 
   it("invalidates persistent preview metadata after the preview TTL", () => {
     const fs = require("fs");
-    const cachePath = _getPersistentPreviewCachePath();
+    const cachePath = getPersistentPreviewCachePath();
     try {
       fs.rmSync(cachePath, { force: true });
     } catch {}
     const nowSpy = jest.spyOn(Date, "now").mockReturnValue(1000);
 
     try {
-      _setPersistentPreviewMetadata("ttl", {
+      setPersistentPreviewMetadata("ttl", {
         title: "TTL demo",
         thumbnail: "https://cdn.example.com/ttl.jpg",
       });
 
       nowSpy.mockReturnValue(1000 + 24 * 60 * 60 * 1000 + 1);
-      expect(_getPersistentPreviewMetadata("ttl")).toBeNull();
+      expect(getPersistentPreviewMetadata("ttl")).toBeNull();
 
       const cache = JSON.parse(fs.readFileSync(cachePath, "utf8"));
       expect(cache.entries.ttl).toBeUndefined();
@@ -516,12 +526,12 @@ describe("yt-dlp video info optimization helpers", () => {
 
   it("invalidates persistent preview metadata when the yt-dlp signature changes", () => {
     const fs = require("fs");
-    const cachePath = _getPersistentPreviewCachePath();
+    const cachePath = getPersistentPreviewCachePath();
     try {
       fs.rmSync(cachePath, { force: true });
     } catch {}
 
-    _setPersistentPreviewMetadata("signature", {
+    setPersistentPreviewMetadata("signature", {
       title: "Signature demo",
       thumbnail: "https://cdn.example.com/signature.jpg",
     });
@@ -530,7 +540,7 @@ describe("yt-dlp video info optimization helpers", () => {
     cache.entries.signature.ytDlpSignature = "old-binary-signature";
     fs.writeFileSync(cachePath, JSON.stringify(cache, null, 2), "utf8");
 
-    expect(_getPersistentPreviewMetadata("signature")).toBeNull();
+    expect(getPersistentPreviewMetadata("signature")).toBeNull();
     const refreshed = JSON.parse(fs.readFileSync(cachePath, "utf8"));
     expect(refreshed.entries.signature).toBeUndefined();
   });
@@ -584,11 +594,11 @@ describe("yt-dlp video info optimization helpers", () => {
       resolveRuntimeFfmpegDir: jest.fn(() => tmpDir),
     }));
 
-    const mod = require("../download.js");
-    mod._resetYtDlpBinaryCache();
+    const mod = require("../../app/download/engine").createDownloadEngine();
+    mod.resetYtDlpBinaryCache();
 
-    await mod._resolveUsableYtDlpBinary();
-    await mod._resolveUsableYtDlpBinary();
+    await mod.resolveUsableYtDlpBinary();
+    await mod.resolveUsableYtDlpBinary();
 
     expect(spawnMock).toHaveBeenCalledTimes(1);
 
@@ -651,10 +661,10 @@ describe("yt-dlp video info optimization helpers", () => {
       resolveRuntimeFfmpegDir: jest.fn(() => tmpDir),
     }));
 
-    const mod = require("../download.js");
-    mod._resetYtDlpBinaryCache();
+    const mod = require("../../app/download/engine").createDownloadEngine();
+    mod.resetYtDlpBinaryCache();
 
-    const resolved = await mod._resolveUsableYtDlpBinary();
+    const resolved = await mod.resolveUsableYtDlpBinary();
 
     expect(resolved).toEqual({ path: binaryPath, source: "default" });
     expect(spawnMock).toHaveBeenCalledTimes(1);

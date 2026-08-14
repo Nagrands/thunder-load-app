@@ -41,16 +41,13 @@ describe("fileShellIpcHandlers", () => {
       trashItem: jest.fn(async () => undefined),
       ...overrides.shell,
     };
-    const downloadState = {
-      downloadPath: root,
-      ...overrides.downloadState,
-    };
+    const downloadPath = overrides.downloadPath || root;
 
     registerFileShellIpcHandlers({
       ipcMain,
       app,
       shell,
-      downloadState,
+      getDownloadPath: () => downloadPath,
       isPathInsideBaseDir:
         overrides.isPathInsideBaseDir ||
         ((filePath, baseDir) => path.resolve(filePath).startsWith(baseDir)),
@@ -65,7 +62,7 @@ describe("fileShellIpcHandlers", () => {
         overrides.normalizeUrl || ((url) => String(url || "").trim()),
     });
 
-    return { CHANNELS, app, ipcMain, shell, downloadState };
+    return { CHANNELS, app, ipcMain, shell, downloadPath };
   }
 
   test("registers file and shell channels", () => {

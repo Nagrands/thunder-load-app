@@ -10,7 +10,7 @@ function registerFileShellIpcHandlers({
   ipcMain,
   app,
   shell,
-  downloadState,
+  getDownloadPath,
   isPathInsideBaseDir,
   isValidFilePath,
   isValidUrl,
@@ -59,7 +59,7 @@ function registerFileShellIpcHandlers({
         throw new Error("Invalid file path.");
       }
 
-      const baseDir = downloadState.downloadPath;
+      const baseDir = getDownloadPath();
       log.info(`Base directory: ${baseDir}`);
       log.info(`Resolved file path: ${path.resolve(filePath)}`);
 

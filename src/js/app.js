@@ -65,6 +65,10 @@ const {
 } = require("./app/shortcuts.js");
 const { createWebControlServer } = require("./app/webControlServer.js");
 const { createMediaOpenService } = require("./app/mediaOpenService.js");
+const {
+  createDownloadPreferences,
+} = require("./app/download/preferences.js");
+const { createDownloadRuntime } = require("./app/download/runtime.js");
 
 // Initialize store and logging
 const store = new ElectronStore();
@@ -113,11 +117,28 @@ let mainWindow;
 let clipboardMonitorInstance;
 let webControlServer;
 let ipcRuntime;
+let downloadRuntime;
 const WHATS_NEW_PENDING_KEY = "pendingWhatsNewVersion";
 
 // Cache for file existence checks
 const fsCache = new Map();
 const iconCache = new Map();
+
+const downloadPreferences = createDownloadPreferences({
+  store,
+  initialPath: downloadPath,
+  isBusy: () => downloadRuntime?.isBusy?.() || false,
+  onPathChanged: (newPath) => {
+    downloadPath = newPath;
+    app.emit("thunder-load:tray-refresh");
+    try {
+      mainWindow?.webContents?.send?.("download-path-changed", newPath);
+    } catch (error) {
+      log.error("Failed to send 'download-path-changed':", error);
+    }
+    log.info(`Download path updated to: ${newPath}`);
+  },
+});
 
 /**
  * Check if a file exists, using cache to optimize repeated checks.
@@ -157,34 +178,10 @@ if (!app.requestSingleInstanceLock()) {
   const dependencies = {
     mainWindow: null,
     store,
-    downloadState: {
-      downloadPath,
-      downloadInProgress: false,
-    },
+    downloadPreferences,
+    downloadRuntime: null,
     previewCacheDir,
     getAppVersion,
-    setDownloadPath: (newPath) => {
-      try {
-        downloadPath = newPath;
-        store.set("downloadPath", newPath);
-        app.emit("thunder-load:tray-refresh");
-        // keep runtime state in sync
-        dependencies.downloadState.downloadPath = newPath;
-
-        // notify renderer about the change (for UI updates)
-        if (mainWindow && mainWindow.webContents) {
-          try {
-            mainWindow.webContents.send("download-path-changed", newPath);
-          } catch (e) {
-            log.error("Failed to send 'download-path-changed':", e);
-          }
-        }
-
-        log.info(`Download path updated to: ${newPath}`);
-      } catch (e) {
-        log.error("Error updating download path:", e);
-      }
-    },
     historyFilePath,
     fsCache,
     iconCache,
@@ -294,9 +291,7 @@ if (!app.requestSingleInstanceLock()) {
           `window.localStorage.getItem('downloadPath')`,
         );
         if (typeof savedLSPath === "string" && savedLSPath.trim() !== "") {
-          downloadPath = savedLSPath;
-          dependencies.downloadState.downloadPath = savedLSPath;
-          store.set("downloadPath", savedLSPath);
+          await downloadPreferences.setPath(savedLSPath, { validate: false });
         }
       }
 
@@ -343,17 +338,18 @@ if (!app.requestSingleInstanceLock()) {
     if (webControlServer) await webControlServer.dispose();
     // Ensure downloadPath is loaded from electron-store before window creation
     try {
-      const savedStorePathAtStartup = store.get("downloadPath", "");
-      if (
-        typeof savedStorePathAtStartup === "string" &&
-        savedStorePathAtStartup.trim() !== ""
-      ) {
-        downloadPath = savedStorePathAtStartup;
-        dependencies.downloadState.downloadPath = savedStorePathAtStartup;
-      }
+      downloadPath = downloadPreferences.restorePath();
     } catch (e) {
       log.error("Failed to preload download path from store:", e);
     }
+    downloadRuntime = createDownloadRuntime({
+      store,
+      getDownloadPath: () => downloadPreferences.getPath(),
+      getMainWindow: () => mainWindow,
+      notifyDownloadError,
+      sendDownloadCompletionNotification,
+    });
+    dependencies.downloadRuntime = downloadRuntime;
     // Create the main application window
     mainWindow = startupMetrics.measure("create main window", () =>
       createWindow(
@@ -366,13 +362,7 @@ if (!app.requestSingleInstanceLock()) {
         ffmpegPath,
         ffprobePath,
         fileExists,
-        () => {
-          const activeDownloads = dependencies.downloadState.activeDownloads;
-          return Boolean(
-            dependencies.downloadState.downloadInProgress ||
-            (activeDownloads && activeDownloads.size > 0),
-          );
-        },
+        () => downloadRuntime?.isBusy?.() || false,
         mainLogger,
       ),
     );

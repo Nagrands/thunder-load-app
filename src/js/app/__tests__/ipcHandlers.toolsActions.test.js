@@ -85,7 +85,7 @@ jest.mock("../toolsVersions", () => ({
   getToolsVersions: jest.fn().mockResolvedValue({}),
 }));
 
-jest.mock("../../scripts/download.js", () => ({
+const mockDownloadEngine = {
   installYtDlp: jest.fn(),
   installFfmpeg: jest.fn(),
   installDeno: jest.fn(),
@@ -93,10 +93,12 @@ jest.mock("../../scripts/download.js", () => ({
   getVideoPreview: jest.fn(),
   downloadMedia: jest.fn(),
   stopDownload: jest.fn(),
-  setActiveDownloadToken: jest.fn(),
   selectFormatsByQuality: jest.fn(),
   createDownloadToken: jest.fn(() => ({ cancelled: false })),
-  setSharedStore: jest.fn(),
+};
+
+jest.mock("../download/engine", () => ({
+  createDownloadEngine: jest.fn(() => mockDownloadEngine),
 }));
 
 jest.mock("../backupManager", () => ({
@@ -139,6 +141,36 @@ jest.mock("electron-log", () => ({
   warn: jest.fn(),
   error: jest.fn(),
 }));
+
+function createDownloadDependencies({
+  store,
+  mainWindow,
+  downloadPath = "/tmp",
+  setDownloadPath = jest.fn(),
+  isBusy,
+  notifyDownloadError = jest.fn(),
+  sendDownloadCompletionNotification = jest.fn(),
+}) {
+  const { createDownloadRuntime } = require("../download/runtime");
+  const { createDownloadPreferences } = require("../download/preferences");
+  const engine = require("../download/engine").createDownloadEngine({ store });
+  let preferences;
+  const runtime = createDownloadRuntime({
+    store,
+    engine,
+    getDownloadPath: () => preferences?.getPath() || downloadPath,
+    getMainWindow: () => mainWindow,
+    notifyDownloadError,
+    sendDownloadCompletionNotification,
+  });
+  preferences = createDownloadPreferences({
+    store,
+    initialPath: downloadPath,
+    isBusy: isBusy || runtime.isBusy,
+    onPathChanged: setDownloadPath,
+  });
+  return { downloadPreferences: preferences, downloadRuntime: runtime };
+}
 
 describe("ipcHandlers tools quick actions", () => {
   const originalPlatform = process.platform;
@@ -195,7 +227,8 @@ describe("ipcHandlers tools quick actions", () => {
   function initHandlers({
     storeValues = {},
     clipboardMonitor = null,
-    downloadState = { downloadPath: "/tmp", downloadInProgress: false },
+    downloadPath = "/tmp",
+    downloadsBusy = false,
     setDownloadPath = jest.fn(),
   } = {}) {
     const { setupIpcHandlers } = require("../ipcHandlers");
@@ -216,12 +249,18 @@ describe("ipcHandlers tools quick actions", () => {
       set: jest.fn(),
       delete: jest.fn(),
     };
+    const downloadDependencies = createDownloadDependencies({
+      store,
+      mainWindow,
+      downloadPath,
+      isBusy: () => downloadsBusy,
+      setDownloadPath,
+    });
     setupIpcHandlers({
       mainWindow,
       store,
-      downloadState,
+      ...downloadDependencies,
       getAppVersion: jest.fn().mockResolvedValue("1.0.0"),
-      setDownloadPath,
       historyFilePath: path.join(os.tmpdir(), "history.json"),
       previewCacheDir: path.join(os.tmpdir(), "preview-cache"),
       iconCache: new Map(),
@@ -513,7 +552,7 @@ describe("ipcHandlers tools quick actions", () => {
     fs.writeFileSync(path.join(resumeDir, "state.json"), "{}", "utf8");
 
     const { setDownloadPath } = initHandlers({
-      downloadState: { downloadPath: oldDir, downloadInProgress: false },
+      downloadPath: oldDir,
     });
 
     const result = await handlers[CHANNELS.SET_DOWNLOAD_PATH](null, newDir);
@@ -536,7 +575,7 @@ describe("ipcHandlers tools quick actions", () => {
     });
 
     const { setDownloadPath } = initHandlers({
-      downloadState: { downloadPath: oldDir, downloadInProgress: false },
+      downloadPath: oldDir,
     });
 
     const result = await handlers[CHANNELS.SELECT_DOWNLOAD_FOLDER]();
@@ -553,7 +592,7 @@ describe("ipcHandlers tools quick actions", () => {
     fs.mkdirSync(resumeDir, { recursive: true });
 
     initHandlers({
-      downloadState: { downloadPath: dir, downloadInProgress: false },
+      downloadPath: dir,
     });
 
     const result = await handlers[CHANNELS.SET_DOWNLOAD_PATH](null, dir);
@@ -570,11 +609,8 @@ describe("ipcHandlers tools quick actions", () => {
     fs.mkdirSync(resumeDir, { recursive: true });
 
     initHandlers({
-      downloadState: {
-        downloadPath: oldDir,
-        downloadInProgress: true,
-        activeDownloads: new Map([["job-1", {}]]),
-      },
+      downloadPath: oldDir,
+      downloadsBusy: true,
     });
 
     const result = await handlers[CHANNELS.SET_DOWNLOAD_PATH](null, newDir);
@@ -593,7 +629,7 @@ describe("ipcHandlers tools quick actions", () => {
       .mockRejectedValueOnce(new Error("cleanup denied"));
 
     initHandlers({
-      downloadState: { downloadPath: oldDir, downloadInProgress: false },
+      downloadPath: oldDir,
     });
 
     try {
@@ -601,7 +637,7 @@ describe("ipcHandlers tools quick actions", () => {
 
       expect(result).toEqual({ success: true });
       expect(log.warn).toHaveBeenCalledWith(
-        expect.stringContaining(".thunderload-resume"),
+        "Failed to remove resume state directory:",
         "cleanup denied",
       );
     } finally {
@@ -847,7 +883,7 @@ describe("ipcHandlers tools quick actions", () => {
   test("mediaInspectorAnalyze installs ffmpeg tools when ffprobe is missing", async () => {
     const { execFile } = require("child_process");
     const { promisify } = require("util");
-    const download = require("../../scripts/download.js");
+    const download = require("../download/engine").createDownloadEngine();
     const { CHANNELS } = require("../../ipc/channels");
     const ffprobeName =
       process.platform === "win32" ? "ffprobe.exe" : "ffprobe";
@@ -967,7 +1003,7 @@ describe("ipcHandlers tools quick actions", () => {
 
   test("get-video-info rejects incomplete host before yt-dlp call", async () => {
     const { CHANNELS } = require("../../ipc/channels");
-    const download = require("../../scripts/download.js");
+    const download = require("../download/engine").createDownloadEngine();
     initHandlers();
 
     const result = await handlers[CHANNELS.GET_VIDEO_INFO](null, "https://w");
@@ -979,7 +1015,7 @@ describe("ipcHandlers tools quick actions", () => {
 
   test("get-video-preview returns metadata without formats", async () => {
     const { CHANNELS } = require("../../ipc/channels");
-    const download = require("../../scripts/download.js");
+    const download = require("../download/engine").createDownloadEngine();
     download.getVideoPreview.mockResolvedValueOnce({
       title: "Preview demo",
       duration: 120,
@@ -1037,7 +1073,7 @@ describe("ipcHandlers tools quick actions", () => {
 
   test("cancel-video-info-request stops active preview token", async () => {
     const { CHANNELS } = require("../../ipc/channels");
-    const download = require("../../scripts/download.js");
+    const download = require("../download/engine").createDownloadEngine();
     let resolvePreview;
     download.getVideoPreview.mockImplementationOnce(
       () =>
@@ -1072,7 +1108,7 @@ describe("ipcHandlers tools quick actions", () => {
 
   test("get-video-info includes backgroundPreview for playable YouTube sources", async () => {
     const { CHANNELS } = require("../../ipc/channels");
-    const download = require("../../scripts/download.js");
+    const download = require("../download/engine").createDownloadEngine();
     download.getVideoInfo.mockResolvedValueOnce({
       title: "YouTube demo",
       duration: 120,
@@ -1119,7 +1155,7 @@ describe("ipcHandlers tools quick actions", () => {
 
   test("get-video-info keeps youtube backgroundPreview when container is inferred from url mime", async () => {
     const { CHANNELS } = require("../../ipc/channels");
-    const download = require("../../scripts/download.js");
+    const download = require("../download/engine").createDownloadEngine();
     download.getVideoInfo.mockResolvedValueOnce({
       title: "YouTube demo",
       duration: 120,
@@ -1155,7 +1191,7 @@ describe("ipcHandlers tools quick actions", () => {
 
   test("get-video-info keeps livePreview null for non-YouTube URLs", async () => {
     const { CHANNELS } = require("../../ipc/channels");
-    const download = require("../../scripts/download.js");
+    const download = require("../download/engine").createDownloadEngine();
     download.getVideoInfo.mockResolvedValueOnce({
       title: "Vimeo demo",
       duration: 120,
@@ -1187,7 +1223,7 @@ describe("ipcHandlers tools quick actions", () => {
 
   test("get-video-info maps auth errors to AUTH_REQUIRED", async () => {
     const { CHANNELS } = require("../../ipc/channels");
-    const download = require("../../scripts/download.js");
+    const download = require("../download/engine").createDownloadEngine();
     download.getVideoInfo.mockRejectedValueOnce(
       new Error("ERR_YTDLP_AUTH_REQUIRED: login required"),
     );
@@ -1209,7 +1245,7 @@ describe("ipcHandlers tools quick actions", () => {
 
   test("get-video-info maps geo errors to GEO_BLOCKED", async () => {
     const { CHANNELS } = require("../../ipc/channels");
-    const download = require("../../scripts/download.js");
+    const download = require("../download/engine").createDownloadEngine();
     download.getVideoInfo.mockRejectedValueOnce(
       new Error("ERR_YTDLP_GEO_BLOCKED: region blocked"),
     );
@@ -1229,7 +1265,7 @@ describe("ipcHandlers tools quick actions", () => {
 
   test("get-video-info maps unavailable errors to UNAVAILABLE", async () => {
     const { CHANNELS } = require("../../ipc/channels");
-    const download = require("../../scripts/download.js");
+    const download = require("../download/engine").createDownloadEngine();
     download.getVideoInfo.mockRejectedValueOnce(
       new Error("ERR_YTDLP_UNAVAILABLE: video unavailable"),
     );
@@ -1249,7 +1285,7 @@ describe("ipcHandlers tools quick actions", () => {
 
   test("get-video-info maps network timeouts to NETWORK_TIMEOUT", async () => {
     const { CHANNELS } = require("../../ipc/channels");
-    const download = require("../../scripts/download.js");
+    const download = require("../download/engine").createDownloadEngine();
     download.getVideoInfo.mockRejectedValueOnce(
       new Error("ERR_YTDLP_NETWORK_TIMEOUT: read timed out"),
     );
@@ -1269,7 +1305,7 @@ describe("ipcHandlers tools quick actions", () => {
 
   test("get-video-info maps unsupported URLs to UNSUPPORTED_URL", async () => {
     const { CHANNELS } = require("../../ipc/channels");
-    const download = require("../../scripts/download.js");
+    const download = require("../download/engine").createDownloadEngine();
     download.getVideoInfo.mockRejectedValueOnce(
       new Error("ERR_YTDLP_UNSUPPORTED_URL: unsupported source"),
     );
@@ -1289,7 +1325,7 @@ describe("ipcHandlers tools quick actions", () => {
 
   test("get-video-info maps not found errors to NOT_FOUND", async () => {
     const { CHANNELS } = require("../../ipc/channels");
-    const download = require("../../scripts/download.js");
+    const download = require("../download/engine").createDownloadEngine();
     download.getVideoInfo.mockRejectedValueOnce(
       new Error("ERR_YTDLP_NOT_FOUND: http 404"),
     );
@@ -1309,7 +1345,7 @@ describe("ipcHandlers tools quick actions", () => {
 
   test("get-video-info maps exec failures to EXEC_FAILED", async () => {
     const { CHANNELS } = require("../../ipc/channels");
-    const download = require("../../scripts/download.js");
+    const download = require("../download/engine").createDownloadEngine();
     download.getVideoInfo.mockRejectedValueOnce(
       new Error("ERR_YTDLP_EXEC_FAILED: spawn Unknown system error -88"),
     );
@@ -1329,7 +1365,7 @@ describe("ipcHandlers tools quick actions", () => {
 
   test("get-video-info maps private content errors to PRIVATE_CONTENT", async () => {
     const { CHANNELS } = require("../../ipc/channels");
-    const download = require("../../scripts/download.js");
+    const download = require("../download/engine").createDownloadEngine();
     download.getVideoInfo.mockRejectedValueOnce(
       new Error("ERR_YTDLP_PRIVATE_CONTENT: members-only"),
     );
@@ -1349,7 +1385,7 @@ describe("ipcHandlers tools quick actions", () => {
 
   test("get-video-info maps captcha errors to CAPTCHA_REQUIRED", async () => {
     const { CHANNELS } = require("../../ipc/channels");
-    const download = require("../../scripts/download.js");
+    const download = require("../download/engine").createDownloadEngine();
     download.getVideoInfo.mockRejectedValueOnce(
       new Error("ERR_YTDLP_CAPTCHA_REQUIRED: verify you are human"),
     );
@@ -1369,7 +1405,7 @@ describe("ipcHandlers tools quick actions", () => {
 
   test("get-video-info maps disk errors to DISK_FULL", async () => {
     const { CHANNELS } = require("../../ipc/channels");
-    const download = require("../../scripts/download.js");
+    const download = require("../download/engine").createDownloadEngine();
     download.getVideoInfo.mockRejectedValueOnce(
       new Error("ERR_DOWNLOAD_DISK_FULL: no space left"),
     );
@@ -1389,7 +1425,7 @@ describe("ipcHandlers tools quick actions", () => {
 
   test("get-video-info maps permission errors to PERMISSION_DENIED", async () => {
     const { CHANNELS } = require("../../ipc/channels");
-    const download = require("../../scripts/download.js");
+    const download = require("../download/engine").createDownloadEngine();
     download.getVideoInfo.mockRejectedValueOnce(
       new Error("ERR_DOWNLOAD_PERMISSION_DENIED: permission denied"),
     );
@@ -1409,7 +1445,7 @@ describe("ipcHandlers tools quick actions", () => {
 
   test("get-video-info maps rate limits with retryAfterMinutes", async () => {
     const { CHANNELS } = require("../../ipc/channels");
-    const download = require("../../scripts/download.js");
+    const download = require("../download/engine").createDownloadEngine();
     download.getVideoInfo.mockRejectedValueOnce(
       new Error(
         "YouTube temporarily rate-limited requests for this client (about 7 minutes)",
@@ -1433,7 +1469,7 @@ describe("ipcHandlers tools quick actions", () => {
 
   test("tools:updateYtDlp keeps current binary if temp install fails", async () => {
     const { CHANNELS } = require("../../ipc/channels");
-    const download = require("../../scripts/download.js");
+    const download = require("../download/engine").createDownloadEngine();
     initHandlers();
     const existingPath = path.join(toolsDir, "yt-dlp");
     fs.writeFileSync(existingPath, "old-binary", "utf8");
@@ -1450,7 +1486,7 @@ describe("ipcHandlers tools quick actions", () => {
 
   test("tools:updateYtDlp swaps in temp binary after successful install", async () => {
     const { CHANNELS } = require("../../ipc/channels");
-    const download = require("../../scripts/download.js");
+    const download = require("../download/engine").createDownloadEngine();
     const toolsVersions = require("../toolsVersions");
 
     initHandlers();
@@ -2271,10 +2307,10 @@ describe("ipcHandlers tools quick actions", () => {
 
 describe("subtitle metadata normalization", () => {
   test("keeps only safe subtitle fields and drops unsafe languages", () => {
-    const { _normalizeSubtitleTracks } = require("../ipcHandlers");
+    const { normalizeSubtitleTracks } = require("../download/metadataResponse");
 
     expect(
-      _normalizeSubtitleTracks(
+      normalizeSubtitleTracks(
         {
           ru: [
             {
@@ -2311,7 +2347,7 @@ describe("ipcHandlers download pool", () => {
 
   function initHandlers({
     storeValues = {},
-    downloadState = { downloadPath: "/tmp", downloadInProgress: false },
+    downloadPath = "/tmp",
   } = {}) {
     const { setupIpcHandlers } = require("../ipcHandlers");
     const mainWindow = {
@@ -2331,12 +2367,16 @@ describe("ipcHandlers download pool", () => {
       set: jest.fn(),
       delete: jest.fn(),
     };
+    const downloadDependencies = createDownloadDependencies({
+      store,
+      mainWindow,
+      downloadPath,
+    });
     setupIpcHandlers({
       mainWindow,
       store,
-      downloadState,
+      ...downloadDependencies,
       getAppVersion: jest.fn().mockResolvedValue("1.0.0"),
-      setDownloadPath: jest.fn(),
       historyFilePath: path.join(os.tmpdir(), "history.json"),
       previewCacheDir: path.join(os.tmpdir(), "preview-cache"),
       iconCache: new Map(),
@@ -2348,7 +2388,7 @@ describe("ipcHandlers download pool", () => {
       dispatchPendingWhatsNew: jest.fn(),
       clearPendingWhatsNewVersion: jest.fn(),
     });
-    return { mainWindow, store, downloadState };
+    return { mainWindow, store, ...downloadDependencies };
   }
 
   const deferred = () => {
@@ -2387,7 +2427,7 @@ describe("ipcHandlers download pool", () => {
 
   test("allows two parallel DOWNLOAD_VIDEO and rejects third", async () => {
     const { CHANNELS } = require("../../ipc/channels");
-    const download = require("../../scripts/download.js");
+    const download = require("../download/engine").createDownloadEngine();
     const { getToolsVersions } = require("../toolsVersions");
     const mediaA = deferred();
     const mediaB = deferred();
@@ -2461,7 +2501,7 @@ describe("ipcHandlers download pool", () => {
 
   test("rejects second DOWNLOAD_VIDEO when parallel limit is set to 1", async () => {
     const { CHANNELS } = require("../../ipc/channels");
-    const download = require("../../scripts/download.js");
+    const download = require("../download/engine").createDownloadEngine();
     const { getToolsVersions } = require("../toolsVersions");
     const mediaA = deferred();
 
@@ -2602,41 +2642,12 @@ describe("ipcHandlers download pool", () => {
   test("DOWNLOAD_VIDEO shows warning when yt-dlp and ffmpeg are missing", async () => {
     const { CHANNELS } = require("../../ipc/channels");
     const { getToolsVersions } = require("../toolsVersions");
-    const { setupIpcHandlers } = require("../ipcHandlers");
-    const send = jest.fn();
-
     getToolsVersions.mockResolvedValue({
       ytDlp: { ok: false },
       ffmpeg: { ok: false },
     });
-
-    setupIpcHandlers({
-      mainWindow: {
-        webContents: {
-          send,
-          isDestroyed: () => false,
-          on: jest.fn(),
-        },
-      },
-      store: {
-        get: jest.fn((key, fallback) => fallback),
-        set: jest.fn(),
-        delete: jest.fn(),
-      },
-      downloadState: { downloadPath: "/tmp", downloadInProgress: false },
-      getAppVersion: jest.fn().mockResolvedValue("1.0.0"),
-      setDownloadPath: jest.fn(),
-      historyFilePath: path.join(os.tmpdir(), "history.json"),
-      previewCacheDir: path.join(os.tmpdir(), "preview-cache"),
-      iconCache: new Map(),
-      clipboardMonitor: {},
-      setupGlobalShortcuts: jest.fn(),
-      notifyDownloadError: jest.fn(),
-      sendDownloadCompletionNotification: jest.fn(),
-      showTrayNotification: jest.fn(),
-      dispatchPendingWhatsNew: jest.fn(),
-      clearPendingWhatsNewVersion: jest.fn(),
-    });
+    const { mainWindow } = initHandlers();
+    const send = mainWindow.webContents.send;
 
     await expect(
       handlers[CHANNELS.DOWNLOAD_VIDEO](
@@ -2657,41 +2668,12 @@ describe("ipcHandlers download pool", () => {
   test("DOWNLOAD_VIDEO shows warning when only ffmpeg is missing", async () => {
     const { CHANNELS } = require("../../ipc/channels");
     const { getToolsVersions } = require("../toolsVersions");
-    const { setupIpcHandlers } = require("../ipcHandlers");
-    const send = jest.fn();
-
     getToolsVersions.mockResolvedValue({
       ytDlp: { ok: true },
       ffmpeg: { ok: false },
     });
-
-    setupIpcHandlers({
-      mainWindow: {
-        webContents: {
-          send,
-          isDestroyed: () => false,
-          on: jest.fn(),
-        },
-      },
-      store: {
-        get: jest.fn((key, fallback) => fallback),
-        set: jest.fn(),
-        delete: jest.fn(),
-      },
-      downloadState: { downloadPath: "/tmp", downloadInProgress: false },
-      getAppVersion: jest.fn().mockResolvedValue("1.0.0"),
-      setDownloadPath: jest.fn(),
-      historyFilePath: path.join(os.tmpdir(), "history.json"),
-      previewCacheDir: path.join(os.tmpdir(), "preview-cache"),
-      iconCache: new Map(),
-      clipboardMonitor: {},
-      setupGlobalShortcuts: jest.fn(),
-      notifyDownloadError: jest.fn(),
-      sendDownloadCompletionNotification: jest.fn(),
-      showTrayNotification: jest.fn(),
-      dispatchPendingWhatsNew: jest.fn(),
-      clearPendingWhatsNewVersion: jest.fn(),
-    });
+    const { mainWindow } = initHandlers();
+    const send = mainWindow.webContents.send;
 
     await expect(
       handlers[CHANNELS.DOWNLOAD_VIDEO](
@@ -2711,7 +2693,7 @@ describe("ipcHandlers download pool", () => {
 
   test("DOWNLOAD_VIDEO returns structured classified error for known download failures", async () => {
     const { CHANNELS } = require("../../ipc/channels");
-    const download = require("../../scripts/download.js");
+    const download = require("../download/engine").createDownloadEngine();
     const { getToolsVersions } = require("../toolsVersions");
 
     getToolsVersions.mockResolvedValue({
@@ -2756,11 +2738,8 @@ describe("ipcHandlers download pool", () => {
 
   test("DOWNLOAD_VIDEO does not emit duplicate renderer toast for classified failures", async () => {
     const { CHANNELS } = require("../../ipc/channels");
-    const download = require("../../scripts/download.js");
+    const download = require("../download/engine").createDownloadEngine();
     const { getToolsVersions } = require("../toolsVersions");
-    const { setupIpcHandlers } = require("../ipcHandlers");
-    const send = jest.fn();
-
     getToolsVersions.mockResolvedValue({
       ytDlp: { ok: true },
       ffmpeg: { ok: true },
@@ -2783,33 +2762,8 @@ describe("ipcHandlers download pool", () => {
       new Error("ERR_DOWNLOAD_PERMISSION_DENIED: permission denied"),
     );
 
-    setupIpcHandlers({
-      mainWindow: {
-        webContents: {
-          send,
-          isDestroyed: () => false,
-          on: jest.fn(),
-        },
-      },
-      store: {
-        get: jest.fn((key, fallback) => fallback),
-        set: jest.fn(),
-        delete: jest.fn(),
-      },
-      downloadState: { downloadPath: "/tmp", downloadInProgress: false },
-      getAppVersion: jest.fn().mockResolvedValue("1.0.0"),
-      setDownloadPath: jest.fn(),
-      historyFilePath: path.join(os.tmpdir(), "history.json"),
-      previewCacheDir: path.join(os.tmpdir(), "preview-cache"),
-      iconCache: new Map(),
-      clipboardMonitor: {},
-      setupGlobalShortcuts: jest.fn(),
-      notifyDownloadError: jest.fn(),
-      sendDownloadCompletionNotification: jest.fn(),
-      showTrayNotification: jest.fn(),
-      dispatchPendingWhatsNew: jest.fn(),
-      clearPendingWhatsNewVersion: jest.fn(),
-    });
+    const { mainWindow } = initHandlers();
+    const send = mainWindow.webContents.send;
 
     const result = await handlers[CHANNELS.DOWNLOAD_VIDEO](
       { sender: { send: jest.fn() } },
@@ -2827,21 +2781,49 @@ describe("ipcHandlers download pool", () => {
 
   test("CANCEL_DOWNLOAD_JOB cancels only the targeted active job", async () => {
     const { CHANNELS } = require("../../ipc/channels");
-    const download = require("../../scripts/download.js");
+    const download = require("../download/engine").createDownloadEngine();
+    const { getToolsVersions } = require("../toolsVersions");
     const tokenA = { cancelled: false };
     const tokenB = { cancelled: false };
-    const activeDownloads = new Map([
-      ["job-a", { token: tokenA }],
-      ["job-b", { token: tokenB }],
-    ]);
-    download.stopDownload.mockResolvedValue(1);
-    initHandlers({
-      downloadState: {
-        downloadPath: "/tmp",
-        downloadInProgress: true,
-        activeDownloads,
-      },
+    const mediaA = deferred();
+    const mediaB = deferred();
+    download.createDownloadToken
+      .mockReturnValueOnce(tokenA)
+      .mockReturnValueOnce(tokenB);
+    getToolsVersions.mockResolvedValue({
+      ytDlp: { ok: true },
+      ffmpeg: { ok: true },
     });
+    download.getVideoInfo.mockResolvedValue({
+      title: "Test title",
+      formats: [{ format_id: "best" }],
+    });
+    download.selectFormatsByQuality.mockReturnValue({
+      videoFormat: "bestvideo",
+      audioFormat: "bestaudio",
+      audioExt: "m4a",
+      videoExt: "mp4",
+      resolution: "1080p",
+      fps: 30,
+    });
+    download.downloadMedia
+      .mockImplementationOnce(() => mediaA.promise)
+      .mockImplementationOnce(() => mediaB.promise);
+    download.stopDownload.mockResolvedValue(1);
+    initHandlers({ storeValues: { downloadParallelLimit: 2 } });
+    const event = { sender: { send: jest.fn() } };
+    const first = handlers[CHANNELS.DOWNLOAD_VIDEO](
+      event,
+      "https://example.com/a",
+      "Source",
+      "job-a",
+    );
+    const second = handlers[CHANNELS.DOWNLOAD_VIDEO](
+      event,
+      "https://example.com/b",
+      "Source",
+      "job-b",
+    );
 
     const result = await handlers[CHANNELS.CANCEL_DOWNLOAD_JOB](null, {
       jobId: "job-b",
@@ -2854,24 +2836,15 @@ describe("ipcHandlers download pool", () => {
     });
     expect(download.stopDownload).toHaveBeenCalledTimes(1);
     expect(download.stopDownload).toHaveBeenCalledWith(tokenB);
-    expect(activeDownloads).toEqual(
-      new Map([
-        ["job-a", { token: tokenA }],
-        ["job-b", { token: tokenB }],
-      ]),
-    );
+    mediaA.resolve("/tmp/file-a.mp4");
+    mediaB.resolve("/tmp/file-b.mp4");
+    await Promise.all([first, second]);
   });
 
   test("CANCEL_DOWNLOAD_JOB is idempotent for an unknown job", async () => {
     const { CHANNELS } = require("../../ipc/channels");
-    const download = require("../../scripts/download.js");
-    initHandlers({
-      downloadState: {
-        downloadPath: "/tmp",
-        downloadInProgress: false,
-        activeDownloads: new Map(),
-      },
-    });
+    const download = require("../download/engine").createDownloadEngine();
+    initHandlers();
 
     const result = await handlers[CHANNELS.CANCEL_DOWNLOAD_JOB](null, {
       jobId: "missing-job",
@@ -2888,16 +2861,36 @@ describe("ipcHandlers download pool", () => {
 
   test("CANCEL_DOWNLOAD_JOB returns a structured cancellation error", async () => {
     const { CHANNELS } = require("../../ipc/channels");
-    const download = require("../../scripts/download.js");
+    const download = require("../download/engine").createDownloadEngine();
+    const { getToolsVersions } = require("../toolsVersions");
     const token = { cancelled: false };
-    download.stopDownload.mockRejectedValue(new Error("Cancel failed"));
-    initHandlers({
-      downloadState: {
-        downloadPath: "/tmp",
-        downloadInProgress: true,
-        activeDownloads: new Map([["job-a", { token }]]),
-      },
+    const media = deferred();
+    download.createDownloadToken.mockReturnValueOnce(token);
+    getToolsVersions.mockResolvedValue({
+      ytDlp: { ok: true },
+      ffmpeg: { ok: true },
     });
+    download.getVideoInfo.mockResolvedValue({
+      title: "Test title",
+      formats: [{ format_id: "best" }],
+    });
+    download.selectFormatsByQuality.mockReturnValue({
+      videoFormat: "bestvideo",
+      audioFormat: "bestaudio",
+      audioExt: "m4a",
+      videoExt: "mp4",
+      resolution: "1080p",
+      fps: 30,
+    });
+    download.downloadMedia.mockImplementationOnce(() => media.promise);
+    download.stopDownload.mockRejectedValue(new Error("Cancel failed"));
+    initHandlers();
+    const pending = handlers[CHANNELS.DOWNLOAD_VIDEO](
+      { sender: { send: jest.fn() } },
+      "https://example.com/a",
+      "Source",
+      "job-a",
+    );
 
     const result = await handlers[CHANNELS.CANCEL_DOWNLOAD_JOB](null, {
       jobId: "job-a",
@@ -2909,6 +2902,8 @@ describe("ipcHandlers download pool", () => {
       errorCode: "CANCEL_FAILED",
       error: "Cancel failed",
     });
+    media.resolve("/tmp/file-a.mp4");
+    await pending;
   });
 
   test.each([
@@ -2921,7 +2916,7 @@ describe("ipcHandlers download pool", () => {
     { jobId: "   " },
   ])("CANCEL_DOWNLOAD_JOB rejects invalid payload %#", async (payload) => {
     const { CHANNELS } = require("../../ipc/channels");
-    const download = require("../../scripts/download.js");
+    const download = require("../download/engine").createDownloadEngine();
     initHandlers();
 
     const result = await handlers[CHANNELS.CANCEL_DOWNLOAD_JOB](null, payload);
@@ -2936,7 +2931,7 @@ describe("ipcHandlers download pool", () => {
 
   test("STOP_DOWNLOAD still cancels all active tokens", async () => {
     const { CHANNELS } = require("../../ipc/channels");
-    const download = require("../../scripts/download.js");
+    const download = require("../download/engine").createDownloadEngine();
     const { getToolsVersions } = require("../toolsVersions");
     const mediaA = deferred();
     const mediaB = deferred();

@@ -15,10 +15,6 @@ const {
 } = require("./iconPaths");
 
 const { getToolsVersions } = require("./toolsVersions");
-const {
-  classifyDownloadError,
-  formatMissingDownloadToolsMessage,
-} = require("./notifications");
 const fs = require("fs");
 const fsPromises = fs.promises;
 const path = require("path");
@@ -26,7 +22,6 @@ const os = require("os");
 const log = require("electron-log");
 const https = require("https");
 const crypto = require("crypto");
-const net = require("net");
 const {
   registerAppPreferencesIpcHandlers,
 } = require("./appPreferencesIpcHandlers");
@@ -50,6 +45,10 @@ const {
 const { createDependencyActions } = require("./dependencyActions");
 const { registerDiagnosticsIpcHandlers } = require("./diagnosticsIpcHandlers");
 const { createTrackedIpcMain } = require("./ipcRuntime");
+const {
+  registerDownloadIpcHandlers,
+  registerDownloadPreferencesIpcHandlers,
+} = require("./download/ipcHandlers");
 const { processSupervisor } = require("./processSupervisor");
 const execFileAsync = (command, args = [], options = {}) =>
   processSupervisor.execFile(command, args, options, {
@@ -80,28 +79,13 @@ const {
   configureShortcutService,
   setGlobalShortcutsDisabled,
 } = require("./shortcuts.js");
-const {
-  installYtDlp,
-  installFfmpeg,
-  installDeno,
-  getVideoInfo,
-  getVideoPreview,
-  downloadMedia,
-  stopDownload,
-  selectFormatsByQuality,
-  createDownloadToken,
-  setSharedStore,
-} = require("../scripts/download.js");
 const { isValidUrl, normalizeUrl } = require("./utils.js");
 const {
   getRuntimeFfmpegPath,
   getRuntimeFfprobePath,
   prepareBinaryForExecution,
 } = require("./runtimeTools");
-const {
-  selectYouTubeBackgroundPreview,
-  selectYouTubeLivePreview,
-} = require("./downloaderBackgroundPreview");
+const { selectYouTubeBackgroundPreview } = require("./downloaderBackgroundPreview");
 let ipcMain = electronIpcMain;
 let activeIpcRuntime = null;
 
@@ -140,22 +124,6 @@ function isValidFilePath(filePath) {
   const isValid = path.isAbsolute(resolvedPath) && !hasTraversalSegment;
   log.info(`Validating file path "${resolvedPath}": ${isValid}`);
   return isValid;
-}
-
-function hasValidHttpHost(url) {
-  try {
-    const parsed = new URL(String(url || "").trim());
-    if (!["http:", "https:"].includes(parsed.protocol)) return false;
-    const host = String(parsed.hostname || "")
-      .trim()
-      .toLowerCase();
-    if (!host) return false;
-    if (host === "localhost") return true;
-    if (net.isIP(host) !== 0) return true;
-    return host.includes(".") && !host.startsWith(".") && !host.endsWith(".");
-  } catch {
-    return false;
-  }
 }
 
 const MEDIA_INSPECTOR_WARNING_KEYS = Object.freeze({
@@ -205,7 +173,6 @@ const COMMON_AUDIO_CODECS = new Set([
 ]);
 
 const MEDIA_INSPECTOR_HIGH_BITRATE_THRESHOLD = 50 * 1000 * 1000;
-const RESUME_STATE_DIR_NAME = ".thunderload-resume";
 const CONVERTER_ALLOWED_FORMATS = new Set([
   "mp4",
   "webm",
@@ -280,67 +247,6 @@ function isHdrStream(stream = {}) {
       );
     })
   );
-}
-
-function hasActiveDownloads(downloadState = {}) {
-  return (
-    !!downloadState.downloadInProgress ||
-    ((downloadState.activeDownloads || new Map()).size || 0) > 0
-  );
-}
-
-function normalizeSubtitleTracks(tracks, { source = "manual" } = {}) {
-  if (!tracks || typeof tracks !== "object" || Array.isArray(tracks)) {
-    return [];
-  }
-  return Object.entries(tracks)
-    .map(([lang, entries]) => {
-      const normalizedLang = String(lang || "").trim();
-      if (!/^[a-z0-9._-]{1,24}$/i.test(normalizedLang)) return null;
-      const formats = (Array.isArray(entries) ? entries : [])
-        .map((entry) => ({
-          ext: String(entry?.ext || "")
-            .trim()
-            .toLowerCase(),
-          name: String(entry?.name || entry?.format || "").trim(),
-        }))
-        .filter((entry) => entry.ext);
-      return {
-        lang: normalizedLang,
-        source,
-        formats,
-      };
-    })
-    .filter(Boolean);
-}
-
-async function cleanupResumeStateDirAfterDownloadPathChange({
-  oldPath,
-  newPath,
-  downloadState,
-} = {}) {
-  if (typeof oldPath !== "string" || typeof newPath !== "string") return;
-  const resolvedOldPath = path.resolve(oldPath);
-  const resolvedNewPath = path.resolve(newPath);
-  if (resolvedOldPath === resolvedNewPath) return;
-  if (hasActiveDownloads(downloadState)) {
-    log.info(
-      "Skipping resume state cleanup while downloads are active:",
-      resolvedOldPath,
-    );
-    return;
-  }
-
-  const resumeDir = path.join(resolvedOldPath, RESUME_STATE_DIR_NAME);
-  if (path.basename(resumeDir) !== RESUME_STATE_DIR_NAME) return;
-  try {
-    await fsPromises.rm(resumeDir, { recursive: true, force: true });
-  } catch (error) {
-    log.warn(
-      `Failed to remove resume state directory: ${resumeDir}`,
-      error?.message || error,
-    );
-  }
 }
 
 function isVariableFrameRateStream(stream = {}) {
@@ -664,7 +570,7 @@ function classifyMediaInspectorFsCode(error) {
   return null;
 }
 
-async function resolveMediaInspectorProbePath(store) {
+async function resolveMediaInspectorProbePath(store, installFfmpeg) {
   let ffprobePath = getRuntimeFfprobePath(store);
   await prepareBinaryForExecution(ffprobePath);
   if (ffprobePath && fs.existsSync(ffprobePath)) {
@@ -692,16 +598,14 @@ function setupIpcHandlers(dependencies) {
   const {
     mainWindow,
     store,
-    downloadState,
+    downloadPreferences,
+    downloadRuntime,
     getAppVersion,
-    setDownloadPath,
     historyFilePath,
     previewCacheDir,
     iconCache,
     clipboardMonitor,
     setupGlobalShortcuts,
-    notifyDownloadError,
-    sendDownloadCompletionNotification,
     showTrayNotification,
     webControlServer,
     dispatchPendingWhatsNew,
@@ -738,66 +642,13 @@ function setupIpcHandlers(dependencies) {
   ipcMain.on(CHANNELS.NOW_PLAYING_OPEN_FILES_READY, () => {
     mediaOpenService?.markRendererReady?.();
   });
-  const activeVideoInfoTokens = new Map();
   const activeConverterRuns = new Map();
-  const makeVideoInfoTokenKey = (url, previewOnly = false) =>
-    `${previewOnly ? "preview" : "info"}:${url}`;
-  const normalizeParallelDownloadLimit = (value) => {
-    const n = Number(value);
-    if (!Number.isFinite(n)) return 1;
-    return Math.max(1, Math.min(2, Math.trunc(n)));
-  };
-  const getParallelDownloadLimit = () =>
-    normalizeParallelDownloadLimit(store.get("downloadParallelLimit", 1));
-  const ytDlpCookiesDefault = Object.freeze({
-    mode: "off",
-    browser: "chrome",
-    filePath: "",
-  });
-  const ytDlpCookiesModes = new Set(["off", "browser", "file"]);
-  const ytDlpCookiesBrowsers = new Set([
-    "chrome",
-    "firefox",
-    "safari",
-    "edge",
-    "brave",
-    "chromium",
-    "vivaldi",
-    "opera",
-  ]);
-  const normalizeYtDlpCookiesSettings = (value) => {
-    const raw = value && typeof value === "object" ? value : {};
-    const mode = ytDlpCookiesModes.has(raw.mode)
-      ? raw.mode
-      : ytDlpCookiesDefault.mode;
-    const browser = ytDlpCookiesBrowsers.has(raw.browser)
-      ? raw.browser
-      : ytDlpCookiesDefault.browser;
-    const filePath =
-      typeof raw.filePath === "string" && !raw.filePath.includes("\u0000")
-        ? raw.filePath.trim()
-        : "";
-    return { mode, browser, filePath };
-  };
-  const getYtDlpCookiesSettings = () =>
-    normalizeYtDlpCookiesSettings(
-      store.get("ytDlp.cookies", ytDlpCookiesDefault),
-    );
-  const isValidCookiesFilePath = (filePath) =>
-    typeof filePath === "string" &&
-    path.isAbsolute(filePath) &&
-    isValidFilePath(filePath);
-
-  try {
-    setSharedStore(store);
-  } catch (e) {
-    log.warn("Unable to set shared store for tools paths:", e);
-  }
+  const downloadEngine = downloadRuntime.engine;
   const dependencyActions = createDependencyActions({
     store,
-    installYtDlp,
-    installFfmpeg,
-    installDeno,
+    installYtDlp: downloadEngine.installYtDlp,
+    installFfmpeg: downloadEngine.installFfmpeg,
+    installDeno: downloadEngine.installDeno,
     getToolsVersions,
     log,
   });
@@ -838,7 +689,7 @@ function setupIpcHandlers(dependencies) {
     ipcMain,
     app,
     shell,
-    downloadState,
+    getDownloadPath: () => downloadPreferences.getPath(),
     isPathInsideBaseDir,
     isValidFilePath,
     isValidUrl,
@@ -852,8 +703,8 @@ function setupIpcHandlers(dependencies) {
     dialog,
     ffmpegPathResolver: getRuntimeFfmpegPath,
     ffprobePathResolver: getRuntimeFfprobePath,
-    getVideoInfo,
-    getVideoPreview,
+    getVideoInfo: downloadEngine.getVideoInfo,
+    getVideoPreview: downloadEngine.getVideoPreview,
     ipcMain,
     mainWindow,
     shell,
@@ -864,151 +715,14 @@ function setupIpcHandlers(dependencies) {
 
   registerFullscreenIpcHandlers({ ipcMain, mainWindow });
 
-  const formatVideoInfoResponse = (
-    info,
-    normalizedUrl,
-    { includeFormats = true } = {},
-  ) => {
-    const title = info?.title || "";
-    const duration = Number(info?.duration || 0);
-    // thumbnails: yt-dlp отдаёт массив; возьмём самый широкий
-    let thumb = null;
-    if (Array.isArray(info?.thumbnails) && info.thumbnails.length) {
-      thumb =
-        info.thumbnails
-          .slice()
-          .sort((a, b) => (b.width || 0) - (a.width || 0))[0]?.url || null;
-    } else if (info?.thumbnail) {
-      thumb = info.thumbnail;
-    }
-    // плейлист
-    let playlistCount = 0;
-    let playlistDuration = 0;
-    let entries = [];
-    if (Array.isArray(info?.entries) && info.entries.length) {
-      playlistCount = info.entries.length;
-      playlistDuration = info.entries.reduce(
-        (acc, entry) => acc + Math.max(0, Number(entry?.duration) || 0),
-        0,
-      );
-      entries = info.entries
-        .map((e) => e?.webpage_url || e?.url)
-        .filter((u) => typeof u === "string" && u.length > 0);
-    } else if (typeof info?.playlist_count === "number") {
-      playlistCount = info.playlist_count;
-    }
-    const previewInfo = Array.isArray(info?.previewFormats)
-      ? { ...info, formats: info.previewFormats }
-      : info;
-    const backgroundPreview = selectYouTubeBackgroundPreview(
-      previewInfo,
-      info?.webpage_url || info?.original_url || normalizedUrl,
-    );
-    const livePreview = selectYouTubeLivePreview(
-      previewInfo,
-      info?.webpage_url || info?.original_url || normalizedUrl,
-    );
-    return {
-      success: true,
-      title,
-      duration,
-      thumbnail: thumb,
-      backgroundPreview,
-      livePreview,
-      playlistCount,
-      playlistDuration,
-      entries,
-      uploader: info?.uploader || info?.channel || "",
-      channel: info?.channel || "",
-      webpage_url: info?.webpage_url || info?.original_url || normalizedUrl,
-      original_url: info?.original_url || normalizedUrl,
-      formats: includeFormats ? info?.formats || [] : [],
-      is_live: info?.is_live || false,
-      extractor: info?.extractor || "",
-      subtitles: includeFormats ? normalizeSubtitleTracks(info?.subtitles) : [],
-      automatic_captions: includeFormats
-        ? normalizeSubtitleTracks(info?.automatic_captions, {
-            source: "automatic",
-          })
-        : [],
-    };
-  };
-
-  const handleVideoInfoRequest = async (url, { previewOnly = false } = {}) => {
-    try {
-      const normalizedUrl = normalizeUrl(url);
-      if (!normalizedUrl) throw new Error("Invalid URL");
-      if (!hasValidHttpHost(normalizedUrl)) {
-        throw new Error(
-          "Invalid URL: host is incomplete. Example: https://example.com",
-        );
-      }
-      const tokenKey = makeVideoInfoTokenKey(normalizedUrl, previewOnly);
-      const token =
-        activeVideoInfoTokens.get(tokenKey) || createDownloadToken();
-      activeVideoInfoTokens.set(tokenKey, token);
-      const info = previewOnly
-        ? await getVideoPreview(normalizedUrl, token)
-        : await getVideoInfo(normalizedUrl, token);
-      return formatVideoInfoResponse(info, normalizedUrl, {
-        includeFormats: !previewOnly,
-      });
-    } catch (e) {
-      const rawMessage = e?.message || String(e);
-      log.warn(
-        `${previewOnly ? "get-video-preview" : "get-video-info"} error:`,
-        rawMessage,
-      );
-      const classified = classifyDownloadError(rawMessage);
-      if (classified.code) {
-        return {
-          success: false,
-          errorCode: classified.code,
-          retryable: classified.retryable,
-          retryAfterMinutes: classified.retryAfterMinutes ?? null,
-          message: classified.message,
-          error: classified.message,
-        };
-      }
-      return { success: false, error: rawMessage };
-    } finally {
-      try {
-        const normalizedUrl = normalizeUrl(url);
-        if (normalizedUrl) {
-          activeVideoInfoTokens.delete(
-            makeVideoInfoTokenKey(normalizedUrl, previewOnly),
-          );
-        }
-      } catch (_) {}
-    }
-  };
-
-  // Предпросмотр: получить метаданные видео по URL (заголовок, длительность, превью)
-  ipcMain.handle(CHANNELS.GET_VIDEO_PREVIEW, async (_evt, url) => {
-    return handleVideoInfoRequest(url, { previewOnly: true });
-  });
-
-  // Полные данные видео с форматами для выбора качества и загрузки.
-  ipcMain.handle(CHANNELS.GET_VIDEO_INFO, async (_evt, url) => {
-    return handleVideoInfoRequest(url, { previewOnly: false });
-  });
-
-  ipcMain.handle(CHANNELS.CANCEL_VIDEO_INFO_REQUEST, async (_evt, payload) => {
-    try {
-      const rawUrl = typeof payload === "string" ? payload : payload?.url || "";
-      const normalizedUrl = normalizeUrl(rawUrl);
-      if (!normalizedUrl) return { success: false, error: "Invalid URL" };
-      const previewOnly =
-        typeof payload === "object" ? payload?.previewOnly !== false : true;
-      const tokenKey = makeVideoInfoTokenKey(normalizedUrl, previewOnly);
-      const token = activeVideoInfoTokens.get(tokenKey);
-      if (!token) return { success: true, cancelled: false };
-      await stopDownload([token]);
-      activeVideoInfoTokens.delete(tokenKey);
-      return { success: true, cancelled: true };
-    } catch (error) {
-      return { success: false, error: error?.message || String(error) };
-    }
+  registerDownloadIpcHandlers({ ipcMain, runtime: downloadRuntime });
+  registerDownloadPreferencesIpcHandlers({
+    dialog,
+    ipcMain,
+    isValidFilePath,
+    mainWindow,
+    preferences: downloadPreferences,
+    runtime: downloadRuntime,
   });
 
   ipcMain.handle(CHANNELS.WEB_GET_STATUS, async () => {
@@ -1128,7 +842,10 @@ function setupIpcHandlers(dependencies) {
 
         await fsPromises.access(resolvedFilePath, fs.constants.R_OK);
 
-        ffprobePath = await resolveMediaInspectorProbePath(store);
+        ffprobePath = await resolveMediaInspectorProbePath(
+          store,
+          downloadEngine.installFfmpeg,
+        );
         if (!ffprobePath || !fs.existsSync(ffprobePath)) {
           return {
             success: false,
@@ -1342,7 +1059,7 @@ function setupIpcHandlers(dependencies) {
         await prepareBinaryForExecution(ffmpegPath);
         if (!ffmpegPath || !fs.existsSync(ffmpegPath)) {
           try {
-            await installFfmpeg();
+            await downloadEngine.installFfmpeg();
           } catch (error) {
             log.warn(
               "[tools:converterConvert] ffmpeg install failed:",
@@ -3031,161 +2748,6 @@ function setupIpcHandlers(dependencies) {
     mainWindow,
   });
 
-  // Проверка на отмену загрузки
-  function checkIfCancelled(token, step) {
-    if (token?.cancelled) {
-      log.error(`Download cancelled at step: ${step}`);
-      throw new Error(token.cancelReason || "Download cancelled");
-    }
-  }
-
-  // Функция для начала процесса загрузки
-  async function startDownloadProcess(event, url, quality, jobId = null) {
-    try {
-      const normalizedUrl = normalizeUrl(url);
-      if (!isValidUrl(normalizedUrl) || !hasValidHttpHost(normalizedUrl)) {
-        throw new Error(
-          "Invalid URL: host is incomplete. Example: https://example.com",
-        );
-      }
-
-      const token = createDownloadToken();
-      if (jobId && downloadState.activeDownloads?.has(jobId)) {
-        const prev = downloadState.activeDownloads.get(jobId);
-        downloadState.activeDownloads.set(jobId, { ...prev, token });
-      }
-
-      // Проверяем наличие утилит, не устанавливаем автоматически
-      const tools = await getToolsVersions(store);
-      const hasYt = tools?.ytDlp?.ok;
-      const hasFf = tools?.ffmpeg?.ok;
-      if (!hasYt || !hasFf) {
-        if (mainWindow && mainWindow.webContents) {
-          mainWindow.webContents.send(
-            "toast",
-            formatMissingDownloadToolsMessage({
-              hasYtDlp: hasYt,
-              hasFfmpeg: hasFf,
-            }),
-            "warning",
-          );
-        }
-        throw new Error("Отсутствуют необходимые инструменты (yt-dlp/ffmpeg)");
-      }
-
-      const videoInfo = await getVideoInfo(normalizedUrl, token);
-      checkIfCancelled(token, "getVideoInfo");
-
-      const formats = videoInfo.formats;
-      const title = videoInfo.title.replace(/[\\/:*?"<>|]/g, "");
-
-      // Используем функцию selectFormatsByQuality
-      const selectedFormats = selectFormatsByQuality(formats, quality);
-
-      const videoFormat = selectedFormats.videoFormat;
-      const audioFormat = selectedFormats.audioFormat;
-      const audioExt = selectedFormats.audioExt;
-      const videoExt = selectedFormats.videoExt;
-      const isSubtitleDownload =
-        quality?.type === "subtitle-only" ||
-        quality?.downloadKind === "subtitle";
-
-      // Получаем разрешение и fps
-      const resolution = selectedFormats.resolution;
-      const fps = selectedFormats.fps;
-      const actualQuality = isSubtitleDownload
-        ? `subtitle: ${quality.subtitleLang || "unknown"}`
-        : videoFormat === null
-          ? `audio: ${resolution}`
-          : resolution !== "unknown"
-            ? `${resolution} ${fps ? fps + "fps" : ""}`
-            : "unknown";
-      const downloadMetadata = {
-        thumbnail: videoInfo.thumbnail || "",
-        title: videoInfo.title || "",
-        duration: Number(videoInfo.duration) || 0,
-      };
-
-      checkIfCancelled(token, "before downloadMedia");
-
-      let filePath;
-      try {
-        filePath = await downloadMedia(
-          event,
-          downloadState.downloadPath,
-          normalizedUrl,
-          videoFormat,
-          audioFormat,
-          title,
-          quality,
-          resolution,
-          fps,
-          audioExt,
-          videoExt,
-          token,
-          jobId,
-        );
-      } catch (error) {
-        throw error;
-      }
-
-      // Проверка доступности mainWindow и его webContents перед отправкой уведомления
-      if (
-        !mainWindow ||
-        !mainWindow.webContents ||
-        mainWindow.webContents.isDestroyed()
-      ) {
-        log.error(
-          `mainWindow.webContents is not available (mainWindow: ${!!mainWindow}, webContents: ${!!mainWindow?.webContents}, destroyed: ${mainWindow?.webContents?.isDestroyed?.()})`,
-        );
-        // Подробный лог о завершённой загрузке (даже если mainWindow недоступен)
-        log.info(`[Download Complete] ${title}`);
-        log.info(`Path: ${filePath}`);
-        log.info(`Quality: ${quality}`);
-        log.info(`Actual: ${actualQuality}`);
-        log.info(`Source: ${normalizedUrl}`);
-        return {
-          fileName: title,
-          filePath,
-          quality,
-          actualQuality,
-          resolution,
-          fps,
-          sourceUrl: normalizedUrl,
-          ...downloadMetadata,
-        };
-      }
-
-      sendDownloadCompletionNotification(title, filePath, store, mainWindow);
-
-      // Подробный лог о завершённой загрузке с деталями
-      log.info(`[Download Complete] ${title}`);
-      log.info(`Path: ${filePath}`);
-      log.info(`Quality: ${quality}`);
-      log.info(`Actual: ${actualQuality}`);
-      log.info(`Source: ${normalizedUrl}`);
-
-      return {
-        fileName: title,
-        filePath,
-        quality,
-        actualQuality,
-        resolution,
-        fps,
-        sourceUrl: normalizedUrl,
-        ...downloadMetadata,
-      };
-    } catch (error) {
-      if (error.message === "Download cancelled") {
-        log.info("The download was disabled by the user.");
-        throw error;
-      } else {
-        log.error("Ошибка во время загрузки:", error);
-        throw error;
-      }
-    }
-  }
-
   function resolveWindowsShortcutIcon() {
     const exePath = app.getPath("exe");
     const appPath = app.getAppPath();
@@ -3312,245 +2874,6 @@ function setupIpcHandlers(dependencies) {
     store,
   });
 
-  ipcMain.handle(CHANNELS.SELECT_DOWNLOAD_FOLDER, async () => {
-    const result = await dialog.showOpenDialog(mainWindow, {
-      properties: ["openDirectory"],
-    });
-    if (!result.canceled && result.filePaths.length > 0) {
-      const selectedPath = result.filePaths[0];
-      try {
-        const stats = await fs.promises.stat(selectedPath);
-        if (stats.isDirectory()) {
-          const previousDownloadPath = downloadState.downloadPath;
-          setDownloadPath(selectedPath);
-          await cleanupResumeStateDirAfterDownloadPathChange({
-            oldPath: previousDownloadPath,
-            newPath: selectedPath,
-            downloadState,
-          });
-          return { success: true, path: selectedPath };
-        } else {
-          throw new Error("The selected path is not a directory.");
-        }
-      } catch (error) {
-        log.error("Ошибка при выборе папки для загрузок:", error);
-        return { success: false, error: error.message };
-      }
-    } else {
-      return { success: false };
-    }
-  });
-
-  ipcMain.handle(
-    CHANNELS.DOWNLOAD_VIDEO,
-    async (event, url, quality, requestedJobId = null) => {
-      const jobId =
-        requestedJobId ||
-        `job-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
-      if (!downloadState.activeDownloads) {
-        downloadState.activeDownloads = new Map();
-      }
-      const parallelLimit = getParallelDownloadLimit();
-      log.info("[queue] download-video invoked", { url, quality, jobId });
-      if (downloadState.activeDownloads.size >= parallelLimit) {
-        throw new Error("Parallel download limit reached");
-      }
-
-      const normalizedUrl = normalizeUrl(url);
-      if (!normalizedUrl) {
-        throw new Error("Недопустимый URL");
-      }
-
-      downloadState.activeDownloads.set(jobId, {
-        token: null,
-        url: normalizedUrl,
-        quality,
-        startedAt: Date.now(),
-      });
-      downloadState.downloadInProgress = downloadState.activeDownloads.size > 0;
-      try {
-        const result = await startDownloadProcess(
-          event,
-          normalizedUrl,
-          quality,
-          jobId,
-        );
-        return { success: true, ...result, sourceUrl: normalizedUrl, jobId };
-      } catch (error) {
-        if (error.message === "Download cancelled") {
-          return { cancelled: true, jobId };
-        }
-        const classified = classifyDownloadError(error);
-        if (classified.code !== "UNKNOWN") {
-          notifyDownloadError(error);
-          return {
-            success: false,
-            jobId,
-            sourceUrl: normalizedUrl,
-            message: classified.message,
-            errorCode: classified.code,
-            retryable: classified.retryable,
-            retryAfterMinutes: classified.retryAfterMinutes ?? null,
-          };
-        }
-        notifyDownloadError(error);
-        throw error;
-      } finally {
-        downloadState.activeDownloads.delete(jobId);
-        downloadState.downloadInProgress =
-          downloadState.activeDownloads.size > 0;
-      }
-    },
-  );
-
-  ipcMain.handle(CHANNELS.CANCEL_DOWNLOAD_JOB, async (_event, payload) => {
-    const payloadPrototype =
-      payload !== null && typeof payload === "object"
-        ? Object.getPrototypeOf(payload)
-        : null;
-    const isPlainObject =
-      payload !== null &&
-      (payloadPrototype === Object.prototype || payloadPrototype === null);
-    const jobId = isPlainObject ? payload.jobId : null;
-
-    if (typeof jobId !== "string" || jobId.trim().length === 0) {
-      return {
-        success: false,
-        errorCode: "INVALID_JOB_ID",
-        error: "jobId must be a non-empty string",
-      };
-    }
-
-    const entry = downloadState.activeDownloads?.get(jobId);
-    if (!entry?.token) {
-      return {
-        success: true,
-        jobId,
-        cancelled: false,
-        reason: "not-active",
-      };
-    }
-
-    try {
-      const cancelled = await stopDownload(entry.token);
-      return { success: true, jobId, cancelled: Number(cancelled) > 0 };
-    } catch (error) {
-      return {
-        success: false,
-        jobId,
-        errorCode: "CANCEL_FAILED",
-        error: error.message,
-      };
-    }
-  });
-
-  ipcMain.handle(CHANNELS.STOP_DOWNLOAD, async () => {
-    log.info("[download] Stop all requested");
-    try {
-      const tokens = Array.from(
-        (downloadState.activeDownloads || new Map()).values(),
-      )
-        .map((entry) => entry?.token)
-        .filter(Boolean);
-      const cancelled = await stopDownload(tokens);
-      log.info("[download] Stop all completed", { cancelled });
-      return { success: true, cancelled };
-    } catch (error) {
-      log.error("[download] Stop all failed:", error);
-      return { success: false, error: error.message };
-    }
-  });
-
-  ipcMain.handle(CHANNELS.SET_DOWNLOAD_PATH, async (event, path) => {
-    if (typeof path !== "string") {
-      throw new Error("Invalid path");
-    }
-    try {
-      const stats = await fs.promises.stat(path);
-      if (!stats.isDirectory()) {
-        throw new Error("Path is not a directory");
-      }
-      const previousDownloadPath = downloadState.downloadPath;
-      setDownloadPath(path);
-      await cleanupResumeStateDirAfterDownloadPathChange({
-        oldPath: previousDownloadPath,
-        newPath: path,
-        downloadState,
-      });
-      log.info(`Download path set to: ${path}`);
-      return { success: true };
-    } catch (error) {
-      log.error("Invalid download path:", error);
-      return { success: false, error: error.message };
-    }
-  });
-
-  ipcMain.handle(
-    CHANNELS.SET_DOWNLOAD_PARALLEL_LIMIT,
-    async (_event, value) => {
-      const limit = normalizeParallelDownloadLimit(value);
-      store.set("downloadParallelLimit", limit);
-      return { success: true, limit };
-    },
-  );
-
-  ipcMain.handle(CHANNELS.GET_DOWNLOAD_PARALLEL_LIMIT, async () => {
-    return getParallelDownloadLimit();
-  });
-
-  ipcMain.handle(CHANNELS.GET_YTDLP_COOKIES_SETTINGS, async () => {
-    return getYtDlpCookiesSettings();
-  });
-
-  ipcMain.handle(CHANNELS.SET_YTDLP_COOKIES_SETTINGS, async (_event, value) => {
-    const settings = normalizeYtDlpCookiesSettings(value);
-    if (
-      settings.mode === "file" &&
-      settings.filePath &&
-      !isValidCookiesFilePath(settings.filePath)
-    ) {
-      return {
-        success: false,
-        error: "Invalid cookies file path",
-        settings: getYtDlpCookiesSettings(),
-      };
-    }
-    store.set("ytDlp.cookies", settings);
-    return { success: true, settings };
-  });
-
-  ipcMain.handle(CHANNELS.SELECT_YTDLP_COOKIES_FILE, async () => {
-    try {
-      const result = await dialog.showOpenDialog(mainWindow, {
-        properties: ["openFile"],
-        filters: [
-          { name: "Cookies", extensions: ["txt"] },
-          { name: "All Files", extensions: ["*"] },
-        ],
-      });
-      if (result.canceled || !result.filePaths?.length) {
-        return { success: false, canceled: true };
-      }
-      const filePath = result.filePaths[0];
-      if (!isValidCookiesFilePath(filePath)) {
-        return { success: false, error: "Invalid cookies file path" };
-      }
-      return { success: true, filePath };
-    } catch (error) {
-      log.error("select-ytdlp-cookies-file error:", error);
-      return { success: false, error: error.message || String(error) };
-    }
-  });
-
-  ipcMain.handle(CHANNELS.GET_DOWNLOAD_PATH, async () => {
-    try {
-      return downloadState.downloadPath;
-    } catch (e) {
-      log.error("get-download-path error:", e);
-      return null;
-    }
-  });
-
   historyPreviewCache.registerHistoryPreviewIpcHandlers({ ipcMain });
 
   registerHistoryIpcHandlers({
@@ -3578,13 +2901,7 @@ function setupIpcHandlers(dependencies) {
   return {
     async dispose() {
       if (activeIpcRuntime === ipcRuntime) activeIpcRuntime = null;
-      const downloadTokens = [
-        ...(downloadState.activeDownloads || new Map()).values(),
-        ...activeVideoInfoTokens.values(),
-      ]
-        .map((entry) => entry?.token || entry)
-        .filter(Boolean);
-      await stopDownload(downloadTokens);
+      await downloadRuntime.dispose();
       activeConverterRuns.forEach((entry) => {
         entry.cancelled = true;
         entry.proc?.kill?.("SIGTERM");
@@ -3598,5 +2915,4 @@ function setupIpcHandlers(dependencies) {
 module.exports = {
   setupIpcHandlers,
   selectYouTubeBackgroundPreview,
-  _normalizeSubtitleTracks: normalizeSubtitleTracks,
 };

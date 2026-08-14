@@ -1,5 +1,5 @@
 /**
- * @file download.js
+ * @file engine.js
  * @description
  * Utility script for managing external tools (yt-dlp, ffmpeg) and handling
  * video/audio downloads in the Thunder application.
@@ -27,7 +27,7 @@
  *  - createDownloadToken
  */
 
-// src/js/scripts/download.js
+// src/js/app/download/engine.js
 
 const { execFileSync } = require("child_process");
 const https = require("https");
@@ -39,7 +39,9 @@ const unzipper = require("unzipper");
 const treeKill = require("tree-kill");
 const log = require("electron-log");
 const { app } = require("electron");
-const { processSupervisor } = require("../app/processSupervisor");
+const { processSupervisor } = require("../processSupervisor");
+const { parseDownloadProgress, parseProgress } = require("./progress");
+const { selectFormatsByQuality } = require("./formatSelector");
 
 function spawn(command, args, options) {
   const tool = String(command || "").toLowerCase().includes("ffmpeg")
@@ -56,7 +58,7 @@ const {
   getDefaultToolsDir,
   ensureToolsDir,
   resolveToolPath,
-} = require("../app/toolsPaths");
+} = require("../toolsPaths");
 const {
   getRuntimeFfprobePath,
   resolveRuntimeBinaryPath,
@@ -64,18 +66,12 @@ const {
   resolveRuntimeBinaryDetails,
   prepareBinaryForExecution,
   resolveRuntimeFfmpegDir: resolveRuntimeFfmpegDirHelper,
-} = require("../app/runtimeTools");
+} = require("../runtimeTools");
 
-// Динамические пути к инструментам — читаем текущее значение из electron-store каждый раз
-
-let sharedStore = null;
-
-function setSharedStore(store) {
-  sharedStore = store;
-}
+function createDownloadEngine({ store = null } = {}) {
 
 function getStore() {
-  return sharedStore;
+  return store;
 }
 
 function getToolsDir() {
@@ -260,10 +256,6 @@ function getYtDlpSpawnOptionsForBinary(binaryPath) {
 
 // Предустановленные профили качества
 const QUALITY_AUDIO_ONLY = "Audio Only";
-const QUALITY_SOURCE = "Source";
-const QUALITY_FHD = "FHD 1080p";
-const QUALITY_HD = "HD 720p";
-const QUALITY_SD = "SD 360p";
 const SUBTITLE_OUTPUT_EXT = "srt";
 const SAFE_SUBTITLE_LANG_RE = /^[a-z0-9._-]{1,24}$/i;
 const SUBTITLE_ARTIFACT_EXTS = new Set([
@@ -358,15 +350,6 @@ function findSubtitleOutputPath(downloadPath, tempPrefix, lang) {
   const matched = getSubtitleArtifactEntries(downloadPath, tempPrefix, lang)[0];
   return matched ? path.join(downloadPath, matched) : null;
 }
-
-const PREFERRED_AUDIO_LANGS = [
-  "ru",
-  "ru-ru",
-  "rus",
-  "russian",
-  "рус",
-  "русский",
-];
 
 // Флаги и состояние процессов (переведено на токены)
 function createDownloadToken() {
@@ -494,44 +477,6 @@ function runProcess(cmd, args, options = {}) {
     });
     proc.on("error", reject);
   });
-}
-
-/**
- * Парсит строку прогресса вида "[download] 45.3%" или "[download] 45%"
- */
-const PROGRESS_PREFIX = "THUNDER_PROGRESS:";
-
-const parseProgressNumber = (value) => {
-  const normalized = String(value ?? "").trim();
-  if (!normalized || normalized === "NA" || normalized === "N/A") return null;
-  const number = Number(normalized.replace(/%$/, ""));
-  return Number.isFinite(number) && number >= 0 ? number : null;
-};
-
-function parseDownloadProgress(line) {
-  const raw = String(line || "").trim();
-  const markerIndex = raw.indexOf(PROGRESS_PREFIX);
-  if (markerIndex >= 0) {
-    const [percent, downloaded, total, estimate, speed, eta] = raw
-      .slice(markerIndex + PROGRESS_PREFIX.length)
-      .split("|");
-    const exactTotal = parseProgressNumber(total);
-    const estimatedTotal = parseProgressNumber(estimate);
-    return {
-      progress: parseProgressNumber(percent) ?? 0,
-      downloadedBytes: parseProgressNumber(downloaded),
-      totalBytes: exactTotal ?? estimatedTotal,
-      totalBytesApproximate: exactTotal === null && estimatedTotal !== null,
-      speedBytesPerSec: parseProgressNumber(speed),
-      etaSeconds: parseProgressNumber(eta),
-    };
-  }
-  const legacy = raw.match(/\[download\]\s+(\d+(?:\.\d+)?)%/);
-  return legacy ? { progress: Number(legacy[1]) } : null;
-}
-
-function parseProgress(line) {
-  return parseDownloadProgress(line)?.progress ?? null;
 }
 
 /**
@@ -713,285 +658,6 @@ function downloadFile(url, dest, redirects = 0, attempt = 1, options = {}) {
  * Выбирает форматы в зависимости от желаемого качества.
  * Всегда возвращает videoExt и audioExt (если есть).
  */
-function selectFormatsByQuality(formats, desiredQuality) {
-  const pickBest = (arr, cmp) => (arr.length ? arr.sort(cmp)[0] : null);
-  const inferQualityFromObject = (qualityObj) => {
-    const marker = `${qualityObj?.quality || ""} ${qualityObj?.label || ""}`
-      .toLowerCase()
-      .trim();
-    if (
-      qualityObj?.type === "audio-only" ||
-      qualityObj?.downloadKind === "audio" ||
-      /audio|аудио/.test(marker)
-    ) {
-      return QUALITY_AUDIO_ONLY;
-    }
-    if (/1080|fhd/.test(marker)) return QUALITY_FHD;
-    if (/720|hd/.test(marker)) return QUALITY_HD;
-    if (/360|sd/.test(marker)) return QUALITY_SD;
-    if (/source|исход|original|best/.test(marker)) return QUALITY_SOURCE;
-    return null;
-  };
-
-  if (desiredQuality && typeof desiredQuality === "object") {
-    if (isSubtitleOnlyQuality(desiredQuality)) {
-      return {
-        videoFormat: null,
-        audioFormat: null,
-        resolution: desiredQuality.subtitleLang || "subtitle",
-        fps: null,
-        videoExt: null,
-        audioExt: null,
-      };
-    }
-    const findFmt = (id) =>
-      id ? formats.find((fmt) => fmt?.format_id === id) : null;
-    const requestedVideoId = desiredQuality.videoFormatId || null;
-    const requestedAudioId = desiredQuality.audioFormatId || null;
-    const videoFmt = findFmt(requestedVideoId);
-    const audioFmt = findFmt(requestedAudioId);
-    const hasAllRequested =
-      (!requestedVideoId || !!videoFmt) && (!requestedAudioId || !!audioFmt);
-    if (!hasAllRequested) {
-      const fallbackQuality = inferQualityFromObject(desiredQuality);
-      log.warn("[download] Requested format IDs are unavailable, fallback", {
-        requestedVideoId,
-        requestedAudioId,
-        fallbackQuality: fallbackQuality || "(auto)",
-      });
-      if (fallbackQuality) {
-        return selectFormatsByQuality(formats, fallbackQuality);
-      }
-      if (requestedAudioId && !requestedVideoId) {
-        return selectFormatsByQuality(formats, QUALITY_AUDIO_ONLY);
-      }
-      return selectFormatsByQuality(formats, QUALITY_SOURCE);
-    }
-    const resolution =
-      desiredQuality.resolution ||
-      videoFmt?.resolution ||
-      (videoFmt?.height ? `${videoFmt.height}p` : "custom");
-    const fps = desiredQuality.fps || videoFmt?.fps || null;
-    return {
-      videoFormat: requestedVideoId,
-      audioFormat: requestedAudioId,
-      resolution,
-      fps,
-      videoExt: desiredQuality.videoExt || videoFmt?.ext || null,
-      audioExt: desiredQuality.audioExt || audioFmt?.ext || null,
-    };
-  }
-
-  const normalizeLang = (val) =>
-    typeof val === "string"
-      ? val.toLowerCase()
-      : String(val || "").toLowerCase();
-
-  const getAudioLangScore = (format) => {
-    const candidates = [
-      format?.language,
-      format?.language_preference,
-      format?.languagePreference,
-      format?.lang,
-      format?.format_note,
-    ];
-    for (const value of candidates) {
-      const normalized = normalizeLang(value);
-      if (!normalized) continue;
-      if (PREFERRED_AUDIO_LANGS.some((code) => normalized.includes(code)))
-        return 0;
-    }
-    return 1;
-  };
-
-  const compareAudioFormats = (a, b) => {
-    const langDiff = getAudioLangScore(a) - getAudioLangScore(b);
-    if (langDiff !== 0) return langDiff;
-    const abrA = a?.abr || a?.tbr || 0;
-    const abrB = b?.abr || b?.tbr || 0;
-    if (abrB !== abrA) return abrB - abrA;
-    return (b.filesize || 0) - (a.filesize || 0);
-  };
-
-  const onlyAudio = formats.filter(
-    (f) => f.acodec !== "none" && f.vcodec === "none",
-  );
-  const onlyVideo = formats.filter(
-    (f) => f.vcodec !== "none" && f.acodec === "none",
-  );
-  const muxed = formats.filter(
-    (f) => f.vcodec !== "none" && f.acodec !== "none",
-  );
-
-  // AUDIO ONLY
-  if (desiredQuality === QUALITY_AUDIO_ONLY) {
-    let audio = pickBest(onlyAudio, compareAudioFormats);
-    // если чистого аудио нет — берём лучший muxed и качаем как есть
-    if (!audio) {
-      const m = pickBest(
-        muxed,
-        (a, b) => (b.abr || 0) - (a.abr || 0) || (b.tbr || 0) - (a.tbr || 0),
-      );
-      if (!m) throw new Error("No audio or muxed formats found");
-      return {
-        videoFormat: m.format_id,
-        audioFormat: null,
-        resolution: "audio (muxed)",
-        fps: m.fps || null,
-        videoExt: m.ext || null,
-        audioExt: null,
-        isMuxed: true,
-      };
-    }
-    return {
-      videoFormat: null,
-      audioFormat: audio.format_id,
-      resolution: "audio only",
-      fps: null,
-      videoExt: null,
-      audioExt: audio.ext || "m4a",
-      isMuxed: false,
-    };
-  }
-
-  // SOURCE (максимально возможное)
-  if (desiredQuality === QUALITY_SOURCE) {
-    if (onlyVideo.length && onlyAudio.length) {
-      const v = pickBest(
-        onlyVideo,
-        (a, b) =>
-          (b.height || 0) - (a.height || 0) || (b.tbr || 0) - (a.tbr || 0),
-      );
-      const a = pickBest(onlyAudio, compareAudioFormats);
-      if (!v || !a)
-        throw new Error("Suitable formats for source quality not found.");
-      return {
-        videoFormat: v.format_id,
-        audioFormat: a.format_id,
-        resolution: v.width && v.height ? `${v.width}x${v.height}` : "unknown",
-        fps: v.fps || null,
-        videoExt: v.ext || "mp4",
-        audioExt: a.ext || "m4a",
-        isMuxed: false,
-      };
-    }
-    const m = pickBest(
-      muxed,
-      (a, b) =>
-        (b.height || 0) - (a.height || 0) || (b.tbr || 0) - (a.tbr || 0),
-    );
-    if (!m)
-      throw new Error("No suitable muxed format found for source quality.");
-    return {
-      videoFormat: m.format_id,
-      audioFormat: null,
-      resolution: m.width && m.height ? `${m.width}x${m.height}` : "unknown",
-      fps: m.fps || null,
-      videoExt: m.ext || "mp4",
-      audioExt: null,
-      isMuxed: true,
-    };
-  }
-
-  // Остальные качества
-  const qualityMap = {
-    [QUALITY_FHD]: 1080,
-    [QUALITY_HD]: 720,
-    [QUALITY_SD]: 360,
-  };
-  const target = qualityMap[desiredQuality];
-  if (!target) throw new Error(`Invalid quality: ${desiredQuality}`);
-
-  // 1) точное совпадение высоты среди onlyVideo
-  let candidates = onlyVideo.filter((f) => f.height === target);
-  // 2) иначе — наибольшая высота <= target
-  if (!candidates.length) {
-    const lower = onlyVideo.filter((f) => (f.height || 0) <= target);
-    if (lower.length) {
-      candidates = [
-        pickBest(
-          lower,
-          (a, b) =>
-            (b.height || 0) - (a.height || 0) || (b.tbr || 0) - (a.tbr || 0),
-        ),
-      ];
-    }
-  }
-  // 3) иначе — ближайшая выше
-  if (!candidates.length) {
-    const higher = onlyVideo.filter((f) => (f.height || 0) > target);
-    if (higher.length) {
-      candidates = [
-        pickBest(
-          higher,
-          (a, b) =>
-            (a.height || 0) - (b.height || 0) || (a.tbr || 0) - (b.tbr || 0),
-        ),
-      ];
-    }
-  }
-
-  let video = candidates.length ? candidates[0] : null;
-  let audio = null;
-
-  if (video) {
-    audio = pickBest(onlyAudio, compareAudioFormats);
-    if (!audio) {
-      // нет отдельного аудио — попробуем подходящий muxed не выше target
-      const m = pickBest(
-        muxed.filter((f) => (f.height || 0) <= (video.height || target)),
-        (a, b) =>
-          (b.height || 0) - (a.height || 0) || (b.tbr || 0) - (a.tbr || 0),
-      );
-      if (m) {
-        return {
-          videoFormat: m.format_id,
-          audioFormat: null,
-          resolution:
-            m.width && m.height ? `${m.width}x${m.height}` : "unknown",
-          fps: m.fps || null,
-          videoExt: m.ext || "mp4",
-          audioExt: null,
-          isMuxed: true,
-        };
-      }
-      throw new Error(`No available audio format for ${desiredQuality}`);
-    }
-    return {
-      videoFormat: video.format_id,
-      audioFormat: audio.format_id,
-      resolution:
-        video.width && video.height
-          ? `${video.width}x${video.height}`
-          : "unknown",
-      fps: video.fps || null,
-      videoExt: video.ext || "mp4",
-      audioExt: audio.ext || "m4a",
-      isMuxed: false,
-    };
-  } else {
-    // нет отдельного видео — возьмём лучший muxed не выше target
-    const m = pickBest(
-      muxed.filter((f) => (f.height || 0) <= target),
-      (a, b) =>
-        (b.height || 0) - (a.height || 0) || (b.tbr || 0) - (a.tbr || 0),
-    );
-    if (!m)
-      throw new Error(
-        `No available video formats for quality ${desiredQuality} or lower`,
-      );
-    return {
-      videoFormat: m.format_id,
-      audioFormat: null,
-      resolution: m.width && m.height ? `${m.width}x${m.height}` : "unknown",
-      fps: m.fps || null,
-      videoExt: m.ext || "mp4",
-      audioExt: null,
-      isMuxed: true,
-    };
-  }
-}
-
 /**
  * Получает версию yt-dlp.
  */
@@ -2748,7 +2414,7 @@ function createOverallProgressTracker(segmentCount, event, options = {}) {
 /**
  * Основная функция для скачивания медиа (аудио или видео+аудио).
  */
-async function downloadMedia(
+async function downloadMedia({
   event,
   downloadPath,
   url,
@@ -2762,7 +2428,7 @@ async function downloadMedia(
   videoExt,
   token = null,
   jobId = null,
-) {
+}) {
   try {
     token = token || createDownloadToken();
     const processStore = getProcessStore(token);
@@ -3283,7 +2949,7 @@ log.info("[download.js] tool paths initialized", {
   runtimeYtDlp: resolveRuntimeToolDetails("yt-dlp"),
 });
 
-module.exports = {
+const api = {
   installYtDlp,
   installFfmpeg,
   installDeno,
@@ -3296,23 +2962,21 @@ module.exports = {
   ensureAllDependencies,
   classifyYtDlpErrorMessage,
   makeYtDlpExitError,
-  setSharedStore,
-  _buildYtDlpVideoInfoArgs: buildYtDlpVideoInfoArgs,
-  _buildYtDlpVideoPreviewArgs: buildYtDlpVideoPreviewArgs,
-  _buildYtDlpCookiesArgs: buildYtDlpCookiesArgs,
-  _normalizeYtDlpCookiesSettings: normalizeYtDlpCookiesSettings,
-  _buildSubtitleDownloadArgs: buildSubtitleDownloadArgs,
-  _findSubtitleOutputPath: findSubtitleOutputPath,
-  _normalizeSubtitleDownloadOptions: normalizeSubtitleDownloadOptions,
-  _getVideoInfoCacheTtl: getVideoInfoCacheTtl,
-  _getPersistentPreviewCachePath: getPersistentPreviewCachePath,
-  _getPersistentPreviewMetadata: getPersistentPreviewMetadata,
-  _setPersistentPreviewMetadata: setPersistentPreviewMetadata,
-  _resolveUsableYtDlpBinary: resolveUsableYtDlpBinary,
-  _resolveAvailableOutputPath: resolveAvailableOutputPath,
-  _safeMoveFile: safeMoveFile,
-  _parseDownloadProgress: parseDownloadProgress,
-  _resetYtDlpBinaryCache: () => {
+  buildYtDlpVideoInfoArgs,
+  buildYtDlpVideoPreviewArgs,
+  buildYtDlpCookiesArgs,
+  normalizeYtDlpCookiesSettings,
+  buildSubtitleDownloadArgs,
+  findSubtitleOutputPath,
+  normalizeSubtitleDownloadOptions,
+  getVideoInfoCacheTtl,
+  getPersistentPreviewCachePath,
+  getPersistentPreviewMetadata,
+  setPersistentPreviewMetadata,
+  resolveUsableYtDlpBinary,
+  resolveAvailableOutputPath,
+  safeMoveFile,
+  resetYtDlpBinaryCache: () => {
     cachedYtDlpBinary = null;
   },
 };
@@ -3320,10 +2984,7 @@ module.exports = {
 /**
  * Устанавливает все необходимые зависимости (yt-dlp и ffmpeg).
  */
-async function ensureAllDependencies(store = null) {
-  if (store) {
-    setSharedStore(store);
-  }
+async function ensureAllDependencies() {
   const token = createDownloadToken();
   try {
     await installDeno(token);
@@ -3334,3 +2995,8 @@ async function ensureAllDependencies(store = null) {
     throw error;
   }
 }
+
+return api;
+}
+
+module.exports = { createDownloadEngine };
