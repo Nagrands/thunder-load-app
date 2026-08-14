@@ -3,6 +3,8 @@
 @use "../abstracts/mixins" as *;
 @use "downloader/shell";
 @use "downloader/selection-card";
+@use "downloader/queue";
+@use "downloader/queue-item";
 @use "downloader/responsive";
 
 .downloader-view {

@@ -86,6 +86,11 @@ function initDownloadProgress() {
               jobId,
               progress: normalizedProgress,
               phase,
+              downloadedBytes: progressValue.downloadedBytes,
+              totalBytes: progressValue.totalBytes,
+              totalBytesApproximate: progressValue.totalBytesApproximate,
+              speedBytesPerSec: progressValue.speedBytesPerSec,
+              etaSeconds: progressValue.etaSeconds,
             },
           }),
         );

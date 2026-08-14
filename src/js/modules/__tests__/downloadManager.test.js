@@ -13,11 +13,6 @@ const buildDom = () => {
     <button id="open-last-video"></button>
     <div id="download-queue-info" class="hidden"></div>
     <h3 class="queue-title"><span>Queue</span><span id="queue-total-count" class="queue-title-count">(0)</span></h3>
-    <div class="queue-pills" role="toolbar">
-      <button id="queue-active-count" class="hidden" data-queue-filter="active" aria-pressed="false"><span>Active</span><span data-queue-filter-count></span></button>
-      <button id="queue-count" class="hidden" data-queue-filter="pending" aria-pressed="false"><span>Queued</span><span data-queue-filter-count></span></button>
-      <button id="queue-error-count" class="hidden" data-queue-filter="error" aria-pressed="false"><span>Errors</span><span data-queue-filter-count></span></button>
-    </div>
     <span id="queue-cap-state" class="hidden"></span>
     <div id="queue-start-indicator" class="hidden"></div>
     <button id="queue-retry-failed-button"></button>
@@ -1360,18 +1355,22 @@ describe("downloadManager queue smart logic", () => {
       initDownloadButton();
       updateQueueDisplay();
 
-      const downBtn = document.querySelector(
-        '.queue-item[data-queue-pending-index="0"] [data-queue-move="down"]',
+      const firstHandle = document.querySelector(
+        '.queue-item[data-queue-pending-index="0"] [data-queue-drag-handle]',
       );
       const pendingRow = document.querySelector("#queue-list li");
       expect(pendingRow?.querySelector(".queue-quality-chip")).toBeTruthy();
-      downBtn.click();
+      firstHandle.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }),
+      );
       expect(state.downloadQueue[0].url).toBe("https://example.com/b");
 
-      const upBtn = document.querySelector(
-        '.queue-item[data-queue-pending-index="1"] [data-queue-move="up"]',
+      const secondHandle = document.querySelector(
+        '.queue-item[data-queue-pending-index="1"] [data-queue-drag-handle]',
       );
-      upBtn.click();
+      secondHandle.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true }),
+      );
       expect(state.downloadQueue[0].url).toBe("https://example.com/a");
     });
   });
@@ -1520,9 +1519,11 @@ describe("downloadManager queue smart logic", () => {
         expect(state.downloadQueue.map((item) => item.url)).toEqual(
           expectedUrls,
         );
-        expect(JSON.parse(localStorage.getItem("downloadQueue"))).toEqual(
-          state.downloadQueue,
-        );
+        expect(
+          JSON.parse(localStorage.getItem("downloadQueue")).map(
+            (item) => item.url,
+          ),
+        ).toEqual(expectedUrls);
         expect(document.activeElement).toBe(
           document.querySelector(
             `.queue-item[data-queue-pending-index="${expectedIndex}"] [data-queue-drag-handle]`,
@@ -1588,9 +1589,11 @@ describe("downloadManager queue smart logic", () => {
         expect(state.downloadQueue.map((item) => item.url)).toEqual(
           expectedUrls,
         );
-        expect(JSON.parse(localStorage.getItem("downloadQueue"))).toEqual(
-          state.downloadQueue,
-        );
+        expect(
+          JSON.parse(localStorage.getItem("downloadQueue")).map(
+            (item) => item.url,
+          ),
+        ).toEqual(expectedUrls);
         expect(document.activeElement).toBe(
           document.querySelector(
             `.queue-item[data-queue-pending-index="${expectedIndex}"]`,
@@ -1686,11 +1689,15 @@ describe("downloadManager queue smart logic", () => {
       initDownloadButton();
       updateQueueDisplay();
 
-      const removeButton = document.querySelector(
-        '[data-queue-remove][data-job-id="pending-b"]',
+      const menuButton = document.querySelector(
+        '[data-queue-action="menu"][data-job-id="pending-b"]',
       );
-      expect(removeButton).toBeTruthy();
-      expect(removeButton.hasAttribute("data-index")).toBe(false);
+      expect(menuButton).toBeTruthy();
+      expect(menuButton.hasAttribute("data-index")).toBe(false);
+      menuButton.click();
+      const removeButton = document.querySelector(
+        '[data-queue-menu-action="remove"]',
+      );
 
       state.downloadJobs.unshift({
         id: "pending-inserted",
@@ -1784,8 +1791,6 @@ describe("downloadManager queue smart logic", () => {
         }),
       }));
 
-      const activeCounter = document.getElementById("queue-active-count");
-
       const { state } = require("../state");
       const { updateQueueDisplay } = require("../downloadManager");
       state.activeDownloads = [
@@ -1796,17 +1801,17 @@ describe("downloadManager queue smart logic", () => {
       ];
       updateQueueDisplay();
 
-      expect(activeCounter?.textContent).toContain("Active");
-      expect(
-        activeCounter?.querySelector("[data-queue-filter-count]")?.textContent,
-      ).toBe("1");
-      expect(activeCounter?.classList.contains("hidden")).toBe(false);
+      const activeSection = document.querySelector(
+        '[data-queue-section="active"]',
+      );
+      expect(activeSection?.querySelector("h4")?.textContent).toBe(
+        "queue.section.active",
+      );
+      expect(activeSection?.querySelector(".queue-section__header span")?.textContent).toBe("1");
       const activeRow = document.querySelector("#queue-list li");
       expect(activeRow).toBeTruthy();
       expect(activeRow?.querySelector(".queue-quality-chip")).toBeTruthy();
-      expect(
-        activeRow?.querySelector(".queue-status-chip")?.textContent,
-      ).toContain("Загрузка");
+      expect(activeRow?.querySelector('[role="progressbar"]')).toBeTruthy();
       expect(activeRow?.getAttribute("role")).toBe("listitem");
       expect(activeRow?.querySelector("[data-queue-remove]")).toBeNull();
     });
@@ -2059,7 +2064,7 @@ describe("downloadManager queue smart logic", () => {
       expect(retryBtn).toBeTruthy();
       expect(retryBtn.disabled).toBe(true);
       expect(retryBtn.getAttribute("title")).toBe(
-        "Для этой ошибки нужен ручной шаг",
+        "Нужен ручной шаг",
       );
       expect(
         document.getElementById("downloader-job-summary-title").textContent,
@@ -4338,15 +4343,9 @@ describe("downloadManager History recovery actions", () => {
       ];
       updateQueueDisplay();
 
-      expect(document.getElementById("queue-count").classList).toContain(
-        "hidden",
-      );
-      expect(document.getElementById("queue-active-count").classList).toContain(
-        "hidden",
-      );
-      expect(
-        document.getElementById("queue-error-count").classList,
-      ).not.toContain("hidden");
+      expect(document.querySelector('[data-queue-section="pending"]')).toBeNull();
+      expect(document.querySelector('[data-queue-section="active"]')).toBeNull();
+      expect(document.querySelector('[data-queue-section="error"]')).toBeTruthy();
       expect(document.getElementById("queue-start-button").classList).toContain(
         "hidden",
       );
@@ -4770,7 +4769,7 @@ describe("downloadManager legacy completed migration", () => {
 });
 
 describe("downloadManager queue completion semantics", () => {
-  const mockDependencies = (historySaved = true) => {
+  const mockDependencies = (historySaved = true, confirmClear = false) => {
     jest.doMock("../domElements", () => ({
       urlInput: document.getElementById("url"),
       downloadButton: document.getElementById("download-button"),
@@ -4801,6 +4800,9 @@ describe("downloadManager queue completion semantics", () => {
     jest.doMock("../toast", () => ({
       showLoading: jest.fn(),
       showToast: jest.fn(),
+    }));
+    jest.doMock("../modals", () => ({
+      showConfirmationDialog: jest.fn().mockResolvedValue(confirmClear),
     }));
   };
 
@@ -4922,7 +4924,7 @@ describe("downloadManager queue completion semantics", () => {
 
   it("clears only the selected error category and restores it with one Undo", async () => {
     await jest.isolateModulesAsync(async () => {
-      mockDependencies(true);
+      mockDependencies(true, "error");
       window.electron = {
         invoke: jest.fn(async () => ({})),
         ipcRenderer: { invoke: jest.fn() },
@@ -4930,6 +4932,8 @@ describe("downloadManager queue completion semantics", () => {
       };
       const { state } = require("../state");
       const { showToast } = require("../toast");
+      const { showConfirmationDialog } = require("../modals");
+      showConfirmationDialog.mockResolvedValue("error");
       const {
         initDownloadButton,
         updateQueueDisplay,
@@ -4956,9 +4960,8 @@ describe("downloadManager queue completion semantics", () => {
       ];
       initDownloadButton();
       updateQueueDisplay();
-      document.querySelector('[data-queue-filter="error"]').click();
       document.getElementById("queue-clear-button").click();
-      await Promise.resolve();
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(state.downloadJobs.map((job) => job.jobId)).toEqual([
         "running",
@@ -5217,7 +5220,7 @@ describe("downloadManager active job cancellation", () => {
   });
 });
 
-describe("downloadManager queue filters", () => {
+describe("downloadManager grouped queue sections", () => {
   beforeEach(() => {
     jest.resetModules();
     jest.doMock("../downloaderSelectionCard", () => ({
@@ -5236,7 +5239,7 @@ describe("downloadManager queue filters", () => {
     };
   });
 
-  it("filters complete status groups without changing queue counters", () => {
+  it("renders complete status groups together without completed jobs", () => {
     jest.isolateModules(() => {
       jest.doMock("../domElements", () => ({
         urlInput: document.getElementById("url"),
@@ -5323,65 +5326,28 @@ describe("downloadManager queue filters", () => {
       updateQueueDisplay();
 
       const allCounter = document.getElementById("queue-total-count");
-      const pendingCounter = document.querySelector(
-        '[data-queue-filter="pending"] [data-queue-filter-count]',
-      );
-      const errorCounter = document.querySelector(
-        '[data-queue-filter="error"] [data-queue-filter-count]',
-      );
       expect(allCounter.textContent).toBe("(4)");
-      expect(pendingCounter.textContent).toBe("2");
-      expect(errorCounter.textContent).toBe("1");
+      expect(document.querySelector('[data-queue-section="pending"] .queue-section__header span').textContent).toBe("2");
+      expect(document.querySelector('[data-queue-section="error"] .queue-section__header span').textContent).toBe("1");
 
-      document.querySelector('[data-queue-filter="pending"]').click();
-
-      const queueText = document.getElementById("queue-list").textContent;
-      expect(queueText).toContain("example.com/pending");
-      expect(queueText).toContain("example.com/paused");
-      expect(queueText).not.toContain("example.com/active");
-      expect(queueText).not.toContain("example.com/failed");
-      expect(queueText).not.toContain("example.com/done");
-      expect(localStorage.getItem("downloadQueueFilter")).toBe("pending");
-      expect(
-        document
-          .querySelector('[data-queue-filter="pending"]')
-          .getAttribute("aria-pressed"),
-      ).toBe("true");
-      expect(
-        document.querySelector(
-          '[data-queue-filter="active"] [data-queue-filter-count]',
-        ).textContent,
-      ).toBe("1");
-      expect(
-        document.getElementById("queue-active-count").textContent,
-      ).toContain("Active");
+      expect(document.querySelector('[data-job-id="pending"]')).toBeTruthy();
+      expect(document.querySelector('[data-job-id="paused"]')).toBeTruthy();
+      expect(document.querySelector('[data-job-id="active"]')).toBeTruthy();
+      expect(document.querySelector('[data-job-id="failed"]')).toBeTruthy();
+      expect(document.querySelector('[data-job-id="done"]')).toBeNull();
 
       state.downloadJobs = state.downloadJobs.filter(
         (job) => job.status !== "pending" && job.status !== "paused",
       );
       updateQueueDisplay();
 
-      expect(localStorage.getItem("downloadQueueFilter")).toBe(null);
-      expect(
-        document
-          .querySelector('[data-queue-filter="pending"]')
-          .getAttribute("aria-pressed"),
-      ).toBe("false");
       expect(document.getElementById("queue-total-count").textContent).toBe(
         "(2)",
       );
-      expect(document.getElementById("queue-count").classList).toContain(
-        "hidden",
-      );
-      expect(document.getElementById("queue-list").textContent).toContain(
-        "example.com/active",
-      );
-      expect(document.getElementById("queue-list").textContent).toContain(
-        "example.com/failed",
-      );
-      expect(document.getElementById("queue-list").textContent).not.toContain(
-        "example.com/done",
-      );
+      expect(document.querySelector('[data-queue-section="pending"]')).toBeNull();
+      expect(document.querySelector('[data-job-id="active"]')).toBeTruthy();
+      expect(document.querySelector('[data-job-id="failed"]')).toBeTruthy();
+      expect(document.querySelector('[data-job-id="done"]')).toBeNull();
       expect(
         document.getElementById("download-queue-info").classList,
       ).not.toContain("hidden");

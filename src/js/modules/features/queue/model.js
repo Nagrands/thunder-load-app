@@ -11,7 +11,11 @@ const normalizeJobStage = (stage = "", status = JOB_STATUS.pending) => {
   const normalized = String(stage || "")
     .trim()
     .toLowerCase();
-  if (normalized === "prepare" || normalized === "download") return normalized;
+  if (
+    ["prepare", "download", "video", "audio", "subtitle"].includes(normalized)
+  ) {
+    return normalized;
+  }
   if (normalized === "finalize" || normalized === "merge") return "finalize";
   if (status === JOB_STATUS.running) return "prepare";
   return "";
@@ -31,6 +35,12 @@ const hasSameDownloadPayload = (left = {}, right = {}) =>
   JSON.stringify(left.quality ?? null) ===
     JSON.stringify(right.quality ?? null);
 
+const normalizeMetric = (value) => {
+  if (value === null || value === undefined || value === "") return null;
+  const number = Number(value);
+  return Number.isFinite(number) ? Math.max(0, number) : null;
+};
+
 const normalizeDownloadJob = (job = {}) => {
   const status = Object.values(JOB_STATUS).includes(job.status)
     ? job.status
@@ -47,10 +57,18 @@ const normalizeDownloadJob = (job = {}) => {
     stage: normalizeJobStage(job.stage, status),
     progress: Number(job.progress) || 0,
     size: job.size ? String(job.size) : "",
+    thumbnail: job.thumbnail ? String(job.thumbnail) : "",
     filePath: job.filePath ? String(job.filePath) : "",
     signature: job.signature || getDownloadJobSignature(job),
     reason: job.reason ? String(job.reason) : "",
+    errorMessage: job.errorMessage ? String(job.errorMessage) : "",
     errorCode: job.errorCode ? String(job.errorCode) : "",
+    retryAfterMinutes: Number(job.retryAfterMinutes) || 0,
+    downloadedBytes: normalizeMetric(job.downloadedBytes),
+    totalBytes: normalizeMetric(job.totalBytes),
+    totalBytesApproximate: Boolean(job.totalBytesApproximate),
+    speedBytesPerSec: normalizeMetric(job.speedBytesPerSec),
+    etaSeconds: normalizeMetric(job.etaSeconds),
     retryable:
       typeof job.retryable === "boolean"
         ? job.retryable

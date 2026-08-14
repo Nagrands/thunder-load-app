@@ -7,17 +7,29 @@ const readQueueJobs = (storage, key, normalize) => {
   }
 };
 
+const toPersistedQueueJob = (job = {}) => {
+  const {
+    downloadedBytes: _downloadedBytes,
+    totalBytes: _totalBytes,
+    totalBytesApproximate: _totalBytesApproximate,
+    speedBytesPerSec: _speedBytesPerSec,
+    etaSeconds: _etaSeconds,
+    ...durable
+  } = job;
+  return durable;
+};
+
 const writeQueueJobs = (storage, key, jobs) => {
   try {
     if (!jobs.length) {
       storage.removeItem(key);
       return 0;
     }
-    storage.setItem(key, JSON.stringify(jobs));
+    storage.setItem(key, JSON.stringify(jobs.map(toPersistedQueueJob)));
     return jobs.length;
   } catch {
     return 0;
   }
 };
 
-export { readQueueJobs, writeQueueJobs };
+export { readQueueJobs, toPersistedQueueJob, writeQueueJobs };

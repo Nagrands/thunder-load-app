@@ -8,6 +8,10 @@ const createRow = ({ id, progress = 0, title = "Job" }) => ({
   stageLabel: " · Downloading",
   stageChipLabel: "Downloading",
   etaLabel: " · 0:10",
+  metricsLabel: "1 MB / 2 MB · 1 MB/s · ETA 0:01",
+  section: "active",
+  sectionLabel: "Active",
+  sectionCount: 1,
   markup: `<li class="queue-item" data-job-id="${id}">
     <strong>${title}</strong>
     <span data-queue-progress-label></span>
@@ -15,6 +19,7 @@ const createRow = ({ id, progress = 0, title = "Job" }) => ({
     <span data-queue-stage-chip></span>
     <span data-queue-eta-label></span>
     <span data-queue-progress-bar></span>
+    <span data-queue-metrics></span>
   </li>`,
 });
 
@@ -36,8 +41,14 @@ describe("incremental queue renderer", () => {
       firstNode.querySelector("[data-queue-progress-bar]").style.width,
     ).toBe("64%");
     expect(
-      container.querySelector(".queue-items").getAttribute("aria-live"),
+      container.querySelector(".queue-sections").getAttribute("aria-live"),
     ).toBe("off");
+    expect(container.querySelector(".queue-section__header").textContent).toContain(
+      "Active",
+    );
+    expect(firstNode.querySelector("[data-queue-metrics]").textContent).toContain(
+      "1 MB / 2 MB",
+    );
   });
 
   test("replaces a row when its structural content changes", () => {

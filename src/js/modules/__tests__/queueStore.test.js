@@ -23,4 +23,33 @@ describe("queue store", () => {
     expect(getPendingDownloadJobs(state)).toHaveLength(0);
     expect(getActiveDownloadJobs(state)[0].progress).toBe(42);
   });
+
+  test("normalizes durable metadata and optional runtime metrics", () => {
+    const state = { downloadJobs: [] };
+    upsertDownloadJob(state, {
+      jobId: "job-metrics",
+      url: "https://example.com/metrics",
+      status: JOB_STATUS.running,
+      thumbnail: "https://example.com/thumb.jpg",
+      errorMessage: "Network error",
+      retryAfterMinutes: 8,
+      downloadedBytes: 1024,
+      totalBytes: 2048,
+      totalBytesApproximate: true,
+      speedBytesPerSec: 512,
+      etaSeconds: 2,
+    });
+    expect(state.downloadJobs[0]).toEqual(
+      expect.objectContaining({
+        thumbnail: "https://example.com/thumb.jpg",
+        errorMessage: "Network error",
+        retryAfterMinutes: 8,
+        downloadedBytes: 1024,
+        totalBytes: 2048,
+        totalBytesApproximate: true,
+        speedBytesPerSec: 512,
+        etaSeconds: 2,
+      }),
+    );
+  });
 });

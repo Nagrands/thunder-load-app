@@ -499,10 +499,39 @@ function runProcess(cmd, args, options = {}) {
 /**
  * Парсит строку прогресса вида "[download] 45.3%" или "[download] 45%"
  */
+const PROGRESS_PREFIX = "THUNDER_PROGRESS:";
+
+const parseProgressNumber = (value) => {
+  const normalized = String(value ?? "").trim();
+  if (!normalized || normalized === "NA" || normalized === "N/A") return null;
+  const number = Number(normalized.replace(/%$/, ""));
+  return Number.isFinite(number) && number >= 0 ? number : null;
+};
+
+function parseDownloadProgress(line) {
+  const raw = String(line || "").trim();
+  const markerIndex = raw.indexOf(PROGRESS_PREFIX);
+  if (markerIndex >= 0) {
+    const [percent, downloaded, total, estimate, speed, eta] = raw
+      .slice(markerIndex + PROGRESS_PREFIX.length)
+      .split("|");
+    const exactTotal = parseProgressNumber(total);
+    const estimatedTotal = parseProgressNumber(estimate);
+    return {
+      progress: parseProgressNumber(percent) ?? 0,
+      downloadedBytes: parseProgressNumber(downloaded),
+      totalBytes: exactTotal ?? estimatedTotal,
+      totalBytesApproximate: exactTotal === null && estimatedTotal !== null,
+      speedBytesPerSec: parseProgressNumber(speed),
+      etaSeconds: parseProgressNumber(eta),
+    };
+  }
+  const legacy = raw.match(/\[download\]\s+(\d+(?:\.\d+)?)%/);
+  return legacy ? { progress: Number(legacy[1]) } : null;
+}
+
 function parseProgress(line) {
-  // ловим как целые, так и дробные проценты: 45% или 45.3%
-  const match = line.match(/\[download\]\s+(\d+(?:\.\d+)?)%/);
-  return match ? parseFloat(match[1]) : null;
+  return parseDownloadProgress(line)?.progress ?? null;
 }
 
 /**
@@ -2387,6 +2416,8 @@ function spawnDownloadProcess(
             "--continue",
             "--part",
             "--newline",
+            "--progress-template",
+            "download:THUNDER_PROGRESS:%(progress._percent_str)s|%(progress.downloaded_bytes)s|%(progress.total_bytes)s|%(progress.total_bytes_estimate)s|%(progress.speed)s|%(progress.eta)s",
             "--ignore-errors",
             "--no-warnings",
           );
@@ -2410,8 +2441,8 @@ function spawnDownloadProcess(
               .toString()
               .split("\n")
               .forEach((line) => {
-                const progress = parseProgress(line);
-                if (progress !== null) progressCallback(progress);
+                const progress = parseDownloadProgress(line);
+                if (progress) progressCallback(progress.progress, progress);
               });
           });
           proc.stderr.on("data", (data) => {
@@ -2602,7 +2633,15 @@ function resolveAvailableOutputPath(targetPath) {
 }
 
 function emitDownloadProgress(event, progress, options = {}) {
-  const { jobId = null, phase = "download" } = options;
+  const {
+    jobId = null,
+    phase = "download",
+    downloadedBytes = null,
+    totalBytes = null,
+    totalBytesApproximate = false,
+    speedBytesPerSec = null,
+    etaSeconds = null,
+  } = options;
   const normalized = Math.max(0, Math.min(100, Number(progress) || 0));
   try {
     if (jobId) {
@@ -2610,6 +2649,11 @@ function emitDownloadProgress(event, progress, options = {}) {
         jobId,
         progress: normalized,
         phase,
+        downloadedBytes,
+        totalBytes,
+        totalBytesApproximate,
+        speedBytesPerSec,
+        etaSeconds,
       });
     } else {
       event.sender.send("download-progress", normalized);
@@ -2680,7 +2724,7 @@ function createOverallProgressTracker(segmentCount, event, options = {}) {
   let segmentIndex = 0;
   let lastRaw = 0;
   let lastLogged = 0;
-  return (rawPercent) => {
+  return (rawPercent, metrics = {}) => {
     let percent = Number(rawPercent);
     if (!Number.isFinite(percent)) percent = 0;
     percent = Math.max(0, Math.min(100, percent));
@@ -2693,7 +2737,11 @@ function createOverallProgressTracker(segmentCount, event, options = {}) {
       log.info(`Overall progress: ${overall.toFixed(2)}%`);
       lastLogged = overall;
     }
-    emitDownloadProgress(event, overall, { jobId, phase: "download" });
+    emitDownloadProgress(event, overall, {
+      ...metrics,
+      jobId,
+      phase: options.phase || "download",
+    });
   };
 }
 
@@ -2775,8 +2823,12 @@ async function downloadMedia(
         downloadPath,
         `${sanitizedFilename}.${subtitleOptions.lang}.${SUBTITLE_OUTPUT_EXT}`,
       );
-      const updateProgress = (progress) => {
-        emitDownloadProgress(event, progress, { jobId, phase: "download" });
+      const updateProgress = (progress, metrics = {}) => {
+        emitDownloadProgress(event, progress, {
+          ...metrics,
+          jobId,
+          phase: "subtitle",
+        });
       };
       log.info("[download] Spawning yt-dlp for subtitle-only download", {
         outputTemplate: tempOutputTemplate,
@@ -2867,12 +2919,16 @@ async function downloadMedia(
           path.join(downloadPath, `${sanitizedFilename}.mp3`),
         );
         let lastLogged = 0;
-        const updateProgress = (progress) => {
+        const updateProgress = (progress, metrics = {}) => {
           if (progress - lastLogged >= 5 || progress >= 100) {
             log.info(`Audio progress: ${progress.toFixed(2)}%`);
             lastLogged = progress;
           }
-          emitDownloadProgress(event, progress, { jobId, phase: "download" });
+          emitDownloadProgress(event, progress, {
+            ...metrics,
+            jobId,
+            phase: "audio",
+          });
         };
         log.info("[download] Spawning yt-dlp for Twitch audio", {
           output: audioOutput,
@@ -2945,12 +3001,16 @@ async function downloadMedia(
           ? tempSourceAudioPath
           : tempAudioPath;
         let lastLogged = 0;
-        const updateProgress = (progress) => {
+        const updateProgress = (progress, metrics = {}) => {
           if (progress - lastLogged >= 5 || progress >= 100) {
             log.info(`Audio progress: ${progress.toFixed(2)}%`);
             lastLogged = progress;
           }
-          emitDownloadProgress(event, progress, { jobId, phase: "download" });
+          emitDownloadProgress(event, progress, {
+            ...metrics,
+            jobId,
+            phase: "audio",
+          });
         };
         log.info("[download] Spawning yt-dlp for audio-only download", {
           output: shouldExtractMp3 ? tempAudioOutput : tempAudioPath,
@@ -3026,7 +3086,7 @@ async function downloadMedia(
     const progressTracker = createOverallProgressTracker(
       combinedAvailable ? 2 : 1,
       event,
-      { jobId },
+      { jobId, phase: "video" },
     );
 
     if (combinedAvailable) {
@@ -3251,6 +3311,7 @@ module.exports = {
   _resolveUsableYtDlpBinary: resolveUsableYtDlpBinary,
   _resolveAvailableOutputPath: resolveAvailableOutputPath,
   _safeMoveFile: safeMoveFile,
+  _parseDownloadProgress: parseDownloadProgress,
   _resetYtDlpBinaryCache: () => {
     cachedYtDlpBinary = null;
   },

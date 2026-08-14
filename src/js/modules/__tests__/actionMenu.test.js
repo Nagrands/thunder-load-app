@@ -47,4 +47,26 @@ describe("action menu", () => {
       .dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(onAction).toHaveBeenCalledWith("open", context);
   });
+
+  test("does not close when the opening click icon is replaced during bubbling", () => {
+    document.body.innerHTML = '<main id="root"><button id="trigger"><span id="icon">Menu</span></button></main>';
+    const root = document.getElementById("root");
+    root.getBoundingClientRect = () => ({ left: 0, top: 0, width: 500, height: 400 });
+    const controller = createActionMenu({
+      root,
+      items: [{ id: "open", label: "Open" }],
+    });
+    const trigger = document.getElementById("trigger");
+    controller.open({}, trigger);
+    root.addEventListener(
+      "click",
+      () => trigger.replaceChildren(document.createElement("svg")),
+      { once: true },
+    );
+    document.getElementById("icon").dispatchEvent(
+      new MouseEvent("click", { bubbles: true, composed: true }),
+    );
+    expect(controller.element.hidden).toBe(false);
+    controller.dispose();
+  });
 });

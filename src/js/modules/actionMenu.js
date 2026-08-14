@@ -104,7 +104,15 @@ function createActionMenu({
       void onAction?.(action, actionContext);
       return;
     }
-    if (!menu.hidden && !menu.contains(event.target) && event.target !== trigger) {
+    const eventPath = event.composedPath?.() || [];
+    const clickedTrigger =
+      Boolean(trigger) &&
+      (eventPath.includes(trigger) || trigger.contains?.(event.target));
+    if (
+      !menu.hidden &&
+      !menu.contains(event.target) &&
+      !clickedTrigger
+    ) {
       close();
     }
   }
