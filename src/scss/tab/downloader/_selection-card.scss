@@ -20,6 +20,10 @@
 
   .preview-card__body {
     align-content: center;
+
+    > .preview-card__actions {
+      grid-area: auto;
+    }
   }
 
   &.is-collapsed {
@@ -144,6 +148,7 @@
   min-height: 40px;
   border-radius: 10px;
   font-size: 0.82rem;
+  white-space: nowrap;
 }
 
 .queue-action-button--danger {

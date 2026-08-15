@@ -712,9 +712,12 @@
     min-width: 0;
     max-width: 100%;
     overflow: hidden;
+    overflow-wrap: anywhere;
     color: var(--color-highlight);
     font-size: clamp(1.04rem, 1.42vw, 1.24rem);
     line-height: 1.35;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
   }
 
   .preview-badges {

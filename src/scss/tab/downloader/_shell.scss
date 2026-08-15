@@ -1,5 +1,7 @@
 .downloader-view {
   .input-container {
+    container-name: downloader-preview;
+    container-type: inline-size;
     padding: 0;
     border-top: 0;
   }
