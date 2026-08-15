@@ -70,6 +70,20 @@ describe("settings template structure", () => {
 
     expect(html).toContain('id="settings-diagnostics-debug-toggle"');
     expect(html).toContain('id="settings-diagnostics-export"');
+    const developerStart = html.indexOf('data-settings-search-id="developer"');
+    const diagnosticsStart = html.indexOf('data-settings-search-id="diagnostics"');
+    const configurationStart = html.indexOf('data-settings-search-id="configuration"');
+    const diagnosticsSectionStart = html.lastIndexOf("<section", diagnosticsStart);
+    const diagnosticsSectionEnd = html.indexOf("</section>", diagnosticsStart) + 10;
+    const diagnosticsHtml = html.slice(diagnosticsSectionStart, diagnosticsSectionEnd);
+
+    expect(developerStart).toBeLessThan(diagnosticsStart);
+    expect(diagnosticsStart).toBeLessThan(configurationStart);
+    expect(diagnosticsHtml).toContain('class="settings-card settings-card--diagnostics"');
+    expect(diagnosticsHtml).not.toContain("settings-card--stacked");
+    expect(diagnosticsHtml).toContain('class="settings-control"');
+    expect(diagnosticsHtml).toContain('class="settings-control__meta"');
+    expect(diagnosticsHtml).toContain("settings-diagnostics__actions");
     ["ru", "en"].forEach((language) => {
       expect(settingsTranslations[language]["settings.diagnostics.title"]).toBeTruthy();
       expect(settingsTranslations[language]["settings.diagnostics.export"]).toBeTruthy();

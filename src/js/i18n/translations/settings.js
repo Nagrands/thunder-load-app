@@ -349,7 +349,7 @@ export const settingsTranslations = {
     "settings.diagnostics.debug": "Подробное логирование",
     "settings.diagnostics.debugHint":
       "Записывать отладочные события до ручного отключения.",
-    "settings.diagnostics.export": "Экспортировать диагностику",
+    "settings.diagnostics.export": "Экспортировать",
     "settings.diagnostics.exported": "Диагностический пакет сохранён.",
     "settings.diagnostics.exportError":
       "Не удалось сохранить диагностический пакет.",
@@ -723,7 +723,7 @@ export const settingsTranslations = {
     "settings.diagnostics.debug": "Detailed logging",
     "settings.diagnostics.debugHint":
       "Record debug events until you turn this option off.",
-    "settings.diagnostics.export": "Export diagnostics",
+    "settings.diagnostics.export": "Export",
     "settings.diagnostics.exported": "Diagnostics package saved.",
     "settings.diagnostics.exportError": "Could not save the diagnostics package.",
     "settings.diagnostics.levelSaved": "Logging level saved.",
