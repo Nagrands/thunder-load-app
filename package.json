@@ -16,6 +16,7 @@
     "build-linux": "electron-builder --linux AppImage",
     "build-mac": "electron-builder --mac",
     "whats-new:watch": "nodemon --watch whats-new.md --watch whats-new.en.md --ext md --exec \"npm run whats-new:build\"",
+    "whats-new:test": "node --test scripts/build-whats-new.test.mjs",
     "css:build": "sass src/scss:src/css",
     "tray-icons:build": "electron scripts/generate-windows-tray-icons.cjs",
     "icons:verify:packaged": "node scripts/verify-packaged-icons.cjs",

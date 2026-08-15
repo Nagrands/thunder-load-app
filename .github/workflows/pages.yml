@@ -5,11 +5,15 @@ on:
     branches: ["main", "master"]
     paths:
       - "website/**"
+      - "whats-new.md"
+      - "whats-new.en.md"
       - ".github/workflows/pages.yml"
   pull_request:
     branches: ["main", "master"]
     paths:
       - "website/**"
+      - "whats-new.md"
+      - "whats-new.en.md"
       - ".github/workflows/pages.yml"
   release:
     types: [published, edited, deleted]
