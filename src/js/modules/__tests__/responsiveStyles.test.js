@@ -15,6 +15,10 @@ describe("application responsive contract", () => {
     path.join(root, "src/scss/components/_history.scss"),
     "utf8",
   );
+  const historyTemplate = fs.readFileSync(
+    path.join(root, "templates/partials/main-view/history.njk"),
+    "utf8",
+  );
   const webControl = fs.readFileSync(
     path.join(root, "src/web-control/web-control.css"),
     "utf8",
@@ -81,12 +85,35 @@ describe("application responsive contract", () => {
     );
   });
 
-  test("keeps the History bulk toolbar compact without wrapping button labels", () => {
+  test("keeps the History bulk toolbar compact and icon-only", () => {
     expect(history).toContain(".history-bulk-bar {");
-    expect(history).toContain("padding: 6px 8px");
-    expect(history).toContain("min-height: 28px");
+    expect(history).toContain("padding: 5px 6px");
+    expect(history).toContain("width: 30px");
+    expect(history).toContain("height: 30px");
+    expect(history).toContain("flex-wrap: nowrap");
+    expect(history).toContain(".history-bulk-icon-button {");
+    expect(history).toContain(".history-bulk-action__label {");
     expect(history).toContain("white-space: nowrap");
-    expect(history).toContain("font-size: 0.72rem");
+
+    [
+      "history-clear-selection",
+      "history-select-page",
+      "history-select-filtered",
+      "history-export-selected-json",
+      "history-export-selected-csv",
+      "delete-selected",
+    ].forEach((id) => {
+      const buttonStart = historyTemplate.indexOf(`id="${id}"`);
+      const buttonEnd = historyTemplate.indexOf("</button>", buttonStart);
+      const buttonMarkup = historyTemplate.slice(buttonStart, buttonEnd);
+
+      expect(buttonStart).toBeGreaterThan(-1);
+      expect(buttonEnd).toBeGreaterThan(buttonStart);
+      expect(buttonMarkup).toContain('data-bs-toggle="tooltip"');
+      expect(buttonMarkup).toContain("data-i18n-title=");
+      expect(buttonMarkup).toContain("data-i18n-aria=");
+      expect(buttonMarkup).toContain("history-bulk-action__label");
+    });
   });
 
   test("preserves two-column Web Control fields until phone width", () => {

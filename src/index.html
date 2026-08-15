@@ -1157,31 +1157,39 @@
 
       <div id="history-bulk-bar" class="history-bulk-bar hidden">
         <div class="history-bulk-info">
-          <i data-lucide="check-square"></i>
-          <span data-i18n="history.bulk.selected">Выбрано</span>
+          <i data-lucide="check-square" aria-hidden="true"></i>
+          <span class="history-bulk-action__label" data-i18n="history.bulk.selected">Выбрано</span>
           <span id="history-selected-count">0</span>
           <button
             id="history-clear-selection"
-            class="history-bulk-clear"
+            class="history-bulk-clear history-bulk-icon-button"
             type="button"
             aria-label="Снять выделение"
             data-i18n-aria="history.bulk.clear"
-            data-i18n="history.bulk.clear"
+            title="Снять выделение"
+            data-i18n-title="history.bulk.clear"
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
           >
-            Снять выделение
+            <i data-lucide="x" aria-hidden="true"></i>
+            <span class="history-bulk-action__label" data-i18n="history.bulk.clear">Снять выделение</span>
           </button>
         </div>
         <div class="history-bulk-actions" role="toolbar" aria-label="Массовые действия" data-i18n-aria="history.bulk.actions">
-          <button id="history-select-page" class="history-bulk-action" type="button" data-i18n="history.bulk.selectPage">Выбрать страницу</button>
-          <button id="history-select-filtered" class="history-bulk-action" type="button" title="Поиск не влияет на область выбора" data-i18n="history.bulk.selectFiltered" data-i18n-title="history.bulk.selectFilteredHint">Выбрать все результаты фильтра</button>
-          <button id="history-export-selected-json" class="history-bulk-action" type="button" aria-label="Экспортировать выбранные в JSON" data-i18n-aria="history.bulk.exportJson">
-            <i data-lucide="file-json"></i><span>JSON</span>
+          <button id="history-select-page" class="history-bulk-action history-bulk-icon-button" type="button" aria-label="Выбрать страницу" data-i18n-aria="history.bulk.selectPage" title="Выбрать страницу" data-i18n-title="history.bulk.selectPage" data-bs-toggle="tooltip" data-bs-placement="top">
+            <i data-lucide="list-checks" aria-hidden="true"></i><span class="history-bulk-action__label" data-i18n="history.bulk.selectPage">Выбрать страницу</span>
           </button>
-          <button id="history-export-selected-csv" class="history-bulk-action" type="button" aria-label="Экспортировать выбранные в CSV" data-i18n-aria="history.bulk.exportCsv">
-            <i data-lucide="file-spreadsheet"></i><span>CSV</span>
+          <button id="history-select-filtered" class="history-bulk-action history-bulk-icon-button" type="button" aria-label="Выбрать все результаты фильтра" data-i18n-aria="history.bulk.selectFiltered" title="Выбирает записи текущего фильтра состояния; поиск не влияет на область выбора" data-i18n-title="history.bulk.selectFilteredHint" data-bs-toggle="tooltip" data-bs-placement="top">
+            <i data-lucide="list-filter" aria-hidden="true"></i><span class="history-bulk-action__label" data-i18n="history.bulk.selectFiltered">Выбрать все результаты фильтра</span>
           </button>
-          <button id="delete-selected" class="history-bulk-action history-bulk-action--danger" type="button" aria-label="Удалить выбранные записи" data-i18n-aria="history.deleteSelected">
-            <i data-lucide="trash-2"></i><span data-i18n="history.bulk.delete">Удалить выбранные</span>
+          <button id="history-export-selected-json" class="history-bulk-action history-bulk-icon-button" type="button" aria-label="Экспортировать выбранные в JSON" data-i18n-aria="history.bulk.exportJson" title="Экспортировать выбранные в JSON" data-i18n-title="history.bulk.exportJson" data-bs-toggle="tooltip" data-bs-placement="top">
+            <i data-lucide="file-json" aria-hidden="true"></i><span class="history-bulk-action__label" data-i18n="history.bulk.exportJson">Экспортировать выбранные в JSON</span>
+          </button>
+          <button id="history-export-selected-csv" class="history-bulk-action history-bulk-icon-button" type="button" aria-label="Экспортировать выбранные в CSV" data-i18n-aria="history.bulk.exportCsv" title="Экспортировать выбранные в CSV" data-i18n-title="history.bulk.exportCsv" data-bs-toggle="tooltip" data-bs-placement="top">
+            <i data-lucide="file-spreadsheet" aria-hidden="true"></i><span class="history-bulk-action__label" data-i18n="history.bulk.exportCsv">Экспортировать выбранные в CSV</span>
+          </button>
+          <button id="delete-selected" class="history-bulk-action history-bulk-icon-button history-bulk-action--danger" type="button" aria-label="Удалить выбранные записи" data-i18n-aria="history.deleteSelected" title="Удалить выбранные записи" data-i18n-title="history.deleteSelected" data-bs-toggle="tooltip" data-bs-placement="top">
+            <i data-lucide="trash-2" aria-hidden="true"></i><span class="history-bulk-action__label" data-i18n="history.bulk.delete">Удалить выбранные</span>
           </button>
         </div>
       </div>
