@@ -369,7 +369,7 @@ function initUrlInputHandler() {
     livePreviewButton.classList.remove("hidden");
     if (livePreviewOpen) {
       livePreviewButton.innerHTML =
-        '<i class="fa-solid fa-circle-xmark" aria-hidden="true"></i>';
+        '<span class="preview-live-play__icon"><i class="fa-solid fa-circle-xmark" aria-hidden="true"></i></span>';
       livePreviewButton.classList.add("is-active");
       livePreviewButton.setAttribute("aria-pressed", "true");
       livePreviewButton.setAttribute(
@@ -387,7 +387,8 @@ function initUrlInputHandler() {
     }
 
     livePreviewButton.innerHTML =
-      '<i class="fa-solid fa-play" aria-hidden="true"></i>';
+      '<span class="preview-live-play__icon"><i class="fa-solid fa-play" aria-hidden="true"></i></span>' +
+      `<span class="preview-live-play__label">${t("input.url.preview.buttonLabel")}</span>`;
     livePreviewButton.classList.remove("is-active");
     livePreviewButton.setAttribute("aria-pressed", "false");
     livePreviewButton.setAttribute(
@@ -461,8 +462,8 @@ function initUrlInputHandler() {
     previewTitleEl.textContent = data.title || "";
     const durationLabel = data.duration ? durationToStr(data.duration) : "";
     if (previewDurationEl) {
-      previewDurationEl.textContent = "";
-      previewDurationEl.classList.add("hidden");
+      previewDurationEl.textContent = durationLabel;
+      previewDurationEl.classList.toggle("hidden", !durationLabel);
     }
     if (previewDurationOverlayEl) {
       previewDurationOverlayEl.textContent = durationLabel;

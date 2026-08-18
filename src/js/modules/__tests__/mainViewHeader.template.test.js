@@ -36,6 +36,33 @@ describe("main view header template", () => {
     expect(template).toContain('id="downloader-subtitle-quality"');
     expect(template).toContain('id="downloader-advanced-formats"');
     expect(template).toContain('id="enqueue-button"');
+    expect(template).toContain(
+      'class="downloader-selection-card__footer"',
+    );
+    expect(template).toContain(
+      'downloader-quality-field__icon--video',
+    );
+    expect(template).toContain(
+      'downloader-quality-field__icon--audio',
+    );
+    expect(template).toContain(
+      'downloader-quality-field__icon--subs',
+    );
+    const footerStart = template.indexOf(
+      'class="downloader-selection-card__footer"',
+    );
+    const footerEnd = template.indexOf(
+      '      <div class="preview-card__controls">',
+      footerStart,
+    );
+    const footerHtml = template.slice(footerStart, footerEnd);
+    expect(footerStart).toBeGreaterThan(
+      template.indexOf('id="downloader-output-summary"'),
+    );
+    expect(footerEnd).toBeGreaterThan(footerStart);
+    expect(footerHtml).toContain('id="downloader-advanced-formats"');
+    expect(footerHtml).toContain('id="enqueue-button"');
+    expect(footerHtml).toContain('id="download-button"');
     expect(template).not.toContain('id="open-last-video"');
     expect(template).not.toContain('id="open-folder"');
 

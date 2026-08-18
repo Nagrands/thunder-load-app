@@ -1,13 +1,12 @@
 #preview-card.downloader-selection-card {
-  grid-template-columns: minmax(210px, 30%) minmax(210px, 1fr) minmax(
-      280px,
-      38%
-    );
-  grid-template-areas: "thumb body quality";
+  grid-template-columns: minmax(220px, 46%) minmax(0, 1fr);
+  grid-template-areas:
+    "thumb body"
+    "thumb quality";
   align-items: stretch;
-  gap: 18px;
+  gap: 0 26px;
   padding: 16px 48px 16px 16px;
-  min-height: 216px;
+  min-height: 220px;
 
   &[hidden] {
     display: none !important;
@@ -15,21 +14,30 @@
 
   .preview-thumb-wrap {
     height: 100%;
-    min-height: 180px;
+    min-height: 176px;
   }
 
   .preview-card__body {
-    align-content: center;
+    align-content: start;
+    padding-top: 2px;
+    min-height: 0;
 
     > .preview-card__actions {
       grid-area: auto;
     }
   }
 
+  .downloader-selection-card__quality {
+    align-content: start;
+    align-self: end;
+  }
+
   &.is-collapsed {
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas: "body";
+    padding-block: 14px;
 
+    .preview-thumb-wrap,
     .downloader-selection-card__quality {
       display: none;
     }
@@ -40,49 +48,70 @@
   grid-area: quality;
   min-width: 0;
   display: grid;
-  align-content: center;
-  gap: 8px;
-  padding: 2px 0;
+  gap: 10px;
 }
 
 .downloader-quality-field {
   min-width: 0;
   display: grid;
-  grid-template-columns: 28px minmax(72px, 0.72fr) minmax(120px, 1fr);
+  grid-template-columns: 30px minmax(64px, 0.7fr) minmax(130px, 1fr);
   align-items: center;
-  gap: 9px;
-  min-height: 50px;
-  padding: 6px 8px;
-  border-radius: 11px;
-  border: 1px solid rgba(150, 184, 226, 0.11);
-  background: rgba(255, 255, 255, 0.025);
+  gap: 11px;
+  min-height: 46px;
+  padding: 5px 8px 5px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(150, 184, 226, 0.13);
+  background: rgba(5, 11, 23, 0.46);
+  transition:
+    border-color 0.18s ease,
+    background-color 0.18s ease;
+
+  &:focus-within {
+    border-color: rgba(var(--color-accent-rgb), 0.36);
+    background: rgba(5, 11, 23, 0.66);
+  }
 }
 
 .downloader-quality-field__icon {
   display: inline-grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
   background: rgba(var(--color-accent-rgb), 0.1);
   color: var(--color-accent);
+
+  &--video {
+    color: #5ab2ff;
+    background: rgba(90, 178, 255, 0.12);
+  }
+
+  &--audio {
+    color: #b79bff;
+    background: rgba(183, 155, 255, 0.12);
+  }
+
+  &--subs {
+    color: #41e0a8;
+    background: rgba(65, 224, 168, 0.12);
+  }
 }
 
 .downloader-quality-field__copy {
   min-width: 0;
   display: grid;
-  gap: 2px;
+  gap: 1px;
 }
 
 .downloader-quality-field__label {
   color: rgba(239, 246, 255, 0.92);
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 650;
 }
 
 .downloader-quality-field__meta {
   overflow: hidden;
-  color: rgba(195, 210, 231, 0.58);
+  color: rgba(195, 210, 231, 0.52);
   font-size: 0.68rem;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -92,13 +121,20 @@
   width: 100%;
   min-width: 0;
   min-height: 34px;
-  padding: 0 28px 0 9px;
-  border-radius: 8px;
+  padding: 0 30px 0 11px;
+  border-radius: 9px;
   border: 1px solid rgba(150, 184, 226, 0.14);
-  background: rgba(4, 10, 20, 0.7);
+  background: rgba(4, 10, 20, 0.72);
   color: rgba(239, 246, 255, 0.92);
   font-size: 0.75rem;
   font-weight: 600;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='none' stroke='%2399b5d6' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' d='M1 1l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 11px center;
 
   &:focus-visible {
     outline: 2px solid rgba(var(--color-accent-rgb), 0.7);
@@ -106,14 +142,27 @@
   }
 }
 
+.downloader-quality-field option {
+  background: #121c2b;
+  color: rgba(238, 246, 255, 0.94);
+  font-size: 0.78rem;
+  font-weight: 550;
+  padding: 8px 10px;
+
+  &:hover,
+  &:checked {
+    background: rgba(var(--color-accent-rgb), 0.22);
+    color: #ffffff;
+  }
+}
+
 .downloader-selection-card__summary {
   min-width: 0;
   display: grid;
-  gap: 3px;
-  padding: 7px 9px;
-  color: rgba(226, 236, 250, 0.82);
-  font-size: 0.75rem;
-  font-weight: 600;
+  padding: 2px 4px;
+  gap: 6px;
+  color: var(--color-accent);
+  justify-items: center;
 }
 
 .downloader-quality-status {
@@ -122,14 +171,28 @@
   font-weight: 500;
 }
 
+.downloader-selection-card__footer {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: stretch;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(150, 184, 226, 0.1);
+}
+
 .downloader-advanced-formats {
-  width: fit-content;
-  padding: 3px 7px;
-  border: 0;
+  padding: 4px 8px;
+  border-radius: 8px;
   background: transparent;
   color: var(--color-accent);
-  font-size: 0.75rem;
-  font-weight: 650;
+  font-size: 0.84rem;
+  font-weight: 500;
+  white-space: nowrap;
+
+  &:hover:not(:disabled) {
+    border-color: rgba(var(--color-accent-rgb), 0.26);
+    background: rgba(var(--color-accent-rgb), 0.08);
+  }
 
   &:disabled {
     opacity: 0.45;
@@ -137,18 +200,38 @@
 }
 
 .downloader-selection-card__actions {
+  flex: 0 1 auto;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
   gap: 8px;
 }
 
 .downloader-selection-card__enqueue,
 .downloader-selection-card__download {
   min-width: 0;
-  min-height: 40px;
+  min-height: 34px;
+  padding: 0 14px;
   border-radius: 10px;
-  font-size: 0.82rem;
+  font-size: 0.76rem;
+  font-weight: 650;
   white-space: nowrap;
+  overflow: hidden;
+}
+
+.downloader-selection-card__download .button-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.downloader-selection-card__enqueue {
+  border: 1px solid rgba(var(--color-accent-rgb), 0.32);
+  background: rgba(5, 11, 23, 0.5);
+  color: var(--color-accent);
+
+  &:hover:not(:disabled) {
+    border-color: rgba(var(--color-accent-rgb), 0.5);
+    background: rgba(var(--color-accent-rgb), 0.08);
+  }
 }
 
 .queue-action-button--danger {

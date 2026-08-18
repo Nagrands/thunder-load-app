@@ -55,6 +55,7 @@ export const coreTranslations = {
     "input.url.shortcut.enter": "Enter - скачать",
     "input.url.shortcut.queue": "Shift+Enter - в очередь",
     "input.url.preview.kicker": "Предпросмотр",
+    "input.url.preview.buttonLabel": "Предпросмотр",
     "input.url.preview.loading": "Загрузка превью",
     "input.url.error.empty": "Вставьте ссылку, чтобы начать загрузку.",
     "input.url.error.invalid":
@@ -520,6 +521,7 @@ export const coreTranslations = {
     "input.url.shortcut.enter": "Enter - download",
     "input.url.shortcut.queue": "Shift+Enter - queue",
     "input.url.preview.kicker": "Preview",
+    "input.url.preview.buttonLabel": "Preview",
     "input.url.preview.loading": "Loading preview",
     "input.url.error.empty": "Paste a link to start downloading.",
     "input.url.error.invalid": "The link format is invalid. Check the URL.",

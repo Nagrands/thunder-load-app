@@ -189,17 +189,17 @@
 
       <div class="downloader-selection-card__quality" aria-label="Быстрый выбор формата" data-i18n-aria="quality.quick.group">
         <label class="downloader-quality-field" for="downloader-video-quality">
-          <span class="downloader-quality-field__icon" aria-hidden="true"><i class="fa-solid fa-film"></i></span>
+          <span class="downloader-quality-field__icon downloader-quality-field__icon--video" aria-hidden="true"><i class="fa-solid fa-film"></i></span>
           <span class="downloader-quality-field__copy"><span class="downloader-quality-field__label" data-i18n="quality.quick.video">Видео</span><span id="downloader-video-meta" class="downloader-quality-field__meta"></span></span>
           <select id="downloader-video-quality" disabled></select>
         </label>
         <label class="downloader-quality-field" for="downloader-audio-quality">
-          <span class="downloader-quality-field__icon" aria-hidden="true"><i class="fa-solid fa-music"></i></span>
+          <span class="downloader-quality-field__icon downloader-quality-field__icon--audio" aria-hidden="true"><i class="fa-solid fa-music"></i></span>
           <span class="downloader-quality-field__copy"><span class="downloader-quality-field__label" data-i18n="quality.quick.audio">Аудио</span><span id="downloader-audio-meta" class="downloader-quality-field__meta"></span></span>
           <select id="downloader-audio-quality" disabled></select>
         </label>
         <label class="downloader-quality-field" for="downloader-subtitle-quality">
-          <span class="downloader-quality-field__icon" aria-hidden="true"><i class="fa-solid fa-closed-captioning"></i></span>
+          <span class="downloader-quality-field__icon downloader-quality-field__icon--subs" aria-hidden="true"><i class="fa-solid fa-closed-captioning"></i></span>
           <span class="downloader-quality-field__copy"><span class="downloader-quality-field__label" data-i18n="quality.quick.subtitles">Субтитры</span><span id="downloader-subtitle-meta" class="downloader-quality-field__meta"></span></span>
           <select id="downloader-subtitle-quality" disabled></select>
         </label>
@@ -208,12 +208,14 @@
           <span id="downloader-output-summary" data-i18n="quality.quick.summaryWaiting">Формат будет показан после анализа ссылки</span>
           <span id="downloader-quality-status" class="downloader-quality-status" role="status" aria-live="polite"></span>
         </div>
-        <button id="downloader-advanced-formats" type="button" class="downloader-advanced-formats" data-i18n="quality.quick.advanced" disabled>Расширенные форматы…</button>
-        <div class="downloader-selection-card__actions">
-          <button id="enqueue-button" type="button" class="btn btn-secondary downloader-selection-card__enqueue" data-i18n="quality.split.action.enqueue" disabled aria-disabled="true">Добавить в очередь</button>
-          <button id="download-button" type="button" class="large-button btn btn-lg btn-primary downloader-selection-card__download" data-shortcut-action="downloads.start" disabled aria-disabled="true">
-            <i class="fas fa-download" aria-hidden="true"></i><span class="button-text" data-i18n="actions.download">Скачать</span>
-          </button>
+        <div class="downloader-selection-card__footer">
+          <button id="downloader-advanced-formats" type="button" class="downloader-advanced-formats" data-i18n="quality.quick.advanced" disabled>Расширенные форматы…</button>
+          <div class="downloader-selection-card__actions">
+            <button id="enqueue-button" type="button" class="btn btn-secondary downloader-selection-card__enqueue" data-i18n="quality.split.action.enqueue" disabled aria-disabled="true">Добавить в очередь</button>
+            <button id="download-button" type="button" class="large-button btn btn-lg btn-primary downloader-selection-card__download" data-shortcut-action="downloads.start" disabled aria-disabled="true">
+              <i class="fas fa-download" aria-hidden="true"></i><span class="button-text" data-i18n="actions.download">Скачать</span>
+            </button>
+          </div>
         </div>
       </div>
 

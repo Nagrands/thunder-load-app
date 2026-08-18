@@ -209,6 +209,9 @@ describe("urlInputHandler", () => {
           if (key === "input.url.preview.kicker") {
             return "Предпросмотр";
           }
+          if (key === "input.url.preview.buttonLabel") {
+            return "Предпросмотр";
+          }
           if (key === "batchReview.chooseItems") {
             return `Выбрать элементы (${vars.count})`;
           }
@@ -934,7 +937,7 @@ describe("urlInputHandler", () => {
 
     expect(previewCard.textContent).not.toContain("Открыть live preview");
     expect(playButton?.closest(".preview-thumb-wrap")).not.toBeNull();
-    expect(playButton?.textContent.trim()).toBe("");
+    expect(playButton?.textContent.trim()).toBe("Предпросмотр");
     expect(playButton?.classList).not.toContain("hidden");
     expect(playButton?.getAttribute("aria-label")).toBe(
       "Открыть встроенный preview-плеер со звуком",
