@@ -76,7 +76,7 @@ alias: Вкладка Downloader
 
 ## Проверка изменений
 
-- При изменении шаблонов: `npm run templates:build`.
-- При изменении SCSS: `npm run css:build`.
-- При изменении логики: `npm run lint` и `npm test`.
+- При изменении шаблонов: `pnpm run templates:build`.
+- При изменении SCSS: `pnpm run css:build`.
+- При изменении логики: `pnpm run lint` и `pnpm test`.
 - Актуальные пользовательские возможности описаны в `docs/APP.ru.md`; незавершенные идеи не следует хранить в этом документе как реализованные функции.

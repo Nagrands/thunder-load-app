@@ -13,10 +13,14 @@ export const SITE = {
 } as const;
 
 export const supportedServices = [
-  { id: "youtube", name: "YouTube", mark: "YT" },
-  { id: "twitch", name: "Twitch", mark: "TW" },
-  { id: "vk", name: "VK Видео", mark: "VK" },
-  { id: "coub", name: "Coub", mark: "CB" }
+  { id: "youtube", name: "YouTube", url: "https://www.youtube.com/" },
+  { id: "twitch", name: "Twitch", url: "https://www.twitch.tv/" },
+  { id: "vk", name: "VK Видео", url: "https://vkvideo.ru/" },
+  { id: "coub", name: "Coub", url: "https://coub.com/" },
+  { id: "tiktok", name: "TikTok", url: "https://www.tiktok.com/" },
+  { id: "vimeo", name: "Vimeo", url: "https://vimeo.com/" },
+  { id: "soundcloud", name: "SoundCloud", url: "https://soundcloud.com/" },
+  { id: "dailymotion", name: "Dailymotion", url: "https://www.dailymotion.com/" }
 ] as const;
 
 export const platforms = [

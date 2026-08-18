@@ -2,7 +2,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
 
 const dist = resolve("dist");
-if (!existsSync(dist)) throw new Error("dist/ is missing; run npm run build first");
+if (!existsSync(dist)) throw new Error("dist/ is missing; run pnpm run build first");
 
 const htmlFiles = [];
 function walk(directory) {

@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
 
 const root = path.resolve(process.cwd());
 const rootWhatsNewPath = path.join(root, "whats-new.md");
@@ -7,6 +8,7 @@ const rootWhatsNewEnPath = path.join(root, "whats-new.en.md");
 const buildDir = path.join(root, "build");
 const releaseNotesPath = path.join(buildDir, "release-notes.md");
 const releaseNotesEnPath = path.join(buildDir, "release-notes.en.md");
+const githubReleaseNotesPath = path.join(buildDir, "github-release-notes.md");
 const pkgPath = path.join(root, "package.json");
 
 function fail(message) {
@@ -22,13 +24,32 @@ function readFileSafe(filePath) {
   }
 }
 
-function readVersionFromMarkdown(markdown = "") {
+export function readVersionFromMarkdown(markdown = "") {
   const match = String(markdown).match(/version:\s*([0-9A-Za-z._-]+)/i);
   return match ? match[1] : null;
 }
 
-function stripVersionHtmlComment(markdown = "") {
+export function stripVersionHtmlComment(markdown = "") {
   return String(markdown).replace(/^\s*<!--\s*version:.*?-->\s*\n?/i, "");
+}
+
+function demoteTitleHeading(markdown = "") {
+  return String(markdown).replace(/^#\s+/m, "### ");
+}
+
+export function buildGitHubReleaseNotes(ruNotes, enNotes) {
+  return [
+    "## Русский",
+    "<!-- release-notes:ru -->",
+    demoteTitleHeading(ruNotes).trim(),
+    "<!-- /release-notes:ru -->",
+    "",
+    "## English",
+    "<!-- release-notes:en -->",
+    demoteTitleHeading(enNotes).trim(),
+    "<!-- /release-notes:en -->",
+    "",
+  ].join("\n");
 }
 
 function writeFileAtomic(filePath, content) {
@@ -49,7 +70,7 @@ function syncWhatsNew({ sourcePath, releaseNotesTarget }) {
   const releaseNotes = stripVersionHtmlComment(markdown);
   writeFileAtomic(releaseNotesTarget, releaseNotes);
 
-  return true;
+  return { releaseNotes, version };
 }
 
 function main() {
@@ -78,25 +99,47 @@ function main() {
     fs.mkdirSync(buildDir, { recursive: true });
   }
 
-  const synced = syncWhatsNew({
+  const ruResult = syncWhatsNew({
     sourcePath: rootWhatsNewPath,
     releaseNotesTarget: releaseNotesPath,
   });
 
-  if (!synced) {
+  if (!ruResult) {
     fail(`Failed to sync ${rootWhatsNewPath}`);
   }
 
-  if (fs.existsSync(rootWhatsNewEnPath)) {
-    syncWhatsNew({
-      sourcePath: rootWhatsNewEnPath,
-      releaseNotesTarget: releaseNotesEnPath,
-    });
+  if (!fs.existsSync(rootWhatsNewEnPath)) {
+    fail(`Missing file: ${rootWhatsNewEnPath}`);
   }
 
+  const enResult = syncWhatsNew({
+    sourcePath: rootWhatsNewEnPath,
+    releaseNotesTarget: releaseNotesEnPath,
+  });
+
+  if (!enResult) {
+    fail(`Failed to sync ${rootWhatsNewEnPath}`);
+  }
+
+  if (enResult.version !== pkg.version) {
+    fail(
+      `Version mismatch. whats-new.en.md=${enResult.version} package.json=${pkg.version}`,
+    );
+  }
+
+  writeFileAtomic(
+    githubReleaseNotesPath,
+    buildGitHubReleaseNotes(ruResult.releaseNotes, enResult.releaseNotes),
+  );
+
   console.log(
-    `[whats-new:build] Generated release notes for version ${rootVersion}`,
+    `[whats-new:build] Generated RU, EN, and GitHub release notes for version ${rootVersion}`,
   );
 }
 
-main();
+if (
+  process.argv[1] &&
+  path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+) {
+  main();
+}

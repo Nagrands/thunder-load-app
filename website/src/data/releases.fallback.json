@@ -1,5 +1,62 @@
 [
   {
+    "id": 371115437,
+    "tag_name": "v1.6.2",
+    "name": "1.6.2",
+    "html_url": "https://github.com/Nagrands/thunder-load-app/releases/tag/v1.6.2",
+    "draft": false,
+    "prerelease": false,
+    "published_at": "2026-08-15T17:39:01Z",
+    "body": null,
+    "assets": [
+      {
+        "id": 515918380,
+        "name": "latest.yml",
+        "content_type": "text/yaml",
+        "size": 375,
+        "digest": "sha256:7cc5712f7b9cd08fcf4f8c507e2651a969bfcc0cb490a8f42f92bc1f961db910",
+        "updated_at": "2026-08-15T17:41:51Z",
+        "browser_download_url": "https://github.com/Nagrands/thunder-load-app/releases/download/v1.6.2/latest.yml"
+      },
+      {
+        "id": 515915998,
+        "name": "Thunder-1.6.2-arm64.dmg",
+        "content_type": "application/octet-stream",
+        "size": 165461194,
+        "digest": "sha256:29a8ee3a4f527396084df433477509f6258eb903c637a8de8da264501fc81931",
+        "updated_at": "2026-08-15T17:39:21Z",
+        "browser_download_url": "https://github.com/Nagrands/thunder-load-app/releases/download/v1.6.2/Thunder-1.6.2-arm64.dmg"
+      },
+      {
+        "id": 515915821,
+        "name": "Thunder-1.6.2-x64.dmg",
+        "content_type": "application/octet-stream",
+        "size": 167229135,
+        "digest": "sha256:865e45b9382861d8e55c640907cee7a313294c098c7f1c39e976d826bb9fddf8",
+        "updated_at": "2026-08-15T17:39:09Z",
+        "browser_download_url": "https://github.com/Nagrands/thunder-load-app/releases/download/v1.6.2/Thunder-1.6.2-x64.dmg"
+      },
+      {
+        "id": 515918272,
+        "name": "Thunder-Setup-1.6.2.exe",
+        "content_type": "application/octet-stream",
+        "size": 139728518,
+        "digest": "sha256:3c38124da5dd4fed4808b2e56b419c199129766ff5be0160c4af75982ea2954c",
+        "updated_at": "2026-08-15T17:41:51Z",
+        "browser_download_url": "https://github.com/Nagrands/thunder-load-app/releases/download/v1.6.2/Thunder-Setup-1.6.2.exe"
+      },
+      {
+        "id": 515918275,
+        "name": "Thunder-Setup-1.6.2.exe.blockmap",
+        "content_type": "application/octet-stream",
+        "size": 143797,
+        "digest": "sha256:2d6a96ba333782916a2c0311fc40eb0d9c445826ca2b634ffc87aaa0362969ee",
+        "updated_at": "2026-08-15T17:41:46Z",
+        "browser_download_url": "https://github.com/Nagrands/thunder-load-app/releases/download/v1.6.2/Thunder-Setup-1.6.2.exe.blockmap"
+      }
+    ]
+  },
+  {
     "id": 348992138,
     "tag_name": "v1.5.4",
     "name": "1.5.4",

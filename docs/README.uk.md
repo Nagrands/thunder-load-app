@@ -7,7 +7,7 @@
 
 - Останній інсталятор Windows або macOS доступний в офіційному [центрі завантаження Thunder](https://nagrands.github.io/thunder-load-app/en/download/).
 - Автоматичні релізи публікують Windows NSIS і macOS DMG для Intel та Apple Silicon на сторінці [Releases](https://github.com/Nagrands/thunder-load-app/releases).
-- Linux AppImage збирається командою `npm run build-linux`, але поки не входить до release workflow.
+- Linux AppImage збирається командою `pnpm run build-linux`, але поки не входить до release workflow.
 - Поточні збірки macOS і Windows не підписані.
 - Windows використовує per-machine NSIS з elevation; macOS додає Thunder до
   Open With, не призначаючи його застосунком за замовчуванням автоматично.
@@ -38,26 +38,26 @@
 
 ## Технології та скрипти
 
-- Electron, Node.js, npm.
+- Electron, Node.js, pnpm.
 - Автокеровані бінарники: yt-dlp, ffmpeg, Deno.
 
 | Команда                                     | Призначення                                     |
 | ------------------------------------------- | ----------------------------------------------- |
-| `npm start`                                 | Збирання генерованих файлів і запуск застосунку |
-| `npm run dev`                               | Dev-режим з `--dev`                             |
-| `npm run dev:watch`                         | Dev-режим + автозбирання whats-new              |
-| `npm run build`                             | Збирання дистрибутива                           |
-| `npm run build-mac` / `npm run build-linux` | Збирання під конкретну ОС                       |
-| `npm test`                                  | Тести Jest                                      |
-| `npm run typecheck:player`                  | Перевірка типів модулів Player                  |
-| `npm run check`                             | Лінт + typecheck Player + тести                 |
-| `npm run css:build`                         | Збирання CSS зі SCSS                            |
-| `npm run css:watch`                         | Автозбирання SCSS                               |
-| `npm run templates:build`                   | Регенерація HTML із Nunjucks                    |
-| `npm run templates:watch`                   | Автозбирання шаблонів при змінах                |
-| `npm run whats-new:build`                   | Збирання релізних нотаток                       |
-| `npm run whats-new:watch`                   | Автозбирання релізних нотаток                   |
-| `npm run format`                            | Форматування Prettier                           |
+| `pnpm start`                                 | Збирання генерованих файлів і запуск застосунку |
+| `pnpm run dev`                               | Dev-режим з `--dev`                             |
+| `pnpm run dev:watch`                         | Dev-режим + автозбирання whats-new              |
+| `pnpm run build`                             | Збирання дистрибутива                           |
+| `pnpm run build-mac` / `pnpm run build-linux` | Збирання під конкретну ОС                       |
+| `pnpm test`                                  | Тести Jest                                      |
+| `pnpm run typecheck:player`                  | Перевірка типів модулів Player                  |
+| `pnpm run check`                             | Лінт + typecheck Player + тести                 |
+| `pnpm run css:build`                         | Збирання CSS зі SCSS                            |
+| `pnpm run css:watch`                         | Автозбирання SCSS                               |
+| `pnpm run templates:build`                   | Регенерація HTML із Nunjucks                    |
+| `pnpm run templates:watch`                   | Автозбирання шаблонів при змінах                |
+| `pnpm run whats-new:build`                   | Збирання релізних нотаток                       |
+| `pnpm run whats-new:watch`                   | Автозбирання релізних нотаток                   |
+| `pnpm run format`                            | Форматування Prettier                           |
 
 ## Конфігурація
 

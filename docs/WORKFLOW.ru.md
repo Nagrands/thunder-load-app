@@ -24,7 +24,7 @@ Thunder — Electron‑приложение для загрузки и восп�
 ## Где править UI
 
 - HTML генерируется из `templates/` → итоговый файл `src/index.html`.
-- Перед запуском/сборкой выполните `npm run templates:build`, иначе правки
+- Перед запуском/сборкой выполните `pnpm run templates:build`, иначе правки
   в шаблонах не попадут в `src/index.html`.
 
 ## Где править логику
@@ -62,31 +62,31 @@ Thunder — Electron‑приложение для загрузки и восп�
 
 ## Быстрый старт разработки
 
-1. `npm install`
-2. `npm start`
+1. `pnpm install`
+2. `pnpm start`
 
 ## Шаблоны
 
-- Один раз: `npm run templates:build`
-- В режиме наблюдения: `npm run templates:watch`
+- Один раз: `pnpm run templates:build`
+- В режиме наблюдения: `pnpm run templates:watch`
 
 ## Стили
 
-- Один раз: `npm run css:build`
-- В режиме наблюдения: `npm run css:watch`
+- Один раз: `pnpm run css:build`
+- В режиме наблюдения: `pnpm run css:watch`
 
 ## Проверки и тесты
 
-- `npm test` — unit‑тесты (Jest).
-- `npm run lint` — базовый линт (ESLint).
-- `npm run typecheck:player` — JavaScript typecheck Player/main media-модулей.
-- `npm run check` — единая команда (lint + Player typecheck + Jest).
+- `pnpm test` — unit‑тесты (Jest).
+- `pnpm run lint` — базовый линт (ESLint).
+- `pnpm run typecheck:player` — JavaScript typecheck Player/main media-модулей.
+- `pnpm run check` — единая команда (lint + Player typecheck + Jest).
 - Логи `console.log` подавляются в тестах через `src/js/tests/setupTests.js`.
 
 ## Сборка
 
-- `npm run build` — сборка под текущую платформу.
-- `npm run build-mac` / `npm run build-linux` — платформенные сборки.
+- `pnpm run build` — сборка под текущую платформу.
+- `pnpm run build-mac` / `pnpm run build-linux` — платформенные сборки.
 - При изменении ассоциаций файлов или системной интеграции требуется packaged
   smoke на целевой ОС по `docs/tab/Player_Platform_QA.md`.
 - Изменения tray-панели требуют packaged Windows smoke для светлой/тёмной темы,
@@ -96,7 +96,7 @@ Thunder — Electron‑приложение для загрузки и восп�
 
 - Источник истины — корневой `whats-new.md`.
 - Приложение читает `whats-new.md` (и `whats-new.en.md`) напрямую из корня.
-- Скрипт `npm run whats-new:build` генерирует только release notes в `build/`.
+- Скрипт `pnpm run whats-new:build` генерирует только release notes в `build/`.
 - Версия в Markdown должна совпадать с `package.json`.
 - Окно «Что нового» автоматически показывается после обновления версии.
 - Окно можно открыть вручную кликом по версии в интерфейсе.

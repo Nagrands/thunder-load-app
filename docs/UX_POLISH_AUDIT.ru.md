@@ -41,6 +41,6 @@ Determinate progress показывает реальное значение, э�
 
 ## Проверка и release gates
 
-Автоматически проверяются state transitions, Retry/stale guards в существующих контроллерах, Undo, keyboard menu, focus restoration, live-region и generated artifacts. Финальный проход включает профильные Jest suites, `test-check:sync`, `typecheck:player`, `npm run check`, builds Whats New/templates/CSS и `git diff --check`.
+Автоматически проверяются state transitions, Retry/stale guards в существующих контроллерах, Undo, keyboard menu, focus restoration, live-region и generated artifacts. Финальный проход включает профильные Jest suites, `test-check:sync`, `typecheck:player`, `pnpm run check`, builds Whats New/templates/CSS и `git diff --check`.
 
 Ручная матрица RU/EN, light/dark, reduced motion, zoom/font size, compact window, Web Control desktop/mobile и packaged macOS/Windows остаётся release gate. Windows packaged smoke должен отдельно подтвердить tray/menu поведение на реальном DPI и с screen reader; результаты Jest не считаются заменой этой проверки.

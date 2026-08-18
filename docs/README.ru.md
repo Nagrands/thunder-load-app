@@ -7,7 +7,7 @@
 
 - Последний установщик Windows или macOS доступен в официальном [центре загрузки Thunder](https://nagrands.github.io/thunder-load-app/ru/download/).
 - Автоматические релизы публикуют Windows NSIS и macOS DMG для Intel и Apple Silicon на странице [Releases](https://github.com/Nagrands/thunder-load-app/releases).
-- Linux AppImage собирается командой `npm run build-linux`, но пока не входит в release workflow.
+- Linux AppImage собирается командой `pnpm run build-linux`, но пока не входит в release workflow.
 - Текущие сборки macOS и Windows не подписаны.
 - Windows использует per-machine NSIS с elevation; macOS добавляет Thunder в
   «Открыть с помощью», не назначая его приложением по умолчанию автоматически.
@@ -38,26 +38,26 @@
 
 ## Технологии и скрипты
 
-- Electron, Node.js, npm.
+- Electron, Node.js, pnpm.
 - Авто-управляемые бинарники: yt-dlp, ffmpeg, Deno.
 
 | Команда                                     | Назначение                                     |
 | ------------------------------------------- | ---------------------------------------------- |
-| `npm start`                                 | Сборка генерируемых файлов и запуск приложения |
-| `npm run dev`                               | Dev-режим с `--dev`                            |
-| `npm run dev:watch`                         | Dev-режим + автосборка whats-new               |
-| `npm run build`                             | Сборка дистрибутива                            |
-| `npm run build-mac` / `npm run build-linux` | Сборки под конкретную ОС                       |
-| `npm test`                                  | Тесты Jest                                     |
-| `npm run typecheck:player`                  | Проверка типов модулей Плеера                  |
-| `npm run check`                             | Линт + typecheck Плеера + тесты                |
-| `npm run css:build`                         | Сборка CSS из SCSS                             |
-| `npm run css:watch`                         | Автосборка SCSS                                |
-| `npm run templates:build`                   | Регенерация HTML из Nunjucks                   |
-| `npm run templates:watch`                   | Автосборка шаблонов при изменениях             |
-| `npm run whats-new:build`                   | Сборка релизных заметок                        |
-| `npm run whats-new:watch`                   | Автосборка релизных заметок                    |
-| `npm run format`                            | Prettier форматирование                        |
+| `pnpm start`                                 | Сборка генерируемых файлов и запуск приложения |
+| `pnpm run dev`                               | Dev-режим с `--dev`                            |
+| `pnpm run dev:watch`                         | Dev-режим + автосборка whats-new               |
+| `pnpm run build`                             | Сборка дистрибутива                            |
+| `pnpm run build-mac` / `pnpm run build-linux` | Сборки под конкретную ОС                       |
+| `pnpm test`                                  | Тесты Jest                                     |
+| `pnpm run typecheck:player`                  | Проверка типов модулей Плеера                  |
+| `pnpm run check`                             | Линт + typecheck Плеера + тесты                |
+| `pnpm run css:build`                         | Сборка CSS из SCSS                             |
+| `pnpm run css:watch`                         | Автосборка SCSS                                |
+| `pnpm run templates:build`                   | Регенерация HTML из Nunjucks                   |
+| `pnpm run templates:watch`                   | Автосборка шаблонов при изменениях             |
+| `pnpm run whats-new:build`                   | Сборка релизных заметок                        |
+| `pnpm run whats-new:watch`                   | Автосборка релизных заметок                    |
+| `pnpm run format`                            | Prettier форматирование                        |
 
 ## Конфигурация
 

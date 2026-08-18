@@ -165,7 +165,7 @@ Thunder не переносило настройки и историю.
 Автообновление приложения доступно только на Windows; на macOS новая версия
 устанавливается вручную из DMG-файла релиза.
 Эти сборки сейчас не подписаны. Linux AppImage можно собрать командой
-`npm run build-linux`, но он не входит в автоматический release workflow.
+`pnpm run build-linux`, но он не входит в автоматический release workflow.
 
 Windows NSIS устанавливается для всей машины (`perMachine`) и требует
 elevation. На macOS ассоциации имеют роли `Viewer`/`Alternate`: Thunder доступен

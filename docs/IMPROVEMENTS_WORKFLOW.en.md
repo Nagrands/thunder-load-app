@@ -14,7 +14,7 @@ Baseline execution standard for every task: `docs/DOCS.en.md` (`Discover → Org
 
 - Locate the relevant logic (see `docs/WORKFLOW.en.md`).
 - Find affected modules in `src/js/**` and templates in `templates/**`.
-- If UI is affected, remember `templates/` → `src/index.html` and run `npm run templates:build`.
+- If UI is affected, remember `templates/` → `src/index.html` and run `pnpm run templates:build`.
 
 ## 3. Plan the Changes
 
@@ -30,10 +30,10 @@ Baseline execution standard for every task: `docs/DOCS.en.md` (`Discover → Org
 
 ## 5. Tests and Checks
 
-- `npm run lint` — strict lint (no warnings).
-- `npm test` — unit tests.
-- `npm run typecheck:player` — required when Player code changes.
-- `npm run check` — final combined validation.
+- `pnpm run lint` — strict lint (no warnings).
+- `pnpm test` — unit tests.
+- `pnpm run typecheck:player` — required when Player code changes.
+- `pnpm run check` — final combined validation.
 - For UI changes, run quick manual checks of key scenarios.
 - For new IPC, verify the channel registry, handler, preload whitelist, and
   renderer API together.
@@ -45,7 +45,7 @@ Baseline execution standard for every task: `docs/DOCS.en.md` (`Discover → Org
 
 - Update `docs/WORKFLOW.en.md` if the process changes.
 - Update both root `whats-new.md` and `whats-new.en.md` for user-facing changes.
-- Run `npm run whats-new:build` to validate the version and regenerate release notes.
+- Run `pnpm run whats-new:build` to validate the version and regenerate release notes.
 
 ## 7. Commits
 
@@ -54,7 +54,7 @@ Baseline execution standard for every task: `docs/DOCS.en.md` (`Discover → Org
 
 ## 8. Review Order
 
-1. Automated checks: `npm run check`.
+1. Automated checks: `pnpm run check`.
 2. Diff review: security, regressions, UX impact.
 3. Manual UI check (key flows + accessibility).
 4. Docs and both `whats-new*.md` files if user-facing changes were made.
@@ -63,7 +63,7 @@ Baseline execution standard for every task: `docs/DOCS.en.md` (`Discover → Org
 ## 9. Final Verification
 
 - Review the diff for regressions.
-- Ensure `npm run lint` and `npm test` pass.
+- Ensure `pnpm run lint` and `pnpm test` pass.
 
 ## 10. Next Steps (Optional)
 

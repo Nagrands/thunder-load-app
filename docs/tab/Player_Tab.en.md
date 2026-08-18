@@ -290,15 +290,15 @@ available default application.
 Run:
 
 ```bash
-npm run css:build
-npm run whats-new:build
-npm run lint
-npm run typecheck:player
-npm test
-npm run check
+pnpm run css:build
+pnpm run whats-new:build
+pnpm run lint
+pnpm run typecheck:player
+pnpm test
+pnpm run check
 ```
 
-Run `npm run templates:build` only when Nunjucks changes. Packaged QA must also
+Run `pnpm run templates:build` only when Nunjucks changes. Packaged QA must also
 be performed on target systems: macOS x64/arm64 for Now Playing Center, Dock
 Menu, media keys, background playback, and Open With; Windows for SMTC, media
 keys, metadata, per-machine NSIS, associations, and cold/warm open-file flows.

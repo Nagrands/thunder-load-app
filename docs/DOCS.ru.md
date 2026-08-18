@@ -35,12 +35,12 @@
 
 Минимальный план проверок:
 
-- Для логики: `npm run check`.
+- Для логики: `pnpm run check`.
 - Для Player/main media-кода: отдельно убедиться, что
-  `npm run typecheck:player` входит в выполненный набор.
-- Для `templates/*.njk`: `npm run templates:build` и связанные тесты.
-- Для `src/scss/*.scss`: `npm run css:build`.
-- Для пользовательских изменений: обновление `whats-new.md` и `whats-new.en.md`, затем `npm run whats-new:build`.
+  `pnpm run typecheck:player` входит в выполненный набор.
+- Для `templates/*.njk`: `pnpm run templates:build` и связанные тесты.
+- Для `src/scss/*.scss`: `pnpm run css:build`.
+- Для пользовательских изменений: обновление `whats-new.md` и `whats-new.en.md`, затем `pnpm run whats-new:build`.
 
 Артефакт этапа:
 

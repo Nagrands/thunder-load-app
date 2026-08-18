@@ -11,8 +11,8 @@ function run(cmd, args, name) {
   return child;
 }
 
-const dev = run("npm", ["run", "dev"], "dev");
-const watch = run("npm", ["run", "whats-new:watch"], "whats-new:watch");
+const dev = run("pnpm", ["run", "dev"], "dev");
+const watch = run("pnpm", ["run", "whats-new:watch"], "whats-new:watch");
 
 const shutdown = () => {
   try {

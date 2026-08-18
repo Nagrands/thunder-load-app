@@ -24,9 +24,9 @@ alias: Проверка Плеера на Windows и macOS
 Перед ручным QA должны пройти:
 
 ```bash
-npm run css:build
-npm run whats-new:build
-npm run check
+pnpm run css:build
+pnpm run whats-new:build
+pnpm run check
 ```
 
 Основное покрытие находится в тестах `nowPlaying*`, `mediaOpenService`,

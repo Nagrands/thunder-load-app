@@ -27,6 +27,7 @@ import { localizedUrl } from "@/lib/urls";
 import ScreenshotGallery from "@/components/ScreenshotGallery.astro";
 import DownloadPanel from "@/components/DownloadPanel.astro";
 import ReleaseCard from "@/components/ReleaseCard.astro";
+import ServiceIcon from "@/components/ServiceIcon.astro";
 
 interface Props {
   locale: Locale;
@@ -245,9 +246,9 @@ const faqJsonLd = {
       <p>{copy.servicesLead}</p>
       <div class="service-grid">
         {supportedServices.map((service) => (
-          <div class={`service service-${service.id}`}>
-            <span>{service.mark}</span><strong>{service.name}</strong>
-          </div>
+          <a class={`service service-${service.id}`} href={service.url} target="_blank" rel="noreferrer">
+            <span><ServiceIcon service={service.id} /></span><strong>{service.name}</strong>
+          </a>
         ))}
       </div>
     </div>
@@ -605,6 +606,20 @@ const faqJsonLd = {
     border: 1px solid rgb(133 201 255 / 0.13);
     border-radius: 15px;
     background: rgb(21 29 41 / 0.44);
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+  }
+
+  .service:hover {
+    border-color: rgb(22 216 255 / 0.38);
+    background: rgb(24 39 56 / 0.72);
+    transform: translateY(-2px);
+  }
+
+  .service:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
   }
 
   .service span {
@@ -615,8 +630,12 @@ const faqJsonLd = {
     border-radius: 10px;
     color: #dffaff;
     background: rgb(45 156 255 / 0.15);
-    font-size: 0.67rem;
-    font-weight: 900;
+  }
+
+  .service span :global(svg) {
+    width: 19px;
+    height: 19px;
+    fill: currentcolor;
   }
 
   .service strong {

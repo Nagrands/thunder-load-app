@@ -67,7 +67,7 @@ for (const file of testFiles) {
 const generated = [
   "## Автотесты (Jest)",
   "",
-  `- Автосборка списка: \`npm run test-check:sync-tests\``,
+  `- Автосборка списка: \`pnpm run test-check:sync-tests\``,
   `- Найдено файлов: ${testFiles.length}`,
   `- Найдено тест-кейсов (test/it): ${totalCases}`,
   "",

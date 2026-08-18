@@ -1758,6 +1758,15 @@
   background: rgba(255, 255, 255, 0.02);
 }
 
+.settings-diagnostics {
+  display: grid;
+  gap: 14px;
+}
+
+.settings-diagnostics__actions {
+  grid-template-columns: 1fr;
+}
+
 .settings-developer-gate__label,
 .settings-developer-gate__status {
   color: var(--settings-muted);

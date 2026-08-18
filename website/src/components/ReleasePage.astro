@@ -5,7 +5,7 @@ import { marked } from "marked";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import type { Locale } from "@/config/site";
 import type { Release } from "@/lib/releases";
-import { downloadableAssets } from "@/lib/releases";
+import { downloadableAssets, localizedReleaseNotes } from "@/lib/releases";
 import { formatBytes, formatDate } from "@/lib/format";
 import { localizedUrl } from "@/lib/urls";
 
@@ -19,8 +19,9 @@ const isRu = locale === "ru";
 const description = isRu
   ? `Версия Thunder ${release.version}, опубликованная ${formatDate(release.publishedAt, locale)}.`
   : `Thunder ${release.version}, published ${formatDate(release.publishedAt, locale)}.`;
-const parsedBody = release.body
-  ? sanitizeHtml(marked.parse(release.body, { async: false }) as string, {
+const localizedBody = localizedReleaseNotes(release.body, locale);
+const parsedBody = localizedBody
+  ? sanitizeHtml(marked.parse(localizedBody, { async: false }) as string, {
       allowedTags: sanitizeHtml.defaults.allowedTags,
       allowedAttributes: { a: ["href", "title"] }
     })
@@ -44,12 +45,14 @@ const breadcrumb = {
       <p>{description}</p>
       <a href={release.url} target="_blank" rel="noreferrer">{isRu ? "Открыть на GitHub" : "Open on GitHub"} <ExternalLink size={16} /></a>
     </header>
-    {parsedBody ? <div class="prose release-notes" set:html={parsedBody} /> : (
-      <div class="empty-notes glass">
-        <h2>{isRu ? "Заметки к версии" : "Release notes"}</h2>
-        <p>{isRu ? "Для этой публикации подробное описание на GitHub не добавлено." : "No detailed description was added to this GitHub release."}</p>
-      </div>
-    )}
+    <section class="release-notes-section">
+      <h2>{isRu ? "Заметки к версии" : "Release notes"}</h2>
+      {parsedBody ? <div class="prose release-notes" set:html={parsedBody} /> : (
+        <div class="empty-notes glass">
+          <p>{isRu ? "Для этой публикации подробное описание на GitHub не добавлено." : "No detailed description was added to this GitHub release."}</p>
+        </div>
+      )}
+    </section>
     <section>
       <h2>{isRu ? "Установочные файлы" : "Installers"}</h2>
       <div class="release-assets">
@@ -91,9 +94,45 @@ const breadcrumb = {
     font-weight: 700;
   }
 
-  .release-notes,
-  .empty-notes {
+  .release-notes-section {
     margin: 30px 0 70px;
+  }
+
+  .release-notes-section > h2 {
+    margin-bottom: 24px;
+  }
+
+  .release-notes {
+    max-width: none;
+    overflow-x: auto;
+  }
+
+  .release-notes :global(h3:first-child) {
+    margin-top: 0;
+  }
+
+  .release-notes :global(table) {
+    width: 100%;
+    min-width: 680px;
+    border-collapse: collapse;
+  }
+
+  .release-notes :global(th),
+  .release-notes :global(td) {
+    padding: 14px 16px;
+    border-bottom: 1px solid rgb(133 201 255 / 0.13);
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .release-notes :global(th:first-child),
+  .release-notes :global(td:first-child) {
+    width: 28%;
+  }
+
+  .release-notes :global(th) {
+    color: #e9f6ff;
+    background: rgb(21 29 41 / 0.72);
   }
 
   .empty-notes {
