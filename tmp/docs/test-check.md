@@ -1,14 +1,18 @@
 ## Автотесты (Jest)
 
-- Автосборка списка: `npm run test-check:sync-tests`
-- Найдено файлов: 153
-- Найдено тест-кейсов (test/it): 1320
+- Автосборка списка: `pnpm run test-check:sync-tests`
+- Найдено файлов: 159
+- Найдено тест-кейсов (test/it): 1357
 
 <!-- AUTO-JEST-TESTS:START -->
 
 ### `src/js/__tests__/preload.fullscreen.test.js` (2)
 - [ ] exposes whitelisted fullscreen invokes
 - [ ] unwraps native fullscreen events to a boolean and unsubscribes
+
+### `src/js/__tests__/preload.history.test.js` (2)
+- [ ] exposes a safe history update subscription with cleanup
+- [ ] allows the batched history file inspection channel
 
 ### `src/js/__tests__/preload.nowPlaying.test.js` (3)
 - [ ] exposes typed wrappers for all Now Playing invokes
@@ -106,12 +110,14 @@
 - [ ] propagates native enter and leave events to the renderer
 - [ ] does not send native events to destroyed web contents
 
-### `src/js/app/__tests__/historyIpcHandlers.test.js` (5)
+### `src/js/app/__tests__/historyIpcHandlers.test.js` (7)
 - [ ] registers history channels
 - [ ] load-history creates an empty file when missing
 - [ ] save-history writes entries and emits count
+- [ ] save-history returns a structured failure
 - [ ] get-download-count reads history length
 - [ ] clear-history clears history and preview cache
+- [ ] inspects file existence and size in one batch
 
 ### `src/js/app/__tests__/historyPreviewIpcHandlers.test.js` (5)
 - [ ] registers preview cache channels
@@ -119,6 +125,15 @@
 - [ ] cache-history-preview rejects missing URL
 - [ ] delete-history-preview removes only files inside preview cache
 - [ ] ensurePreviewCacheDir creates preview cache directory
+
+### `src/js/app/__tests__/historyRepository.test.js` (7)
+- [ ] migrates a legacy array idempotently into the version 2 envelope
+- [ ] backs up corrupt JSON and returns a failure without replacing it
+- [ ] serializes concurrent saves and leaves no temporary files
+- [ ] keeps the previous file when an atomic rename fails
+- [ ] does not truncate large histories
+- [ ] stores canonical media and error fields
+- [ ] limits parallel file inspections
 
 ### `src/js/app/__tests__/ipcHandlers.toolsActions.test.js` (86)
 - [ ] set-open-on-copy-url-status toggles clipboard monitor and persists state
@@ -501,8 +516,9 @@
 - [ ] keeps subtitles out of compact quality controls
 - [ ] hides quality selectors again when preview formats are missing
 
-### `src/js/modules/__tests__/contextMenu.test.js` (9)
+### `src/js/modules/__tests__/contextMenu.test.js` (10)
 - [ ] opens and focuses first enabled menu item
+- [ ] positions the menu from viewport coordinates when body is scrolled
 - [ ] supports ArrowUp/ArrowDown/Home/End keyboard navigation
 - [ ] runs action on Enter
 - [ ] closes menu on Escape
@@ -586,10 +602,10 @@
 - [ ] builds illustrated hero with separate status row and preserved ids
 
 ### `src/js/modules/__tests__/downloadJobs.test.js` (2)
-- [ ] keeps legacy collections in sync with the job store
+- [ ] uses downloadJobs as the only queue state
 - [ ] replaces and clears jobs by status without touching other groups
 
-### `src/js/modules/__tests__/downloadManager.test.js` (77)
+### `src/js/modules/__tests__/downloadManager.test.js` (82)
 - [ ] loadQueueFromStorage filters invalid entries and exact duplicates
 - [ ] classifies subtitle-only payloads and gives them a distinct queue signature
 - [ ] persistQueue stores the queue in localStorage
@@ -616,7 +632,7 @@
 - [ ] renders explicit reason and retry state chips for failed jobs
 - [ ] shows retry-all bulk action when failed jobs exist
 - [ ] retry all repeats only retryable failed jobs
-- [ ] removes completed jobs via row action
+- [ ] does not render legacy completed jobs in the queue
 - [ ] allows same URL with different quality labels in queue
 - [ ] blocks duplicate queue item with same URL and same quality
 - [ ] supports moving queue item up/down from queue controls
@@ -630,7 +646,7 @@
 - [ ] toggles queue list visibility and persists collapsed state
 - [ ] removes collapsed key when queue is expanded back
 - [ ] disables pause only when queue has no active and no pending items
-- [ ] disables start button while there is an active download
+- [ ] keeps start-all available while there is capacity and pending work
 - [ ] pause suppresses auto-pump without stopping active jobs and resume continues the queue
 - [ ] restores paused queue state from local storage
 - [ ] hides queue block when there are no queue items
@@ -642,8 +658,8 @@
 - [ ] treats renderer-side history bookkeeping failures as non-fatal after file is downloaded
 - [ ] moves successful downloads out of running state immediately after completion
 - [ ] queues new task when parallel pool is full
-- [ ] asks before manual queue start and keeps parallel start when user chooses all
-- [ ] starts only one queued item when user chooses single manual start
+- [ ] starts the whole queue without a mode prompt
+- [ ] starts only the selected queued item from its row action
 - [ ] starts a single queued item without asking for start mode
 - [ ] starts download immediately when one slot is still free
 - [ ] starts next pending task when one active download completes
@@ -658,14 +674,19 @@
 - [ ] closes the toast when active jobs are reset by pause or cancel
 - [ ] stores the completed file path in job state
 - [ ] hides empty counters and queue controls according to visible jobs
-- [ ] opens and reveals a completed file from accessible actions
+- [ ] opens and reveals a saved file from recovery actions
 - [ ] shows localized toast errors when completed file IPC fails
-- [ ] opens the intended completed job when state changes before click
-- [ ] persists a successful download as a done job
-- [ ] restores completed jobs during initialization
-- [ ] syncs completed storage after removing completed jobs
-- [ ] clears completed storage when clearing the whole queue
-- [ ] opens and reveals a restored completed job
+- [ ] opens the intended recovery job when state changes before click
+- [ ] does not persist a successful download as a done job
+- [ ] moves completed jobs to History during initialization
+- [ ] migrates multiple completed jobs in one History write
+- [ ] does not expose migrated completed jobs to queue clear or Undo
+- [ ] opens and reveals a completed job when migration needs recovery
+- [ ] removes a successful job immediately after History confirms the entry
+- [ ] migrates legacy completed jobs once and removes storage only after save
+- [ ] keeps a recoverable job when History save fails
+- [ ] clears only the selected error category and restores it with one Undo
+- [ ] keeps active Web Control jobs while clearing and restores inactive jobs
 - [ ] filters complete status groups without changing queue counters
 
 ### `src/js/modules/__tests__/downloadProgress.test.js` (5)
@@ -741,15 +762,16 @@
 - [ ] forwards toast options to showToast
 - [ ] updates about settings version fields
 
-### `src/js/modules/__tests__/filterAndSortHistory.test.js` (2)
+### `src/js/modules/__tests__/filterAndSortHistory.test.js` (3)
 - [ ] keeps source filter before history hydration
-- [ ] clears stale source filter after history hydration
+- [ ] preserves a source filter with no current matches
+- [ ] filters entries by availability state
 
 ### `src/js/modules/__tests__/firstRunModal.test.js` (2)
 - [ ] shows wizard on first run, preserves selections, and applies them
 - [ ] does not show modal when already completed
 
-### `src/js/modules/__tests__/footerStatusBar.test.js` (12)
+### `src/js/modules/__tests__/footerStatusBar.test.js` (13)
 - [ ] loads and renders global footer state in top mode
 - [ ] moves group-menu into footer when sentinel leaves top viewport
 - [ ] moves group-menu back to top bar when returning to top
@@ -760,29 +782,46 @@
 - [ ] renders history action before settings in the footer
 - [ ] keeps footer meta label as tab
 - [ ] scrolls smoothly to top from footer action
+- [ ] scrolls the body to top when it owns the page overflow
 - [ ] keeps footer controller stable when IntersectionObserver is unavailable
 - [ ] does not switch modes while sentinel stays inside hysteresis band
 
 ### `src/js/modules/__tests__/historyActions.test.js` (6)
-- [ ] refresh button updates search query and pulls history
+- [ ] refresh button preserves selection and pulls history from disk
 - [ ] clear history dialog clears all entries when all mode is selected
 - [ ] clear history dialog removes only failed and missing entries in problem mode
 - [ ] clear history problem mode does not mutate history when no problem entries exist
 - [ ] clear history undo restores removed problem entries
 - [ ] clear history problem mode cleans previews only for removed entries
 
-### `src/js/modules/__tests__/historyView.test.js` (31)
+### `src/js/modules/__tests__/historyCommandRegistry.test.js` (2)
+- [ ] maps context-menu ids to the same row commands
+- [ ] shares file and source availability rules
+
+### `src/js/modules/__tests__/historySelectors.test.js` (3)
+- [ ] classifies available, missing, and failed entries
+- [ ] applies the status filter to visible results
+- [ ] selects exact ids independently from search text
+
+### `src/js/modules/__tests__/historyView.test.js` (39)
 - [ ] applies density class and active button
 - [ ] updates header icon and total files size summary
 - [ ] does not load history during shell initialization
+- [ ] persists the history status filter
 - [ ] initial state load uses cached stats instead of count IPC
 - [ ] reuses in-flight history load when panel opens during hydration
+- [ ] reports a corrupt history response without marking it hydrated
+- [ ] marks hidden history stale and reloads it once on the next open
+- [ ] coalesces open-history updates without resetting view state
 - [ ] renders compact pagination controls with page-size options
+- [ ] preserves surviving selections when history rows are rendered again
+- [ ] selects the current page across pagination without clearing earlier ids
+- [ ] selects status results independently from the search query
+- [ ] keeps a zero-result search and shows an explicit reset action
 - [ ] hides pagination for empty history
 - [ ] keeps pagination disabled states in sync with current page
 - [ ] groups entries by date with labels
 - [ ] moves secondary actions into menu
-- [ ] opens inline media inspector inside a history card and toggles it closed
 - [ ] opens inline media inspector inside row details and keeps only one open
 - [ ] renders compact row badge line with source and size
 - [ ] renders failed history entry with failure badge and disabled file actions
@@ -792,8 +831,9 @@
 - [ ] animates download history panel when footer button toggles it
 - [ ] updates active filters badge and resets filters to defaults
 - [ ] renders unified search+filters card with required controls
-- [ ] enables virtualized rendering for large history pages
-- [ ] keeps full render for small history pages
+- [ ] renders the complete current page without virtualization wrappers
+- [ ] falls back to the supported 4-entry page size
+- [ ] marks only the affected row when its file is missing
 - [ ] toggles details when clicking history row body
 - [ ] keeps toggle-all details chevron state in sync
 - [ ] renders source and file detail action controls
@@ -1136,6 +1176,13 @@
 - [ ] matches the noisy clipboard fixture
 - [ ] applies new produce aliases and keeps size notes only in summary
 
+### `src/js/modules/__tests__/queueRenderer.test.js` (2)
+- [ ] keeps the row node and patches only progress fields
+- [ ] replaces a row when its structural content changes
+
+### `src/js/modules/__tests__/queueStore.test.js` (1)
+- [ ] owns every queue category in downloadJobs
+
 ### `src/js/modules/__tests__/registerTabs.backupTransfer.test.js` (13)
 - [ ] registers Download, Tools, Products, and Now Playing tabs
 - [ ] redirects legacy backup default tab to Tools entry point
@@ -1156,11 +1203,13 @@
 - [ ] serializes errors without exposing a stack
 - [ ] does not throw when diagnostics bridge is unavailable
 
-### `src/js/modules/__tests__/responsiveStyles.test.js` (5)
+### `src/js/modules/__tests__/responsiveStyles.test.js` (7)
 - [ ] defines the supported desktop viewport tiers
 - [ ] keeps one scroll owner and protects fixed shell space
 - [ ] preserves the original desktop content density
 - [ ] uses icon-first navigation and overlay media-library sidebar
+- [ ] keeps footer navigation visible at the minimum window width
+- [ ] keeps the History bulk toolbar compact without wrapping button labels
 - [ ] preserves two-column Web Control fields until phone width
 
 ### `src/js/modules/__tests__/scrollbarVisibility.test.js` (1)

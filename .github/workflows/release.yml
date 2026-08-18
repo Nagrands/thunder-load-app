@@ -24,14 +24,17 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
+          cache: pnpm
 
       - name: Install deps
-        run: npm ci
+        run: pnpm ci
 
       - name: Build & Publish (macOS)
         if: runner.os == 'macOS'
@@ -47,7 +50,7 @@ jobs:
         run: npx electron-builder --mac --publish always
 
       - name: Verify packaged macOS icons
-        run: npm run icons:verify:packaged -- --mac
+        run: pnpm run icons:verify:packaged -- --mac
 
   build-windows:
     needs: build-macos
@@ -61,14 +64,17 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
+          cache: pnpm
 
       - name: Install deps
-        run: npm ci
+        run: pnpm ci
 
       - name: Build & Publish (Windows)
         env:
@@ -81,7 +87,7 @@ jobs:
 
       - name: Verify packaged Windows icons
         shell: pwsh
-        run: npm run icons:verify:packaged -- --win
+        run: pnpm run icons:verify:packaged -- --win
 
   publish-release-notes:
     needs: [build-macos, build-windows]
@@ -90,6 +96,18 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install deps
+        run: pnpm ci
 
       - name: Generate release notes
         run: node scripts/build-whats-new.mjs

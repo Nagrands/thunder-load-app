@@ -21,7 +21,7 @@
 
 - Download the latest Windows or macOS installer from the official [Thunder download center](https://nagrands.github.io/thunder-load-app/en/download/).
 - Automated releases publish Windows NSIS and macOS DMG installers for Intel and Apple Silicon on [GitHub Releases](https://github.com/Nagrands/thunder-load-app/releases).
-- Linux AppImage packaging is available through `npm run build-linux`, but it is not part of the current release workflow.
+- Linux AppImage packaging is available through `pnpm run build-linux`, but it is not part of the current release workflow.
 - Current macOS and Windows artifacts are unsigned.
 - Windows uses a per-machine NSIS installer with elevation. macOS registers
   supported media as alternate Open With types without taking them by default.
@@ -67,26 +67,27 @@ See the [application guide](docs/APP.en.md) for section details and platform lim
 - **Jest, ESLint, and TypeScript checkJs** - tests and static checks
 - **hls.js** - HLS playback in Chromium
 - **yt-dlp, ffmpeg/ffprobe, and Deno** - managed runtime tools
+- **pnpm** - package manager
 
 ### Scripts
 
 | Command                                     | Purpose                                  |
 | ------------------------------------------- | ---------------------------------------- |
-| `npm start`                                 | Build generated assets and run the app   |
-| `npm run dev`                               | Run in dev mode with `--dev` flag        |
-| `npm run dev:watch`                         | Run development mode with file watchers  |
-| `npm run build`                             | Package the app for your platform        |
-| `npm run build-mac` / `npm run build-linux` | Platform-specific builds                 |
-| `npm test`                                  | Run Jest tests                           |
-| `npm run typecheck:player`                  | Player/main JavaScript type check        |
-| `npm run check`                             | Lint + Player typecheck + tests          |
-| `npm run css:build`                         | Build CSS from SCSS                      |
-| `npm run css:watch`                         | Watch & rebuild SCSS                     |
-| `npm run templates:build`                   | Rebuild HTML from Nunjucks templates     |
-| `npm run templates:watch`                   | Watch & rebuild templates on change      |
-| `npm run whats-new:build`                   | Build release notes from `whats-new*.md` |
-| `npm run whats-new:watch`                   | Watch & rebuild release notes            |
-| `npm run format`                            | Format sources with Prettier             |
+| `pnpm start`                                | Build generated assets and run the app   |
+| `pnpm run dev`                              | Run in dev mode with `--dev` flag        |
+| `pnpm run dev:watch`                        | Run development mode with file watchers  |
+| `pnpm run build`                            | Package the app for your platform        |
+| `pnpm run build-mac` / `pnpm run build-linux` | Platform-specific builds                 |
+| `pnpm test`                                 | Run Jest tests                           |
+| `pnpm run typecheck:player`                 | Player/main JavaScript type check        |
+| `pnpm run check`                            | Lint + Player typecheck + tests          |
+| `pnpm run css:build`                        | Build CSS from SCSS                      |
+| `pnpm run css:watch`                        | Watch & rebuild SCSS                     |
+| `pnpm run templates:build`                  | Rebuild HTML from Nunjucks templates     |
+| `pnpm run templates:watch`                  | Watch & rebuild templates on change      |
+| `pnpm run whats-new:build`                  | Build release notes from `whats-new*.md` |
+| `pnpm run whats-new:watch`                  | Watch & rebuild release notes            |
+| `pnpm run format`                           | Format sources with Prettier             |
 
 
 ## Development
@@ -96,13 +97,13 @@ Clone the repository and install dependencies:
 ```bash
 git clone https://github.com/Nagrands/thunder-load-app.git
 cd thunder-load-app
-npm install
+pnpm install
 ```
 
 Run the app in development mode:
 
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 If you edit templates, styles, or release notes, run the matching build scripts

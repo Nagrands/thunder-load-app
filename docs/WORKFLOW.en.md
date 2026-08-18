@@ -24,7 +24,7 @@ related tools (yt-dlp, ffmpeg, Deno).
 ## Where to Edit UI
 
 - HTML is generated from `templates/` → output is `src/index.html`.
-- Before running/building, execute `npm run templates:build` or changes won't land in `src/index.html`.
+- Before running/building, execute `pnpm run templates:build` or changes won't land in `src/index.html`.
 
 ## Where to Edit Logic
 
@@ -61,31 +61,31 @@ related tools (yt-dlp, ffmpeg, Deno).
 
 ## Quick Dev Start
 
-1. `npm install`
-2. `npm start`
+1. `pnpm install`
+2. `pnpm start`
 
 ## Templates
 
-- One-time: `npm run templates:build`
-- Watch mode: `npm run templates:watch`
+- One-time: `pnpm run templates:build`
+- Watch mode: `pnpm run templates:watch`
 
 ## Styles
 
-- One-time: `npm run css:build`
-- Watch mode: `npm run css:watch`
+- One-time: `pnpm run css:build`
+- Watch mode: `pnpm run css:watch`
 
 ## Tests and Checks
 
-- `npm test` — unit tests (Jest).
-- `npm run lint` — ESLint.
-- `npm run typecheck:player` — JavaScript typecheck for Player/main media code.
-- `npm run check` — lint + Player typecheck + Jest.
+- `pnpm test` — unit tests (Jest).
+- `pnpm run lint` — ESLint.
+- `pnpm run typecheck:player` — JavaScript typecheck for Player/main media code.
+- `pnpm run check` — lint + Player typecheck + Jest.
 - `console.log` is suppressed in tests via `src/js/tests/setupTests.js`.
 
 ## Build
 
-- `npm run build` — build for the current platform.
-- `npm run build-mac` / `npm run build-linux` — platform builds.
+- `pnpm run build` — build for the current platform.
+- `pnpm run build-mac` / `pnpm run build-linux` — platform builds.
 - File-association or system-integration changes require packaged smoke on the
   target OS using `docs/tab/Player_Platform_QA.md`.
 - Tray-panel changes require packaged Windows smoke for both system themes,
@@ -95,7 +95,7 @@ related tools (yt-dlp, ffmpeg, Deno).
 
 - Source of truth is root `whats-new.md`.
 - The app reads `whats-new.md` (and `whats-new.en.md`) directly from the project root.
-- `npm run whats-new:build` now generates only release notes in `build/`.
+- `pnpm run whats-new:build` now generates only release notes in `build/`.
 - Version in Markdown must match `package.json`.
 - The “What’s New” modal is shown automatically after a version update.
 - You can open it manually by clicking the version in the UI.

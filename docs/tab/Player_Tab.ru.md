@@ -349,15 +349,15 @@ Next. На Windows AUMID совпадает с `build.appId`: `com.thunderload.a
 Минимальный набор:
 
 ```bash
-npm run css:build
-npm run whats-new:build
-npm run lint
-npm run typecheck:player
-npm test
-npm run check
+pnpm run css:build
+pnpm run whats-new:build
+pnpm run lint
+pnpm run typecheck:player
+pnpm test
+pnpm run check
 ```
 
-При изменении Nunjucks дополнительно выполняется `npm run templates:build`.
+При изменении Nunjucks дополнительно выполняется `pnpm run templates:build`.
 
 Packaged QA выполняется отдельно на целевых системах:
 

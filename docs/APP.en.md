@@ -162,7 +162,7 @@ or reset from the tools manager.
 
 ## Platform Support
 
-Automated releases provide Windows NSIS and macOS DMG installers for `x64` and `arm64`. Application auto-updates are Windows-only; macOS users install new versions manually from the DMG release assets. These artifacts are currently unsigned. Linux AppImage packaging is available through `npm run build-linux` but is not part of the automated release workflow.
+Automated releases provide Windows NSIS and macOS DMG installers for `x64` and `arm64`. Application auto-updates are Windows-only; macOS users install new versions manually from the DMG release assets. These artifacts are currently unsigned. Linux AppImage packaging is available through `pnpm run build-linux` but is not part of the automated release workflow.
 
 Windows NSIS installs per-machine with elevation. macOS associations use
 `Viewer`/`Alternate`, making Thunder available in Open With without taking a
