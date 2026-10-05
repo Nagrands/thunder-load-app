@@ -172,7 +172,14 @@ function getDownloadPoolToastContent() {
   const activeItems = getActiveDownloadJobs(state);
   if (activeItems.length <= 1) {
     const current = activeItems[0];
-    const stage = current?.stage || "prepare";
+    const rawStage = current?.stage || "prepare";
+    // yt-dlp reports stream-specific phases, while toast translations use
+    // the broader prepare/download/finalize stages.
+    const stage = ["video", "audio", "subtitle"].includes(rawStage)
+      ? "download"
+      : ["prepare", "download", "finalize"].includes(rawStage)
+        ? rawStage
+        : "prepare";
     const progress = Math.round(
       Math.max(0, Math.min(100, Number(current?.progress) || 0)),
     );
