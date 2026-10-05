@@ -392,20 +392,21 @@ function renderSkeleton(section) {
   const openButton = createButton({
     id: "ti-tools-location-open",
     icon: "fa-regular fa-folder-open",
-    labelKey: "tools.location.openShort",
     titleKey: "tools.location.open",
   });
   const revealButton = createButton({
     id: "ti-tools-location-reveal",
     icon: "fa-solid fa-folder-tree",
-    labelKey: "tools.location.reveal.generic",
     titleKey: "tools.location.reveal.generic",
   });
   const copyButton = createButton({
     id: "ti-tools-location-copy",
     icon: "fa-regular fa-copy",
-    labelKey: "tools.location.copy",
     titleKey: "tools.location.copy",
+  });
+  [openButton, revealButton, copyButton].forEach((button) => {
+    button.dataset.bsToggle = "tooltip";
+    button.dataset.bsPlacement = "top";
   });
   locationActions.append(openButton, revealButton, copyButton);
   locationSurface.append(pathWrap, locationActions);

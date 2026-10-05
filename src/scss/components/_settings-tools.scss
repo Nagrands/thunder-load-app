@@ -576,7 +576,7 @@
 
   .dependency-location__actions {
     display: grid;
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .dependency-location__actions button,

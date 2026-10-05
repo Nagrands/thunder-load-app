@@ -21560,7 +21560,7 @@ body.low-effects .player-form-modal__hero, body.low-effects .player-form-modal__
   }
   .dependency-location__actions {
     display: grid;
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
   .dependency-location__actions button,
   .dependency-advanced__panel button {
