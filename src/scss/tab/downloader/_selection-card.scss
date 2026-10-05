@@ -203,17 +203,13 @@
   flex: 0 1 auto;
   display: grid;
   grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-  gap: 8px;
+  gap: 16px;
 }
 
 .downloader-selection-card__enqueue,
 .downloader-selection-card__download {
   min-width: 0;
   min-height: 34px;
-  padding: 0 14px;
-  border-radius: 10px;
-  font-size: 0.76rem;
-  font-weight: 650;
   white-space: nowrap;
   overflow: hidden;
 }

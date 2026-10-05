@@ -1,16 +1,19 @@
 .url-input-service-row__batch {
   flex: 0 0 auto;
   border: 0;
-  padding: 0.2rem 0;
-  color: var(--color-accent);
-  background: transparent;
-  font: inherit;
-  font-weight: 650;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.008em;
+  color: var(--color-highlight);
+  padding: 7px 9px 7px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(150, 185, 228, 0.13);
+  background: rgba(255, 255, 255, 0.025);
   cursor: pointer;
 
   &:hover,
   &:focus-visible {
-    text-decoration: underline;
+    color: var(--color-accent);
   }
 }
 

@@ -84,7 +84,7 @@ function bundledReleaseNotes() {
 
 function withBundledReleaseNotes(source: GitHubRelease[]) {
   const notes = bundledReleaseNotes();
-  return source.map((release) => (release.tag_name === notes.tag && !release.body ? { ...release, body: notes.body } : release));
+  return source.map((release) => (release.tag_name === notes.tag ? { ...release, body: notes.body } : release));
 }
 
 export function localizedReleaseNotes(body: string, locale: "ru" | "en") {

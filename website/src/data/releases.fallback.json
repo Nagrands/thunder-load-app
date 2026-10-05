@@ -1,5 +1,16 @@
 [
   {
+    "id": 371115438,
+    "tag_name": "v1.6.4",
+    "name": "1.6.4",
+    "html_url": "https://github.com/Nagrands/thunder-load-app/releases/tag/v1.6.4",
+    "draft": false,
+    "prerelease": false,
+    "published_at": "2026-09-03T10:00:00Z",
+    "body": null,
+    "assets": []
+  },
+  {
     "id": 371115437,
     "tag_name": "v1.6.2",
     "name": "1.6.2",

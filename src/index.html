@@ -1159,6 +1159,12 @@
 
       <div id="history-bulk-bar" class="history-bulk-bar hidden">
         <div class="history-bulk-info">
+          <button id="history-select-page" class="history-bulk-action history-bulk-icon-button" type="button" aria-label="Выбрать страницу" data-i18n-aria="history.bulk.selectPage" title="Выбрать страницу" data-i18n-title="history.bulk.selectPage" data-bs-toggle="tooltip" data-bs-placement="top">
+            <i data-lucide="list-checks" aria-hidden="true"></i><span class="history-bulk-action__label" data-i18n="history.bulk.selectPage">Выбрать страницу</span>
+          </button>
+          <button id="history-select-filtered" class="history-bulk-action history-bulk-icon-button" type="button" aria-label="Выбрать все результаты фильтра" data-i18n-aria="history.bulk.selectFiltered" title="Выбирает записи текущего фильтра состояния; поиск не влияет на область выбора" data-i18n-title="history.bulk.selectFilteredHint" data-bs-toggle="tooltip" data-bs-placement="top">
+            <i data-lucide="list-filter" aria-hidden="true"></i><span class="history-bulk-action__label" data-i18n="history.bulk.selectFiltered">Выбрать все результаты фильтра</span>
+          </button>
           <i data-lucide="check-square" aria-hidden="true"></i>
           <span class="history-bulk-action__label" data-i18n="history.bulk.selected">Выбрано</span>
           <span id="history-selected-count">0</span>
@@ -1178,12 +1184,6 @@
           </button>
         </div>
         <div class="history-bulk-actions" role="toolbar" aria-label="Массовые действия" data-i18n-aria="history.bulk.actions">
-          <button id="history-select-page" class="history-bulk-action history-bulk-icon-button" type="button" aria-label="Выбрать страницу" data-i18n-aria="history.bulk.selectPage" title="Выбрать страницу" data-i18n-title="history.bulk.selectPage" data-bs-toggle="tooltip" data-bs-placement="top">
-            <i data-lucide="list-checks" aria-hidden="true"></i><span class="history-bulk-action__label" data-i18n="history.bulk.selectPage">Выбрать страницу</span>
-          </button>
-          <button id="history-select-filtered" class="history-bulk-action history-bulk-icon-button" type="button" aria-label="Выбрать все результаты фильтра" data-i18n-aria="history.bulk.selectFiltered" title="Выбирает записи текущего фильтра состояния; поиск не влияет на область выбора" data-i18n-title="history.bulk.selectFilteredHint" data-bs-toggle="tooltip" data-bs-placement="top">
-            <i data-lucide="list-filter" aria-hidden="true"></i><span class="history-bulk-action__label" data-i18n="history.bulk.selectFiltered">Выбрать все результаты фильтра</span>
-          </button>
           <button id="history-export-selected-json" class="history-bulk-action history-bulk-icon-button" type="button" aria-label="Экспортировать выбранные в JSON" data-i18n-aria="history.bulk.exportJson" title="Экспортировать выбранные в JSON" data-i18n-title="history.bulk.exportJson" data-bs-toggle="tooltip" data-bs-placement="top">
             <i data-lucide="file-json" aria-hidden="true"></i><span class="history-bulk-action__label" data-i18n="history.bulk.exportJson">Экспортировать выбранные в JSON</span>
           </button>

@@ -38,6 +38,7 @@ yarn-error.log*
 dist/
 bin/
 build/
+issues/
 
 # ─── Environment & Local Config ────────────────────────────
 .env
@@ -45,6 +46,8 @@ build/
 .env.*.local
 *.local.config
 *.dev.config
+
+.mise.toml
 
 .codex/
 .zed/

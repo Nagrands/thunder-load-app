@@ -131,6 +131,7 @@
 
 .btn-secondary {
   gap: 0;
+  white-space: nowrap;
   background: linear-gradient(
     135deg,
     rgba(var(--thunder-blue-rgb), 0.18) 0%,

@@ -134,7 +134,16 @@ img {
 
 .section-heading {
   max-width: 720px;
-  margin-bottom: 42px;
+  margin-bottom: 44px;
+}
+
+.section-heading h2 {
+  margin: 0 0 16px;
+}
+
+.section-heading p:not(.eyebrow) {
+  margin: 0;
+  max-width: 640px;
 }
 
 .eyebrow {
@@ -161,7 +170,7 @@ h2,
 h3 {
   margin-top: 0;
   color: #f8fbff;
-  line-height: 1.12;
+  line-height: 1.4;
   letter-spacing: -0.035em;
 }
 
@@ -339,6 +348,10 @@ p {
 
 .prose li {
   margin: 0.5em 0;
+}
+
+.prose > :first-child {
+  margin-top: 0;
 }
 
 .reveal {

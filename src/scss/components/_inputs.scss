@@ -749,10 +749,9 @@
     max-width: 100%;
     overflow: hidden;
     overflow-wrap: anywhere;
-    color: var(--color-highlight);
+    color: var(--thunder-electric);
     font-size: clamp(1.1rem, 1.6vw, 1.35rem);
-    font-weight: 750;
-    line-height: 1.3;
+    font-weight: 600;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
   }
