@@ -1195,7 +1195,6 @@ function updateDeleteSelectedButton() {
   const deleteBtn = document.getElementById("delete-selected");
   ensureHistoryControlElements();
   const selectedCount = state.selectedEntries.length;
-  const hasHistory = getHistoryData().length > 0;
   const selectedActions = [
     deleteBtn,
     document.getElementById("history-export-selected-json"),
@@ -1210,7 +1209,7 @@ function updateDeleteSelectedButton() {
   );
 
   if (historyBulkBarRoot) {
-    historyBulkBarRoot.classList.toggle("hidden", !hasHistory);
+    historyBulkBarRoot.classList.toggle("hidden", selectedCount === 0);
   }
   if (historySelectedCountRoot) {
     historySelectedCountRoot.textContent = String(selectedCount);

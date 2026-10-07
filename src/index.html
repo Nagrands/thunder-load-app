@@ -894,6 +894,31 @@
               </button>
             </div>
 
+            <div class="history-action-segment history-action-segment--selection">
+              <button
+                id="history-select-page"
+                class="history-action-button"
+                type="button"
+                aria-label="Выбрать страницу"
+                data-i18n-aria="history.bulk.selectPage"
+                data-hint="Выбрать страницу"
+                data-i18n-hint="history.bulk.selectPage"
+              >
+                <i data-lucide="list-checks" aria-hidden="true"></i>
+              </button>
+              <button
+                id="history-select-filtered"
+                class="history-action-button"
+                type="button"
+                aria-label="Выбрать все результаты фильтра"
+                data-i18n-aria="history.bulk.selectFiltered"
+                data-hint="Выбирает записи текущего фильтра состояния; поиск не влияет на область выбора"
+                data-i18n-hint="history.bulk.selectFilteredHint"
+              >
+                <i data-lucide="list-filter" aria-hidden="true"></i>
+              </button>
+            </div>
+
             <div class="history-action-segment history-action-segment--danger">
               <button
                 id="clear-history"
@@ -1159,15 +1184,9 @@
 
       <div id="history-bulk-bar" class="history-bulk-bar hidden">
         <div class="history-bulk-info">
-          <button id="history-select-page" class="history-bulk-action history-bulk-icon-button" type="button" aria-label="Выбрать страницу" data-i18n-aria="history.bulk.selectPage" title="Выбрать страницу" data-i18n-title="history.bulk.selectPage" data-bs-toggle="tooltip" data-bs-placement="top">
-            <i data-lucide="list-checks" aria-hidden="true"></i><span class="history-bulk-action__label" data-i18n="history.bulk.selectPage">Выбрать страницу</span>
-          </button>
-          <button id="history-select-filtered" class="history-bulk-action history-bulk-icon-button" type="button" aria-label="Выбрать все результаты фильтра" data-i18n-aria="history.bulk.selectFiltered" title="Выбирает записи текущего фильтра состояния; поиск не влияет на область выбора" data-i18n-title="history.bulk.selectFilteredHint" data-bs-toggle="tooltip" data-bs-placement="top">
-            <i data-lucide="list-filter" aria-hidden="true"></i><span class="history-bulk-action__label" data-i18n="history.bulk.selectFiltered">Выбрать все результаты фильтра</span>
-          </button>
           <i data-lucide="check-square" aria-hidden="true"></i>
           <span class="history-bulk-action__label" data-i18n="history.bulk.selected">Выбрано</span>
-          <span id="history-selected-count">0</span>
+          <span id="history-selected-count" role="status" aria-live="polite" aria-atomic="true">0</span>
           <button
             id="history-clear-selection"
             class="history-bulk-clear history-bulk-icon-button"
