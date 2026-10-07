@@ -35,7 +35,21 @@
           <span class="download-destination__icon" aria-hidden="true"><i class="fa-regular fa-folder-open"></i></span>
           <span class="download-destination__label" data-i18n="downloader.destination.label">Сохранить в</span>
           <strong id="download-destination-path" class="download-destination__path" data-i18n="downloader.destination.loading">Загрузка пути…</strong>
-          <button id="select-folder" type="button" class="download-destination__change" aria-label="Изменить папку загрузки" data-i18n-aria="downloader.destination.change" data-i18n="downloader.destination.change">Изменить</button>
+          <span class="download-destination__actions">
+            <button
+              id="downloads-open-folder"
+              data-shortcut-action="downloads.folder.open"
+              type="button"
+              class="download-destination__open"
+              aria-label="Открыть папку с видео"
+              data-i18n-aria="actions.openFolder"
+              title="Папка с видео"
+              data-i18n-title="actions.videoFolder"
+            >
+              <i data-lucide="folder-open" aria-hidden="true"></i>
+            </button>
+            <button id="select-folder" type="button" class="download-destination__change" aria-label="Изменить папку загрузки" data-i18n-aria="downloader.destination.change" data-i18n="downloader.destination.change">Изменить</button>
+          </span>
         </div>
 
         <label class="url-drop-zone" for="url">

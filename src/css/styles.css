@@ -24204,7 +24204,7 @@ video {
 }
 
 .download-destination__change {
-  min-height: 30px;
+  min-height: 44px;
   padding: 0 11px;
   border-radius: 8px;
   border: 1px solid rgba(var(--color-accent-rgb), 0.2);
@@ -24212,6 +24212,42 @@ video {
   color: var(--color-accent);
   font-size: 0.76rem;
   font-weight: 650;
+}
+
+.download-destination__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.download-destination__open {
+  display: inline-flex;
+  width: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(var(--color-accent-rgb), 0.2);
+  border-radius: 8px;
+  background: rgba(var(--color-accent-rgb), 0.08);
+  color: var(--color-accent);
+}
+.download-destination__open svg {
+  width: 17px;
+  height: 17px;
+}
+.download-destination__open:hover:not(:disabled), .download-destination__open:focus-visible:not(:disabled) {
+  border-color: rgba(var(--color-accent-rgb), 0.48);
+  background: rgba(var(--color-accent-rgb), 0.16);
+}
+.download-destination__open:focus-visible:not(:disabled) {
+  outline: 2px solid rgba(var(--color-accent-rgb), 0.72);
+  outline-offset: 2px;
+}
+
+.downloads-toolbar .queue-action-button {
+  min-height: 44px;
+  padding-inline: 14px;
 }
 
 .downloads-toolbar {

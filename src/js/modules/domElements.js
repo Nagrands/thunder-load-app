@@ -22,7 +22,7 @@ const elements = {
   historyExportJsonButton: document.getElementById("history-export-json"),
   historyExportCsvButton: document.getElementById("history-export-csv"),
   historySourceFilter: document.getElementById("history-source-filter"),
-  openFolderButton: document.getElementById("open-folder"),
+  openFolderButton: document.getElementById("downloads-open-folder"),
   iconPlaceholder:
     document.getElementById("icon-url-globe") ||
     document.querySelector(

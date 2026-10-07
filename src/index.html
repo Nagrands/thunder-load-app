@@ -151,7 +151,21 @@
           <span class="download-destination__icon" aria-hidden="true"><i class="fa-regular fa-folder-open"></i></span>
           <span class="download-destination__label" data-i18n="downloader.destination.label">Сохранить в</span>
           <strong id="download-destination-path" class="download-destination__path" data-i18n="downloader.destination.loading">Загрузка пути…</strong>
-          <button id="select-folder" type="button" class="download-destination__change" aria-label="Изменить папку загрузки" data-i18n-aria="downloader.destination.change" data-i18n="downloader.destination.change">Изменить</button>
+          <span class="download-destination__actions">
+            <button
+              id="downloads-open-folder"
+              data-shortcut-action="downloads.folder.open"
+              type="button"
+              class="download-destination__open"
+              aria-label="Открыть папку с видео"
+              data-i18n-aria="actions.openFolder"
+              title="Папка с видео"
+              data-i18n-title="actions.videoFolder"
+            >
+              <i data-lucide="folder-open" aria-hidden="true"></i>
+            </button>
+            <button id="select-folder" type="button" class="download-destination__change" aria-label="Изменить папку загрузки" data-i18n-aria="downloader.destination.change" data-i18n="downloader.destination.change">Изменить</button>
+          </span>
         </div>
 
         <label class="url-drop-zone" for="url">
@@ -711,10 +725,10 @@
   </div>
 </div>
 
-    <section class="downloads-toolbar" aria-label="Загрузки" data-i18n-aria="downloader.downloads.title">
+    <section class="downloads-toolbar" aria-label="Быстрый доступ" data-i18n-aria="downloader.quickAccess.title">
     <div class="downloads-toolbar__title">
       <span aria-hidden="true"><i data-lucide="download"></i></span>
-      <strong data-i18n="downloader.downloads.title">Загрузки</strong>
+      <strong data-i18n="downloader.quickAccess.title">Быстрый доступ</strong>
     </div>
     <div class="downloads-toolbar__actions">
       <button
@@ -728,17 +742,7 @@
         disabled
       >
         <i class="fa fa-play" aria-hidden="true"></i>
-      </button>
-      <button
-        id="open-folder"
-        data-shortcut-action="downloads.folder.open"
-        class="queue-action-button queue-action-button--ghost"
-        aria-label="Открыть папку с видео"
-        data-i18n-aria="actions.openFolder"
-        title="Папка с видео"
-        data-i18n-title="actions.videoFolder"
-      >
-        <i data-lucide="folder-open"></i>
+        <span data-i18n="actions.lastVideo">Последнее видео</span>
       </button>
     </div>
   </section>
