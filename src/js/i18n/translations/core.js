@@ -34,8 +34,14 @@ export const coreTranslations = {
     "input.url.helper.ytDlpMissing":
       "Установите yt-dlp, чтобы вставлять ссылки и запускать загрузки.",
     "input.url.helper.loading": "Получаем превью и проверяем ссылку…",
+    "input.url.helper.checking": "Проверяем ссылку: {service}…",
+    "input.url.helper.recognized":
+      "Распознано: {service}. Нажмите Enter и выберите режим загрузки.",
+    "input.url.helper.invalid": "Проверьте формат ссылки.",
+    "input.url.helper.unsupported":
+      "Не удалось распознать источник. Проверьте ссылку или попробуйте другой URL.",
     "input.url.helper.valid":
-      "Ссылка распознана. Нажмите Enter и выберите режим в окне качества.",
+      "Ссылка введена. Проверяем доступность источника…",
     "input.url.helper.playlistChoice":
       "Это плейлист. Выберите текущий ролик или весь плейлист.",
     "input.url.helper.drag": "Отпустите ссылку, чтобы вставить её в поле",
@@ -500,8 +506,14 @@ export const coreTranslations = {
     "input.url.helper.ytDlpMissing":
       "Install yt-dlp to paste links and start downloads.",
     "input.url.helper.loading": "Fetching preview and validating the link...",
+    "input.url.helper.checking": "Checking link: {service}…",
+    "input.url.helper.recognized":
+      "Recognized: {service}. Press Enter and choose a download mode.",
+    "input.url.helper.invalid": "Check the link format.",
+    "input.url.helper.unsupported":
+      "Could not recognize this source. Check the link or try another URL.",
     "input.url.helper.valid":
-      "Link recognized. Press Enter or choose a mode in the quality dialog.",
+      "Link entered. Checking source availability…",
     "input.url.helper.playlistChoice":
       "This is a playlist. Choose the current item or the whole playlist.",
     "input.url.helper.drag": "Drop the link to insert it into the field",

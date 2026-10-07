@@ -158,6 +158,9 @@ describe("urlInputHandler", () => {
           if (key === "input.url.helper.loading") {
             return "Получаем превью и проверяем ссылку…";
           }
+          if (key === "input.url.helper.checking") {
+            return `Получаем превью и проверяем ссылку: ${vars.service}…`;
+          }
           if (key === "input.url.helper.valid") {
             return "Ссылка распознана. Нажмите Enter и выберите режим в окне качества.";
           }
@@ -693,7 +696,7 @@ describe("urlInputHandler", () => {
     expect(wrapper.classList.contains("is-preview-loading")).toBe(true);
     expect(container.classList.contains("is-preview-loading")).toBe(true);
     expect(spinner.classList.contains("hidden")).toBe(false);
-    expect(helperText.textContent).toContain("Получаем превью");
+    expect(helperText.textContent).toContain("Получаем превью и проверяем ссылку");
 
     jest.advanceTimersByTime(600);
     await flushPromises();
@@ -795,7 +798,7 @@ describe("urlInputHandler", () => {
     expect(pasteBtn.classList.contains("hidden")).toBe(true);
     expect(wrapper.classList.contains("has-value")).toBe(true);
     expect(container.classList.contains("has-value")).toBe(true);
-    expect(helperText.textContent).toContain("Получаем превью");
+    expect(helperText.textContent).toContain("Получаем превью и проверяем ссылку");
 
     clearBtn.click();
     expect(input.value).toBe("");

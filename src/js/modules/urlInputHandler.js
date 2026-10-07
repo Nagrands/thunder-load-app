@@ -41,6 +41,7 @@ const openBatchButton = document.getElementById("open-batch-review");
 const urlErrorEl = document.getElementById("url-inline-error");
 const previewSpinner = document.getElementById("url-preview-spinner");
 const helperTextEl = document.getElementById("url-helper-text");
+const helperStatusEl = helperTextEl?.closest(".url-input-statusline");
 const BACKGROUND_RECOVERY_HANDLER_KEY =
   "__thunderLoadDownloaderBackgroundRecoveryHandler";
 const LIVE_PREVIEW_RETRY_HANDLER_KEY =
@@ -69,9 +70,23 @@ function initUrlInputHandler() {
     return validation.isValid ? "input.url.helper.valid" : "input.url.helper";
   };
 
-  const setHelperText = (messageKey = "input.url.helper", vars = {}) => {
+  const getServiceLabel = (value = urlInput.value) => {
+    try {
+      const normalized = normalizeUrlInput(value);
+      return new URL(normalized).hostname.replace(/^www\./i, "");
+    } catch {
+      return "";
+    }
+  };
+
+  const setHelperText = (
+    messageKey = "input.url.helper",
+    vars = {},
+    state = "idle",
+  ) => {
     if (!helperTextEl) return;
     helperTextEl.textContent = t(messageKey, vars);
+    helperStatusEl?.setAttribute("data-state", state);
   };
 
   const syncShellState = (value = urlInput.value) => {
@@ -136,8 +151,15 @@ function initUrlInputHandler() {
       previewSpinner.setAttribute("aria-hidden", isLoading ? "false" : "true");
     }
     if (isLoading) {
-      setHelperText("input.url.helper.loading");
-    } else if (!urlErrorEl || urlErrorEl.classList.contains("hidden")) {
+      setHelperText(
+        "input.url.helper.checking",
+        { service: getServiceLabel() },
+        "checking",
+      );
+    } else if (
+      (!urlErrorEl || urlErrorEl.classList.contains("hidden")) &&
+      helperStatusEl?.dataset.state === "checking"
+    ) {
       setHelperText(getIdleHelperKey());
     }
   };
@@ -157,6 +179,7 @@ function initUrlInputHandler() {
     wrapperEl?.classList.remove("is-valid");
     setStateClass("is-invalid", true);
     setStateClass("is-valid", false);
+    setHelperText("input.url.helper.invalid", {}, "error");
     if (!urlErrorEl) return;
     urlErrorEl.textContent = t(messageKey);
     urlErrorEl.classList.remove("hidden");
@@ -167,6 +190,7 @@ function initUrlInputHandler() {
     wrapperEl?.classList.remove("is-valid");
     setStateClass("is-invalid", true);
     setStateClass("is-valid", false);
+    setHelperText("input.url.helper.unsupported", {}, "error");
     if (!urlErrorEl) return;
     urlErrorEl.textContent = String(message || "");
     urlErrorEl.classList.remove("hidden");
@@ -623,9 +647,17 @@ function initUrlInputHandler() {
       if (currentOnlyBtn) currentOnlyBtn.style.display = "none";
       playlistMetaEl?.classList.add("hidden");
       if (playlistMetaEl) playlistMetaEl.innerHTML = "";
-      setHelperText("input.url.helper.valid");
+      setHelperText(
+        "input.url.helper.recognized",
+        { service: detectPreviewHost(data) || getServiceLabel() },
+        "recognized",
+      );
     } else {
-      setHelperText("input.url.helper.valid");
+      setHelperText(
+        "input.url.helper.recognized",
+        { service: detectPreviewHost(data) || getServiceLabel() },
+        "recognized",
+      );
     }
 
     let closeBtn = card.querySelector(".preview-close");

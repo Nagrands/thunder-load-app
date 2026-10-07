@@ -24,7 +24,13 @@
         </div>
 
         <div class="url-input-service-row">
-          <div class="url-input-statusline">
+          <div
+            class="url-input-statusline"
+            data-state="idle"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+          >
             <span class="url-input-statusline__dot" aria-hidden="true"></span>
             <span id="url-helper-text" class="url-helper-text" data-i18n="input.url.helper">Вставьте ссылку или перетащите её сюда</span>
           </div>
