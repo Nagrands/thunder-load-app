@@ -226,7 +226,7 @@ export const historyTranslations = {
     "history.exportJson": "Export to JSON",
     "history.exportCsv": "Export to CSV",
     "history.count": "Total entries",
-    "history.files.one": "entrie",
+    "history.files.one": "entry",
     "history.files.few": "entries",
     "history.files.many": "entries",
     "history.stats.size": "used",

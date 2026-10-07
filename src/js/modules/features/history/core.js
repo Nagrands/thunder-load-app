@@ -27,7 +27,11 @@ import { showToast } from "../../toast.js";
 import { filterAndSortHistory } from "../../filterAndSortHistory.js";
 import { normalizeEntry } from "../../normalizeEntry.js";
 import { handleDeleteEntry } from "../../contextMenu.js";
-import { initTooltips, disposeAllTooltips } from "../../tooltipInitializer.js";
+import {
+  initTooltips,
+  disposeAllTooltips,
+  refreshTooltip,
+} from "../../tooltipInitializer.js";
 import { getLanguage, t } from "../../i18n.js";
 import { focusUrlInputAfterRetry } from "../../retryFocus.js";
 import { formatDownloadHistoryReason } from "../../downloadErrorUi.js";
@@ -125,6 +129,12 @@ let historyLoadPromise = null;
 let historyUpdateTimer = null;
 let historyUpdateGeneration = 0;
 let historyUpdateBound = false;
+let downloadsHistoryCountRoot = null;
+let downloadsHistoryNewRoot = null;
+let downloadsHistoryLiveRoot = null;
+let latestHistoryCount = null;
+let unreadHistoryEntries = 0;
+const pendingLocalHistoryAdds = new Set();
 
 const HISTORY_FILTERS_COLLAPSED_KEY = "historyFiltersCollapsed";
 
@@ -136,6 +146,82 @@ const pluralize = (value, [one, few, many]) => {
   if (n10 >= 2 && n10 <= 4 && (n100 < 10 || n100 >= 20)) return few;
   return many;
 };
+
+function syncDownloadsHistoryButton(count = latestHistoryCount ?? 0) {
+  const button = openHistoryButton?.isConnected
+    ? openHistoryButton
+    : document.getElementById("open-history");
+  if (!button) return;
+
+  if (!downloadsHistoryCountRoot?.isConnected) {
+    downloadsHistoryCountRoot = document.getElementById(
+      "downloads-history-count",
+    );
+  }
+  if (!downloadsHistoryNewRoot?.isConnected) {
+    downloadsHistoryNewRoot = document.getElementById("downloads-history-new");
+  }
+  if (!downloadsHistoryLiveRoot?.isConnected) {
+    downloadsHistoryLiveRoot = document.getElementById("downloads-history-live");
+  }
+
+  const normalizedCount = Math.max(0, Number(count) || 0);
+  const hasNewEntries = unreadHistoryEntries > 0;
+  if (downloadsHistoryCountRoot) {
+    downloadsHistoryCountRoot.textContent = String(normalizedCount);
+  }
+  downloadsHistoryNewRoot?.classList.toggle("hidden", !hasNewEntries);
+  button.classList.toggle("has-new", hasNewEntries);
+
+  const entryLabel = pluralize(normalizedCount, [
+    t("history.files.one"),
+    t("history.files.few"),
+    t("history.files.many"),
+  ]);
+  let accessibleLabel = t("downloader.quickAccess.historyAria", {
+    count: normalizedCount,
+    entries: entryLabel,
+  });
+  if (hasNewEntries) {
+    accessibleLabel += `. ${t("downloader.quickAccess.historyNewAria", {
+      count: unreadHistoryEntries,
+    })}`;
+  }
+  button.setAttribute("aria-label", accessibleLabel);
+  button.title = accessibleLabel;
+  refreshTooltip(button);
+  if (downloadsHistoryLiveRoot) {
+    downloadsHistoryLiveRoot.textContent = hasNewEntries
+      ? t("downloader.quickAccess.historyNewAria", {
+          count: unreadHistoryEntries,
+        })
+      : "";
+  }
+}
+
+function handleDownloadsHistoryCountUpdate(count) {
+  const normalizedCount = Math.max(0, Number(count) || 0);
+  const pendingAdd = Array.from(pendingLocalHistoryAdds).find(
+    (item) => item.count === normalizedCount,
+  );
+  let addedCount = 0;
+  if (pendingAdd) {
+    window.clearTimeout(pendingAdd.timeout);
+    pendingLocalHistoryAdds.delete(pendingAdd);
+    addedCount = 1;
+  } else if (
+    Number.isFinite(latestHistoryCount) &&
+    normalizedCount > latestHistoryCount
+  ) {
+    addedCount = normalizedCount - latestHistoryCount;
+  }
+
+  if (!state.historyVisible && addedCount > 0) {
+    unreadHistoryEntries += addedCount;
+  }
+  latestHistoryCount = normalizedCount;
+  syncDownloadsHistoryButton(normalizedCount);
+}
 
 const formatBytes = (bytes = 0) => {
   const value = Number(bytes);
@@ -193,7 +279,11 @@ const getHistoryStats = (entries = []) => {
   };
 };
 
-const updateHistoryHeaderStats = ({ count = 0, sizeBytes = 0 } = {}) => {
+const updateHistoryHeaderStats = ({
+  count = 0,
+  sizeBytes = 0,
+  quickAccessCount = getHistoryData().length,
+} = {}) => {
   if (!totalDownloadSizeRoot || !totalDownloadSizeRoot.isConnected) {
     totalDownloadSizeRoot = document.getElementById("total-download-size");
   }
@@ -214,6 +304,8 @@ const updateHistoryHeaderStats = ({ count = 0, sizeBytes = 0 } = {}) => {
   if (totalDownloadSizeRoot) {
     totalDownloadSizeRoot.textContent = formatBytes(sizeBytes);
   }
+  latestHistoryCount = Math.max(0, Number(quickAccessCount) || 0);
+  syncDownloadsHistoryButton(latestHistoryCount);
 };
 
 const normalizePageSize = (value) => {
@@ -3157,8 +3249,10 @@ function initHistory() {
 
   openHistoryButton.addEventListener("click", () => {
     const newVisibility = !state.historyVisible;
+    if (newVisibility) unreadHistoryEntries = 0;
     toggleHistoryVisibility(newVisibility);
     setHistoryPanelVisible(state.historyVisible);
+    syncDownloadsHistoryButton();
     if (
       state.historyVisible &&
       (state.historyStale || !state.historyHydrated)
@@ -3290,9 +3384,11 @@ function handleHistoryUpdated(payload = {}) {
 
   const count = Number(payload?.count);
   if (Number.isFinite(count) && count >= 0) {
+    handleDownloadsHistoryCountUpdate(count);
     updateHistoryHeaderStats({
       count,
       sizeBytes: getHistoryStats(getHistoryData()).sizeBytes,
+      quickAccessCount: count,
     });
   }
 
@@ -3309,6 +3405,7 @@ const addNewEntryToHistory = async (
   { replaceExistingFilePath = true } = {},
 ) => {
   const previousHistory = [...getHistoryData()];
+  let pendingHistoryAdd = null;
   try {
     const normalized = await normalizeEntry(newEntryRaw);
     normalized._highlight = true;
@@ -3332,6 +3429,11 @@ const addNewEntryToHistory = async (
 
     setHistoryData(updated);
     state.historyPage = 1;
+    pendingHistoryAdd = { count: updated.length, timeout: null };
+    pendingLocalHistoryAdds.add(pendingHistoryAdd);
+    pendingHistoryAdd.timeout = window.setTimeout(() => {
+      pendingLocalHistoryAdds.delete(pendingHistoryAdd);
+    }, 30000);
     const saveResult = await saveHistoryEntries(updated);
     if (Number.isFinite(Number(saveResult?.revision))) {
       state.historyRevision = Number(saveResult.revision);
@@ -3347,6 +3449,10 @@ const addNewEntryToHistory = async (
 
     return true;
   } catch (error) {
+    if (pendingHistoryAdd) {
+      window.clearTimeout(pendingHistoryAdd.timeout);
+      pendingLocalHistoryAdds.delete(pendingHistoryAdd);
+    }
     setHistoryData(previousHistory);
     console.error("Ошибка при добавлении записи в историю:", error);
     showToast(t("history.toast.addError"), "error");

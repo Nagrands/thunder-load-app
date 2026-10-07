@@ -17,6 +17,37 @@
         <i class="fa fa-play" aria-hidden="true"></i>
         <span data-i18n="actions.lastVideo">Последнее видео</span>
       </button>
+      <button
+        id="open-history"
+        data-shortcut-action="history.open"
+        class="queue-action-button queue-action-button--ghost downloads-toolbar__history"
+        type="button"
+        aria-label="Открыть историю загрузок"
+        data-i18n-aria="topbar.history"
+        aria-controls="history-container"
+        aria-expanded="false"
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="История загрузок"
+        data-i18n-title="topbar.history"
+      >
+        <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>
+        <span data-i18n="history.title">История</span>
+        <span id="downloads-history-count" class="downloads-toolbar__count" aria-hidden="true">0</span>
+        <span
+          id="downloads-history-new"
+          class="downloads-toolbar__new hidden"
+          data-i18n="downloader.quickAccess.new"
+          aria-hidden="true"
+        >Новое</span>
+      </button>
+      <span
+        id="downloads-history-live"
+        class="sr-only"
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+      ></span>
     </div>
   </section>
 

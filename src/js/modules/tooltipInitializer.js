@@ -483,6 +483,13 @@ function applyHotkeyTitles(tooltipTriggerList, isMac) {
   });
 }
 
+function refreshTooltip(el) {
+  if (!el) return;
+  const isMac = navigator.platform.toUpperCase().includes("MAC");
+  applyHotkeyTitles([el], isMac);
+  syncTooltipInstance(el);
+}
+
 function initTooltips(root = document) {
   if (!(window.bootstrap && window.bootstrap.Tooltip)) {
     if (process.env.NODE_ENV !== "test") {
@@ -630,4 +637,4 @@ function _isWithActiveTrigger(trigger) {
   return Object.values(trigger).some((value) => value);
 }
 
-export { initTooltips, disposeAllTooltips, hideAllTooltips };
+export { initTooltips, disposeAllTooltips, hideAllTooltips, refreshTooltip };
