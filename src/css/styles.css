@@ -24172,9 +24172,6 @@ video {
   background: rgba(4, 10, 21, 0.34);
   text-align: center;
 }
-.downloader-view .url-input-wrapper--downloader.is-empty .url-drop-zone {
-  display: flex;
-}
 
 .download-destination {
   display: grid;
@@ -40708,9 +40705,6 @@ body {
   }
   .tab-hero .title-content .subtitle,
   .url-drop-zone__hint {
-    display: none;
-  }
-  .url-input-wrapper--downloader.is-empty .url-drop-zone {
     display: none;
   }
   .url-input-wrapper--downloader .url-drop-zone {
