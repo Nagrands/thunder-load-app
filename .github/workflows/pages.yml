@@ -47,7 +47,7 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm ci
+        run: pnpm install --frozen-lockfile --ignore-workspace
 
       - name: Unit tests
         run: pnpm test
@@ -97,7 +97,7 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm ci
+        run: pnpm install --frozen-lockfile --ignore-workspace
 
       - name: Build site
         env:

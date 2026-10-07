@@ -50,7 +50,7 @@ jobs:
         run: npx electron-builder --mac --publish always
 
       - name: Verify packaged macOS icons
-        run: pnpm run icons:verify:packaged -- --mac
+        run: node scripts/verify-packaged-icons.cjs --mac
 
   build-windows:
     needs: build-macos
@@ -87,7 +87,7 @@ jobs:
 
       - name: Verify packaged Windows icons
         shell: pwsh
-        run: pnpm run icons:verify:packaged -- --win
+        run: node scripts/verify-packaged-icons.cjs --win
 
   publish-release-notes:
     needs: [build-macos, build-windows]
