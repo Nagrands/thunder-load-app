@@ -84,10 +84,6 @@
     "asar": true,
     "extraResources": [
       {
-        "from": "assets/icons/app/app-icon.ico",
-        "to": "app-icon.ico"
-      },
-      {
         "from": "assets/icons/",
         "to": "usr/share/icons/hicolor/256x256/apps"
       }

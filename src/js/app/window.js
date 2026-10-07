@@ -304,16 +304,17 @@ function createWindow(
   const baseAssetsPath = app.getAppPath();
   const macIcns = resolveIconPathFrom(baseAssetsPath, "APP_ICON_ICNS");
   const macPng = resolveIconPathFrom(baseAssetsPath, "APP_ICON_PNG");
-  // Packaged Windows builds keep the window icon outside app.asar so the
-  // native window can load it reliably.
-  const winIco =
-    process.platform === "win32" && app.isPackaged
-      ? path.join(path.dirname(baseAssetsPath), "app-icon.ico")
-      : resolveIconPathFrom(baseAssetsPath, "APP_ICON_ICO");
+  const winIco = resolveIconPathFrom(baseAssetsPath, "APP_ICON_ICO");
 
   // В dev Electron часто не подхватывает .icns → используем PNG; в prod предпочитаем .icns.
-  const bwIconCandidates =
-    process.platform === "darwin"
+  // В packaged Windows не задаём icon: Windows возьмёт ресурс из Thunder.exe.
+  // Путь app.getAppPath() внутри пакета указывает на app.asar и не должен
+  // переопределять системную иконку окна.
+  const usePackagedWindowsExecutableIcon =
+    process.platform === "win32" && app.isPackaged;
+  const bwIconCandidates = usePackagedWindowsExecutableIcon
+    ? []
+    : process.platform === "darwin"
       ? app.isPackaged
         ? [macIcns, macPng]
         : [macPng]
