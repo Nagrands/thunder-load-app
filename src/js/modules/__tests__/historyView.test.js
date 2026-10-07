@@ -5,6 +5,7 @@ const mockShowToast = jest.fn();
 jest.mock("../tooltipInitializer.js", () => ({
   initTooltips: jest.fn(),
   disposeAllTooltips: jest.fn(),
+  refreshTooltip: jest.fn(),
 }));
 
 jest.mock("../toast.js", () => ({

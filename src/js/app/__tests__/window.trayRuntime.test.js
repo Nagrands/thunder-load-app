@@ -198,7 +198,7 @@ describe("tray runtime behavior", () => {
     expect(tray.setContextMenu).not.toHaveBeenCalled();
   });
 
-  test("uses the packaged executable icon for the Windows taskbar", () => {
+  test("sets the packaged icon on the Windows main window", () => {
     setPlatform("win32");
     const app = new EventEmitter();
     app.getName = () => "Thunder";
@@ -223,7 +223,7 @@ describe("tray runtime behavior", () => {
 
     expect(require("electron").BrowserWindow).toHaveBeenNthCalledWith(
       1,
-      expect.not.objectContaining({ icon: expect.anything() }),
+      expect.objectContaining({ icon: "/tmp/resources/app-icon.ico" }),
     );
   });
 

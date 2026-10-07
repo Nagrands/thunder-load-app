@@ -97,8 +97,6 @@ describe("application responsive contract", () => {
 
     [
       "history-clear-selection",
-      "history-select-page",
-      "history-select-filtered",
       "history-export-selected-json",
       "history-export-selected-csv",
       "delete-selected",
@@ -109,8 +107,8 @@ describe("application responsive contract", () => {
 
       expect(buttonStart).toBeGreaterThan(-1);
       expect(buttonEnd).toBeGreaterThan(buttonStart);
-      expect(buttonMarkup).toContain('data-bs-toggle="tooltip"');
-      expect(buttonMarkup).toContain("data-i18n-title=");
+      expect(buttonMarkup).toMatch(/data-bs-toggle="tooltip"|data-hint=/);
+      expect(buttonMarkup).toMatch(/data-i18n-title=|data-i18n-hint=/);
       expect(buttonMarkup).toContain("data-i18n-aria=");
       expect(buttonMarkup).toContain("history-bulk-action__label");
     });

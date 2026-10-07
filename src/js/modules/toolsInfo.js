@@ -397,6 +397,7 @@ function renderSkeleton(section) {
   const revealButton = createButton({
     id: "ti-tools-location-reveal",
     icon: "fa-solid fa-folder-tree",
+    labelKey: "tools.location.reveal.generic",
     titleKey: "tools.location.reveal.generic",
   });
   const copyButton = createButton({

@@ -71,7 +71,8 @@ describe("main view header template", () => {
       "utf8",
     );
     expect(queueTemplate).toContain('id="open-last-video"');
-    expect(queueTemplate).toContain('id="open-folder"');
+    expect(queueTemplate).not.toContain('id="open-folder"');
+    expect(template).toContain('id="downloads-open-folder"');
 
     const mainViewTemplate = fs.readFileSync(
       path.resolve(process.cwd(), "templates/partials/main-view.njk"),
