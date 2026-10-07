@@ -1,7 +1,7 @@
 {
   "name": "thunder-app",
   "productName": "Thunder",
-  "version": "1.6.5",
+  "version": "1.6.4",
   "description": "Thunder Spark",
   "main": "src/js/app.js",
   "private": true,
@@ -83,6 +83,10 @@
     "productName": "Thunder",
     "asar": true,
     "extraResources": [
+      {
+        "from": "assets/icons/app/app-icon.ico",
+        "to": "app-icon.ico"
+      },
       {
         "from": "assets/icons/",
         "to": "usr/share/icons/hicolor/256x256/apps"
