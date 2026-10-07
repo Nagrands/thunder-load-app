@@ -3,6 +3,7 @@ const LIVE_PREVIEW_STATE_EVENT = "downloader:live-preview-state";
 const DOWNLOADER_TAB_ID = "download";
 const CROSSFADE_DELAY_MS = 40;
 const CROSSFADE_SETTLE_MS = 320;
+const BACKGROUND_PREVIEW_SETTING_KEY = "downloaderYouTubeBackgroundPreviewDisabled";
 
 let layerEl = null;
 let videoEls = [];
@@ -18,6 +19,14 @@ let currentSlotIndex = -1;
 let pendingSlotIndex = -1;
 let pendingResumeTime = null;
 let livePreviewOpen = false;
+
+function isBackgroundPreviewEnabled() {
+  try {
+    return localStorage.getItem(BACKGROUND_PREVIEW_SETTING_KEY) !== "1";
+  } catch {
+    return true;
+  }
+}
 
 function syncRefs() {
   layerEl = document.getElementById("downloader-background-preview");
@@ -59,11 +68,31 @@ function setLayerActive(isActive) {
 
 function isLayerAllowedToPlay() {
   return (
+    isBackgroundPreviewEnabled() &&
     activeTabId === DOWNLOADER_TAB_ID &&
     !livePreviewOpen &&
     document.visibilityState !== "hidden" &&
     document.hasFocus()
   );
+}
+
+function initDownloaderBackgroundPreviewSetting() {
+  const toggle = document.getElementById(
+    "settings-youtube-background-preview",
+  );
+  if (!toggle || toggle.dataset.initialized === "true") return;
+  toggle.dataset.initialized = "true";
+  toggle.checked = isBackgroundPreviewEnabled();
+  toggle.addEventListener("change", () => {
+    try {
+      localStorage.setItem(
+        BACKGROUND_PREVIEW_SETTING_KEY,
+        toggle.checked ? "0" : "1",
+      );
+    } catch {}
+    if (toggle.checked) syncPlaybackState();
+    else clearDownloaderBackgroundPreview();
+  });
 }
 
 function pauseVideo(slotIndex) {
@@ -243,6 +272,10 @@ function activatePendingSlot(slotIndex) {
 
 async function applyDownloaderBackgroundPreview(preview = null, options = {}) {
   syncRefs();
+  if (!isBackgroundPreviewEnabled()) {
+    clearDownloaderBackgroundPreview();
+    return false;
+  }
   if (videoEls.length < 2 || sourceEls.length < 2 || !preview?.src) {
     clearDownloaderBackgroundPreview();
     return false;
@@ -345,6 +378,7 @@ function initDownloaderBackgroundPreview() {
 }
 
 export {
+  initDownloaderBackgroundPreviewSetting,
   RECOVERY_EVENT,
   applyDownloaderBackgroundPreview,
   clearDownloaderBackgroundPreview,

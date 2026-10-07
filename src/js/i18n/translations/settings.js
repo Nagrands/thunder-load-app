@@ -103,6 +103,9 @@ export const settingsTranslations = {
       "Основные параметры загрузки и поведения окна.",
     "settings.downloader.group.parallel": "Параллельность и запуск",
     "settings.downloader.group.behavior": "Поведение окна и завершения",
+    "settings.downloader.youtubeBackgroundPreview.title": "Фоновое видео YouTube",
+    "settings.downloader.youtubeBackgroundPreview.hint":
+      "Воспроизводить видео-превью на фоне при вставке ссылки.",
     "settings.downloader.advanced.title": "Дополнительно: доступ к YouTube",
     "settings.downloader.advanced.hint":
       "Cookies для роликов, требующих вход или проверку.",
@@ -487,6 +490,9 @@ export const settingsTranslations = {
       "Core download options and window behavior settings.",
     "settings.downloader.group.parallel": "Parallelism and startup",
     "settings.downloader.group.behavior": "Window and completion behavior",
+    "settings.downloader.youtubeBackgroundPreview.title": "YouTube background video",
+    "settings.downloader.youtubeBackgroundPreview.hint":
+      "Play a video preview in the background when you paste a link.",
     "settings.downloader.advanced.title": "Advanced: YouTube access",
     "settings.downloader.advanced.hint":
       "Cookies for videos that require sign-in or verification.",

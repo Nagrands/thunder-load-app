@@ -53,6 +53,7 @@ import {
   normalizePlayerSettings,
 } from "./playerSettings.js";
 import { applyPlayerSettings } from "../../nowPlaying/settingsEvents.js";
+import { initDownloaderBackgroundPreviewSetting } from "../../downloaderBackgroundPreview.js";
 import {
   logRendererError,
   logRendererEvent,
@@ -84,6 +85,7 @@ async function initSettings() {
 
   initDownloadQualityProfileSettings();
   initPlayerSettings();
+  initDownloaderBackgroundPreviewSetting();
 
   (function initDownloadParallelLimit() {
     const segment = document.getElementById(
