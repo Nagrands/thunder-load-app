@@ -1134,16 +1134,29 @@ function updateQueueDisplay() {
       const pauseKey = state.suppressAutoPump
         ? "queue.resume.title"
         : "queue.pause.title";
+      const pauseShortKey = state.suppressAutoPump
+        ? "queue.resume.short"
+        : "queue.pause.short";
       const pauseLabel = t(pauseKey);
+      const pauseShortLabel = t(pauseShortKey);
       const pauseIcon = queuePauseButton.querySelector("[data-lucide]");
+      const pauseText = queuePauseButton.querySelector("[data-i18n]");
       if (pauseIcon) {
         pauseIcon.setAttribute(
           "data-lucide",
           state.suppressAutoPump ? "play" : "pause",
         );
       }
+      if (pauseText) {
+        pauseText.textContent = pauseShortLabel;
+        pauseText.setAttribute("data-i18n", pauseShortKey);
+      }
       queuePauseButton.setAttribute("title", pauseLabel);
       queuePauseButton.setAttribute("aria-label", pauseLabel);
+      queuePauseButton.setAttribute(
+        "aria-pressed",
+        String(Boolean(state.suppressAutoPump)),
+      );
       queuePauseButton.setAttribute("data-bs-original-title", pauseLabel);
       queuePauseButton.setAttribute("data-i18n-title", pauseKey);
       queuePauseButton.setAttribute("data-i18n-aria", pauseKey);
@@ -1180,6 +1193,10 @@ function updateQueueDisplay() {
     const label = t(key);
     queueToggleButton.setAttribute("title", label);
     queueToggleButton.setAttribute("aria-label", label);
+    queueToggleButton.setAttribute(
+      "aria-expanded",
+      String(!state.queueCollapsed),
+    );
     queueToggleButton.setAttribute("data-bs-original-title", label);
     queueToggleButton.setAttribute("data-i18n-title", key);
     queueToggleButton.setAttribute("data-i18n-aria", key);

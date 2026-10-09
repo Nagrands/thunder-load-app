@@ -17,8 +17,15 @@ const buildDom = () => {
     <div id="queue-start-indicator" class="hidden"></div>
     <button id="queue-retry-failed-button"></button>
     <button id="queue-start-button"></button>
-    <button id="queue-pause-button"></button>
-    <button id="queue-toggle-button"></button>
+    <button id="queue-pause-button">
+      <i data-lucide="pause"></i>
+      <span data-i18n="queue.pause.short">Pause</span>
+    </button>
+    <button
+      id="queue-toggle-button"
+      aria-controls="queue-list"
+      aria-expanded="true"
+    ></button>
     <button id="queue-clear-button"></button>
     <div id="queue-list"></div>
     <span id="download-cancel-count" class="hidden"></span>
@@ -2255,6 +2262,7 @@ describe("downloadManager queue smart logic", () => {
 
       toggleBtn.click();
       expect(queueList.classList.contains("hidden")).toBe(true);
+      expect(toggleBtn.getAttribute("aria-expanded")).toBe("false");
       expect(localStorage.getItem("downloadQueueCollapsed")).toBe("1");
 
       jest.resetModules();
@@ -2337,6 +2345,7 @@ describe("downloadManager queue smart logic", () => {
       const toggleBtn = document.getElementById("queue-toggle-button");
       toggleBtn.click();
       expect(localStorage.getItem("downloadQueueCollapsed")).toBeNull();
+      expect(toggleBtn.getAttribute("aria-expanded")).toBe("true");
       expect(
         document.getElementById("queue-list").classList.contains("hidden"),
       ).toBe(false);
@@ -2374,6 +2383,10 @@ describe("downloadManager queue smart logic", () => {
       ]);
       updateQueueDisplay();
       expect(pauseBtn.disabled).toBe(false);
+      expect(pauseBtn.getAttribute("aria-pressed")).toBe("false");
+      expect(pauseBtn.querySelector("[data-i18n]").textContent).toBe(
+        "queue.pause.short",
+      );
 
       state.downloadJobs = [];
       setActiveJobs(state, [
@@ -2571,6 +2584,12 @@ describe("downloadManager queue smart logic", () => {
       expect(
         document.getElementById("queue-pause-button").getAttribute("title"),
       ).toBe("queue.resume.title");
+      expect(
+        document.getElementById("queue-pause-button").getAttribute("aria-pressed"),
+      ).toBe("true");
+      expect(
+        document.querySelector("#queue-pause-button [data-i18n]").textContent,
+      ).toBe("queue.resume.short");
       expect(
         document.querySelector(".queue-status-chip")?.textContent,
       ).toContain("queue.status.paused");

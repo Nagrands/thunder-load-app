@@ -71,6 +71,9 @@ describe("main view header template", () => {
       "utf8",
     );
     expect(queueTemplate).toContain('id="open-last-video"');
+    expect(queueTemplate).toContain('id="download-cancel"');
+    expect(queueTemplate).toContain('data-i18n="actions.cancelDownload.short"');
+    expect(queueTemplate).toContain('id="download-cancel-count"');
     expect(queueTemplate).not.toContain('id="open-folder"');
     expect(template).toContain('id="downloads-open-folder"');
 

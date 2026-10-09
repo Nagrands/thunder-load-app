@@ -61,63 +61,83 @@
         </h3>
       </div>
       <div class="queue-actions">
-        <button
-          id="download-cancel"
-          class="queue-action-button queue-action-button--danger"
-          aria-label="Отменить скачивание"
-          data-i18n-aria="actions.cancelDownload"
-          title="Отменить скачивание"
-          data-i18n-title="actions.cancelDownload"
-          disabled
-        >
-          <i data-lucide="square-x"></i>
-          <span id="download-cancel-count" class="cancel-count hidden">0</span>
-        </button>
-        <button
-          id="queue-start-button"
-          class="queue-action-button queue-action-button--start"
-          aria-label="Запустить очередь"
-          title="Запустить очередь"
-          data-i18n-title="queue.start.title"
-          data-i18n-aria="queue.start.title"
-        >
-          <i data-lucide="play"></i>
-          <span data-i18n="queue.start">Запустить</span>
-        </button>
-        <button
-          id="queue-pause-button"
-          class="queue-action-button queue-action-button--pause"
-          aria-label="Не запускать следующие"
-          title="Не запускать следующие"
-          data-i18n-title="queue.pause.title"
-          data-i18n-aria="queue.pause.title"
-        >
-          <i data-lucide="pause"></i>
-        </button>
-        <button
-          id="queue-retry-failed-button"
-          class="queue-action-button queue-action-button--ghost hidden"
-          aria-label="Повторить все ошибки"
-          title="Повторить все ошибки"
-          data-i18n-title="queue.retryFailed.title"
-          data-i18n-aria="queue.retryFailed.title"
-        >
-          <i data-lucide="refresh-cw"></i>
-        </button>
-        <button
-          id="queue-clear-button"
-          class="queue-action-button queue-action-button--clear"
-          aria-label="Очистить очередь"
-          title="Очистить очередь"
-          data-i18n-title="queue.clear.title"
-          data-i18n-aria="queue.clear.title"
-        >
-          <i data-lucide="trash-2"></i>
-        </button>
+        <div class="queue-action-group queue-action-group--primary">
+          <button
+            id="queue-start-button"
+            class="queue-action-button queue-action-button--start"
+            aria-label="Запустить очередь"
+            title="Запустить очередь"
+            data-i18n-title="queue.start.title"
+            data-i18n-aria="queue.start.title"
+          >
+            <i data-lucide="play" aria-hidden="true"></i>
+            <span data-i18n="queue.start">Запустить</span>
+          </button>
+          <button
+            id="queue-pause-button"
+            class="queue-action-button queue-action-button--pause"
+            aria-label="Не запускать следующие"
+            aria-pressed="false"
+            title="Не запускать следующие"
+            data-i18n-title="queue.pause.title"
+            data-i18n-aria="queue.pause.title"
+          >
+            <i data-lucide="pause" aria-hidden="true"></i>
+            <span data-i18n="queue.pause.short">Пауза</span>
+          </button>
+        </div>
         <span class="queue-actions-divider" aria-hidden="true"></span>
+        <div class="queue-action-group queue-action-group--secondary">
+          <button
+            id="download-cancel"
+            class="queue-action-button queue-action-button--danger"
+            aria-label="Отменить скачивание"
+            data-i18n-aria="actions.cancelDownload"
+            title="Отменить скачивание"
+            data-i18n-title="actions.cancelDownload"
+            disabled
+          >
+            <i data-lucide="square-x" aria-hidden="true"></i>
+            <span
+              class="queue-action-button__label"
+              data-i18n="actions.cancelDownload.short"
+            >Отменить</span>
+            <span
+              id="download-cancel-count"
+              class="cancel-count hidden"
+              aria-hidden="true"
+            >0</span>
+          </button>
+          <button
+            id="queue-retry-failed-button"
+            class="queue-action-button queue-action-button--ghost hidden"
+            aria-label="Повторить все ошибки"
+            title="Повторить все ошибки"
+            data-i18n-title="queue.retryFailed.title"
+            data-i18n-aria="queue.retryFailed.title"
+          >
+            <i data-lucide="refresh-cw" aria-hidden="true"></i>
+          </button>
+          <button
+            id="queue-clear-button"
+            class="queue-action-button queue-action-button--clear"
+            aria-label="Очистить очередь"
+            title="Очистить очередь"
+            data-i18n-title="queue.clear.title"
+            data-i18n-aria="queue.clear.title"
+          >
+            <i data-lucide="trash-2" aria-hidden="true"></i>
+          </button>
+        </div>
+        <span
+          class="queue-actions-divider queue-actions-divider--collapse"
+          aria-hidden="true"
+        ></span>
         <button
           id="queue-toggle-button"
           class="queue-toggle-button"
+          aria-controls="queue-list"
+          aria-expanded="true"
           aria-label="Свернуть очередь"
           title="Свернуть очередь"
           data-i18n-title="queue.toggle.collapse.title"
