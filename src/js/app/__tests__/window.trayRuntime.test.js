@@ -25,6 +25,7 @@ jest.mock("electron", () => {
       this.getSize = jest.fn(() => [1280, 740]);
       this.getMinimumSize = jest.fn(() => [800, 500]);
       this.setSize = jest.fn();
+      this.setIcon = jest.fn();
       this.loadFile = jest.fn(() => Promise.resolve());
       this.setMenuBarVisibility = jest.fn();
       this.once = jest.fn((event, cb) => {
@@ -160,7 +161,7 @@ describe("tray runtime behavior", () => {
       expect.objectContaining({
         minWidth: 800,
         minHeight: 500,
-        icon: expect.stringContaining("assets/icons/app/app-icon.ico"),
+        icon: expect.objectContaining({ isEmpty: expect.any(Function) }),
         webPreferences: expect.objectContaining({
           enableBlinkFeatures: "AudioVideoTracks",
         }),
@@ -198,7 +199,7 @@ describe("tray runtime behavior", () => {
     expect(tray.setContextMenu).not.toHaveBeenCalled();
   });
 
-  test("sets the packaged icon on the Windows main window", () => {
+  test("keeps the executable icon on the packaged Windows main window", () => {
     setPlatform("win32");
     const app = new EventEmitter();
     app.getName = () => "Thunder";
@@ -223,8 +224,11 @@ describe("tray runtime behavior", () => {
 
     expect(require("electron").BrowserWindow).toHaveBeenNthCalledWith(
       1,
-      expect.objectContaining({ icon: "/tmp/resources/app-icon.ico" }),
+      expect.not.objectContaining({ icon: expect.anything() }),
     );
+    expect(
+      require("electron").BrowserWindow.mock.results[0].value.setIcon,
+    ).not.toHaveBeenCalled();
   });
 
   test("creates a template tray image on macOS", () => {

@@ -303,26 +303,33 @@ function createWindow(
 
   const baseAssetsPath = app.getAppPath();
   const macIcns = resolveIconPathFrom(baseAssetsPath, "APP_ICON_ICNS");
-  const macPng = resolveIconPathFrom(baseAssetsPath, "APP_ICON_PNG");
-  // Packaged Windows builds keep the window icon outside app.asar so the
-  // native window can load it reliably.
-  const winIco =
-    process.platform === "win32" && app.isPackaged
-      ? path.join(path.dirname(baseAssetsPath), "app-icon.ico")
-      : resolveIconPathFrom(baseAssetsPath, "APP_ICON_ICO");
+  const appPng = resolveIconPathFrom(baseAssetsPath, "APP_ICON_PNG");
+  const appIco = resolveIconPathFrom(baseAssetsPath, "APP_ICON_ICO");
 
-  // В dev Electron часто не подхватывает .icns → используем PNG; в prod предпочитаем .icns.
-  const bwIconCandidates =
-    process.platform === "darwin"
+  // Packaged Windows windows must keep the executable's icon. Setting a
+  // BrowserWindow icon overrides the resource Windows uses for the taskbar.
+  const usePackagedWindowsExecutableIcon =
+    process.platform === "win32" && app.isPackaged;
+  const bwIconCandidates = usePackagedWindowsExecutableIcon
+    ? []
+    : process.platform === "darwin"
       ? app.isPackaged
-        ? [macIcns, macPng]
-        : [macPng]
-      : [winIco, macPng];
+        ? [macIcns, appPng]
+        : [appPng]
+      : process.platform === "win32"
+        ? [appIco, appPng]
+        : [appPng];
 
-  const iconPath = bwIconCandidates.find((p) => fs.existsSync(p)) || null;
-  windowLogger.debug?.("window-icon-selected", {
+  const iconImage = bwIconCandidates.length
+    ? loadNativeImageFrom(bwIconCandidates)
+    : null;
+  windowLogger.debug?.("window-icon-source", {
     candidates: bwIconCandidates,
-    iconPath,
+    source: usePackagedWindowsExecutableIcon
+      ? "executable"
+      : iconImage
+        ? "window"
+        : "platform-default",
   });
 
   const mainWindow = new BrowserWindow({
@@ -333,7 +340,7 @@ function createWindow(
     minHeight: 500,
     width: mainWindowState.width,
     height: mainWindowState.height,
-    ...(iconPath ? { icon: iconPath } : {}),
+    ...(iconImage ? { icon: iconImage } : {}),
     backgroundColor: "#1e1e1e",
     frame: false,
     show: false,
@@ -348,6 +355,9 @@ function createWindow(
     },
   });
   activeMainWindow = mainWindow;
+  if (iconImage && typeof mainWindow.setIcon === "function") {
+    mainWindow.setIcon(iconImage);
+  }
 
   mainWindow.once("ready-to-show", () => {
     mainWindow.show(); // обязательно вызываем show()

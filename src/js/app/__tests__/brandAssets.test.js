@@ -174,6 +174,18 @@ describe("Thunder brand asset contract", () => {
     );
   });
 
+  test("website launcher PNGs match the generated app icons", () => {
+    for (const size of [256, 512]) {
+      expect(
+        fs.readFileSync(
+          path.join(ROOT, "website", "public", "icons", `app-icon-${size}.png`),
+        ),
+      ).toEqual(
+        fs.readFileSync(assetPath("icons", "app", `app-icon-${size}.png`)),
+      );
+    }
+  });
+
   test("menu and notification assets keep their runtime dimensions", () => {
     for (const name of ["video", "open-folder", "settings", "logout"]) {
       expect(readPngSize(assetPath("icons", "menu", `${name}.png`))).toEqual([

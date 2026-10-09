@@ -15,9 +15,11 @@
 
 - Основные иконки приложения:
   `assets/icons/app/app-icon.png`, `assets/icons/app/app-icon.ico`
-- Исходный 1024×1024 RGBA master основного значка:
-  `assets/icons/app/app-icon-master.png`. Генератор не перезаписывает master и
-  использует его только для создания platform/app производных.
+- 1024×1024 RGBA master и его производные создаются процедурно генератором из
+  геометрии знака Thunder; исходная геометрия и палитра заданы в
+  `scripts/generate_brand_icons.py` и `assets/brand/tokens/thunder.tokens.json`.
+- Для сборки только app/platform/site launchers без tray, menu и notification
+  ассетов используйте `python3 scripts/generate_brand_icons.py --app-only`.
 - Иконка сборки macOS:
   `assets/icons/platform/macos/app-icon.icns`
 - Производные размеры:
@@ -43,9 +45,11 @@
 - Если ассет используется только в одном сценарии, называйте его по сценарию:
   `tray-*`, `menu-*`, `notification-*` либо устоявшимся коротким именем внутри своей папки.
 - Для новых системных иконок сначала обновляйте [src/js/app/iconPaths.js](../src/js/app/iconPaths.js), а уже потом подключайте их в `window.js`, `notifications.js`, `autoUpdater.js` или другие модули.
-- App, platform, menu, notification и tray-иконки генерируются через
-  [scripts/generate_brand_icons.py](../scripts/generate_brand_icons.py) из
-  общей геометрии Thunder и палитры `assets/brand/tokens/thunder.tokens.json`.
+- Иконки приложения для Windows, macOS/Linux и сайта используют знак в виде T со
+  стрелкой загрузки. Его генератор —
+  [scripts/generate_brand_icons.py](../scripts/generate_brand_icons.py), а
+  палитра задана в `assets/brand/tokens/thunder.tokens.json`. Иконки меню,
+  уведомлений и tray генерируются отдельно тем же скриптом.
 - macOS tray-иконки должны оставаться монохромными Template Images с прозрачным
   фоном. Windows tray-иконки содержат отдельно отрисованные кадры 16, 20, 24,
   и 32 px. Исходники находятся в `assets/icons/tray/windows`, а ICO
@@ -57,6 +61,9 @@
 ## Текущие точки использования
 
 - `package.json` — app icons для Windows, Linux, macOS build targets.
+- `website/public/favicon.svg`, `website/public/icons/` и
+  `website/public/manifest.webmanifest` — favicon и установочные иконки сайта;
+  PNG-варианты синхронизируются генератором.
 - `src/js/app/window.js` — app icon, tray icon, tray menu icons.
 - `src/windows-tray-menu.html` и `src/js/modules/windowsTrayMenu.js` — Fluent
   actions кастомной Windows tray-панели.

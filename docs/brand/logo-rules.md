@@ -9,7 +9,8 @@
 - Monochrome logo: single-color mark for constrained surfaces.
 - Dark version: light mark on dark backgrounds.
 - Light version: dark mark on light backgrounds.
-- Favicon: simplified lightning-circle symbol.
+- App icon and favicon: T-shaped download mark on a dark tile; see
+  [the icon guide](icon-guide.md) for its geometry.
 - Campaign templates: the same full-color mark on a dark navy field with
   restrained blue/cyan ambient light.
 

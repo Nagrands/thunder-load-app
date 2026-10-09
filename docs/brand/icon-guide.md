@@ -1,15 +1,14 @@
 # Thunder Icon Guide
 
-## Geometry
+## App Icon Geometry
 
-- Grid: 24 px.
-- Stroke: 2 px.
-- Corner radius: 3 px for small geometric details.
-- End caps and joins: round by default.
-- Perspective: flat, front-facing, no fake 3D.
-- Brand symbol: angular lightning bolt inside a circular energy ring.
-- Master canvas: `0 0 256 256`; use the canonical bolt path from
-  `thunder.tokens.json` and an open ring with rounded ends.
+- Master canvas: 1024×1024 RGBA with a deep navy rounded tile.
+- App mark: a bold geometric T that flows into a downward download arrow, with
+  a small diagonal energy cut through its stem.
+- Keep the mark front-facing, high-contrast, and legible at 16 px; use the
+  Thunder blue/cyan palette without fine gradients or thin outlines.
+- Tray and brand-wordmark symbols remain separate assets and keep their own
+  platform-specific rendering rules.
 
 ## Style
 

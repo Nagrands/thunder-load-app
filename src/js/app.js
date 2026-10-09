@@ -78,7 +78,8 @@ processSupervisor.setLogger(diagnosticsLogger);
 const shutdownCoordinator = new ShutdownCoordinator({ logger: mainLogger });
 const isDev = process.argv.includes("--dev");
 
-app.setAppUserModelId("com.thunderload.app");
+// Keep the legacy Windows taskbar and notification identity used through 1.5.4.
+app.setAppUserModelId("Thunderload");
 const mediaOpenService = createMediaOpenService({ app, fs });
 
 // Define essential paths

@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import argparse
 import io
 import json
+import shutil
 import struct
 from pathlib import Path
 
@@ -16,6 +18,7 @@ APP_ICON_MASTER_PATH = APP_DIR / "app-icon-master.png"
 TRAY_DIR = ICONS_DIR / "tray"
 MACOS_DIR = ICONS_DIR / "platform" / "macos"
 ICONSET_DIR = MACOS_DIR / "app.iconset"
+WEBSITE_ICONS_DIR = ROOT / "website" / "public" / "icons"
 MENU_DIR = ICONS_DIR / "menu"
 NOTIFICATIONS_DIR = ICONS_DIR / "notifications"
 TOKENS_PATH = ROOT / "assets" / "brand" / "tokens" / "thunder.tokens.json"
@@ -303,11 +306,72 @@ def render_lightning_symbol(size: int) -> Image.Image:
 
 
 def create_app_icon(size: int = APP_ICON_SIZE) -> Image.Image:
-    with Image.open(APP_ICON_MASTER_PATH) as source:
-        master = source.convert("RGBA")
-    if master.size == (size, size):
-        return master
-    return master.resize((size, size), Image.Resampling.LANCZOS)
+    """Render Thunder's new download-gate mark at the requested size."""
+    canvas = Image.new("RGBA", (APP_ICON_SIZE, APP_ICON_SIZE), (0, 0, 0, 0))
+    tile = make_vertical_gradient(
+        (APP_ICON_SIZE, APP_ICON_SIZE), "#14243A", COLORS["ink"]
+    )
+    tile = Image.alpha_composite(
+        tile,
+        glow(APP_ICON_SIZE, (0, 168, 255, 82), (154, 112, 870, 848), 220),
+    )
+    tile_mask, margin, radius = build_tile_mask(APP_ICON_SIZE)
+    clipped_tile = Image.new("RGBA", tile.size, (0, 0, 0, 0))
+    clipped_tile.paste(tile, (0, 0), tile_mask)
+    canvas.alpha_composite(clipped_tile)
+
+    # A broad, beveled T flows into a down arrow: a compact download symbol
+    # with a distinctive top gate, rather than the previous bolt and ring.
+    mark = Image.new("L", canvas.size, 0)
+    ImageDraw.Draw(mark).polygon(
+        [
+            (264, 224), (760, 224), (700, 352), (574, 352),
+            (574, 562), (708, 562), (512, 808), (316, 562),
+            (450, 562), (450, 352), (324, 352),
+        ],
+        fill=255,
+    )
+    mark_glow = Image.new("RGBA", canvas.size, (0, 0, 0, 0))
+    mark_glow_draw = ImageDraw.Draw(mark_glow)
+    mark_glow_draw.bitmap((0, 0), mark, fill=(0, 174, 255, 120))
+    canvas.alpha_composite(mark_glow.filter(ImageFilter.GaussianBlur(46)))
+
+    mark_fill = make_vertical_gradient(
+        canvas.size, COLORS["white"], COLORS["blue"]
+    )
+    mark_layer = Image.new("RGBA", canvas.size, (0, 0, 0, 0))
+    mark_layer.paste(mark_fill, (0, 0), mark)
+    canvas.alpha_composite(mark_layer)
+
+    # A thin cyan cut through the stem adds a sharp energy cue at larger sizes.
+    cut = Image.new("RGBA", canvas.size, (0, 0, 0, 0))
+    ImageDraw.Draw(cut).polygon(
+        [(456, 448), (574, 378), (574, 410), (456, 480)],
+        fill=(7, 18, 34, 255),
+    )
+    canvas.alpha_composite(cut)
+
+    # Keep the tile edge quiet; Windows crops icons to rounded-square masks.
+    border = Image.new("RGBA", canvas.size, (0, 0, 0, 0))
+    ImageDraw.Draw(border).rounded_rectangle(
+        (margin, margin, APP_ICON_SIZE - margin - 1, APP_ICON_SIZE - margin - 1),
+        radius=radius,
+        outline=(137, 207, 255, 42),
+        width=3,
+    )
+    canvas.alpha_composite(border)
+    if size == APP_ICON_SIZE:
+        return canvas
+    return canvas.resize((size, size), Image.Resampling.LANCZOS)
+
+
+def build_website_icons() -> None:
+    WEBSITE_ICONS_DIR.mkdir(parents=True, exist_ok=True)
+    for size in (256, 512):
+        shutil.copyfile(
+            APP_DIR / f"app-icon-{size}.png",
+            WEBSITE_ICONS_DIR / f"app-icon-{size}.png",
+        )
 
 
 def create_menu_icon(name: str, size: int = 16) -> Image.Image:
@@ -520,15 +584,30 @@ def build_icns() -> None:
     create_app_icon().save(MACOS_DIR / "app-icon.icns", format="ICNS")
 
 
-def main() -> None:
+def build_app_icons() -> None:
     app_icon = create_app_icon()
+    save_png(app_icon, APP_ICON_MASTER_PATH)
     save_png(app_icon, APP_DIR / "app-icon.png")
     save_ico([create_app_icon(size) for size in ICO_SIZES], APP_DIR / "app-icon.ico")
     save_png(create_app_icon(512), APP_DIR / "app-icon-512.png")
     save_png(create_app_icon(256), APP_DIR / "app-icon-256.png")
+    build_website_icons()
 
     build_iconset()
     build_icns()
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Generate Thunder brand icons")
+    parser.add_argument(
+        "--app-only",
+        action="store_true",
+        help="regenerate app, platform, and website launcher icons only",
+    )
+    args = parser.parse_args()
+    build_app_icons()
+    if args.app_only:
+        return
 
     for name in ("video", "open-folder", "settings", "logout"):
         save_png(create_menu_icon(name), MENU_DIR / f"{name}.png")
