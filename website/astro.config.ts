@@ -2,10 +2,7 @@ import mdx from "@astrojs/mdx";
 import sitemap from "@astrojs/sitemap";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "astro/config";
-
-const repository = "thunder-load-app";
-const site = process.env.SITE_URL ?? "https://nagrands.github.io";
-const base = process.env.BASE_PATH ?? `/${repository}`;
+import { base, site } from "./site.config.mjs";
 
 export default defineConfig({
   site,

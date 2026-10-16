@@ -1,6 +1,7 @@
 import rss from "@astrojs/rss";
 import { getCollection } from "astro:content";
 import { contentSlug } from "@/i18n";
+import { localizedUrl } from "@/lib/urls";
 
 export async function GET(context: { site?: URL }) {
   const posts = (await getCollection("blog", ({ data }) => data.locale === "en" && !data.draft))
@@ -13,7 +14,7 @@ export async function GET(context: { site?: URL }) {
       title: post.data.title,
       description: post.data.description,
       pubDate: post.data.publishedAt,
-      link: `/thunder-load-app/en/blog/${contentSlug(post.id)}/`
+      link: localizedUrl("en", `blog/${contentSlug(post.id)}`)
     }))
   });
 }

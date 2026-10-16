@@ -3,6 +3,7 @@ import { spawn } from "node:child_process";
 import lighthouse from "lighthouse";
 import * as chromeLauncher from "chrome-launcher";
 import { evaluateLighthouseBudgets } from "./lighthouse-budget-policy.mjs";
+import { basePath } from "../site.config.mjs";
 
 const port = 4322;
 const origin = `http://127.0.0.1:${port}`;
@@ -12,9 +13,9 @@ const lighthouseTimeoutMs = parsePositiveInteger(
 );
 const processShutdownTimeoutMs = 5000;
 const urls = [
-  `${origin}/thunder-load-app/ru/`,
-  `${origin}/thunder-load-app/ru/download/`,
-  `${origin}/thunder-load-app/en/docs/`
+  `${origin}${basePath}/ru/`,
+  `${origin}${basePath}/ru/download/`,
+  `${origin}${basePath}/en/docs/`
 ];
 
 const server = spawn("npm", ["run", "preview", "--", "--host", "127.0.0.1", "--port", String(port)], {

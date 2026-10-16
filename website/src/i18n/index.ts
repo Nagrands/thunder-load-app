@@ -76,11 +76,6 @@ export function useTranslations(locale: Locale) {
   return translations[locale];
 }
 
-export function localizedPath(locale: Locale, path = "") {
-  const normalized = path.replace(/^\/+|\/+$/g, "");
-  return `/${locale}/${normalized}${normalized ? "/" : ""}`;
-}
-
 export function alternateLocale(locale: Locale): Locale {
   return locale === "ru" ? "en" : "ru";
 }

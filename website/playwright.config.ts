@@ -1,4 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
+import { basePath } from "./site.config.mjs";
 
 export default defineConfig({
   testDir: "./e2e",
@@ -7,12 +8,12 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: process.env.CI ? "github" : "list",
   use: {
-    baseURL: "http://127.0.0.1:4321/thunder-load-app/",
+    baseURL: `http://127.0.0.1:4321${basePath}/`,
     trace: "on-first-retry"
   },
   webServer: {
     command: "npm run preview -- --host 127.0.0.1 --port 4321",
-    url: "http://127.0.0.1:4321/thunder-load-app/ru/",
+    url: `http://127.0.0.1:4321${basePath}/ru/`,
     reuseExistingServer: !process.env.CI
   },
   projects: [

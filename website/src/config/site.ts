@@ -3,8 +3,6 @@ export const SITE = {
   releaseName: "Thunder Spark",
   repository: "https://github.com/Nagrands/thunder-load-app",
   releasesApi: "https://api.github.com/repos/Nagrands/thunder-load-app/releases?per_page=50",
-  pagesOrigin: "https://nagrands.github.io",
-  pagesBase: "/thunder-load-app",
   author: "NGR Software",
   social: {
     github: "https://github.com/Nagrands/thunder-load-app",

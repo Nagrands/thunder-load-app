@@ -1,8 +1,10 @@
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
+import { basePath } from "../site.config.mjs";
 
 const dist = resolve("dist");
 if (!existsSync(dist)) throw new Error("dist/ is missing; run pnpm run build first");
+const basePrefix = `${basePath}/`;
 
 const htmlFiles = [];
 function walk(directory) {
@@ -20,8 +22,8 @@ for (const file of htmlFiles) {
   const html = readFileSync(file, "utf8");
   const hrefs = [...html.matchAll(/(?:href|src)="([^"]+)"/g)].map((match) => match[1]);
   for (const href of hrefs) {
-    if (!href.startsWith("/thunder-load-app/") || href.includes("#")) continue;
-    const relative = href.replace("/thunder-load-app/", "").split(/[?#]/)[0];
+    if (!href.startsWith(basePrefix) || href.includes("#")) continue;
+    const relative = href.slice(basePrefix.length).split(/[?#]/)[0];
     const candidate = relative.endsWith("/")
       ? join(dist, relative, "index.html")
       : join(dist, relative);
