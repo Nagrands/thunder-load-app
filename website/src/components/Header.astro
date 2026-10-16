@@ -33,7 +33,7 @@ const nav = [
       {nav.map((item) => <a href={item.href}>{item.label}</a>)}
     </nav>
     <div class="header-actions">
-      <a class="language-link" href={otherPath} hreflang={other} aria-label={other === "ru" ? "Русская версия (RU)" : "English version (EN)"}>
+      <a class="language-link" href={otherPath} hreflang={other} aria-label={other === "ru" ? "RU — Русская версия" : "EN — English version"}>
         {other.toUpperCase()}
       </a>
       <a class="github-link" href={SITE.repository} target="_blank" rel="noreferrer" aria-label="Thunder on GitHub">
