@@ -123,7 +123,6 @@ const WHATS_NEW_PENDING_KEY = "pendingWhatsNewVersion";
 
 // Cache for file existence checks
 const fsCache = new Map();
-const iconCache = new Map();
 
 const downloadPreferences = createDownloadPreferences({
   store,
@@ -185,7 +184,6 @@ if (!app.requestSingleInstanceLock()) {
     getAppVersion,
     historyFilePath,
     fsCache,
-    iconCache,
     clipboardMonitor: null, // будет установлен позже
     setupGlobalShortcuts,
     notifyDownloadError,
@@ -472,7 +470,6 @@ shutdownCoordinator.register("application-runtime", async () => {
   disposeWindowRuntime();
   mediaOpenService.dispose();
   fsCache.clear();
-  iconCache.clear();
   app.isQuitting = true;
   store.set("isCloseNotificationShown", false);
 });

@@ -2025,7 +2025,6 @@ describe("downloadManager queue smart logic", () => {
               cancelled: false,
             };
           }
-          if (channel === "get-icon-path") return "";
           if (channel === "cache-history-preview") return { success: false };
           return {};
         }),
@@ -2150,7 +2149,6 @@ describe("downloadManager queue smart logic", () => {
               cancelled: false,
             };
           }
-          if (channel === "get-icon-path") return "";
           if (channel === "cache-history-preview") return { success: false };
           return {};
         }),
@@ -2658,7 +2656,6 @@ describe("downloadManager progress activity class", () => {
             cancelled: false,
           };
         }
-        if (channel === "get-icon-path") return "";
         if (channel === "cache-history-preview") return { success: false };
         return {};
       }),
@@ -2756,7 +2753,6 @@ describe("downloadManager progress activity class", () => {
           );
         });
       }
-      if (channel === "get-icon-path") return "";
       if (channel === "cache-history-preview") return { success: false };
       return {};
     });
@@ -3062,7 +3058,6 @@ describe("downloadManager progress activity class", () => {
               cancelled: false,
             };
           }
-          if (channel === "get-icon-path") return "";
           if (channel === "cache-history-preview") return { success: false };
           return {};
         }),
@@ -3150,7 +3145,6 @@ describe("downloadManager progress activity class", () => {
               cancelled: false,
             };
           }
-          if (channel === "get-icon-path") return "";
           if (channel === "cache-history-preview") return { success: false };
           return {};
         }),
@@ -3304,7 +3298,6 @@ describe("downloadManager parallel pool", () => {
               cancelled: false,
             }));
           }
-          if (channel === "get-icon-path") return Promise.resolve("");
           if (channel === "cache-history-preview")
             return Promise.resolve({ success: false });
           return Promise.resolve({});
@@ -3379,7 +3372,6 @@ describe("downloadManager parallel pool", () => {
               cancelled: false,
             }));
           }
-          if (channel === "get-icon-path") return Promise.resolve("");
           if (channel === "cache-history-preview")
             return Promise.resolve({ success: false });
           return Promise.resolve({});
@@ -3456,7 +3448,6 @@ describe("downloadManager parallel pool", () => {
               cancelled: false,
             }));
           }
-          if (channel === "get-icon-path") return Promise.resolve("");
           if (channel === "cache-history-preview")
             return Promise.resolve({ success: false });
           return Promise.resolve({});
@@ -3533,7 +3524,6 @@ describe("downloadManager parallel pool", () => {
               cancelled: false,
             });
           }
-          if (channel === "get-icon-path") return Promise.resolve("");
           if (channel === "cache-history-preview")
             return Promise.resolve({ success: false });
           return Promise.resolve({});
@@ -3648,7 +3638,6 @@ describe("downloadManager parallel pool", () => {
               cancelled: false,
             }));
           }
-          if (channel === "get-icon-path") return Promise.resolve("");
           if (channel === "cache-history-preview")
             return Promise.resolve({ success: false });
           return Promise.resolve({});
@@ -3753,7 +3742,6 @@ describe("downloadManager parallel pool", () => {
               cancelled: false,
             }));
           }
-          if (channel === "get-icon-path") return Promise.resolve("");
           if (channel === "cache-history-preview") {
             return Promise.resolve({ success: false });
           }
@@ -3874,7 +3862,6 @@ describe("downloadManager parallel pool", () => {
               cancelled: false,
             }));
           }
-          if (channel === "get-icon-path") return Promise.resolve("");
           if (channel === "cache-history-preview") {
             return Promise.resolve({ success: false });
           }
@@ -4464,7 +4451,6 @@ describe("downloadManager History recovery actions", () => {
             sourceUrl: url,
           };
         }
-        if (channel === "get-icon-path") return "";
         return {};
       });
 
@@ -4788,7 +4774,6 @@ describe("downloadManager legacy completed migration", () => {
             sourceUrl: url,
           };
         }
-        if (channel === "get-icon-path") return "";
         return {};
       });
 
@@ -4978,7 +4963,6 @@ describe("downloadManager queue completion semantics", () => {
               sourceUrl: url,
             };
           }
-          if (channel === "get-icon-path") return "";
           return {};
         }),
         ipcRenderer: { invoke: jest.fn() },
@@ -5265,7 +5249,6 @@ describe("downloadManager active job cancellation", () => {
         invoke: jest.fn((channel, url) => {
           if (channel === "download-video") return downloads.get(url).promise;
           if (channel === "cancel-download-job") return cancelRequest.promise;
-          if (channel === "get-icon-path") return Promise.resolve("");
           if (channel === "cache-history-preview") {
             return Promise.resolve({ success: false });
           }

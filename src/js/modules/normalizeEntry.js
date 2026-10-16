@@ -102,7 +102,6 @@ export async function normalizeEntry(entry, fileMetadata = null) {
         : typeof entry.retryable === "boolean"
           ? entry.retryable
           : undefined,
-    iconUrl: entry.iconUrl || "",
     thumbnail: entry.thumbnail || "",
     thumbnailCacheFile: entry.thumbnailCacheFile || "",
     dateText: formatDateText(createdAt, entry.dateTime || entry.dateText || ""),

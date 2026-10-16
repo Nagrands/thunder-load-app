@@ -63,7 +63,6 @@ try {
     "get-ytdlp-cookies-settings",
     "get-file-size",
     "get-font-size",
-    "get-icon-path",
     "history:inspect-files",
     "cache-history-preview",
     "delete-history-preview",

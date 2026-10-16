@@ -9,7 +9,6 @@
 - `assets/icons/tray` — иконки для tray и связанных состояний.
 - `assets/icons/notifications` — иконки системных уведомлений.
 - `assets/icons/menu` — растровые иконки действий в menu/tray menu.
-- `assets/icons/social` — SVG-иконки внешних платформ и сервисов.
 
 ## Именование
 
@@ -54,9 +53,6 @@
   фоном. Windows tray-иконки содержат отдельно отрисованные кадры 16, 20, 24,
   и 32 px. Исходники находятся в `assets/icons/tray/windows`, а ICO
   пересобираются командой `pnpm run tray-icons:build`.
-- Не смешивайте брендовые app icons, menu assets и social SVG в одной плоской папке.
-- Логотипы сторонних платформ в `assets/icons/social` не являются производными
-  Thunder brand kit и не должны изменяться генератором.
 
 ## Текущие точки использования
 

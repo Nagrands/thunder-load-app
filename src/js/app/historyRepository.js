@@ -148,7 +148,6 @@ function normalizeHistoryEntry(input = {}) {
     error: normalizeError(entry, status),
     quality: String(entry.quality || ""),
     downloadKind: String(entry.downloadKind || ""),
-    iconUrl: String(entry.iconUrl || ""),
     thumbnail: String(entry.thumbnail || ""),
     thumbnailCacheFile: String(entry.thumbnailCacheFile || ""),
   };

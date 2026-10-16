@@ -1681,7 +1681,6 @@ const downloadVideo = async (url, quality, options = {}) => {
     });
     const entryId = Date.now();
     try {
-      const iconUrl = await window.electron.invoke("get-icon-path", url);
       let thumbnail = resolvedThumbnail;
       let thumbnailCacheFile = "";
       if (thumbnail) {
@@ -1709,7 +1708,6 @@ const downloadVideo = async (url, quality, options = {}) => {
         quality: actualQuality,
         downloadKind: requestedDownloadKind,
         dateTime: currentDateTime,
-        iconUrl,
         thumbnail,
         thumbnailCacheFile,
         sourceUrl,

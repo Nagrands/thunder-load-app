@@ -29,7 +29,6 @@ const CHANNELS = Object.freeze({
   GET_YTDLP_COOKIES_SETTINGS: "get-ytdlp-cookies-settings",
   GET_FILE_SIZE: "get-file-size",
   GET_FONT_SIZE: "get-font-size",
-  GET_ICON_PATH: "get-icon-path",
   INSPECT_HISTORY_FILES: "history:inspect-files",
   CACHE_HISTORY_PREVIEW: "cache-history-preview",
   DELETE_HISTORY_PREVIEW: "delete-history-preview",

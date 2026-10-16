@@ -263,7 +263,6 @@ describe("ipcHandlers tools quick actions", () => {
       getAppVersion: jest.fn().mockResolvedValue("1.0.0"),
       historyFilePath: path.join(os.tmpdir(), "history.json"),
       previewCacheDir: path.join(os.tmpdir(), "preview-cache"),
-      iconCache: new Map(),
       clipboardMonitor: clipboardMonitor || {
         start: jest.fn(),
         stop: jest.fn(),
@@ -2379,7 +2378,6 @@ describe("ipcHandlers download pool", () => {
       getAppVersion: jest.fn().mockResolvedValue("1.0.0"),
       historyFilePath: path.join(os.tmpdir(), "history.json"),
       previewCacheDir: path.join(os.tmpdir(), "preview-cache"),
-      iconCache: new Map(),
       clipboardMonitor: {},
       setupGlobalShortcuts: jest.fn(),
       notifyDownloadError: jest.fn(),

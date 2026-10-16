@@ -603,7 +603,6 @@ function setupIpcHandlers(dependencies) {
     getAppVersion,
     historyFilePath,
     previewCacheDir,
-    iconCache,
     clipboardMonitor,
     setupGlobalShortcuts,
     showTrayNotification,
@@ -2793,60 +2792,6 @@ function setupIpcHandlers(dependencies) {
     };
   }
 
-  // Функция для получения имени иконки из URL
-  function getIconNameFromUrl(url) {
-    if (url.includes("youtube.com")) return "youtube";
-    if (url.includes("twitch.tv")) return "twitch";
-    // Simple Icons has no official Coub glyph in our bundle, use Tabler fallback.
-    if (url.includes("coub.com")) return "video";
-    if (url.includes("vkvideo.ru")) return "vk";
-    if (url.includes("youtu.be")) return "youtube";
-    if (url.includes("dzen.ru")) return "video";
-    return "video";
-  }
-
-  // Функция для получения пути к иконке приложения
-  async function getAppIconPath(iconName) {
-    const cached = iconCache.get(iconName);
-    if (cached) {
-      try {
-        await fs.promises.access(cached);
-        return cached;
-      } catch {
-        iconCache.delete(iconName);
-      }
-    }
-
-    const candidateNames = [iconName, "video"];
-    for (const name of candidateNames) {
-      const svgPath = path.join(
-        app.getAppPath(),
-        "assets",
-        "icons",
-        `${name}.svg`,
-      );
-      const pngPath = path.join(
-        app.getAppPath(),
-        "assets",
-        "icons",
-        `${name}.png`,
-      );
-
-      try {
-        await fs.promises.access(svgPath);
-        iconCache.set(iconName, svgPath);
-        return svgPath;
-      } catch {}
-
-      try {
-        await fs.promises.access(pngPath);
-        iconCache.set(iconName, pngPath);
-        return pngPath;
-      } catch {}
-    }
-    return null;
-  }
-
   // Обработчики IPC:
 
   // Добавляем обработчик для открытия терминала на macOS
@@ -2891,11 +2836,6 @@ function setupIpcHandlers(dependencies) {
       log.error("Error getting app version:", error);
       return "unknown";
     }
-  });
-
-  ipcMain.handle(CHANNELS.GET_ICON_PATH, async (event, url) => {
-    const iconName = getIconNameFromUrl(url);
-    return await getAppIconPath(iconName);
   });
 
   return {
