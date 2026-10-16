@@ -4,6 +4,8 @@ import {
   getTextareaSelectionForLine,
 } from "./viewHelpers.js";
 
+const AUTO_REFORMAT_DELAY = 220;
+
 export function bindViewEvents({
   wrapper,
   state,
@@ -62,10 +64,19 @@ export function bindViewEvents({
 
   const isAutoReformatEnabled = () => autoReformatToggle?.checked === true;
 
+  let autoReformatTimer = null;
+
+  const cancelPendingAutoReformat = () => {
+    if (autoReformatTimer === null) return;
+    clearTimeout(autoReformatTimer);
+    autoReformatTimer = null;
+  };
+
   const autoReformatIfEnabled = ({
     source = getCurrentSource(),
     resetComparison = false,
   } = {}) => {
+    cancelPendingAutoReformat();
     if (!isAutoReformatEnabled()) return false;
     if (!String(source || "").trim()) {
       clearPreview({ resetComparison });
@@ -78,6 +89,16 @@ export function bindViewEvents({
       comparisonBase: resetComparison ? null : state.currentResult,
     });
     return true;
+  };
+
+  // Coalesces rapid edits so auto refresh does not re-format on every keystroke.
+  const scheduleAutoReformat = () => {
+    if (!isAutoReformatEnabled()) return;
+    cancelPendingAutoReformat();
+    autoReformatTimer = setTimeout(() => {
+      autoReformatTimer = null;
+      autoReformatIfEnabled();
+    }, AUTO_REFORMAT_DELAY);
   };
 
   const closeResultMenu = ({ focusToggle = false } = {}) => {
@@ -110,9 +131,11 @@ export function bindViewEvents({
     dictionaryInput.addEventListener("input", () => {
       saveProductFormatterDictionary(dictionaryInput.value);
       syncDictionaryPreviewLine();
-      if (!autoReformatIfEnabled()) {
-        syncDirtyFromInputs("productsFormatter.status.dictionaryChanged");
+      if (isAutoReformatEnabled()) {
+        scheduleAutoReformat();
+        return;
       }
+      syncDirtyFromInputs("productsFormatter.status.dictionaryChanged");
     });
     ["click", "keyup", "select", "focus"].forEach((eventName) => {
       dictionaryInput.addEventListener(eventName, () => {
@@ -176,6 +199,7 @@ export function bindViewEvents({
   });
 
   clearButton?.addEventListener("click", () => {
+    cancelPendingAutoReformat();
     input.value = "";
     syncLineNumbers();
     input.focus();
@@ -273,10 +297,14 @@ export function bindViewEvents({
   input?.addEventListener("input", () => {
     syncLineNumbers();
     if (String(input.value || "").trim()) {
-      if (autoReformatIfEnabled()) return;
+      if (isAutoReformatEnabled()) {
+        scheduleAutoReformat();
+        return;
+      }
       syncDirtyFromInputs();
       return;
     }
+    cancelPendingAutoReformat();
     clearPreview({ resetComparison: true });
     setStatus("", "");
   });
@@ -307,6 +335,7 @@ export function bindViewEvents({
   });
 
   const handleToggleReformat = () => {
+    cancelPendingAutoReformat();
     const source = getCurrentSource();
     if (!source) {
       if (isAutoReformatEnabled()) {
@@ -330,6 +359,7 @@ export function bindViewEvents({
       autoReformatIfEnabled();
       return;
     }
+    cancelPendingAutoReformat();
     syncDirtyFromInputs();
   });
   filterUncertainToggle?.addEventListener("change", () => {

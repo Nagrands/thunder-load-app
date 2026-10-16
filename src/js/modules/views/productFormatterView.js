@@ -181,13 +181,17 @@ export default function renderProductFormatterView(wrapper) {
   const syncLineNumbers = () => {
     if (!input || !lineNumbers) return;
     const count = Math.max(1, String(input.value || "").split("\n").length);
-    const fragment = document.createDocumentFragment();
-    for (let line = 1; line <= count; line += 1) {
-      const item = document.createElement("span");
-      item.textContent = String(line);
-      fragment.appendChild(item);
+    const previousCount = Number(lineNumbers.dataset.count || 0);
+    if (previousCount !== count) {
+      const fragment = document.createDocumentFragment();
+      for (let line = 1; line <= count; line += 1) {
+        const item = document.createElement("span");
+        item.textContent = String(line);
+        fragment.appendChild(item);
+      }
+      lineNumbers.replaceChildren(fragment);
+      lineNumbers.dataset.count = String(count);
     }
-    lineNumbers.replaceChildren(fragment);
     lineNumbers.scrollTop = input.scrollTop;
   };
 

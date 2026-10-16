@@ -171,6 +171,24 @@ describe("productFormatterView", () => {
     expect(lineNumbers.textContent).toBe("1");
   });
 
+  test("reuses gutter nodes when the line count is unchanged", () => {
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+    const input = wrapper.querySelector("#products-input");
+    const lineNumbers = wrapper.querySelector("#products-line-numbers");
+
+    input.value = "Заявка 1\nБанан\nЛимон";
+    input.dispatchEvent(new Event("input"));
+    const firstSpan = lineNumbers.firstElementChild;
+    const childCount = lineNumbers.children.length;
+
+    input.value = "Заявка 2\nЯблоко\nГруша";
+    input.dispatchEvent(new Event("input"));
+
+    expect(lineNumbers.children).toHaveLength(childCount);
+    expect(lineNumbers.firstElementChild).toBe(firstSpan);
+  });
+
   test("exposes busy state and rejects a duplicate formatting launch", async () => {
     const wrapper = document.getElementById("wrapper");
     renderProductFormatterView(wrapper);
@@ -404,6 +422,7 @@ describe("productFormatterView", () => {
   });
 
   test("auto-reformats the result on source edits when auto refresh is enabled", () => {
+    jest.useFakeTimers();
     const wrapper = document.getElementById("wrapper");
     renderProductFormatterView(wrapper);
 
@@ -427,6 +446,7 @@ describe("productFormatterView", () => {
 
     input.value = "Заявка 4\nЛук 2";
     input.dispatchEvent(new Event("input"));
+    jest.advanceTimersByTime(300);
 
     expect(dirtyState?.hidden).toBe(true);
     expect(wrapper.querySelector("#products-status")?.textContent).toBe(
@@ -442,7 +462,39 @@ describe("productFormatterView", () => {
     ).toBe(false);
   });
 
+  test("debounces auto refresh and coalesces rapid source edits", () => {
+    jest.useFakeTimers();
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    const input = wrapper.querySelector("#products-input");
+    const autoReformatToggle = wrapper.querySelector(
+      "#products-auto-reformat-toggle",
+    );
+
+    input.value = "Заявка 4\nЛук 1";
+    wrapper.querySelector("#products-format").click();
+    autoReformatToggle.checked = true;
+    autoReformatToggle.dispatchEvent(new Event("change"));
+
+    input.value = "Заявка 4\nЛук 2";
+    input.dispatchEvent(new Event("input"));
+    input.value = "Заявка 4\nЛук 3";
+    input.dispatchEvent(new Event("input"));
+
+    // Result stays untouched until the debounce window elapses.
+    expect(wrapper.querySelector("#products-preview")?.textContent).toContain(
+      "Лук репчатый 1",
+    );
+
+    jest.advanceTimersByTime(300);
+    const previewText = wrapper.querySelector("#products-preview")?.textContent;
+    expect(previewText).toContain("Лук репчатый 3");
+    expect(previewText).not.toContain("Лук репчатый 1");
+  });
+
   test("auto-reformats after dictionary edits when auto refresh is enabled", () => {
+    jest.useFakeTimers();
     const wrapper = document.getElementById("wrapper");
     renderProductFormatterView(wrapper);
 
@@ -464,12 +516,39 @@ describe("productFormatterView", () => {
 
     dictionaryInput.value = "батат = Батат фермерский";
     dictionaryInput.dispatchEvent(new Event("input"));
+    jest.advanceTimersByTime(300);
 
     expect(
       wrapper.querySelector('[data-ui="products-dirty-state"]')?.hidden,
     ).toBe(true);
     expect(wrapper.querySelector("#products-preview")?.textContent).toContain(
       "Батат фермерский 1",
+    );
+  });
+
+  test("cancels a pending auto refresh when the input is cleared", () => {
+    jest.useFakeTimers();
+    const wrapper = document.getElementById("wrapper");
+    renderProductFormatterView(wrapper);
+
+    const input = wrapper.querySelector("#products-input");
+    const autoReformatToggle = wrapper.querySelector(
+      "#products-auto-reformat-toggle",
+    );
+
+    input.value = "Заявка 4\nЛук 1";
+    wrapper.querySelector("#products-format").click();
+    autoReformatToggle.checked = true;
+    autoReformatToggle.dispatchEvent(new Event("change"));
+
+    input.value = "Заявка 4\nЛук 2";
+    input.dispatchEvent(new Event("input"));
+    wrapper.querySelector("#products-clear").click();
+    jest.advanceTimersByTime(300);
+
+    expect(wrapper.querySelector("#products-preview")?.textContent).toBe("");
+    expect(wrapper.querySelector("#products-status")?.textContent).toBe(
+      "Поле очищено.",
     );
   });
 
