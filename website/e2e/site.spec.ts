@@ -37,3 +37,17 @@ test("home has no serious accessibility violations", async ({ page }) => {
   const results = await new AxeBuilder({ page }).analyze();
   expect(results.violations.filter((violation) => violation.impact === "serious" || violation.impact === "critical")).toEqual([]);
 });
+
+test("serves robots.txt and the web manifest from the deploy base", async ({ request }) => {
+  const robots = await request.get("robots.txt");
+  expect(robots.ok()).toBeTruthy();
+  const robotsBody = await robots.text();
+  expect(robotsBody).toContain("User-agent: *");
+  expect(robotsBody).toContain("/thunder-load-app/sitemap-index.xml");
+
+  const manifest = await request.get("manifest.webmanifest");
+  expect(manifest.ok()).toBeTruthy();
+  const manifestBody = await manifest.json();
+  expect(manifestBody.start_url).toBe("/thunder-load-app/ru/");
+  expect(manifestBody.scope).toBe("/thunder-load-app/");
+});
