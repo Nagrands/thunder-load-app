@@ -11,6 +11,18 @@ describe("application responsive contract", () => {
     path.join(root, "src/scss/responsive/_adaptive.scss"),
     "utf8",
   );
+  const sidebar = fs.readFileSync(
+    path.join(root, "src/scss/layout/_sidebar.scss"),
+    "utf8",
+  );
+  const topBarTemplate = fs.readFileSync(
+    path.join(root, "templates/partials/top-bar.njk"),
+    "utf8",
+  );
+  const layout = fs.readFileSync(
+    path.join(root, "src/scss/components/_layout-ui.scss"),
+    "utf8",
+  );
   const history = fs.readFileSync(
     path.join(root, "src/scss/components/_history.scss"),
     "utf8",
@@ -38,7 +50,7 @@ describe("application responsive contract", () => {
     expect(adaptive).toContain("height: 100dvh");
     expect(adaptive).toContain("overflow-y: auto");
     expect(adaptive).toContain("overflow-x: hidden");
-    expect(adaptive).toContain("--footer-safe-space");
+    expect(adaptive).toContain("--sidebar-safe-space");
   });
 
   test("preserves the original desktop content density", () => {
@@ -69,20 +81,30 @@ describe("application responsive contract", () => {
     expect(adaptive).toContain("translateX(-105%)");
   });
 
-  test("keeps footer navigation visible at the minimum window width", () => {
-    const denseContract = adaptive.slice(
-      adaptive.indexOf("@media (max-width: variables.$breakpoint-app-dense)"),
-      adaptive.indexOf("@media (max-width: variables.$breakpoint-app-zoom)"),
-    );
+  test("uses a fixed desktop sidebar and compact bottom navigation on narrow windows", () => {
+    expect(sidebar).toContain("inset: 0 auto 0 0;");
+    expect(sidebar).toContain("width: var(--app-sidebar-width);");
+    expect(sidebar).toContain("grid-template-rows: auto minmax(0, 1fr) auto;");
+    expect(sidebar).toContain("@media (max-width: $breakpoint-tablet)");
+    expect(sidebar).toContain("body.is-mac .app-sidebar__panel");
+    expect(sidebar).toContain("padding-top: 52px;");
+    expect(sidebar).toContain("flex-direction: row;");
+    expect(layout).toContain("margin-left: var(--app-sidebar-width, 232px);");
+    expect(adaptive).not.toContain(".app-sidebar--nav-mode");
+    expect(sidebar).toContain("body.app-sidebar-collapsed");
+    expect(sidebar).toContain("--app-sidebar-width: 76px;");
+    expect(sidebar).toContain(".app-sidebar__brand-version {\n      display: none;");
+    expect(sidebar).toContain("font-size: 22px;");
+    expect(topBarTemplate).not.toContain("top-bar__divider");
+  });
 
-    expect(denseContract).toContain(
-      ".app-footer__zone--center {\n    display: none;",
-    );
-    expect(denseContract).toContain(".app-footer--nav-mode");
-    expect(denseContract).toContain('"lead actions"\n        "center center"');
-    expect(denseContract).toContain(
-      ".app-footer__zone--center {\n      display: flex;",
-    );
+  test("stacks downloader tool badges within the sidebar width", () => {
+    expect(sidebar).toContain(".app-sidebar__zone--bottom > .app-sidebar__tools-status");
+    expect(sidebar).toContain(".downloader-tools-status__badges {");
+    expect(sidebar).toContain("flex-direction: column;");
+    expect(sidebar).toContain(".tool-badge {");
+    expect(sidebar).toContain("max-width: 100%;");
+    expect(sidebar).toContain("text-overflow: ellipsis;");
   });
 
   test("keeps the History bulk toolbar compact and icon-only", () => {

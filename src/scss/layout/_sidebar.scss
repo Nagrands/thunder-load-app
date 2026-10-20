@@ -1,4 +1,4 @@
-// src/scss/layout/_footer.scss
+// src/scss/layout/_sidebar.scss
 
 // ============================================================
 //  Переменные и настройки
@@ -6,16 +6,23 @@
 
 $breakpoint-tablet: 900px;
 $breakpoint-mobile: 560px;
-$footer-action-size: 42px;
-$footer-action-radius: 50%;
-$footer-action-radius-soft: 12px;
-$footer-mobile-tab-height: 38px;
+$sidebar-action-size: 42px;
+$sidebar-action-radius: 50%;
+$sidebar-action-radius-soft: 12px;
+$sidebar-mobile-tab-height: 38px;
+
+:root {
+  --app-sidebar-width: 232px;
+}
+
+body.app-sidebar-collapsed {
+  --app-sidebar-width: 76px;
+}
 
 // Базовые переходы
 $transition-fade-slide:
   opacity 240ms ease,
   transform 280ms ease;
-$transition-fade: opacity 180ms ease;
 $transition-transform: transform 180ms ease;
 $transition-interactive:
   $transition-transform,
@@ -24,24 +31,15 @@ $transition-interactive:
   color 180ms ease,
   box-shadow 180ms ease;
 
-%footer-inline-center {
+%sidebar-inline-center {
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
 
-%footer-focus-ring {
+%sidebar-focus-ring {
   outline: 2px solid rgba(var(--color-accent-rgb), 0.72);
   outline-offset: 3px;
-}
-
-@mixin footer-glass-panel {
-  border: 1px solid var(--thunder-border);
-  background: var(--thunder-surface);
-  box-shadow:
-    var(--thunder-shadow),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(16px) saturate(140%);
 }
 
 // Миксин для скрытых состояний (мягкое исчезновение)
@@ -54,7 +52,7 @@ $transition-interactive:
 
 // Миксин для анимации пульсации (инструменты)
 @mixin busy-pulse-animation {
-  animation: footer-tools-busy-pulse 1.2s ease-in-out infinite;
+  animation: sidebar-tools-busy-pulse 1.2s ease-in-out infinite;
 }
 
 // Миксин для полностью скрытых служебных состояний
@@ -63,46 +61,51 @@ $transition-interactive:
 }
 
 // ============================================================
-//  Контейнер футера
+//  Контейнер боковой панели
 // ============================================================
 
-.app-footer {
-  --app-footer-offset-x: clamp(12px, 2vw, 22px);
-  --app-footer-offset-y: 12px;
-  --app-footer-height: 74px;
-
+.app-sidebar {
   position: fixed;
-  left: var(--app-footer-offset-x);
-  right: var(--app-footer-offset-x);
-  bottom: calc(var(--app-footer-offset-y) + env(safe-area-inset-bottom, 0px));
+  inset: 0 auto 0 0;
+  width: var(--app-sidebar-width);
   z-index: 940;
   pointer-events: none;
+  transition: width 180ms ease;
 
   body.modal-overlay-active & {
     opacity: 0;
     visibility: hidden;
-    transform: translateY(12px);
+    transform: translateX(-12px);
   }
 }
 
-.app-footer--tab-hidden {
+.app-sidebar--tab-hidden {
   display: none;
+}
+
+@media (min-width: $breakpoint-tablet + 1px) {
+  body.is-mac .app-sidebar__panel {
+    padding-top: 52px;
+  }
 }
 
 // ============================================================
 //  Основная панель (бар)
 // ============================================================
 
-.app-footer__bar {
+.app-sidebar__panel {
   pointer-events: auto;
   display: grid;
-  grid-template-columns: minmax(132px, auto) minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 14px;
-  min-height: var(--app-footer-height);
-  padding: 14px 16px;
-  border-radius: var(--thunder-radius-lg);
-  @include footer-glass-panel;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  align-items: stretch;
+  gap: 12px;
+  width: 100%;
+  height: 100%;
+  padding: 16px 12px 12px;
+  border-right: 1px solid var(--thunder-border);
+  background: color-mix(in srgb, var(--thunder-surface-strong) 94%, #050b14);
+  box-shadow: 12px 0 34px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(18px) saturate(140%);
   transition:
     $transition-fade-slide,
     border-color 180ms ease,
@@ -121,56 +124,94 @@ $transition-interactive:
 //  Зоны футера
 // ============================================================
 
-.app-footer__zone {
+.app-sidebar__zone {
   min-width: 0;
   display: flex;
   align-items: center;
+  justify-content: space-between;
 
   &--lead {
-    gap: 8px;
+    gap: 3px;
     flex-shrink: 0;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 2px 4px 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   }
 
   &--center {
     min-width: 0;
+    min-height: 0;
+    align-items: flex-start;
+    align-self: stretch;
   }
 
-  &--status {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
-    padding: 0 32px 0 24px;
+  &--bottom {
     min-width: 0;
-    border-left: 1px solid rgba(255, 255, 255, 0.06);
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
   }
 
   &--actions {
-    justify-content: flex-end;
-    gap: 10px;
-    flex-shrink: 0;
-    margin-left: auto;
+    flex-direction: row;
+    align-items: center;
+    gap: 7px;
+    padding: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 13px;
+    background: rgba(255, 255, 255, 0.025);
   }
+}
+
+.app-sidebar__zone--actions > #sidebar-open-settings {
+  align-self: auto;
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border-radius: 10px;
+}
+
+.app-sidebar__collapse {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  min-width: 34px;
+  min-height: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  justify-content: center;
+  gap: 0;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--thunder-muted);
+  cursor: pointer;
+  transition: $transition-interactive;
+
+  &:hover {
+    color: var(--color-accent);
+    border-color: rgba(var(--color-accent-rgb), 0.3);
+    background: rgba(var(--color-accent-rgb), 0.08);
+  }
+
+  &:focus-visible {
+    @extend %sidebar-focus-ring;
+  }
+
 }
 
 // ============================================================
 //  Статусы и кластеры
 // ============================================================
 
-.app-footer__status-cluster {
-  display: inline-flex;
-  align-items: center;
-  min-width: 0;
-  gap: 0;
-  transition: $transition-fade-slide;
-
-  &.is-hidden {
-    @include soft-hidden;
-  }
-}
-
-.app-footer__brand,
-.app-footer__context,
-.app-footer__status-meta {
+.app-sidebar__brand,
+.app-sidebar__brand-version {
   display: inline-flex;
   align-items: center;
   white-space: nowrap;
@@ -178,12 +219,13 @@ $transition-interactive:
   letter-spacing: 0.14em;
 }
 
-.app-footer__brand {
+.app-sidebar__brand {
   position: relative;
-  gap: 8px;
+  justify-content: center;
+  gap: 7px;
   min-width: 0;
-  height: 42px;
-  padding: 5px 11px 5px 6px;
+  height: 36px;
+  padding: 3px 8px 3px 4px;
   overflow: hidden;
   border-radius: 14px;
 
@@ -197,22 +239,22 @@ $transition-interactive:
   }
 }
 
-.app-footer__brand-mark {
+.app-sidebar__brand-mark {
   position: relative;
   z-index: 1;
-  width: 42px;
-  height: 42px;
-  flex: 0 0 42px;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
   object-fit: contain;
 }
 
-.app-footer__brand-title {
+.app-sidebar__brand-title {
   position: relative;
   z-index: 1;
-  max-width: 142px;
+  max-width: 132px;
   overflow: hidden;
   font-family: var(--font-brand);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-overflow: ellipsis;
@@ -225,14 +267,13 @@ $transition-interactive:
     0 1px 0 rgba(255, 255, 255, 0.18);
 }
 
-.app-footer__context,
-.app-footer__status-meta {
+.app-sidebar__brand-version {
   font-size: 10px;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.44);
 }
 
-.app-footer__context {
+.app-sidebar__brand-version {
   cursor: pointer;
   padding: 6px 12px;
   border-radius: 999px;
@@ -244,26 +285,19 @@ $transition-interactive:
   }
 }
 
-.app-footer__brand-version {
+.app-sidebar__brand-version {
   font-family: var(--font-brand);
-}
-
-.app-footer__status-value {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  color: var(--color-highlight);
+  align-self: center;
+  min-height: 24px;
+  padding: 3px 10px;
+  font-size: 9px;
 }
 
 // ============================================================
 //  Блок инструментов (загрузчики, тулзы)
 // ============================================================
 
-.app-footer__tools-status {
+.app-sidebar__tools-status {
   flex: 0 1 auto;
   min-width: 0;
   max-width: 100%;
@@ -321,9 +355,43 @@ $transition-interactive:
   }
 }
 
+.app-sidebar__zone--bottom > .app-sidebar__tools-status {
+  width: 100%;
+  min-width: 0;
+  display: block;
+  margin-left: 0;
+  padding: 0;
+  border-left: 0;
+  border-top: 0;
+
+  .downloader-tools-status__line {
+    display: block;
+    width: 100%;
+    white-space: normal;
+  }
+
+  .downloader-tools-status__badges {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 5px;
+    white-space: normal;
+  }
+
+  .tool-badge__version {
+    display: none;
+  }
+}
+
 // Бейдж инструмента (переиспользуемый блок – можно вынести в отдельный partial)
 .tool-badge {
-  @extend %footer-inline-center;
+  @extend %sidebar-inline-center;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  justify-content: flex-start;
   gap: 6px;
   min-height: 23px;
   padding: 2px 9px 2px 7px;
@@ -342,7 +410,7 @@ $transition-interactive:
     width: 13px;
     height: 13px;
     border-radius: 50%;
-    @extend %footer-inline-center;
+    @extend %sidebar-inline-center;
     background: rgba(var(--thunder-electric-rgb), 0.14);
     color: var(--thunder-electric);
 
@@ -352,12 +420,16 @@ $transition-interactive:
   }
 
   &__label {
+    min-width: 0;
     font-weight: 500;
     color: var(--thunder-bolt);
     white-space: nowrap;
   }
 
   &__version {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
     color: rgba(207, 225, 250, 0.88);
     white-space: nowrap;
   }
@@ -399,7 +471,7 @@ $transition-interactive:
 //  Таб-навигация
 // ============================================================
 
-.app-footer__tab-nav {
+.app-sidebar__tab-nav {
   display: block;
   width: 100%;
   min-width: 0;
@@ -411,9 +483,10 @@ $transition-interactive:
 
   .group-menu {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
+    align-items: stretch;
+    justify-content: flex-start;
+    flex-direction: column;
+    gap: 5px;
     width: 100%;
     min-width: 0;
   }
@@ -423,15 +496,17 @@ $transition-interactive:
     position: relative;
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-    gap: 8px;
+    justify-content: flex-start;
+  gap: 10px;
+    width: 100%;
     min-width: 0;
-    min-height: 42px;
-    padding: 0 13px;
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.02);
+    min-height: 38px;
+    padding: 0 10px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    background: transparent;
     color: var(--color-highlight);
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 500;
     white-space: nowrap;
     cursor: pointer;
@@ -470,10 +545,17 @@ $transition-interactive:
       z-index: 1;
       display: inline-flex;
       align-items: center;
-      justify-content: center;
-      gap: 8px;
+      justify-content: flex-start;
+      width: 100%;
+      gap: 9px;
       min-width: 0;
       line-height: 1;
+    }
+
+    .menu-text {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     // Объединённые состояния прогресса
@@ -506,8 +588,9 @@ $transition-interactive:
 
     &.active {
       color: var(--color-accent);
-      border-color: rgba(var(--color-accent-rgb), 0.42);
-      background: rgba(var(--color-accent-rgb), 0.14);
+      border-color: rgba(var(--color-accent-rgb), 0.24);
+      background: linear-gradient(90deg, rgba(var(--color-accent-rgb), 0.15), rgba(var(--color-accent-rgb), 0.045));
+      box-shadow: inset -2px 0 0 rgba(var(--color-accent-rgb), 0.82);
     }
 
     &.disabled {
@@ -517,7 +600,7 @@ $transition-interactive:
     }
 
     &:focus-visible {
-      @extend %footer-focus-ring;
+      @extend %sidebar-focus-ring;
     }
 
     .menu-badge {
@@ -535,7 +618,7 @@ $transition-interactive:
       display: none;
 
       &.is-visible {
-        @extend %footer-inline-center;
+        @extend %sidebar-inline-center;
       }
     }
   }
@@ -545,14 +628,14 @@ $transition-interactive:
 //  Кнопки действий (Action buttons)
 // ============================================================
 
-.app-footer__action {
-  @extend %footer-inline-center;
-  height: $footer-action-size;
-  width: $footer-action-size;
-  min-width: $footer-action-size;
+.app-sidebar__action {
+  @extend %sidebar-inline-center;
+  height: $sidebar-action-size;
+  width: $sidebar-action-size;
+  min-width: $sidebar-action-size;
   padding: 0;
-  flex: 0 0 $footer-action-size;
-  border-radius: $footer-action-radius;
+  flex: 0 0 $sidebar-action-size;
+  border-radius: $sidebar-action-radius;
   background: rgba(var(--color-accent-rgb), 0.1);
   color: var(--color-highlight);
   cursor: pointer;
@@ -568,7 +651,7 @@ $transition-interactive:
   }
 
   &:focus-visible {
-    @extend %footer-focus-ring;
+    @extend %sidebar-focus-ring;
   }
 
   &:active {
@@ -576,7 +659,7 @@ $transition-interactive:
   }
 
   i {
-    @extend %footer-inline-center;
+    @extend %sidebar-inline-center;
     width: 16px;
     height: 16px;
     font-size: 14px;
@@ -618,16 +701,23 @@ $transition-interactive:
     position: relative;
     overflow: hidden;
     width: auto;
-    min-width: $footer-action-size;
+    min-width: $sidebar-action-size;
     flex: 0 0 auto;
     gap: 8px;
     padding: 0 12px;
-    border-radius: $footer-action-radius-soft;
+    border-radius: $sidebar-action-radius-soft;
     background: rgba(87, 58, 22, 0.38);
     border: 1px solid rgba(255, 188, 112, 0.34);
     color: #ffdca8;
 
+    .app-sidebar__zone--actions & {
+      max-width: 100%;
+      justify-content: flex-start;
+    }
+
     span {
+      overflow: hidden;
+      text-overflow: ellipsis;
       white-space: nowrap;
       font-size: 12px;
       font-weight: 500;
@@ -686,7 +776,7 @@ $transition-interactive:
 //  Анимация пульсации для кнопки инструментов
 // ============================================================
 
-@keyframes footer-tools-busy-pulse {
+@keyframes sidebar-tools-busy-pulse {
   0%,
   100% {
     box-shadow:
@@ -700,7 +790,7 @@ $transition-interactive:
   }
 }
 
-body.low-effects .app-footer__action--tools.is-busy {
+body.low-effects .app-sidebar__action--tools.is-busy {
   animation: none;
 }
 
@@ -709,57 +799,55 @@ body.low-effects .app-footer__action--tools.is-busy {
 // ============================================================
 
 @media (max-width: $breakpoint-tablet) {
-  .app-footer {
-    --app-footer-height: 98px;
-    left: 10px;
-    right: 10px;
-    bottom: 10px;
+  .app-sidebar {
+    inset: auto 8px calc(8px + env(safe-area-inset-bottom, 0px));
+    width: auto;
+    height: auto;
   }
 
-  .app-footer__bar {
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas:
-      "lead actions"
-      "center center";
-    gap: 10px 12px;
-    padding: 12px 13px;
+  .app-sidebar__panel {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    gap: 8px;
+    height: auto;
+    max-height: min(38vh, 220px);
+    padding: 8px 10px;
     border-radius: 18px;
+    border: 1px solid var(--thunder-border);
   }
 
-  .app-footer__zone {
-    &--lead {
-      grid-area: lead;
-      gap: 8px;
-      min-width: 0;
-    }
+  .app-sidebar__zone--lead { display: none; }
+
+  .app-sidebar__zone {
     &--center {
-      grid-area: center;
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
-      padding-top: 10px;
-    }
-    &--status {
-      flex: 1 1 50%;
-      padding: 0 14px 0 0;
-      border-left: 0;
+      grid-row: 1;
+      order: 0;
+      min-height: 42px;
     }
     &--actions {
-      grid-area: actions;
+      flex: 0 0 auto;
+      flex-direction: row;
+      align-items: center;
+      gap: 4px;
     }
   }
 
-  .app-footer__status-cluster {
-    width: 100%;
-    gap: 12px;
-    flex-wrap: wrap;
+  .app-sidebar__zone--bottom {
+    grid-row: 2;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding-top: 8px;
   }
 
-  .app-footer__tools-status {
-    flex-basis: 100%;
+  .app-sidebar__tools-status {
+    flex: 0 1 auto;
     margin-left: 0;
     padding-left: 0;
     border-left: none;
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
-    padding-top: 10px;
+    border-top: 0;
+    padding-top: 0;
     overflow-x: auto;
 
     .downloader-tools-status__line {
@@ -767,32 +855,115 @@ body.low-effects .app-footer__action--tools.is-busy {
     }
   }
 
-  .app-footer__action--tools {
+  .app-sidebar__action--tools {
     min-width: 0;
   }
 
-  .app-footer__tab-nav .group-menu {
-    justify-content: flex-start;
+  .app-sidebar__collapse {
+    display: none;
+  }
+
+  .app-sidebar__tab-nav .group-menu {
+    flex-direction: row;
     overflow-x: auto;
-    padding-bottom: 2px;
-    scrollbar-width: thin;
+    scrollbar-width: none;
+  }
+}
+
+@media (min-width: $breakpoint-tablet + 1px) {
+  body.app-sidebar-collapsed {
+    .app-sidebar__zone--lead {
+      align-items: stretch;
+      padding-inline: 0;
+    }
+
+    .app-sidebar__brand {
+      width: 100%;
+      justify-content: center;
+      padding: 0;
+    }
+
+    .app-sidebar__brand-title {
+      display: none;
+    }
+
+    .app-sidebar__brand-version {
+      display: none;
+    }
+
+    .app-sidebar__tab-nav .group-menu {
+      align-items: stretch;
+    }
+
+    .app-sidebar__tab-nav .menu-item {
+      justify-content: center;
+      padding: 0;
+    }
+
+    .app-sidebar__tab-nav .menu-item .menu-main {
+      justify-content: center;
+    }
+
+    .app-sidebar__tab-nav .menu-text,
+    .app-sidebar__tab-nav .menu-badge {
+      display: none !important;
+    }
+
+    .app-sidebar__zone--bottom {
+      align-items: center;
+    }
+
+    .app-sidebar__tools-status {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    .app-sidebar__zone--actions {
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .app-sidebar__collapse {
+      width: 32px;
+      min-height: 32px;
+      height: 32px;
+      flex-basis: 32px;
+      justify-content: center;
+      padding: 0;
+    }
+
+    .app-sidebar__action--tools {
+      width: 42px;
+      padding: 0;
+      justify-content: center;
+    }
+
+    .app-sidebar__action--tools span {
+      display: none;
+    }
+
+    .app-sidebar__tab-nav .menu-item {
+      min-height: 52px;
+    }
+
+    .app-sidebar__tab-nav .menu-item i {
+      font-size: 22px;
+    }
   }
 }
 
 @media (max-width: $breakpoint-mobile) {
-  .app-footer__zone {
-    &--lead {
-      gap: 6px;
-    }
-  }
-
-  .app-footer__action {
-    width: $footer-action-size;
+  .app-sidebar__action {
+    width: $sidebar-action-size;
     padding: 0;
 
     &--tools {
       width: auto;
-      min-width: $footer-action-size;
+      min-width: $sidebar-action-size;
       padding: 0 10px;
 
       span {
@@ -801,24 +972,15 @@ body.low-effects .app-footer__action--tools.is-busy {
     }
   }
 
-  .app-footer__brand {
-    width: 44px;
-    max-width: 44px;
-    padding-right: 8px;
-  }
-
-  .app-footer__brand-title {
-    display: none;
-  }
-
-  .app-footer__brand-version {
-    padding-inline: 9px;
-  }
-
-  .app-footer__tab-nav .menu-item {
-    min-height: $footer-mobile-tab-height;
-    padding: 0 10px;
+  .app-sidebar__tab-nav .menu-item {
+    min-height: $sidebar-mobile-tab-height;
+    width: auto;
+    flex: 1 0 auto;
+    justify-content: center;
+    padding: 0 9px;
     font-size: 13px;
+
+    .menu-main { justify-content: center; }
   }
 }
 

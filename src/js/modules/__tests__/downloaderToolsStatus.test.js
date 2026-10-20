@@ -43,7 +43,7 @@ jest.mock("../i18n.js", () => ({
 
 const buildDom = () => {
   document.body.innerHTML = `
-    <div id="footer-tools-status" class="app-footer__tools-status downloader-tools-status">
+    <div id="sidebar-tools-status" class="app-sidebar__tools-status downloader-tools-status">
       <div class="status-line" id="dl-tools-status" role="status" aria-live="polite">
         <i class="fa-solid fa-circle-notch fa-spin" id="dl-tools-icon" aria-hidden="true"></i>
         <span id="dl-tools-text" data-i18n="downloader.tools.checking">Checking tools…</span>
@@ -119,9 +119,9 @@ describe("downloaderToolsStatus", () => {
       document.getElementById("dl-tools-action").classList.contains("hidden"),
     ).toBe(true);
     expect(window.electron.tools.checkUpdates).not.toHaveBeenCalled();
-    const container = document.getElementById("footer-tools-status");
+    const container = document.getElementById("sidebar-tools-status");
     expect(container.outerHTML).toMatchInlineSnapshot(`
-     "<div id="footer-tools-status" class="app-footer__tools-status downloader-tools-status">
+     "<div id="sidebar-tools-status" class="app-sidebar__tools-status downloader-tools-status">
            <div class="status-line is-ok" id="dl-tools-status" role="status" aria-live="polite">
              <i class="fa-solid fa-check" id="dl-tools-icon" aria-hidden="true"></i>
              <span id="dl-tools-text" data-i18n="downloader.tools.checking">Tools are ready</span>
@@ -345,7 +345,7 @@ describe("downloaderToolsStatus", () => {
     initDownloaderToolsStatus();
     await tick();
 
-    const container = document.getElementById("footer-tools-status");
+    const container = document.getElementById("sidebar-tools-status");
     expect(container.classList.contains("hidden")).toBe(false);
 
     window.dispatchEvent(

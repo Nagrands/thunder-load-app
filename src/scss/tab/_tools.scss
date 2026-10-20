@@ -121,7 +121,7 @@ $wg-max-width: 1200px;
 
 .wg-center {
   min-height: calc(
-    100vh - var(--topbar-safe-space, 96px) - var(--footer-safe-space, 102px) -
+    100vh - var(--topbar-safe-space, 96px) - var(--sidebar-safe-space, 102px) -
       18px
   );
   display: flex;

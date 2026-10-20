@@ -17,7 +17,7 @@ import { initDownloadActions } from "../downloadActions.js";
 import { initDownloadCancel } from "../downloadCancel.js";
 import { initDownloadCompleteHandler } from "../downloadCompleteHandler.js";
 import { initExternalLinksHandler } from "../externalLinks.js";
-import { initFooterStatusBar } from "../footerStatusBar.js";
+import { initSidebarNavigation } from "../sidebarNavigation.js";
 import { initTooltips } from "../tooltipInitializer.js";
 import { initModalHandlers } from "../modalHandlers.js";
 import { initElectronEvents } from "../electronEvents.js";
@@ -34,7 +34,7 @@ import { initFirstRunModal } from "../firstRunModal.js";
 import { initializeTheme } from "../themeManager.js";
 import { initializeFontSize } from "../fontSizeManager.js";
 import { initLowEffectsFromStore } from "../effectsMode.js";
-import { initDeveloperModeFooterVisibility } from "../developerModeFooter.js";
+import { initDeveloperModeSidebarVisibility } from "../developerModeSidebar.js";
 import { initPageBackgroundMode } from "../pageBackgroundMode.js";
 import { initScrollLockRepair } from "../scrollLockRepair.js";
 import { initScrollbarVisibility } from "../scrollbarVisibility.js";
@@ -80,7 +80,7 @@ async function runCriticalInitialization(mainView) {
 
   const disposeI18nListener = registerI18nListeners(tabs);
 
-  initDeveloperModeFooterVisibility();
+  initDeveloperModeSidebarVisibility();
   initDeveloperModeTopBarVisibility();
   initDownloaderSelectionCard();
   const batchReviewRuntime = initBatchReviewController();
@@ -123,7 +123,7 @@ async function runDeferredInitialization({ tabs }) {
     initHistoryFilter();
     initHistoryActions();
     initDownloadActions();
-    initFooterStatusBar();
+    initSidebarNavigation();
     initDownloadCancel();
     initDownloadCompleteHandler();
     initIconUpdater();

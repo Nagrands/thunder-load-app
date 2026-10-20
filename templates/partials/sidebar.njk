@@ -1,0 +1,121 @@
+    <!-- Application sidebar and compact navigation -->
+    <aside
+      id="app-sidebar"
+      class="app-sidebar"
+      aria-label="Навигация и состояние приложения"
+      data-i18n-aria="sidebar.aria"
+    >
+      <div class="app-sidebar__panel">
+        <div class="app-sidebar__zone app-sidebar__zone--lead">
+          <div class="app-sidebar__brand" role="img" aria-label="Thunder">
+            <img
+              class="app-sidebar__brand-mark"
+              src="../assets/icons/app/app-icon.png"
+              alt=""
+              aria-hidden="true"
+            />
+            <span class="app-sidebar__brand-title">Thunder</span>
+          </div>
+          <button
+            id="app-version-label"
+            class="app-sidebar__brand-version version-container"
+            type="button"
+            title="Версия приложения"
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            data-i18n-title="topbar.appVersion"
+          >
+            <span id="sidebar-app-version">v?</span>
+          </button>
+        </div>
+
+        <div class="app-sidebar__zone app-sidebar__zone--center">
+          <div
+            id="sidebar-tab-nav"
+            class="app-sidebar__tab-nav"
+            role="navigation"
+            aria-label="Навигация по разделам"
+            data-i18n-aria="topbar.nav"
+          ></div>
+        </div>
+
+        <div class="app-sidebar__zone app-sidebar__zone--bottom">
+          <div
+            id="sidebar-tools-status"
+            class="app-sidebar__tools-status downloader-tools-status is-context-hidden"
+            aria-hidden="true"
+          >
+            <div
+              class="status-line downloader-tools-status__line"
+              id="dl-tools-status"
+              role="status"
+              aria-live="polite"
+            >
+              <i
+                class="fa-solid fa-circle-notch fa-spin downloader-tools-status__state-icon"
+                id="dl-tools-icon"
+                aria-hidden="true"
+              ></i>
+              <span
+                id="dl-tools-text"
+                class="downloader-tools-status__text"
+                data-i18n="downloader.tools.checking"
+              >
+                Проверяем инструменты…
+              </span>
+              <div
+                class="tool-badges downloader-tools-status__badges"
+                id="dl-tools-badges"
+              ></div>
+            </div>
+          </div>
+
+          <div class="app-sidebar__zone app-sidebar__zone--actions">
+            <button
+              id="dl-tools-action"
+              class="app-sidebar__action app-sidebar__action--tools hidden"
+              type="button"
+              title=""
+              data-bs-toggle="tooltip"
+              data-bs-placement="top"
+            >
+              <i
+                id="dl-tools-action-icon"
+                class="fa-solid fa-download"
+                aria-hidden="true"
+              ></i>
+              <span id="dl-tools-action-label">Скачать зависимости</span>
+            </button>
+            <button
+              id="sidebar-open-settings"
+              class="app-sidebar__action"
+              type="button"
+              title="Открыть настройки"
+              data-bs-toggle="tooltip"
+              data-bs-placement="top"
+              data-i18n-title="sidebar.openSettings"
+              aria-label="Открыть настройки приложения"
+              data-i18n-aria="sidebar.openSettingsAria"
+              data-hotkey="Ctrl+,"
+              data-shortcut-action="settings.open"
+            >
+              <i class="fa-solid fa-gear" aria-hidden="true"></i>
+            </button>
+            <button
+              id="app-sidebar-toggle"
+              class="app-sidebar__collapse"
+              type="button"
+              aria-expanded="true"
+              aria-label="Свернуть меню"
+              title="Свернуть меню"
+              data-i18n-aria="sidebar.collapseSidebar"
+              data-i18n-title="sidebar.collapseSidebar"
+            >
+              <i class="fa-solid fa-angles-left" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="downloader-bg-preload"></div>

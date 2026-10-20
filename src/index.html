@@ -76,8 +76,6 @@
 
       </div>
 
-      <span class="top-bar__divider" aria-hidden="true"></span>
-
       <div class="window-controls" data-topbar-priority="p1">
         <button
           class="btn-minimize"
@@ -3773,144 +3771,125 @@
   style="text-align: center; padding: 0.5rem; color: #aaa"
 ></div>
 
-      <!-- Footer -->
-    <footer
-      id="app-footer"
-      class="app-footer"
-      aria-label="Нижняя строка состояния"
-      data-i18n-aria="footer.aria"
+      <!-- Application sidebar and compact navigation -->
+    <aside
+      id="app-sidebar"
+      class="app-sidebar"
+      aria-label="Навигация и состояние приложения"
+      data-i18n-aria="sidebar.aria"
     >
-      <div class="app-footer__bar">
-        <div class="app-footer__zone app-footer__zone--lead">
-          <div class="app-footer__brand" role="img" aria-label="Thunder Spark">
+      <div class="app-sidebar__panel">
+        <div class="app-sidebar__zone app-sidebar__zone--lead">
+          <div class="app-sidebar__brand" role="img" aria-label="Thunder">
             <img
-              class="app-footer__brand-mark"
+              class="app-sidebar__brand-mark"
               src="../assets/icons/app/app-icon.png"
               alt=""
               aria-hidden="true"
             />
-            <span class="app-footer__brand-title">Thunder</span>
+            <span class="app-sidebar__brand-title">Thunder</span>
           </div>
           <button
             id="app-version-label"
-            class="app-footer__context app-footer__brand-version version-container"
+            class="app-sidebar__brand-version version-container"
             type="button"
             title="Версия приложения"
             data-bs-toggle="tooltip"
             data-bs-placement="top"
             data-i18n-title="topbar.appVersion"
           >
-            <span id="footer-app-version">v?</span>
+            <span id="sidebar-app-version">v?</span>
           </button>
         </div>
 
-        <div class="app-footer__zone app-footer__zone--center">
-          <div id="footer-status-cluster" class="app-footer__status-cluster">
-            <div class="app-footer__zone app-footer__zone--status">
-              <span
-                id="footer-status-meta"
-                class="app-footer__status-meta"
-                data-i18n="footer.sectionLabel"
-                >Вкладка</span
-              >
-              <strong
-                id="footer-active-section"
-                class="app-footer__status-value"
-                title="Текущий активный раздел"
-                aria-live="polite"
-                >Загрузчик</strong
-              >
-            </div>
-            <div
-              id="footer-tools-status"
-              class="app-footer__tools-status downloader-tools-status is-context-hidden"
-              aria-hidden="true"
-            >
-              <div
-                class="status-line downloader-tools-status__line"
-                id="dl-tools-status"
-                role="status"
-                aria-live="polite"
-              >
-                <i
-                  class="fa-solid fa-circle-notch fa-spin downloader-tools-status__state-icon"
-                  id="dl-tools-icon"
-                  aria-hidden="true"
-                ></i>
-                <span
-                  id="dl-tools-text"
-                  class="downloader-tools-status__text"
-                  data-i18n="downloader.tools.checking"
-                >
-                  Проверяем инструменты…
-                </span>
-                <div
-                  class="tool-badges downloader-tools-status__badges"
-                  id="dl-tools-badges"
-                ></div>
-              </div>
-            </div>
-          </div>
-
+        <div class="app-sidebar__zone app-sidebar__zone--center">
           <div
-            id="footer-tab-nav"
-            class="app-footer__tab-nav"
+            id="sidebar-tab-nav"
+            class="app-sidebar__tab-nav"
             role="navigation"
             aria-label="Навигация по разделам"
             data-i18n-aria="topbar.nav"
-            hidden
           ></div>
         </div>
 
-        <div class="app-footer__zone app-footer__zone--actions">
-          <button
-            id="dl-tools-action"
-            class="app-footer__action app-footer__action--tools hidden"
-            type="button"
-            title=""
-            data-bs-toggle="tooltip"
-            data-bs-placement="top"
+        <div class="app-sidebar__zone app-sidebar__zone--bottom">
+          <div
+            id="sidebar-tools-status"
+            class="app-sidebar__tools-status downloader-tools-status is-context-hidden"
+            aria-hidden="true"
           >
-            <i
-              id="dl-tools-action-icon"
-              class="fa-solid fa-download"
-              aria-hidden="true"
-            ></i>
-            <span id="dl-tools-action-label">Скачать зависимости</span>
-          </button>
-          <button
-            id="footer-open-settings"
-            class="app-footer__action"
-            type="button"
-            title="Открыть настройки"
-            data-bs-toggle="tooltip"
-            data-bs-placement="top"
-            data-i18n-title="footer.openSettings"
-            aria-label="Открыть настройки приложения"
-            data-i18n-aria="footer.openSettingsAria"
-            data-hotkey="Ctrl+,"
-            data-shortcut-action="settings.open"
-          >
-            <i class="fa-solid fa-gear" aria-hidden="true"></i>
-          </button>
+            <div
+              class="status-line downloader-tools-status__line"
+              id="dl-tools-status"
+              role="status"
+              aria-live="polite"
+            >
+              <i
+                class="fa-solid fa-circle-notch fa-spin downloader-tools-status__state-icon"
+                id="dl-tools-icon"
+                aria-hidden="true"
+              ></i>
+              <span
+                id="dl-tools-text"
+                class="downloader-tools-status__text"
+                data-i18n="downloader.tools.checking"
+              >
+                Проверяем инструменты…
+              </span>
+              <div
+                class="tool-badges downloader-tools-status__badges"
+                id="dl-tools-badges"
+              ></div>
+            </div>
+          </div>
 
-          <button
-            id="footer-back-to-top"
-            class="app-footer__action app-footer__action--ghost"
-            type="button"
-            title="Вернуться наверх"
-            data-bs-toggle="tooltip"
-            data-bs-placement="top"
-            data-i18n-title="footer.backToTop"
-            aria-label="Прокрутить страницу к началу"
-            data-i18n-aria="footer.backToTopAria"
-            hidden
-          >
-            <i class="fa-solid fa-arrow-up" aria-hidden="true"></i>
-          </button>
+          <div class="app-sidebar__zone app-sidebar__zone--actions">
+            <button
+              id="dl-tools-action"
+              class="app-sidebar__action app-sidebar__action--tools hidden"
+              type="button"
+              title=""
+              data-bs-toggle="tooltip"
+              data-bs-placement="top"
+            >
+              <i
+                id="dl-tools-action-icon"
+                class="fa-solid fa-download"
+                aria-hidden="true"
+              ></i>
+              <span id="dl-tools-action-label">Скачать зависимости</span>
+            </button>
+            <button
+              id="sidebar-open-settings"
+              class="app-sidebar__action"
+              type="button"
+              title="Открыть настройки"
+              data-bs-toggle="tooltip"
+              data-bs-placement="top"
+              data-i18n-title="sidebar.openSettings"
+              aria-label="Открыть настройки приложения"
+              data-i18n-aria="sidebar.openSettingsAria"
+              data-hotkey="Ctrl+,"
+              data-shortcut-action="settings.open"
+            >
+              <i class="fa-solid fa-gear" aria-hidden="true"></i>
+            </button>
+            <button
+              id="app-sidebar-toggle"
+              class="app-sidebar__collapse"
+              type="button"
+              aria-expanded="true"
+              aria-label="Свернуть меню"
+              title="Свернуть меню"
+              data-i18n-aria="sidebar.collapseSidebar"
+              data-i18n-title="sidebar.collapseSidebar"
+            >
+              <i class="fa-solid fa-angles-left" aria-hidden="true"></i>
+            </button>
+          </div>
         </div>
       </div>
-    </footer>
+    </aside>
 
     <div class="downloader-bg-preload"></div>
 

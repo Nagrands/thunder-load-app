@@ -178,7 +178,7 @@ async function runAction() {
 }
 
 function bindDom() {
-  el.container = document.getElementById("footer-tools-status");
+  el.container = document.getElementById("sidebar-tools-status");
   el.line = document.getElementById("dl-tools-status");
   el.icon = document.getElementById("dl-tools-icon");
   el.text = document.getElementById("dl-tools-text");

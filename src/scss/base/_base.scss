@@ -155,7 +155,7 @@ strong {
 /* **** Дополнительные медиазапросы для адаптивности **** */
 @media (max-width: variables.$breakpoint-tablet) {
   :root {
-    --app-footer-height: 98px;
+    --app-sidebar-compact-height: 98px;
   }
 }
 

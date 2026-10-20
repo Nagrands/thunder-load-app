@@ -65,7 +65,7 @@ describe("web control UI contract", () => {
       "utf8",
     );
     expect(html).not.toContain('class="top-bar"');
-    expect(html).not.toContain('class="app-footer"');
+    expect(html).not.toContain('class="app-sidebar"');
     expect(html).not.toContain("downloader-view-mode");
     expect(html).toContain('class="toolbar-settings-button"');
     expect(html).toContain('id="compact-video-quality"');

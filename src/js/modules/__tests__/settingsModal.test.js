@@ -36,14 +36,14 @@ jest.mock("../domElements.js", () => ({
     return global.document.getElementById("settings-modal");
   },
   get settingsTrigger() {
-    return global.document.getElementById("footer-open-settings");
+    return global.document.getElementById("sidebar-open-settings");
   },
 }));
 
 describe("settingsModal mobile sections navigation", () => {
   const makeDom = () => {
     document.body.innerHTML = `
-      <button id="footer-open-settings" type="button">open</button>
+      <button id="sidebar-open-settings" type="button">open</button>
       <button class="version-container" type="button">version</button>
       <div id="settings-modal" style="display:none">
         <button id="settings-sections-toggle" aria-expanded="false" aria-controls="settings-tabs-panel"></button>
@@ -285,7 +285,7 @@ describe("settingsModal mobile sections navigation", () => {
       "none",
     );
     expect(document.activeElement).toBe(
-      document.getElementById("footer-open-settings"),
+      document.getElementById("sidebar-open-settings"),
     );
   });
 
@@ -389,7 +389,7 @@ describe("settingsModal mobile sections navigation", () => {
       mod.closeSettings();
     });
 
-    const trigger = document.getElementById("footer-open-settings");
+    const trigger = document.getElementById("sidebar-open-settings");
 
     expect(document.activeElement).toBe(trigger);
     expect(trigger.dataset.tooltipSuppressed).toBe("true");

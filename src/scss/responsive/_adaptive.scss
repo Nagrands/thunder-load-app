@@ -179,54 +179,19 @@ body {
 
 @media (max-width: variables.$breakpoint-app-dense) {
   :root {
-    --app-footer-height: 74px;
+    --app-sidebar-compact-height: 116px;
   }
 
   #main-view {
     --topbar-safe-space: max(64px, var(--topbar-current-height, 64px));
-    --footer-safe-space: calc(var(--app-footer-height, 74px) + 20px);
+    --sidebar-safe-space: calc(var(--app-sidebar-compact-height, 116px) + 20px);
     padding-top: var(--topbar-safe-space);
-    padding-bottom: var(--footer-safe-space);
+    padding-bottom: var(--sidebar-safe-space);
   }
 
   .top-bar {
     --topbar-control-size: 40px;
     --topbar-padding-x: 10px;
-  }
-
-  .app-footer {
-    left: 8px;
-    right: 8px;
-    bottom: 8px;
-  }
-
-  .app-footer__bar {
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas: "lead actions";
-    min-height: 64px;
-    padding: 9px 10px;
-  }
-
-  .app-footer__zone--center {
-    display: none;
-  }
-
-  .app-footer--nav-mode {
-    .app-footer__bar {
-      grid-template-areas:
-        "lead actions"
-        "center center";
-    }
-
-    .app-footer__zone--center {
-      display: flex;
-    }
-  }
-
-  .app-footer__action {
-    width: 42px;
-    min-width: 42px;
-    height: 42px;
   }
 
   .tab-hero {
@@ -396,7 +361,7 @@ body {
 @media (max-height: variables.$breakpoint-app-short) {
   #main-view {
     --topbar-safe-space: max(58px, var(--topbar-current-height, 58px));
-    --footer-safe-space: 78px;
+    --sidebar-safe-space: 78px;
     padding-top: var(--topbar-safe-space);
   }
 

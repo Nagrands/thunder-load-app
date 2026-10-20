@@ -8,14 +8,19 @@ describe("settings template structure", () => {
     const indexPath = path.resolve(process.cwd(), "src/index.html");
     const html = fs.readFileSync(indexPath, "utf8");
 
-    expect(html).toContain('class="app-footer__brand"');
-    expect(html).toContain('class="app-footer__brand-mark"');
-    expect(html).toContain('class="app-footer__brand-title"');
+    expect(html).toContain('class="app-sidebar__brand"');
+    expect(html).toContain('class="app-sidebar__brand-mark"');
+    expect(html).toContain('class="app-sidebar__brand-title"');
     expect(html).toContain('id="app-version-label"');
     expect(html).not.toContain('class="top-bar__left"');
     expect(html).not.toContain('data-ui="brand-chip"');
-    expect(html).toContain("Thunder Spark");
-    expect(html).toContain('id="footer-app-version"');
+    expect(html).toContain('class="app-sidebar__brand-title">Thunder</span>');
+    expect(html).toContain('id="sidebar-app-version"');
+    expect(html).not.toContain('id="footer-back-to-top"');
+    expect(html).not.toContain('class="top-bar__divider"');
+    expect(html).not.toContain('id="footer-active-section"');
+    expect(html).not.toContain('id="footer-status-meta"');
+    expect(html).toContain('id="app-sidebar-toggle"');
   });
 
   test("keeps queue filters in the queue header pills", () => {

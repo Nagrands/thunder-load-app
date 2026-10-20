@@ -10,7 +10,7 @@ body.now-playing-immersive,
 body.now-playing-active,
 body.is-now-playing-active {
   overflow: hidden;
-  --footer-safe-space: 0px;
+  --sidebar-safe-space: 0px;
 
   #main-view {
     position: fixed;
@@ -40,8 +40,8 @@ body.is-now-playing-active {
       transform $now-playing-motion;
   }
 
-  #app-footer,
-  .app-footer {
+  #app-sidebar,
+  .app-sidebar {
     visibility: hidden;
     opacity: 0;
     transform: translateY(18px);

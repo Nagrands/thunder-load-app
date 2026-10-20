@@ -20,6 +20,16 @@
   @include mixins.fade-in(0.35s);
 }
 
+// Section navigation is mounted in the application sidebar.
+.top-bar {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "right";
+}
+
+.top-bar__center {
+  display: none;
+}
+
 .top-bar__center,
 .top-bar__right {
   display: flex;
@@ -303,17 +313,6 @@
   }
 }
 
-.top-bar__divider {
-  width: 1px;
-  height: calc(var(--topbar-control-size) - 2px);
-  background: linear-gradient(
-    180deg,
-    transparent,
-    rgba(255, 255, 255, 0.35),
-    transparent
-  );
-}
-
 .window-controls {
   -webkit-app-region: no-drag;
   display: inline-flex;
@@ -388,9 +387,6 @@
     border-radius: 12px;
   }
 
-  .top-bar__divider {
-    display: none;
-  }
 }
 
 @media (max-width: 640px) {
@@ -398,10 +394,6 @@
     grid-template-columns: 1fr auto;
     grid-template-areas: "center right";
     --topbar-control-size: 40px;
-  }
-
-  .top-bar__divider {
-    display: none;
   }
 
   .center-menu .menu-item {

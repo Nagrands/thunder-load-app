@@ -4,11 +4,29 @@
 // Основной контейнер приложения с учетом высоты top-bar
 #main-view {
   --topbar-safe-space: max(72px, var(--topbar-current-height, 96px));
-  --footer-safe-space: calc(var(--app-footer-height, 74px) + 28px);
+  --sidebar-safe-space: calc(var(--app-sidebar-compact-height, 74px) + 28px);
   padding-top: var(--topbar-safe-space); // Высота top-bar + запас
-  padding-bottom: var(--footer-safe-space);
-  min-height: calc(100vh - var(--topbar-safe-space) - var(--footer-safe-space));
+  padding-bottom: var(--sidebar-safe-space);
+  min-height: calc(100vh - var(--topbar-safe-space) - var(--sidebar-safe-space));
   box-sizing: border-box;
+}
+
+@media (min-width: 901px) {
+  #main-view {
+    width: calc(100% - var(--app-sidebar-width, 232px));
+    max-width: none;
+    margin-right: 0;
+    margin-left: var(--app-sidebar-width, 232px);
+    padding-right: clamp(20px, 3vw, 42px);
+    padding-left: clamp(20px, 3vw, 42px);
+    --sidebar-safe-space: 28px;
+  }
+
+  #main-view.container.main-view--products-active {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
 }
 
 .media-file-drop-overlay {
@@ -61,10 +79,10 @@
 // Дополнительные контейнеры, которые могут появляться
 #app-preloader {
   --topbar-safe-space: max(72px, var(--topbar-current-height, 96px));
-  --footer-safe-space: calc(var(--app-footer-height, 74px) + 28px);
+  --sidebar-safe-space: calc(var(--app-sidebar-compact-height, 74px) + 28px);
   padding-top: var(--topbar-safe-space);
-  padding-bottom: var(--footer-safe-space);
-  min-height: calc(100vh - var(--topbar-safe-space) - var(--footer-safe-space));
+  padding-bottom: var(--sidebar-safe-space);
+  min-height: calc(100vh - var(--topbar-safe-space) - var(--sidebar-safe-space));
   box-sizing: border-box;
 }
 
@@ -95,7 +113,7 @@
 .container {
   min-height: calc(
     100vh - var(--topbar-current-height, 80px) - var(
-        --app-footer-height,
+        --app-sidebar-compact-height,
         74px
       ) -
       36px
@@ -117,7 +135,7 @@
 }
 
 #main-view.container.main-view--products-active {
-  --footer-safe-space: 0px;
+  --sidebar-safe-space: 0px;
   max-width: none;
   align-items: stretch;
   justify-content: flex-start;
@@ -145,6 +163,6 @@
   // Дополнительные корректировки для мобильных
   #main-view {
     --topbar-safe-space: max(72px, var(--topbar-current-height, 96px));
-    --footer-safe-space: calc(var(--app-footer-height, 98px) + 24px);
+    --sidebar-safe-space: 138px;
   }
 }

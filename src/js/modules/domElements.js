@@ -81,7 +81,7 @@ const elements = {
   ),
   settingsCloseToTrayRadio: document.getElementById("settings-close-to-tray"),
   settingsCloseAppRadio: document.getElementById("settings-close-app-radio"),
-  settingsTrigger: document.getElementById("footer-open-settings"),
+  settingsTrigger: document.getElementById("sidebar-open-settings"),
   githubButton: document.getElementById("open-github"),
   settingsModal: document.getElementById("settings-modal"),
   closeSettingsButton: document.querySelector(".close-settings"),
