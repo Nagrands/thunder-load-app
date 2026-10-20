@@ -224,6 +224,8 @@ export const toolsTranslations = {
     "tools.nav.current.mediaConverter": "Конвертер форматов",
     "tools.nav.current.backup": "Backup",
     "tools.converter.title": "Конвертер форматов",
+    "tools.converter.eyebrow": "МЕДИАСТУДИЯ",
+    "tools.converter.files.title": "Файлы",
     "tools.converter.subtitle":
       "Конвертирует один локальный аудио или видеофайл через ffmpeg.",
     "tools.converter.source.title": "Исходный файл",
@@ -976,6 +978,8 @@ export const toolsTranslations = {
     "tools.nav.current.mediaConverter": "Format Converter",
     "tools.nav.current.backup": "Backup",
     "tools.converter.title": "Format Converter",
+    "tools.converter.eyebrow": "MEDIA WORKSHOP",
+    "tools.converter.files.title": "Files",
     "tools.converter.subtitle":
       "Convert one local audio or video file with ffmpeg.",
     "tools.converter.source.title": "Source file",

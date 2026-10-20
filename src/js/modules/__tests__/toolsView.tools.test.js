@@ -403,6 +403,19 @@ describe("toolsView quick actions", () => {
     ).toBe("page");
   });
 
+  test("groups source file and output folder in one converter panel", async () => {
+    const el = await renderView();
+    await openTool(el, "media-converter");
+
+    const fileFlow = el.querySelector(".converter-file-flow");
+    expect(fileFlow?.closest(".converter-panel--source")).not.toBeNull();
+    expect(fileFlow?.querySelector("#converter-drop-zone")).not.toBeNull();
+    expect(fileFlow?.querySelector("#converter-pick-file")).not.toBeNull();
+    expect(fileFlow?.querySelector("#converter-output-dir")).not.toBeNull();
+    expect(fileFlow?.querySelector("#converter-pick-folder")).not.toBeNull();
+    expect(el.querySelector(".converter-panel--output")).toBeNull();
+  });
+
   test("picks a converter source file and enables conversion", async () => {
     const el = await renderView();
     await openTool(el, "media-converter");

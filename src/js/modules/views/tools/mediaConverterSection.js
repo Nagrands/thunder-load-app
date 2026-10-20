@@ -62,33 +62,71 @@ export function renderMediaConverterSection(t) {
     <section class="tools-view hidden" data-tool-view="media-converter" aria-label="${t("tools.nav.current.mediaConverter")}">
       <article class="tools-card tools-detail-card converter-card">
         <div class="tools-card__header converter-header">
+          <span class="converter-header__icon" aria-hidden="true"><i class="fa-solid fa-clapperboard"></i></span>
           <div>
+            <span class="converter-header__eyebrow" data-i18n="tools.converter.eyebrow">${t("tools.converter.eyebrow")}</span>
             <h2 data-i18n="tools.converter.title">${t("tools.converter.title")}</h2>
             <p class="tools-card__hint" data-i18n="tools.converter.subtitle">${t("tools.converter.subtitle")}</p>
           </div>
+          <span class="converter-header__engine">FFMPEG</span>
         </div>
 
         <div class="converter-shell">
           <section class="converter-panel converter-panel--source">
             <div class="converter-panel__header">
-              <h3 data-i18n="tools.converter.source.title">${t("tools.converter.source.title")}</h3>
-              <button id="converter-pick-file" type="button" class="small-button">
-                <i class="fa-regular fa-folder-open"></i>
-                <span data-i18n="tools.converter.pickFile">${t("tools.converter.pickFile")}</span>
-              </button>
+              <div class="converter-panel__title"><span class="converter-panel__icon"><i class="fa-solid fa-arrow-right-arrow-left" aria-hidden="true"></i></span><h3 id="converter-files-title" data-i18n="tools.converter.files.title">${t("tools.converter.files.title")}</h3></div>
             </div>
-            <div id="converter-drop-zone" class="converter-drop-zone" role="button" tabindex="0">
-              <i class="fa-solid fa-file-arrow-up" aria-hidden="true"></i>
-              <div>
-                <strong id="converter-file-name" data-i18n="tools.converter.noFile">${t("tools.converter.noFile")}</strong>
-                <span id="converter-file-path" class="muted" data-i18n="tools.converter.dropHint">${t("tools.converter.dropHint")}</span>
-              </div>
+            <div class="converter-file-flow" aria-labelledby="converter-files-title">
+              <section class="converter-file-flow__step converter-file-flow__source">
+                <div class="converter-file-flow__header">
+                  <div class="converter-file-flow__label"><span class="converter-file-flow__number">01</span><span data-i18n="tools.converter.source.title">${t("tools.converter.source.title")}</span></div>
+                  <button
+                    id="converter-pick-file"
+                    type="button"
+                    class="small-button converter-icon-button"
+                    data-i18n-title="tools.converter.pickFile"
+                    data-i18n-aria="tools.converter.pickFile"
+                    title="${t("tools.converter.pickFile")}"
+                    aria-label="${t("tools.converter.pickFile")}"
+                  >
+                    <i class="fa-regular fa-file-video" aria-hidden="true"></i>
+                  </button>
+                </div>
+                <div id="converter-drop-zone" class="converter-drop-zone" role="button" tabindex="0">
+                  <i class="fa-solid fa-file-arrow-up" aria-hidden="true"></i>
+                  <div>
+                    <strong id="converter-file-name" data-i18n="tools.converter.noFile">${t("tools.converter.noFile")}</strong>
+                    <span id="converter-file-path" class="muted" data-i18n="tools.converter.dropHint">${t("tools.converter.dropHint")}</span>
+                  </div>
+                </div>
+              </section>
+              <div class="converter-file-flow__connector" aria-hidden="true"><i class="fa-solid fa-arrow-right"></i></div>
+              <section class="converter-file-flow__step converter-file-flow__destination">
+                <div class="converter-file-flow__header">
+                  <div class="converter-file-flow__label"><span class="converter-file-flow__number">02</span><span data-i18n="tools.converter.output.title">${t("tools.converter.output.title")}</span></div>
+                  <button
+                    id="converter-pick-folder"
+                    type="button"
+                    class="small-button converter-icon-button"
+                    data-i18n-title="tools.converter.pickFolder"
+                    data-i18n-aria="tools.converter.pickFolder"
+                    title="${t("tools.converter.pickFolder")}"
+                    aria-label="${t("tools.converter.pickFolder")}"
+                  >
+                    <i class="fa-regular fa-folder-open" aria-hidden="true"></i>
+                  </button>
+                </div>
+                <div class="converter-output-pill">
+                  <i class="fa-regular fa-folder-open" aria-hidden="true"></i>
+                  <span id="converter-output-dir" data-i18n="tools.converter.output.auto">${t("tools.converter.output.auto")}</span>
+                </div>
+              </section>
             </div>
           </section>
 
           <section class="converter-panel converter-panel--settings">
             <div class="converter-panel__header">
-              <h3 data-i18n="tools.converter.settings.title">${t("tools.converter.settings.title")}</h3>
+              <div class="converter-panel__title"><span class="converter-panel__icon"><i class="fa-solid fa-sliders" aria-hidden="true"></i></span><h3 data-i18n="tools.converter.settings.title">${t("tools.converter.settings.title")}</h3></div>
             </div>
             <div class="converter-control-group">
               <span class="converter-label" data-i18n="tools.converter.format">${t("tools.converter.format")}</span>
@@ -101,19 +139,6 @@ export function renderMediaConverterSection(t) {
               <div id="converter-quality-options" class="converter-options" role="listbox">
                 ${createQualityOptions(t)}
               </div>
-            </div>
-          </section>
-
-          <section class="converter-panel converter-panel--output">
-            <div class="converter-panel__header">
-              <h3 data-i18n="tools.converter.output.title">${t("tools.converter.output.title")}</h3>
-              <button id="converter-pick-folder" type="button" class="small-button">
-                <i class="fa-regular fa-folder-open"></i>
-                <span data-i18n="tools.converter.pickFolder">${t("tools.converter.pickFolder")}</span>
-              </button>
-            </div>
-            <div class="converter-output-pill">
-              <span id="converter-output-dir" data-i18n="tools.converter.output.auto">${t("tools.converter.output.auto")}</span>
             </div>
           </section>
 
