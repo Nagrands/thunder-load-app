@@ -645,7 +645,7 @@ export default function renderToolsView() {
 
   const setToolView = (
     nextView,
-    { persist = true, focusLauncher = false } = {},
+    { persist = true, focusLauncher = false, fromCard = false } = {},
   ) => {
     const shell = view.querySelector(".tools-shell");
     const launcher = getEl("tools-launcher", view);
@@ -671,6 +671,31 @@ export default function renderToolsView() {
       section.classList.toggle("is-active", active);
     });
 
+    if (fromCard && !showLauncher) {
+      const activeView = view.querySelector(
+        `.tools-view[data-tool-view="${targetView}"]`,
+      );
+      const lowEffects = document.body?.classList.contains("low-effects") ||
+        document.documentElement?.classList.contains("low-effects");
+      let reduceMotion = lowEffects;
+      try {
+        reduceMotion ||= window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+      } catch {}
+      if (!reduceMotion && typeof activeView?.animate === "function") {
+        const animation = activeView.animate(
+          [
+            { opacity: 0, transform: "translateY(14px)" },
+            { opacity: 1, transform: "translateY(0)" },
+          ],
+          {
+            duration: 300,
+            easing: "cubic-bezier(0.2, 0.75, 0.25, 1)",
+          },
+        );
+        animation.onfinish = () => animation.cancel();
+      }
+    }
+
     view.querySelectorAll("[data-tool-nav]").forEach((button) => {
       const toolView = button.dataset.toolNav;
       const available =
@@ -683,6 +708,7 @@ export default function renderToolsView() {
         button.removeAttribute("aria-current");
       }
     });
+
     sidebarNavigation?.classList.remove("is-open");
     sidebarToggle?.setAttribute("aria-expanded", "false");
 
@@ -943,20 +969,24 @@ export default function renderToolsView() {
       updateLauncherToolsCount();
     };
 
-    openWgBtn?.addEventListener("click", () => setToolView("wg"));
-    openHashBtn?.addEventListener("click", () => setToolView("hash"));
+    openWgBtn?.addEventListener("click", () =>
+      setToolView("wg", { fromCard: true }),
+    );
+    openHashBtn?.addEventListener("click", () =>
+      setToolView("hash", { fromCard: true }),
+    );
     openDownloaderToolsBtn?.addEventListener("click", () =>
-      setToolView("downloader-tools"),
+      setToolView("downloader-tools", { fromCard: true }),
     );
     openMediaInspectorBtn?.addEventListener("click", () =>
-      setToolView("media-inspector"),
+      setToolView("media-inspector", { fromCard: true }),
     );
     openMediaConverterBtn?.addEventListener("click", () =>
-      setToolView("media-converter"),
+      setToolView("media-converter", { fromCard: true }),
     );
     openBackupBtn?.addEventListener("click", () => {
       ensureBackupToolView();
-      setToolView("backup");
+      setToolView("backup", { fromCard: true });
     });
     view.querySelectorAll("[data-tool-nav]").forEach((button) => {
       button.addEventListener("click", () => {

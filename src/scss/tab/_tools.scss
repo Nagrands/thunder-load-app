@@ -1263,6 +1263,14 @@ $wg-max-width: 1200px;
   }
 }
 
+.tools-shell.is-launcher {
+  grid-template-columns: minmax(0, 1fr);
+
+  > .tools-sidebar {
+    display: none;
+  }
+}
+
 .tools-workspace {
   display: grid;
   align-content: start;
@@ -1624,7 +1632,6 @@ $wg-max-width: 1200px;
     border-radius: 14px;
     background: rgba(var(--color-accent-rgb), 0.1);
     color: var(--thunder-electric);
-
     i {
       font-size: 1.15rem;
     }
@@ -1681,6 +1688,7 @@ $wg-max-width: 1200px;
     border-color: rgba(var(--color-accent-rgb), 0.85);
     box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb), 0.2);
   }
+
 }
 
 .tools-launcher-button.is-unavailable {
@@ -1716,6 +1724,7 @@ $wg-max-width: 1200px;
     &::after {
       opacity: 0;
     }
+
   }
 
   &:focus-visible {

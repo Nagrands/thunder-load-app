@@ -28918,6 +28918,13 @@ video {
   z-index: 1;
 }
 
+.tools-shell.is-launcher {
+  grid-template-columns: minmax(0, 1fr);
+}
+.tools-shell.is-launcher > .tools-sidebar {
+  display: none;
+}
+
 .tools-workspace {
   display: grid;
   align-content: start;
