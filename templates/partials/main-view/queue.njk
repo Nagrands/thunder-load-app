@@ -1,6 +1,6 @@
   <section class="downloads-toolbar" aria-label="Быстрый доступ" data-i18n-aria="downloader.quickAccess.title">
     <div class="downloads-toolbar__title">
-      <span aria-hidden="true"><i data-lucide="download"></i></span>
+      <span class="downloads-toolbar__icon" aria-hidden="true"><i data-lucide="download"></i></span>
       <strong data-i18n="downloader.quickAccess.title">Быстрый доступ</strong>
     </div>
     <div class="downloads-toolbar__actions">
@@ -8,6 +8,7 @@
         id="open-last-video"
         data-shortcut-action="downloads.last.open"
         class="queue-action-button queue-action-button--ghost"
+        type="button"
         aria-label="Открыть последнее скачанное видео"
         data-i18n-aria="actions.openLast"
         title="Последнее видео"
@@ -15,7 +16,7 @@
         disabled
       >
         <i class="fa fa-play" aria-hidden="true"></i>
-        <span data-i18n="actions.lastVideo">Последнее видео</span>
+        <span class="downloads-toolbar__label" data-i18n="actions.lastVideo">Последнее видео</span>
       </button>
       <button
         id="open-history"
@@ -32,7 +33,7 @@
         data-i18n-title="topbar.history"
       >
         <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>
-        <span data-i18n="history.title">История</span>
+        <span class="downloads-toolbar__label" data-i18n="history.title">История</span>
         <span id="downloads-history-count" class="downloads-toolbar__count" aria-hidden="true">0</span>
         <span
           id="downloads-history-new"

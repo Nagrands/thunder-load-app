@@ -398,10 +398,6 @@ export default function renderToolsView() {
         <div class="tools-launcher-inner">
           <div class="tools-launcher-grid">
             <button id="tools-open-downloader-tools" type="button" class="tools-launcher-button" data-ui="tools-launcher-card">
-              <span class="tools-launcher-button__badges" aria-label="${t("tools.launcher.badges.aria")}">
-                <span class="tools-launcher-badge tools-launcher-badge--new" data-i18n="tools.launcher.badge.new">${t("tools.launcher.badge.new")}</span>
-                <span class="tools-launcher-badge">Update</span>
-              </span>
               <i class="fa-solid fa-download"></i>
               <span data-i18n="tools.launcher.open.downloaderTools">${t("tools.launcher.open.downloaderTools")}</span>
               <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.downloaderTools">
@@ -409,9 +405,6 @@ export default function renderToolsView() {
               </small>
             </button>
             <button id="tools-open-media-converter" type="button" class="tools-launcher-button" data-ui="tools-launcher-card">
-              <span class="tools-launcher-button__badges" aria-label="${t("tools.launcher.badges.aria")}">
-                <span class="tools-launcher-badge tools-launcher-badge--new" data-i18n="tools.launcher.badge.new">${t("tools.launcher.badge.new")}</span>
-              </span>
               <i class="fa-solid fa-right-left"></i>
               <span data-i18n="tools.launcher.open.mediaConverter">${t("tools.launcher.open.mediaConverter")}</span>
               <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.mediaConverter">
@@ -433,9 +426,6 @@ export default function renderToolsView() {
               </small>
             </button>
             <button id="tools-open-media-inspector" type="button" class="tools-launcher-button" data-ui="tools-launcher-card">
-              <span class="tools-launcher-button__badges" aria-label="${t("tools.launcher.badges.aria")}">
-                <span class="tools-launcher-badge">Update</span>
-              </span>
               <i class="fa-solid fa-film"></i>
               <span data-i18n="tools.launcher.open.mediaInspector">Media Inspector</span>
               <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.mediaInspector">
@@ -443,9 +433,6 @@ export default function renderToolsView() {
               </small>
             </button>
             <button id="tools-open-power" type="button" class="tools-launcher-button" data-ui="tools-launcher-card">
-              <span class="tools-launcher-button__badges" aria-label="${t("tools.launcher.badges.aria")}">
-                <span class="tools-launcher-badge">Update</span>
-              </span>
               <i class="fa-solid fa-power-off"></i>
               <span data-i18n="tools.launcher.open.power">Power Shortcuts</span>
               <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.power">

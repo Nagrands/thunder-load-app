@@ -1649,36 +1649,6 @@ $wg-max-width: 1200px;
   }
 }
 
-.tools-launcher-button__badges {
-  position: absolute;
-  top: 14px;
-  left: 14px;
-  right: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-  pointer-events: none;
-}
-
-.tools-launcher-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 18px;
-  padding: 0 9px;
-  border-radius: 999px;
-  background: var(--color-hover);
-  color: var(--color-quality);
-  font-size: 0.72rem;
-  line-height: 1;
-}
-
-.tools-launcher-badge--new {
-  background: rgba(var(--color-accent-rgb), 0.16);
-  color: var(--color-highlight);
-}
-
 .tools-launcher-button.is-unavailable {
   min-height: 210px;
   cursor: not-allowed;

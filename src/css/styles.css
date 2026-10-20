@@ -11520,7 +11520,7 @@
   --spacing-small: 8px;
   --spacing-medium: 16px;
   --spacing-large: 24px;
-  --border-radius: 24px;
+  --border-radius: 12px;
   --thunder-ink-950: #040813;
   --thunder-ink-900: #0d1118;
   --thunder-ink-800: #151d29;
@@ -14959,10 +14959,7 @@ hr {
 }
 
 /* ========== Базовые стили кнопок ========== */
-.button--install-deps, #install-deps-btn, .btn--install-deps, .button--cancel, #download-cancel, .btn--cancel, .button--download-button, #download-button, .btn--download, .button--open-folder, #open-folder, .btn--open-folder,
-.button--open-last-video,
-#open-last-video,
-.btn--open-last-video, .button,
+.button--install-deps, #install-deps-btn, .btn--install-deps, .button--cancel, #download-cancel, .btn--cancel, .button--download-button, #download-button, .btn--download, .button--open-folder, #open-folder, .btn--open-folder, .button,
 .btn {
   position: relative;
   background: none;
@@ -14983,21 +14980,12 @@ hr {
   color: var(--color-highlight);
   border: 1px solid var(--thunder-border);
 }
-.button--install-deps::before, #install-deps-btn::before, .btn--install-deps::before, .button--cancel::before, #download-cancel::before, .btn--cancel::before, .button--download-button::before, #download-button::before, .btn--download::before, .button--open-folder::before, #open-folder::before, .btn--open-folder::before,
-.button--open-last-video::before,
-#open-last-video::before,
-.btn--open-last-video::before, .button::before,
-.btn::before, .button--install-deps::after, #install-deps-btn::after, .btn--install-deps::after, .button--cancel::after, #download-cancel::after, .btn--cancel::after, .button--download-button::after, #download-button::after, .btn--download::after, .button--open-folder::after, #open-folder::after, .btn--open-folder::after,
-.button--open-last-video::after,
-#open-last-video::after,
-.btn--open-last-video::after, .button::after,
+.button--install-deps::before, #install-deps-btn::before, .btn--install-deps::before, .button--cancel::before, #download-cancel::before, .btn--cancel::before, .button--download-button::before, #download-button::before, .btn--download::before, .button--open-folder::before, #open-folder::before, .btn--open-folder::before, .button::before,
+.btn::before, .button--install-deps::after, #install-deps-btn::after, .btn--install-deps::after, .button--cancel::after, #download-cancel::after, .btn--cancel::after, .button--download-button::after, #download-button::after, .btn--download::after, .button--open-folder::after, #open-folder::after, .btn--open-folder::after, .button::after,
 .btn::after {
   display: none;
 }
-.button--install-deps:hover, #install-deps-btn:hover, .btn--install-deps:hover, .button--cancel:hover, #download-cancel:hover, .btn--cancel:hover, .button--download-button:hover, #download-button:hover, .btn--download:hover, .button--open-folder:hover, #open-folder:hover, .btn--open-folder:hover,
-.button--open-last-video:hover,
-#open-last-video:hover,
-.btn--open-last-video:hover, .button:hover,
+.button--install-deps:hover, #install-deps-btn:hover, .btn--install-deps:hover, .button--cancel:hover, #download-cancel:hover, .btn--cancel:hover, .button--download-button:hover, #download-button:hover, .btn--download:hover, .button--open-folder:hover, #open-folder:hover, .btn--open-folder:hover, .button:hover,
 .btn:hover {
   transform: translateY(-1px);
   background: var(--thunder-control-hover);
@@ -15005,31 +14993,19 @@ hr {
   color: var(--thunder-bolt);
   box-shadow: var(--thunder-glow);
 }
-.button--install-deps:active, #install-deps-btn:active, .btn--install-deps:active, .button--cancel:active, #download-cancel:active, .btn--cancel:active, .button--download-button:active, #download-button:active, .btn--download:active, .button--open-folder:active, #open-folder:active, .btn--open-folder:active,
-.button--open-last-video:active,
-#open-last-video:active,
-.btn--open-last-video:active, .button:active,
+.button--install-deps:active, #install-deps-btn:active, .btn--install-deps:active, .button--cancel:active, #download-cancel:active, .btn--cancel:active, .button--download-button:active, #download-button:active, .btn--download:active, .button--open-folder:active, #open-folder:active, .btn--open-folder:active, .button:active,
 .btn:active {
   transform: translateY(0);
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 50%, rgba(255, 255, 255, 0.02) 100%);
   transition-duration: 0.1s;
 }
-.button--install-deps:focus-visible, #install-deps-btn:focus-visible, .btn--install-deps:focus-visible, .button--cancel:focus-visible, #download-cancel:focus-visible, .btn--cancel:focus-visible, .button--download-button:focus-visible, #download-button:focus-visible, .btn--download:focus-visible, .button--open-folder:focus-visible, #open-folder:focus-visible, .btn--open-folder:focus-visible,
-.button--open-last-video:focus-visible,
-#open-last-video:focus-visible,
-.btn--open-last-video:focus-visible, .button:focus-visible,
+.button--install-deps:focus-visible, #install-deps-btn:focus-visible, .btn--install-deps:focus-visible, .button--cancel:focus-visible, #download-cancel:focus-visible, .btn--cancel:focus-visible, .button--download-button:focus-visible, #download-button:focus-visible, .btn--download:focus-visible, .button--open-folder:focus-visible, #open-folder:focus-visible, .btn--open-folder:focus-visible, .button:focus-visible,
 .btn:focus-visible {
   outline: none;
   box-shadow: var(--thunder-focus-ring), var(--glass-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
-.button--install-deps:disabled, #install-deps-btn:disabled, .btn--install-deps:disabled, .button--cancel:disabled, #download-cancel:disabled, .btn--cancel:disabled, .button--download-button:disabled, #download-button:disabled, .btn--download:disabled, .button--open-folder:disabled, #open-folder:disabled, .btn--open-folder:disabled,
-.button--open-last-video:disabled,
-#open-last-video:disabled,
-.btn--open-last-video:disabled, .button:disabled,
-.btn:disabled, [aria-disabled=true].button--install-deps, [aria-disabled=true]#install-deps-btn, [aria-disabled=true].btn--install-deps, [aria-disabled=true].button--cancel, [aria-disabled=true]#download-cancel, [aria-disabled=true].btn--cancel, [aria-disabled=true].button--download-button, [aria-disabled=true]#download-button, [aria-disabled=true].btn--download, [aria-disabled=true].button--open-folder, [aria-disabled=true]#open-folder, [aria-disabled=true].btn--open-folder,
-[aria-disabled=true].button--open-last-video,
-[aria-disabled=true]#open-last-video,
-[aria-disabled=true].btn--open-last-video, [aria-disabled=true].button,
+.button--install-deps:disabled, #install-deps-btn:disabled, .btn--install-deps:disabled, .button--cancel:disabled, #download-cancel:disabled, .btn--cancel:disabled, .button--download-button:disabled, #download-button:disabled, .btn--download:disabled, .button--open-folder:disabled, #open-folder:disabled, .btn--open-folder:disabled, .button:disabled,
+.btn:disabled, [aria-disabled=true].button--install-deps, [aria-disabled=true]#install-deps-btn, [aria-disabled=true].btn--install-deps, [aria-disabled=true].button--cancel, [aria-disabled=true]#download-cancel, [aria-disabled=true].btn--cancel, [aria-disabled=true].button--download-button, [aria-disabled=true]#download-button, [aria-disabled=true].btn--download, [aria-disabled=true].button--open-folder, [aria-disabled=true]#open-folder, [aria-disabled=true].btn--open-folder, [aria-disabled=true].button,
 [aria-disabled=true].btn {
   opacity: 0.6;
   background: rgba(255, 255, 255, 0.05);
@@ -15040,22 +15016,10 @@ hr {
   box-shadow: none !important;
   transform: none !important;
 }
-.button--install-deps:disabled::before, #install-deps-btn:disabled::before, .btn--install-deps:disabled::before, .button--cancel:disabled::before, #download-cancel:disabled::before, .btn--cancel:disabled::before, .button--download-button:disabled::before, #download-button:disabled::before, .btn--download:disabled::before, .button--open-folder:disabled::before, #open-folder:disabled::before, .btn--open-folder:disabled::before,
-.button--open-last-video:disabled::before,
-#open-last-video:disabled::before,
-.btn--open-last-video:disabled::before, .button:disabled::before,
-.btn:disabled::before, .button--install-deps:disabled::after, #install-deps-btn:disabled::after, .btn--install-deps:disabled::after, .button--cancel:disabled::after, #download-cancel:disabled::after, .btn--cancel:disabled::after, .button--download-button:disabled::after, #download-button:disabled::after, .btn--download:disabled::after, .button--open-folder:disabled::after, #open-folder:disabled::after, .btn--open-folder:disabled::after,
-.button--open-last-video:disabled::after,
-#open-last-video:disabled::after,
-.btn--open-last-video:disabled::after, .button:disabled::after,
-.btn:disabled::after, [aria-disabled=true].button--install-deps::before, [aria-disabled=true]#install-deps-btn::before, [aria-disabled=true].btn--install-deps::before, [aria-disabled=true].button--cancel::before, [aria-disabled=true]#download-cancel::before, [aria-disabled=true].btn--cancel::before, [aria-disabled=true].button--download-button::before, [aria-disabled=true]#download-button::before, [aria-disabled=true].btn--download::before, [aria-disabled=true].button--open-folder::before, [aria-disabled=true]#open-folder::before, [aria-disabled=true].btn--open-folder::before,
-[aria-disabled=true].button--open-last-video::before,
-[aria-disabled=true]#open-last-video::before,
-[aria-disabled=true].btn--open-last-video::before, [aria-disabled=true].button::before,
-[aria-disabled=true].btn::before, [aria-disabled=true].button--install-deps::after, [aria-disabled=true]#install-deps-btn::after, [aria-disabled=true].btn--install-deps::after, [aria-disabled=true].button--cancel::after, [aria-disabled=true]#download-cancel::after, [aria-disabled=true].btn--cancel::after, [aria-disabled=true].button--download-button::after, [aria-disabled=true]#download-button::after, [aria-disabled=true].btn--download::after, [aria-disabled=true].button--open-folder::after, [aria-disabled=true]#open-folder::after, [aria-disabled=true].btn--open-folder::after,
-[aria-disabled=true].button--open-last-video::after,
-[aria-disabled=true]#open-last-video::after,
-[aria-disabled=true].btn--open-last-video::after, [aria-disabled=true].button::after,
+.button--install-deps:disabled::before, #install-deps-btn:disabled::before, .btn--install-deps:disabled::before, .button--cancel:disabled::before, #download-cancel:disabled::before, .btn--cancel:disabled::before, .button--download-button:disabled::before, #download-button:disabled::before, .btn--download:disabled::before, .button--open-folder:disabled::before, #open-folder:disabled::before, .btn--open-folder:disabled::before, .button:disabled::before,
+.btn:disabled::before, .button--install-deps:disabled::after, #install-deps-btn:disabled::after, .btn--install-deps:disabled::after, .button--cancel:disabled::after, #download-cancel:disabled::after, .btn--cancel:disabled::after, .button--download-button:disabled::after, #download-button:disabled::after, .btn--download:disabled::after, .button--open-folder:disabled::after, #open-folder:disabled::after, .btn--open-folder:disabled::after, .button:disabled::after,
+.btn:disabled::after, [aria-disabled=true].button--install-deps::before, [aria-disabled=true]#install-deps-btn::before, [aria-disabled=true].btn--install-deps::before, [aria-disabled=true].button--cancel::before, [aria-disabled=true]#download-cancel::before, [aria-disabled=true].btn--cancel::before, [aria-disabled=true].button--download-button::before, [aria-disabled=true]#download-button::before, [aria-disabled=true].btn--download::before, [aria-disabled=true].button--open-folder::before, [aria-disabled=true]#open-folder::before, [aria-disabled=true].btn--open-folder::before, [aria-disabled=true].button::before,
+[aria-disabled=true].btn::before, [aria-disabled=true].button--install-deps::after, [aria-disabled=true]#install-deps-btn::after, [aria-disabled=true].btn--install-deps::after, [aria-disabled=true].button--cancel::after, [aria-disabled=true]#download-cancel::after, [aria-disabled=true].btn--cancel::after, [aria-disabled=true].button--download-button::after, [aria-disabled=true]#download-button::after, [aria-disabled=true].btn--download::after, [aria-disabled=true].button--open-folder::after, [aria-disabled=true]#open-folder::after, [aria-disabled=true].btn--open-folder::after, [aria-disabled=true].button::after,
 [aria-disabled=true].btn::after {
   display: none;
 }
@@ -15190,9 +15154,7 @@ hr {
   .button--open-folder,
   #open-folder,
   .btn--open-folder,
-  .button--open-last-video,
-  #open-last-video,
-  .btn--open-last-video {
+  #open-last-video {
     transform: none !important;
   }
   .button--download-button:hover, #download-button:hover, .btn--download:hover, .button--download-button:active, #download-button:active, .btn--download:active,
@@ -15202,33 +15164,20 @@ hr {
   .button--open-folder:active,
   #open-folder:active,
   .btn--open-folder:active,
-  .button--open-last-video:hover,
   #open-last-video:hover,
-  .btn--open-last-video:hover,
-  .button--open-last-video:active,
-  #open-last-video:active,
-  .btn--open-last-video:active {
+  #open-last-video:active {
     transform: none !important;
   }
 }
 /* ========== Модификаторы кнопок ========== */
-.button--open-folder:hover, #open-folder:hover, .btn--open-folder:hover,
-.button--open-last-video:hover,
-#open-last-video:hover,
-.btn--open-last-video:hover {
+.button--open-folder:hover, #open-folder:hover, .btn--open-folder:hover {
   color: var(--color-accent);
 }
-.button--open-folder:active, #open-folder:active, .btn--open-folder:active,
-.button--open-last-video:active,
-#open-last-video:active,
-.btn--open-last-video:active {
+.button--open-folder:active, #open-folder:active, .btn--open-folder:active {
   transform: translateY(1px);
   box-shadow: 0 3px 9px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
-.button--open-folder:focus-visible, #open-folder:focus-visible, .btn--open-folder:focus-visible,
-.button--open-last-video:focus-visible,
-#open-last-video:focus-visible,
-.btn--open-last-video:focus-visible {
+.button--open-folder:focus-visible, #open-folder:focus-visible, .btn--open-folder:focus-visible {
   outline: none;
   box-shadow: 0 0 0 2px rgba(var(--color-accent-rgb), 0.38), 0 5px 14px rgba(0, 0, 0, 0.2);
 }
@@ -24225,7 +24174,7 @@ video {
 .download-destination__change {
   min-height: 44px;
   padding: 0 11px;
-  border-radius: 8px;
+  border-radius: var(--border-radius);
   border: 1px solid rgba(var(--color-accent-rgb), 0.2);
   background: rgba(var(--color-accent-rgb), 0.08);
   color: var(--color-accent);
@@ -24247,7 +24196,7 @@ video {
   align-items: center;
   justify-content: center;
   border: 1px solid rgba(var(--color-accent-rgb), 0.2);
-  border-radius: 8px;
+  border-radius: var(--border-radius);
   background: rgba(var(--color-accent-rgb), 0.08);
   color: var(--color-accent);
 }
@@ -24264,18 +24213,80 @@ video {
   outline-offset: 2px;
 }
 
-.downloads-toolbar .queue-action-button {
-  min-height: 40px;
+.downloads-toolbar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  margin-top: 14px;
+  padding: 8px 10px;
+  border-radius: var(--border-radius);
+  border: 1px solid rgba(150, 185, 228, 0.14);
+  background: radial-gradient(130% 220% at 0% 0%, rgba(var(--color-accent-rgb), 0.12), transparent 58%), linear-gradient(180deg, rgba(17, 27, 46, 0.78), rgba(5, 11, 23, 0.9));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 12px 28px rgba(2, 7, 18, 0.3);
+  backdrop-filter: blur(14px) saturate(115%);
+  -webkit-backdrop-filter: blur(14px) saturate(115%);
+}
+
+.downloads-toolbar__title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  color: rgba(239, 246, 255, 0.9);
+  font-size: 0.82rem;
+  letter-spacing: 0.01em;
+}
+.downloads-toolbar__title strong {
+  overflow: hidden;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.downloads-toolbar__icon {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 9px;
-  padding: 0 12px;
-  border: 1px solid rgba(170, 198, 236, 0.16);
+  border-radius: 9px;
+  border: 1px solid rgba(var(--color-accent-rgb), 0.24);
+  background: linear-gradient(150deg, rgba(var(--color-accent-rgb), 0.22), rgba(var(--color-accent-rgb), 0.06));
+  color: var(--color-accent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+.downloads-toolbar__icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.downloads-toolbar__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px;
   border-radius: 10px;
-  color: rgba(231, 240, 252, 0.88);
-  background: rgba(255, 255, 255, 0.035);
-  font-size: 0.78rem;
+  border: 1px solid rgba(170, 198, 236, 0.1);
+  background: rgba(3, 8, 18, 0.42);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.24);
+}
+
+.downloads-toolbar .queue-action-button {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  color: rgba(223, 235, 252, 0.82);
+  background: transparent;
+  font-size: 0.79rem;
   font-weight: 600;
   line-height: 1;
   white-space: nowrap;
@@ -24283,115 +24294,114 @@ video {
 }
 .downloads-toolbar .queue-action-button i,
 .downloads-toolbar .queue-action-button svg {
-  width: 16px;
-  height: 16px;
-  font-size: 15px;
+  width: 15px;
+  height: 15px;
+  font-size: 14px;
   flex: 0 0 auto;
 }
 .downloads-toolbar .queue-action-button:hover:not(:disabled) {
-  border-color: rgba(var(--color-accent-rgb), 0.4);
+  border-color: rgba(var(--color-accent-rgb), 0.32);
   color: #fff;
-  background: rgba(var(--color-accent-rgb), 0.1);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  background: rgba(var(--color-accent-rgb), 0.12);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
   transform: translateY(-1px);
+}
+.downloads-toolbar .queue-action-button:active:not(:disabled) {
+  transform: translateY(0);
 }
 .downloads-toolbar .queue-action-button:focus-visible {
   outline: 2px solid rgba(var(--color-accent-rgb), 0.82);
-  outline-offset: 2px;
+  outline-offset: 1px;
 }
 .downloads-toolbar .queue-action-button:disabled {
-  opacity: 0.48;
+  opacity: 0.42;
   cursor: default;
   box-shadow: none;
   transform: none;
 }
 
 .downloads-toolbar #open-last-video:not(:disabled) {
-  border-color: rgba(var(--color-accent-rgb), 0.26);
-  color: #c6e5ff;
-  background: rgba(var(--color-accent-rgb), 0.07);
+  border-color: rgba(var(--color-accent-rgb), 0.28);
+  color: #dcf0ff;
+  background: linear-gradient(180deg, rgba(var(--color-accent-rgb), 0.17), rgba(var(--color-accent-rgb), 0.07));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
 }
-
 .downloads-toolbar #open-last-video:not(:disabled):hover {
-  border-color: rgba(var(--color-accent-rgb), 0.48);
-  background: rgba(var(--color-accent-rgb), 0.14);
+  border-color: rgba(var(--color-accent-rgb), 0.5);
+  background: linear-gradient(180deg, rgba(var(--color-accent-rgb), 0.26), rgba(var(--color-accent-rgb), 0.12));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 4px 16px rgba(var(--color-accent-rgb), 0.18);
 }
 
 .downloads-toolbar__history[aria-expanded=true] {
-  border-color: rgba(var(--color-accent-rgb), 0.42);
-  color: #d7edff;
-  background: rgba(var(--color-accent-rgb), 0.11);
+  border-color: rgba(var(--color-accent-rgb), 0.4);
+  color: #eaf6ff;
+  background: rgba(var(--color-accent-rgb), 0.14);
 }
 
 .downloads-toolbar__history.has-new {
-  color: #ffe3a3;
-  border-color: rgba(255, 190, 75, 0.42);
+  border-color: rgba(255, 190, 75, 0.38);
+  color: #ffe6b3;
   background: rgba(255, 190, 75, 0.12);
-  box-shadow: 0 0 0 1px rgba(255, 190, 75, 0.12);
+  box-shadow: 0 0 18px rgba(255, 190, 75, 0.08);
+}
+.downloads-toolbar__history.has-new:hover:not(:disabled) {
+  border-color: rgba(255, 190, 75, 0.5);
+  background: rgba(255, 190, 75, 0.18);
+}
+.downloads-toolbar__history.has-new .downloads-toolbar__count {
+  border-color: rgba(255, 210, 130, 0.28);
+  color: #ffe6b3;
+  background: rgba(255, 190, 75, 0.16);
 }
 
 .downloads-toolbar__count,
 .downloads-toolbar__new {
-  min-width: 22px;
-  min-height: 22px;
+  min-width: 20px;
+  min-height: 20px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-variant-numeric: tabular-nums;
   font-weight: 700;
+  line-height: 1;
 }
 
 .downloads-toolbar__count {
   padding: 0 6px;
-  border: 1px solid rgba(208, 225, 250, 0.1);
-  color: rgba(229, 239, 255, 0.9);
+  border: 1px solid rgba(208, 225, 250, 0.14);
+  color: rgba(229, 239, 255, 0.86);
   background: rgba(255, 255, 255, 0.08);
 }
 
 .downloads-toolbar__new {
   padding: 0 7px;
-  color: #382400;
-  background: #fbbf5b;
+  letter-spacing: 0.03em;
+  color: #3a2500;
+  background: linear-gradient(180deg, #ffd27a, #f7b545);
+  box-shadow: 0 2px 8px rgba(247, 181, 69, 0.22);
+}
+.downloads-toolbar__new.hidden {
+  display: none;
 }
 
-.downloads-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 14px;
-  padding: 10px 12px;
-  border-radius: 14px;
-  border: 1px solid rgba(150, 185, 228, 0.13);
-  background: rgba(5, 11, 23, 0.72);
+@media (max-width: 840px) {
+  .downloads-toolbar__label,
+  .downloads-toolbar__count,
+  .downloads-toolbar__new {
+    display: none;
+  }
+  .downloads-toolbar__actions {
+    gap: 4px;
+  }
+  .downloads-toolbar .queue-action-button {
+    width: 38px;
+    min-width: 38px;
+    padding: 0;
+    gap: 0;
+  }
 }
-
-.downloads-toolbar__title,
-.downloads-toolbar__actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.downloads-toolbar__title {
-  color: rgba(239, 246, 255, 0.92);
-  font-size: 0.82rem;
-}
-.downloads-toolbar__title span {
-  width: 32px;
-  height: 32px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid rgba(var(--color-accent-rgb), 0.15);
-  border-radius: 10px;
-  background: rgba(var(--color-accent-rgb), 0.08);
-  color: var(--color-accent);
-}
-
 @media (max-width: 760px) {
   .downloads-toolbar {
     align-items: flex-start;
@@ -24402,7 +24412,10 @@ video {
     justify-content: flex-end;
   }
 }
-@media (max-width: 480px) {
+@media (max-width: 520px) {
+  .downloads-toolbar {
+    padding: 8px;
+  }
   .downloads-toolbar__actions {
     width: 100%;
     margin-left: 0;
@@ -26445,8 +26458,6 @@ video {
   padding: 34px 32px 0;
   gap: 18px;
   overflow: hidden;
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 .download-quality-modal .quality-modal-header {
   padding-right: 36px;
@@ -28573,36 +28584,6 @@ video {
 .tools-launcher-button:focus-visible {
   outline: none;
   border-color: rgba(var(--color-accent-rgb), 0.9);
-}
-
-.tools-launcher-button__badges {
-  position: absolute;
-  top: 14px;
-  left: 14px;
-  right: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-  pointer-events: none;
-}
-
-.tools-launcher-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 18px;
-  padding: 0 9px;
-  border-radius: 999px;
-  background: var(--color-hover);
-  color: var(--color-quality);
-  font-size: 0.72rem;
-  line-height: 1;
-}
-
-.tools-launcher-badge--new {
-  background: rgba(var(--color-accent-rgb), 0.16);
-  color: var(--color-highlight);
 }
 
 .tools-launcher-button.is-unavailable {

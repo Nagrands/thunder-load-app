@@ -227,7 +227,7 @@
 
   .button--download-button,
   .button--open-folder,
-  .button--open-last-video {
+  #open-last-video {
     transform: none !important;
 
     &:hover,
@@ -238,8 +238,7 @@
 }
 
 /* ========== Модификаторы кнопок ========== */
-.button--open-folder,
-.button--open-last-video {
+.button--open-folder {
   @extend %btn;
 
   &:hover {
@@ -423,9 +422,6 @@
 }
 
 /* Привязка модификаторов к конкретным кнопкам */
-.btn--open-last-video {
-  @extend .button--open-last-video;
-}
 .btn--download {
   @extend .button--download-button;
 }
@@ -439,9 +435,6 @@
   @extend .button--install-deps;
 }
 
-#open-last-video {
-  @extend .button--open-last-video;
-}
 #download-button {
   @extend .button--download-button;
   justify-self: stretch;

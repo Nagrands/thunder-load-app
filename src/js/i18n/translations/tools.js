@@ -303,8 +303,6 @@ export const toolsTranslations = {
     "tools.launcher.totalLabel": "Всего",
     "tools.launcher.unavailableTitle": "Недоступно",
     "tools.launcher.unavailable.sorter": "Временно недоступно",
-    "tools.launcher.badges.aria": "Версия и статус инструмента",
-    "tools.launcher.badge.new": "Новый",
     "tools.launcher.open.wg": "WG Unlock",
     "tools.launcher.open.hash": "Проверка хеша",
     "tools.launcher.open.power": "Быстрые ярлыки",
@@ -313,12 +311,12 @@ export const toolsTranslations = {
     "tools.launcher.open.mediaConverter": "Конвертер форматов",
     "tools.launcher.open.downloaderTools": "Зависимости загрузчика",
     "tools.launcher.open.sorter": "Сортировщик",
-    "tools.launcher.desc.wg": "Быстрое восстановление WireGuard.",
+    "tools.launcher.desc.wg": "Восстановление WireGuard.",
     "tools.launcher.desc.hash": "Сравнение контрольных сумм файлов.",
     "tools.launcher.desc.power":
       "Системные ярлыки и быстрые действия для Windows.",
     "tools.launcher.desc.backup":
-      "Профили резервного копирования и журнал операций.",
+      "Резервное копирование и журнал операций.",
     "tools.launcher.desc.mediaInspector":
       "Проверка контейнера, дорожек локального медиафайла.",
     "tools.launcher.desc.mediaConverter":
@@ -1367,8 +1365,6 @@ export const toolsTranslations = {
     "tools.launcher.totalLabel": "Total",
     "tools.launcher.unavailableTitle": "Unavailable",
     "tools.launcher.unavailable.sorter": "Temporarily unavailable",
-    "tools.launcher.badges.aria": "Tool version and status",
-    "tools.launcher.badge.new": "New",
     "tools.launcher.open.wg": "WG Unlock",
     "tools.launcher.open.hash": "Hash Check",
     "tools.launcher.open.power": "Shortcuts",
