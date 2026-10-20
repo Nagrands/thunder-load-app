@@ -31,20 +31,7 @@ function createToolViewState() {
     return state.developerToolsUnlocked;
   };
 
-  const isPowerToolSupportedPlatform = (info = state.toolsPlatformInfo) => {
-    const platform = String(info?.platform || "");
-    return !!info?.isWindows || platform === "darwin";
-  };
-
-  const isPowerToolAvailable = (info = state.toolsPlatformInfo) => {
-    const platform = String(info?.platform || "");
-    if (info?.isWindows) return true;
-    if (platform === "darwin") return state.developerToolsUnlocked;
-    return false;
-  };
-
-  const isToolAvailable = (toolView, info = state.toolsPlatformInfo) => {
-    if (toolView === "power") return isPowerToolAvailable(info);
+  const isToolAvailable = (toolView) => {
     if (toolView === "media-inspector") return true;
     if (toolView === "media-converter") return true;
     if (toolView === "backup") return true;
@@ -78,8 +65,6 @@ function createToolViewState() {
     get toolsPlatformInfo() {
       return state.toolsPlatformInfo;
     },
-    isPowerToolAvailable,
-    isPowerToolSupportedPlatform,
     isToolAvailable,
     persistCurrentToolView,
     readDeveloperToolsUnlocked,

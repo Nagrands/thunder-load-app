@@ -10,7 +10,6 @@ const TOOL_MODE_MAP = {
   wg: "tools",
   hash: "tools",
   "media-inspector": "tools",
-  power: "tools",
   backup: "backup",
 };
 

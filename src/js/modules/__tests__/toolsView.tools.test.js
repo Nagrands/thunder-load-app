@@ -214,30 +214,6 @@ describe("toolsView quick actions", () => {
           converterProgressHandler = callback;
           return jest.fn();
         }),
-        createWindowsRestartShortcut: jest.fn().mockResolvedValue({
-          success: false,
-          unsupported: true,
-        }),
-        createWindowsUefiRebootShortcut: jest.fn().mockResolvedValue({
-          success: false,
-          unsupported: true,
-        }),
-        createWindowsAdvancedBootShortcut: jest.fn().mockResolvedValue({
-          success: false,
-          unsupported: true,
-        }),
-        createWindowsShutdownShortcut: jest.fn().mockResolvedValue({
-          success: false,
-          unsupported: true,
-        }),
-        createWindowsProgramsShortcut: jest.fn().mockResolvedValue({
-          success: false,
-          unsupported: true,
-        }),
-        createWindowsDiskCleanupShortcut: jest.fn().mockResolvedValue({
-          success: false,
-          unsupported: true,
-        }),
       },
       getPlatformInfo: jest.fn().mockResolvedValue({
         isWindows: false,
@@ -292,21 +268,14 @@ describe("toolsView quick actions", () => {
     document.documentElement.style.overflow = "";
   });
 
-  test("opens launcher by default and keeps power tool unavailable on macos", async () => {
+  test("opens the launcher by default", async () => {
     const el = await renderView();
-    const powerBtn = el.querySelector("#tools-open-power");
     expect(
       el.querySelector("#tools-launcher")?.classList.contains("hidden"),
     ).toBe(false);
     expect(el.querySelector("#tools-open-wg")).not.toBeNull();
     expect(el.querySelector("#tools-open-hash")).not.toBeNull();
     expect(el.querySelector("#tools-open-downloader-tools")).not.toBeNull();
-    expect(powerBtn?.classList.contains("hidden")).toBe(false);
-    expect(powerBtn?.disabled).toBe(true);
-    expect(powerBtn?.classList.contains("is-unavailable")).toBe(true);
-    expect(
-      powerBtn?.closest("#tools-launcher-unavailable-section"),
-    ).not.toBeNull();
   });
 
   test("renders the launcher inside the tools sidebar shell", async () => {
@@ -344,7 +313,7 @@ describe("toolsView quick actions", () => {
     );
     expect(el.querySelector('[data-ui="tools-entrance-root"]')).not.toBeNull();
     expect(el.querySelectorAll('[data-ui="tools-launcher-card"]').length).toBe(
-      7,
+      6,
     );
     expect(
       el
@@ -581,7 +550,6 @@ describe("toolsView quick actions", () => {
     expect(el.querySelector("#tools-launcher-hotkeys")).toBeNull();
     expect(el.querySelector("#tools-launcher-shortcut-wg")).toBeNull();
     expect(el.querySelector("#tools-launcher-shortcut-hash")).toBeNull();
-    expect(el.querySelector("#tools-launcher-shortcut-power")).toBeNull();
   });
 
   test("shows Backup as a launcher tool when enabled", async () => {
@@ -606,11 +574,8 @@ describe("toolsView quick actions", () => {
     });
     const el = await renderView();
     expect(
-      el.querySelector("#tools-open-power")?.classList.contains("hidden"),
-    ).toBe(false);
-    expect(
       el.querySelectorAll(".tools-launcher-grid .tools-launcher-button").length,
-    ).toBe(7);
+    ).toBe(6);
     expect(el.querySelector("#tools-open-media-inspector")).not.toBeNull();
     expect(
       el.querySelector("#tools-launcher-unavailable-section"),
@@ -658,27 +623,6 @@ describe("toolsView quick actions", () => {
     expect(
       el.querySelector('[data-tool-view="hash"]')?.classList.contains("hidden"),
     ).toBe(true);
-  });
-
-  test("falls back to launcher when last view power is unavailable", async () => {
-    localStorage.setItem("toolsRememberLastView", "true");
-    localStorage.setItem("toolsLastView", "power");
-    window.electron.getPlatformInfo.mockResolvedValue({
-      isWindows: false,
-      platform: "linux",
-    });
-    const el = await renderView();
-    expect(
-      el.querySelector("#tools-launcher")?.classList.contains("hidden"),
-    ).toBe(false);
-    expect(
-      el
-        .querySelector('[data-tool-view="power"]')
-        ?.classList.contains("hidden"),
-    ).toBe(true);
-    expect(el.querySelector("#tools-launcher-tools-count")?.textContent).toBe(
-      "tools.launcher.totalLabel: 6",
-    );
   });
 
   test("shows Media Inspector as available tool and opens it", async () => {
@@ -1576,85 +1520,6 @@ describe("toolsView quick actions", () => {
     expect(document.documentElement.style.overflow).toBe("");
   });
 
-  test("power how-to modal opens and can navigate slides", async () => {
-    const el = await renderView();
-    await openTool(el, "power");
-
-    const openBtn = el.querySelector("#power-open-howto");
-    const modal = el.querySelector("#power-howto-modal");
-    const track = el.querySelector("#power-howto-track");
-    const prevBtn = el.querySelector("#power-howto-prev");
-    const nextBtn = el.querySelector("#power-howto-next");
-
-    openBtn.click();
-    await nextTick();
-
-    expect(modal?.classList.contains("hidden")).toBe(false);
-    expect(modal?.getAttribute("aria-hidden")).toBe("false");
-    expect(document.documentElement.style.overflow).toBe("hidden");
-    expect(prevBtn?.disabled).toBe(true);
-    expect(nextBtn?.disabled).toBe(false);
-    expect(track?.style.transform).toBe("translateX(-0%)");
-
-    nextBtn.click();
-    await nextTick();
-    expect(prevBtn?.disabled).toBe(false);
-    expect(track?.style.transform).toBe("translateX(-100%)");
-
-    nextBtn.click();
-    nextBtn.click();
-    await nextTick();
-    expect(nextBtn?.disabled).toBe(true);
-    expect(track?.style.transform).toBe("translateX(-300%)");
-    expect(openBtn?.getAttribute("title")).toBe(
-      "quickActions.power.howto.open",
-    );
-  });
-
-  test("power how-to modal closes by Escape and returns focus", async () => {
-    const el = await renderView();
-    await openTool(el, "power");
-
-    const root = el.querySelector("#wireguard-view");
-    const openBtn = el.querySelector("#power-open-howto");
-    const modal = el.querySelector("#power-howto-modal");
-    const closeBtn = el.querySelector("#power-howto-close");
-
-    openBtn.focus();
-    openBtn.click();
-    await nextTick();
-
-    expect(document.activeElement).toBe(closeBtn);
-    root?.dispatchEvent(
-      new KeyboardEvent("keydown", {
-        key: "Escape",
-        bubbles: true,
-      }),
-    );
-    await nextTick();
-
-    expect(modal?.classList.contains("hidden")).toBe(true);
-    expect(document.activeElement).toBe(openBtn);
-    expect(document.documentElement.style.overflow).toBe("");
-  });
-
-  test("power how-to modal closes on overlay click", async () => {
-    const el = await renderView();
-    await openTool(el, "power");
-
-    const openBtn = el.querySelector("#power-open-howto");
-    const modal = el.querySelector("#power-howto-modal");
-
-    openBtn.click();
-    await nextTick();
-
-    modal?.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
-    await nextTick();
-
-    expect(modal?.classList.contains("hidden")).toBe(true);
-    expect(document.documentElement.style.overflow).toBe("");
-  });
-
   test("renders WG quick hierarchy with primary and secondary actions", async () => {
     const el = await renderView();
     await openTool(el, "wg");
@@ -2342,253 +2207,4 @@ describe("toolsView quick actions", () => {
     expect(toggle?.getAttribute("aria-expanded")).toBe("true");
   });
 
-  test("shows power tool on macos in developer mode but keeps windows actions disabled", async () => {
-    window.__thunder_dev_tools_unlocked__ = true;
-    const el = await renderView();
-    await openTool(el, "power");
-    const restartCard = el.querySelector("#tools-restart-card");
-    const banner = el.querySelector("#power-platform-banner");
-    const actionsWrap = el.querySelector(".power-shortcuts-groups");
-    const restartBtn = el.querySelector("#create-restart-shortcut");
-    const uefiBtn = el.querySelector("#create-uefi-shortcut");
-    const advancedBootBtn = el.querySelector("#create-advanced-boot-shortcut");
-    const shutdownBtn = el.querySelector("#create-shutdown-shortcut");
-    const programsBtn = el.querySelector("#create-programs-shortcut");
-    const diskCleanupBtn = el.querySelector("#create-disk-cleanup-shortcut");
-    expect(restartCard.classList.contains("hidden")).toBe(false);
-    expect(actionsWrap).not.toBeNull();
-    expect(banner?.classList.contains("hidden")).toBe(false);
-    expect(el.querySelector(".power-shortcuts-summary")).toBeNull();
-    expect(
-      el.querySelector("#power-session-summary")?.classList.contains("hidden"),
-    ).toBe(true);
-    expect(restartBtn?.hasAttribute("disabled")).toBe(true);
-    expect(uefiBtn?.hasAttribute("disabled")).toBe(true);
-    expect(advancedBootBtn?.hasAttribute("disabled")).toBe(true);
-    expect(shutdownBtn?.hasAttribute("disabled")).toBe(true);
-    expect(programsBtn?.hasAttribute("disabled")).toBe(true);
-    expect(diskCleanupBtn?.hasAttribute("disabled")).toBe(true);
-  });
-
-  test("hides power tool on linux", async () => {
-    window.electron.getPlatformInfo.mockResolvedValue({
-      isWindows: false,
-      platform: "linux",
-    });
-    const el = await renderView();
-    const openPowerBtn = el.querySelector("#tools-open-power");
-    expect(openPowerBtn?.classList.contains("hidden")).toBe(true);
-  });
-
-  test("falls back to launcher when last view power is remembered on macos without developer mode", async () => {
-    localStorage.setItem("toolsRememberLastView", "true");
-    localStorage.setItem("toolsLastView", "power");
-    const el = await renderView();
-    expect(
-      el.querySelector("#tools-launcher")?.classList.contains("hidden"),
-    ).toBe(false);
-    expect(
-      el
-        .querySelector('[data-tool-view="power"]')
-        ?.classList.contains("hidden"),
-    ).toBe(true);
-  });
-
-  test("asks confirmation before restart shortcut IPC call", async () => {
-    window.electron.getPlatformInfo.mockResolvedValue({
-      isWindows: true,
-      platform: "win32",
-    });
-    window.electron.tools.createWindowsRestartShortcut.mockResolvedValue({
-      success: true,
-      path: "C:\\Users\\Demo\\Desktop\\Restart Windows.lnk",
-    });
-    const el = await renderView();
-    await openTool(el, "power");
-    const banner = el.querySelector("#power-platform-banner");
-    const restartBtn = el.querySelector("#create-restart-shortcut");
-    const sessionSummary = el.querySelector("#power-session-summary");
-    const summaryText = el.querySelector("#power-session-summary-text");
-    const summaryDetail = el.querySelector("#power-session-summary-detail");
-    const restartState = el.querySelector("#restart-shortcut-state");
-
-    expect(banner?.classList.contains("hidden")).toBe(true);
-    expect(restartBtn?.hasAttribute("disabled")).toBe(false);
-    restartBtn.click();
-    await nextTick();
-
-    expect(showConfirmationDialog).toHaveBeenCalled();
-    expect(
-      window.electron.tools.createWindowsRestartShortcut,
-    ).toHaveBeenCalledTimes(1);
-    expect(restartState?.textContent).toBe("quickActions.power.status.success");
-    expect(el.querySelector("#restart-shortcut-result")?.textContent).toBe(
-      "quickActions.power.result.created",
-    );
-    expect(sessionSummary?.classList.contains("hidden")).toBe(false);
-    expect(summaryText?.textContent).toBe("quickActions.power.session.success");
-    expect(summaryDetail?.textContent).toBe(
-      "C:\\Users\\Demo\\Desktop\\Restart Windows.lnk",
-    );
-  });
-
-  test("does not call shutdown IPC when confirmation is cancelled", async () => {
-    showConfirmationDialog.mockResolvedValueOnce(false);
-    window.electron.getPlatformInfo.mockResolvedValue({
-      isWindows: true,
-      platform: "win32",
-    });
-    const el = await renderView();
-    await openTool(el, "power");
-    const banner = el.querySelector("#power-platform-banner");
-    const shutdownBtn = el.querySelector("#create-shutdown-shortcut");
-
-    expect(banner?.classList.contains("hidden")).toBe(true);
-    expect(shutdownBtn?.hasAttribute("disabled")).toBe(false);
-    shutdownBtn.click();
-    await nextTick();
-
-    expect(showConfirmationDialog).toHaveBeenCalled();
-    expect(
-      window.electron.tools.createWindowsShutdownShortcut,
-    ).not.toHaveBeenCalled();
-  });
-
-  test("creates UEFI shortcut on windows", async () => {
-    window.electron.getPlatformInfo.mockResolvedValue({
-      isWindows: true,
-      platform: "win32",
-    });
-    window.electron.tools.createWindowsUefiRebootShortcut.mockResolvedValue({
-      success: true,
-      path: "C:\\Users\\Demo\\Desktop\\Restart to UEFI.lnk",
-    });
-    const el = await renderView();
-    await openTool(el, "power");
-    const uefiBtn = el.querySelector("#create-uefi-shortcut");
-
-    expect(uefiBtn?.hasAttribute("disabled")).toBe(false);
-    uefiBtn.click();
-    await nextTick();
-
-    expect(showConfirmationDialog).toHaveBeenCalled();
-    expect(
-      window.electron.tools.createWindowsUefiRebootShortcut,
-    ).toHaveBeenCalledTimes(1);
-    expect(el.querySelector("#uefi-shortcut-state")?.textContent).toBe(
-      "quickActions.power.status.success",
-    );
-    expect(el.querySelector("#uefi-shortcut-result")?.textContent).toBe(
-      "quickActions.power.result.created",
-    );
-  });
-
-  test("renders grouped power layout and session actions", async () => {
-    window.electron.getPlatformInfo.mockResolvedValue({
-      isWindows: true,
-      platform: "win32",
-    });
-    const el = await renderView();
-    await openTool(el, "power");
-
-    expect(el.querySelector(".power-shortcuts-summary")).toBeNull();
-    expect(el.querySelectorAll(".power-shortcuts-group").length).toBe(3);
-    expect(
-      el
-        .querySelector(
-          '[data-power-group="power"] .power-shortcuts-group__title',
-        )
-        ?.textContent?.trim(),
-    ).toBe("quickActions.power.group.power.title");
-    expect(
-      el
-        .querySelector(
-          '[data-power-group="recovery"] .power-shortcuts-group__title',
-        )
-        ?.textContent?.trim(),
-    ).toBe("quickActions.power.group.recovery.title");
-    expect(
-      el
-        .querySelector(
-          '[data-power-group="system"] .power-shortcuts-group__title',
-        )
-        ?.textContent?.trim(),
-    ).toBe("quickActions.power.group.system.title");
-    expect(
-      el.querySelector("#power-session-summary")?.classList.contains("hidden"),
-    ).toBe(true);
-  });
-
-  test("shows creating state and allows clearing last power status", async () => {
-    window.electron.getPlatformInfo.mockResolvedValue({
-      isWindows: true,
-      platform: "win32",
-    });
-    let resolveCreate;
-    window.electron.tools.createWindowsRestartShortcut.mockImplementationOnce(
-      () =>
-        new Promise((resolve) => {
-          resolveCreate = resolve;
-        }),
-    );
-    const el = await renderView();
-    await openTool(el, "power");
-
-    const restartBtn = el.querySelector("#create-restart-shortcut");
-    const restartState = el.querySelector("#restart-shortcut-state");
-    const restartResult = el.querySelector("#restart-shortcut-result");
-    restartBtn.click();
-    await nextTick();
-
-    expect(restartState?.textContent).toBe(
-      "quickActions.power.status.creating",
-    );
-    expect(restartResult?.textContent).toBe(
-      "quickActions.power.result.creating",
-    );
-    expect(
-      el.querySelector("#create-shutdown-shortcut")?.hasAttribute("disabled"),
-    ).toBe(true);
-
-    resolveCreate({
-      success: true,
-      path: "C:\\Users\\Demo\\Desktop\\Restart Windows.lnk",
-    });
-    await nextTick();
-
-    el.querySelector("#power-clear-status")?.click();
-    await nextTick();
-
-    expect(restartState?.textContent).toBe("quickActions.power.status.idle");
-    expect(restartResult?.textContent).toBe("");
-    expect(
-      el.querySelector("#power-session-summary")?.classList.contains("hidden"),
-    ).toBe(true);
-  });
-
-  test("create another clears current power status and returns focus to the last action", async () => {
-    window.electron.getPlatformInfo.mockResolvedValue({
-      isWindows: true,
-      platform: "win32",
-    });
-    window.electron.tools.createWindowsRestartShortcut.mockResolvedValueOnce({
-      success: true,
-      path: "C:\\Users\\Demo\\Desktop\\Restart Windows.lnk",
-    });
-    const el = await renderView();
-    await openTool(el, "power");
-
-    const restartBtn = el.querySelector("#create-restart-shortcut");
-    restartBtn.click();
-    await nextTick();
-
-    const createAnotherBtn = el.querySelector("#power-repeat-last-action");
-    createAnotherBtn?.click();
-    await nextTick();
-
-    expect(el.querySelector("#restart-shortcut-state")?.textContent).toBe(
-      "quickActions.power.status.idle",
-    );
-    expect(document.activeElement).toBe(restartBtn);
-  });
 });

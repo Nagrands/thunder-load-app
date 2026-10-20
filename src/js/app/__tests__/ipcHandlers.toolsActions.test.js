@@ -48,7 +48,6 @@ jest.mock("electron", () => ({
     openExternal: jest.fn(),
     showItemInFolder: jest.fn(),
     openPath: jest.fn(),
-    writeShortcutLink: jest.fn(),
     trashItem: jest.fn(),
   },
   globalShortcut: { unregisterAll: jest.fn() },
@@ -56,7 +55,6 @@ jest.mock("electron", () => ({
     getPath: jest.fn((key) => {
       const path = require("path");
       const os = require("os");
-      if (key === "desktop") return path.join(os.tmpdir(), "desktop");
       if (key === "exe") return "/tmp/app.exe";
       if (key === "userData") return path.join(os.tmpdir(), "userData");
       return os.tmpdir();
@@ -1699,168 +1697,6 @@ describe("ipcHandlers tools quick actions", () => {
     fs.rmSync(newDir, { recursive: true, force: true });
   });
 
-  test("createWindowsRestartShortcut returns unsupported on non-windows", async () => {
-    const { CHANNELS } = require("../../ipc/channels");
-
-    initHandlers();
-    const result =
-      await handlers[CHANNELS.TOOLS_CREATE_WINDOWS_RESTART_SHORTCUT]();
-
-    expect(result.success).toBe(false);
-    expect(result.unsupported).toBe(true);
-  });
-
-  test("createWindowsRestartShortcut sets icon fields on windows", async () => {
-    const { CHANNELS } = require("../../ipc/channels");
-    const { shell } = require("electron");
-    Object.defineProperty(process, "platform", {
-      value: "win32",
-      configurable: true,
-    });
-    shell.writeShortcutLink.mockReturnValue(true);
-
-    initHandlers();
-    const result =
-      await handlers[CHANNELS.TOOLS_CREATE_WINDOWS_RESTART_SHORTCUT]();
-
-    expect(result.success).toBe(true);
-    expect(shell.writeShortcutLink).toHaveBeenCalledWith(
-      expect.any(String),
-      "create",
-      expect.objectContaining({
-        args: "/r /t 0",
-        icon: expect.any(String),
-        iconIndex: 0,
-      }),
-    );
-  });
-
-  test("createWindowsShutdownShortcut returns unsupported on non-windows", async () => {
-    const { CHANNELS } = require("../../ipc/channels");
-
-    initHandlers();
-    const result =
-      await handlers[CHANNELS.TOOLS_CREATE_WINDOWS_SHUTDOWN_SHORTCUT]();
-
-    expect(result.success).toBe(false);
-    expect(result.unsupported).toBe(true);
-  });
-
-  test("createWindowsShutdownShortcut sets icon fields on windows", async () => {
-    const { CHANNELS } = require("../../ipc/channels");
-    const { shell } = require("electron");
-    Object.defineProperty(process, "platform", {
-      value: "win32",
-      configurable: true,
-    });
-    shell.writeShortcutLink.mockReturnValue(true);
-
-    initHandlers();
-    const result =
-      await handlers[CHANNELS.TOOLS_CREATE_WINDOWS_SHUTDOWN_SHORTCUT]();
-
-    expect(result.success).toBe(true);
-    expect(shell.writeShortcutLink).toHaveBeenCalledWith(
-      expect.any(String),
-      "create",
-      expect.objectContaining({
-        args: "/s /t 0",
-        icon: expect.any(String),
-        iconIndex: 0,
-      }),
-    );
-  });
-
-  test("new windows shortcut handlers return unsupported on non-windows", async () => {
-    const { CHANNELS } = require("../../ipc/channels");
-
-    initHandlers();
-
-    const uefiResult =
-      await handlers[CHANNELS.TOOLS_CREATE_WINDOWS_UEFI_REBOOT_SHORTCUT]();
-    const advancedBootResult =
-      await handlers[CHANNELS.TOOLS_CREATE_WINDOWS_ADVANCED_BOOT_SHORTCUT]();
-    const programsResult =
-      await handlers[CHANNELS.TOOLS_CREATE_WINDOWS_PROGRAMS_SHORTCUT]();
-    const diskCleanupResult =
-      await handlers[CHANNELS.TOOLS_CREATE_WINDOWS_DISK_CLEANUP_SHORTCUT]();
-
-    [uefiResult, advancedBootResult, programsResult, diskCleanupResult].forEach(
-      (result) => {
-        expect(result.success).toBe(false);
-        expect(result.unsupported).toBe(true);
-      },
-    );
-  });
-
-  test("new windows shortcut handlers set icon fields on windows", async () => {
-    const { CHANNELS } = require("../../ipc/channels");
-    const { shell } = require("electron");
-    Object.defineProperty(process, "platform", {
-      value: "win32",
-      configurable: true,
-    });
-    shell.writeShortcutLink.mockReturnValue(true);
-
-    initHandlers();
-
-    await handlers[CHANNELS.TOOLS_CREATE_WINDOWS_UEFI_REBOOT_SHORTCUT]();
-    await handlers[CHANNELS.TOOLS_CREATE_WINDOWS_ADVANCED_BOOT_SHORTCUT]();
-    await handlers[CHANNELS.TOOLS_CREATE_WINDOWS_PROGRAMS_SHORTCUT]();
-    await handlers[CHANNELS.TOOLS_CREATE_WINDOWS_DISK_CLEANUP_SHORTCUT]();
-
-    expect(shell.writeShortcutLink).toHaveBeenCalledTimes(4);
-    const calls = shell.writeShortcutLink.mock.calls.map((call) => call[2]);
-    calls.forEach((options) => {
-      expect(options).toEqual(
-        expect.objectContaining({
-          icon: expect.any(String),
-          iconIndex: 0,
-        }),
-      );
-    });
-
-    expect(shell.writeShortcutLink).toHaveBeenNthCalledWith(
-      3,
-      expect.any(String),
-      "create",
-      expect.objectContaining({
-        target: "C:\\Windows\\System32\\control.exe",
-        args: "appwiz.cpl",
-      }),
-    );
-    expect(shell.writeShortcutLink).toHaveBeenNthCalledWith(
-      4,
-      expect.any(String),
-      "create",
-      expect.objectContaining({
-        target: "C:\\Windows\\System32\\cleanmgr.exe",
-        args: "",
-      }),
-    );
-  });
-
-  test("uefi shortcut uses firmware reboot command with fallback", async () => {
-    const { CHANNELS } = require("../../ipc/channels");
-    const { shell } = require("electron");
-    Object.defineProperty(process, "platform", {
-      value: "win32",
-      configurable: true,
-    });
-    shell.writeShortcutLink.mockReturnValue(true);
-
-    initHandlers();
-    await handlers[CHANNELS.TOOLS_CREATE_WINDOWS_UEFI_REBOOT_SHORTCUT]();
-
-    expect(shell.writeShortcutLink).toHaveBeenCalledWith(
-      expect.any(String),
-      "create",
-      expect.objectContaining({
-        target: "C:\\Windows\\System32\\cmd.exe",
-        args: '/c "shutdown /r /fw /f /t 0 || shutdown /r /o /f /t 0"',
-      }),
-    );
-  });
 });
 
 describe("subtitle metadata normalization", () => {

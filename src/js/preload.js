@@ -177,12 +177,6 @@ try {
     "tools:converterConvert",
     "tools:converterCancel",
     "tools:converterProgress",
-    "tools:createWindowsRestartShortcut",
-    "tools:createWindowsShutdownShortcut",
-    "tools:createWindowsUefiRebootShortcut",
-    "tools:createWindowsAdvancedBootShortcut",
-    "tools:createWindowsProgramsShortcut",
-    "tools:createWindowsDiskCleanupShortcut",
     "dialog:choose-tools-dir",
     "wg-open-config-folder",
     "open-network-settings",
@@ -468,18 +462,6 @@ try {
         safeInvoke("tools:converterCancel", payload),
       onConverterProgress: (callback) =>
         safeOn("tools:converterProgress", callback),
-      createWindowsRestartShortcut: () =>
-        safeInvoke("tools:createWindowsRestartShortcut"),
-      createWindowsShutdownShortcut: () =>
-        safeInvoke("tools:createWindowsShutdownShortcut"),
-      createWindowsUefiRebootShortcut: () =>
-        safeInvoke("tools:createWindowsUefiRebootShortcut"),
-      createWindowsAdvancedBootShortcut: () =>
-        safeInvoke("tools:createWindowsAdvancedBootShortcut"),
-      createWindowsProgramsShortcut: () =>
-        safeInvoke("tools:createWindowsProgramsShortcut"),
-      createWindowsDiskCleanupShortcut: () =>
-        safeInvoke("tools:createWindowsDiskCleanupShortcut"),
     },
 
     nowPlaying: {

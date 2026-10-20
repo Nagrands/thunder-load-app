@@ -146,15 +146,6 @@ const CHANNELS = Object.freeze({
   TOOLS_CONVERTER_CONVERT: "tools:converterConvert",
   TOOLS_CONVERTER_CANCEL: "tools:converterCancel",
   TOOLS_CONVERTER_PROGRESS: "tools:converterProgress",
-  TOOLS_CREATE_WINDOWS_RESTART_SHORTCUT: "tools:createWindowsRestartShortcut",
-  TOOLS_CREATE_WINDOWS_SHUTDOWN_SHORTCUT: "tools:createWindowsShutdownShortcut",
-  TOOLS_CREATE_WINDOWS_UEFI_REBOOT_SHORTCUT:
-    "tools:createWindowsUefiRebootShortcut",
-  TOOLS_CREATE_WINDOWS_ADVANCED_BOOT_SHORTCUT:
-    "tools:createWindowsAdvancedBootShortcut",
-  TOOLS_CREATE_WINDOWS_PROGRAMS_SHORTCUT: "tools:createWindowsProgramsShortcut",
-  TOOLS_CREATE_WINDOWS_DISK_CLEANUP_SHORTCUT:
-    "tools:createWindowsDiskCleanupShortcut",
   DIALOG_CHOOSE_TOOLS_DIR: "dialog:choose-tools-dir",
   WG_OPEN_CONFIG_FOLDER: "wg-open-config-folder",
   WG_OPEN_NETWORK_SETTINGS: "open-network-settings",

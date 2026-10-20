@@ -65,4 +65,3 @@
   actions кастомной Windows tray-панели.
 - `src/js/app/notifications.js` — иконки уведомлений.
 - `src/js/app/autoUpdater.js` — иконка уведомлений автообновления.
-- `src/js/app/ipcHandlers.js` — Windows shortcut icon fallback.

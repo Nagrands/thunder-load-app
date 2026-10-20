@@ -9,10 +9,6 @@ const {
 } = require("electron");
 const { autoUpdater } = require("electron-updater");
 const { CHANNELS } = require("../ipc/channels");
-const {
-  resolveIconPathFromAppDir,
-  resolveIconPathFrom,
-} = require("./iconPaths");
 
 const { getToolsVersions } = require("./toolsVersions");
 const fs = require("fs");
@@ -1192,144 +1188,6 @@ function setupIpcHandlers(dependencies) {
 
   registerToolsHashIpcHandlers({ ipcMain, dialog, mainWindow });
 
-  ipcMain.handle(CHANNELS.TOOLS_CREATE_WINDOWS_RESTART_SHORTCUT, async () => {
-    try {
-      return createWindowsDesktopShortcut({
-        fileName: "Restart Windows.lnk",
-        target: "C:\\Windows\\System32\\shutdown.exe",
-        args: "/r /t 0",
-        description: "Restart Windows",
-        iconPath: "C:\\Windows\\System32\\shell32.dll",
-        iconIndex: 238,
-      });
-    } catch (error) {
-      log.error("tools:createWindowsRestartShortcut error:", error);
-      return { success: false, error: error.message || String(error) };
-    }
-  });
-
-  ipcMain.handle(CHANNELS.TOOLS_CREATE_WINDOWS_SHUTDOWN_SHORTCUT, async () => {
-    try {
-      return createWindowsDesktopShortcut({
-        fileName: "Shutdown Windows.lnk",
-        target: "C:\\Windows\\System32\\shutdown.exe",
-        args: "/s /t 0",
-        description: "Shutdown Windows",
-        iconPath: "C:\\Windows\\System32\\shell32.dll",
-        iconIndex: 27,
-      });
-    } catch (error) {
-      log.error("tools:createWindowsShutdownShortcut error:", error);
-      return { success: false, error: error.message || String(error) };
-    }
-  });
-
-  ipcMain.handle(
-    CHANNELS.TOOLS_CREATE_WINDOWS_UEFI_REBOOT_SHORTCUT,
-    async () => {
-      try {
-        return createWindowsDesktopShortcut({
-          fileName: "Restart to UEFI.lnk",
-          target: "C:\\Windows\\System32\\cmd.exe",
-          args: '/c "shutdown /r /fw /f /t 0 || shutdown /r /o /f /t 0"',
-          description:
-            "Restart to UEFI firmware settings (fallback to advanced startup)",
-          iconPath: "C:\\Windows\\System32\\imageres.dll",
-          iconIndex: 106,
-        });
-      } catch (error) {
-        log.error("tools:createWindowsUefiRebootShortcut error:", error);
-        return { success: false, error: error.message || String(error) };
-      }
-    },
-  );
-
-  ipcMain.handle(
-    CHANNELS.TOOLS_CREATE_WINDOWS_ADVANCED_BOOT_SHORTCUT,
-    async () => {
-      try {
-        return createWindowsDesktopShortcut({
-          fileName: "Advanced Startup.lnk",
-          target: "C:\\Windows\\System32\\shutdown.exe",
-          args: "/r /o /t 0",
-          description: "Restart to advanced startup options",
-          iconPath: "C:\\Windows\\System32\\imageres.dll",
-          iconIndex: 74,
-        });
-      } catch (error) {
-        log.error("tools:createWindowsAdvancedBootShortcut error:", error);
-        return { success: false, error: error.message || String(error) };
-      }
-    },
-  );
-
-  ipcMain.handle(CHANNELS.TOOLS_CREATE_WINDOWS_PROGRAMS_SHORTCUT, async () => {
-    try {
-      return createWindowsDesktopShortcut({
-        fileName: "Programs and Features.lnk",
-        target: "C:\\Windows\\System32\\control.exe",
-        args: "appwiz.cpl",
-        description: "Open Programs and Features",
-        iconPath: "C:\\Windows\\System32\\appwiz.cpl",
-        iconIndex: 0,
-      });
-    } catch (error) {
-      log.error("tools:createWindowsProgramsShortcut error:", error);
-      return { success: false, error: error.message || String(error) };
-    }
-  });
-
-  ipcMain.handle(
-    CHANNELS.TOOLS_CREATE_WINDOWS_DISK_CLEANUP_SHORTCUT,
-    async () => {
-      try {
-        return createWindowsDesktopShortcut({
-          fileName: "Disk Cleanup.lnk",
-          target: "C:\\Windows\\System32\\cleanmgr.exe",
-          args: "",
-          description: "Open Disk Cleanup",
-          iconPath: "C:\\Windows\\System32\\cleanmgr.exe",
-          iconIndex: 0,
-        });
-      } catch (error) {
-        log.error("tools:createWindowsDiskCleanupShortcut error:", error);
-        return { success: false, error: error.message || String(error) };
-      }
-    },
-  );
-
-  function createWindowsDesktopShortcut({
-    fileName,
-    target,
-    args = "",
-    description = "",
-    iconPath = "",
-    iconIndex = 0,
-  }) {
-    if (process.platform !== "win32") {
-      return {
-        success: false,
-        unsupported: true,
-        error: "Available only on Windows",
-      };
-    }
-
-    const desktop = app.getPath("desktop");
-    const shortcutPath = path.join(desktop, fileName);
-    const iconRef = resolveWindowsIconReference(iconPath, iconIndex);
-    const ok = shell.writeShortcutLink(shortcutPath, "create", {
-      target,
-      args,
-      description,
-      icon: iconRef.icon,
-      iconIndex: iconRef.iconIndex,
-    });
-    if (!ok) {
-      return { success: false, error: "Failed to create shortcut" };
-    }
-    return { success: true, path: shortcutPath };
-  }
-
   registerToolsLocationIpcHandlers({
     ipcMain,
     dialog,
@@ -1809,51 +1667,6 @@ function setupIpcHandlers(dependencies) {
     ipcMain,
     mainWindow,
   });
-
-  function resolveWindowsShortcutIcon() {
-    const exePath = app.getPath("exe");
-    const appPath = app.getAppPath();
-    const iconCandidates = [];
-
-    if (typeof process.resourcesPath === "string" && process.resourcesPath) {
-      iconCandidates.push(
-        resolveIconPathFrom(process.resourcesPath, "APP_ICON_ICO"),
-      );
-    }
-
-    if (typeof appPath === "string" && appPath) {
-      iconCandidates.push(resolveIconPathFrom(appPath, "APP_ICON_ICO"));
-    }
-
-    iconCandidates.push(resolveIconPathFromAppDir("APP_ICON_ICO"));
-
-    const iconPath = iconCandidates.find((candidate) =>
-      fs.existsSync(candidate),
-    );
-    return iconPath || exePath;
-  }
-
-  function resolveWindowsIconReference(
-    preferredIconPath,
-    preferredIconIndex = 0,
-  ) {
-    if (
-      typeof preferredIconPath === "string" &&
-      preferredIconPath &&
-      fs.existsSync(preferredIconPath)
-    ) {
-      return {
-        icon: preferredIconPath,
-        iconIndex: Number.isInteger(preferredIconIndex)
-          ? preferredIconIndex
-          : 0,
-      };
-    }
-    return {
-      icon: resolveWindowsShortcutIcon(),
-      iconIndex: 0,
-    };
-  }
 
   // Обработчики IPC:
 

@@ -42,7 +42,7 @@
   complete keyboard navigation, and a native-menu fallback.
 - Download history with search, source filters, sorting, pagination, undo, and CSV/JSON export.
 - Products formatter for cleaning, grouping, validating, and copying structured product lists.
-- Tools workspace with WG Unlock, Hash Check, Media Inspector, Backup, and Windows shortcuts.
+- Tools workspace with WG Unlock, Hash Check, Media Inspector, and Backup.
 - Automatic application updates on Windows and managed `yt-dlp`, `ffmpeg`, `ffprobe`, and Deno dependencies.
 - Russian and English interface, themes, keyboard shortcuts, and configurable modules.
 

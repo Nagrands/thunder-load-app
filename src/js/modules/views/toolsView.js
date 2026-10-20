@@ -30,12 +30,6 @@ import {
   acquireDocumentScrollLock,
   releaseDocumentScrollLock,
 } from "../scrollLockManager.js";
-import {
-  POWER_SHORTCUT_ACTIONS,
-  POWER_SHORTCUT_GROUPS,
-  getPowerActionStateTone,
-  isPowerActionEnabled,
-} from "./tools/powerShortcuts.js";
 
 export default function renderToolsView() {
   const T0 = performance.now();
@@ -116,12 +110,10 @@ export default function renderToolsView() {
   let tipsItems = [];
   let tipsIndex = 0;
   const WG_HOWTO_SCROLL_LOCK_OWNER = "tools-howto-wg";
-  const POWER_HOWTO_SCROLL_LOCK_OWNER = "tools-howto-power";
 
   const disposeView = () => {
     destroyToolsInfo();
     releaseDocumentScrollLock(WG_HOWTO_SCROLL_LOCK_OWNER);
-    releaseDocumentScrollLock(POWER_HOWTO_SCROLL_LOCK_OWNER);
     tipsIntervalId = cleanup.clearInterval(tipsIntervalId);
     tipsSwapTimer = cleanup.clearTimeout(tipsSwapTimer);
     tipsFadeTimer = cleanup.clearTimeout(tipsFadeTimer);
@@ -224,73 +216,6 @@ export default function renderToolsView() {
 
   const fieldsHtml = fields.map(createInputField).join("");
 
-  const renderPowerShortcutAction = (action) => `
-    <article class="power-shortcut-card power-shortcut-card--${action.id}" data-power-action="${action.id}">
-      <div class="power-shortcut-card__header">
-        <h3 class="power-shortcut-card__title">
-          <i class="${action.icon}"></i>
-          <span data-i18n="${action.cardTitleKey}">${t(action.cardTitleKey)}</span>
-        </h3>
-        <span
-          id="${action.stateId}"
-          class="power-shortcut-card__state is-idle"
-          data-power-state="${action.id}"
-          data-i18n="quickActions.power.status.idle"
-        >
-          ${t("quickActions.power.status.idle")}
-        </span>
-      </div>
-      <p class="power-shortcut-card__hint" data-i18n="${action.cardHintKey}">
-        ${t(action.cardHintKey)}
-      </p>
-      <div class="power-shortcut-card__actions">
-        <button id="${action.buttonId}" type="button" class="large-button" data-power-action-trigger="${action.id}">
-          <i class="${action.actionIcon}"></i>
-          <span data-i18n="${action.actionKey}">${t(action.actionKey)}</span>
-        </button>
-      </div>
-      <div class="power-shortcut-card__result">
-        <div
-          id="${action.resultId}"
-          class="quick-action-result power-shortcut-card__result-text muted"
-        ></div>
-        <small
-          id="${action.detailId}"
-          class="power-shortcut-card__detail hidden"
-          data-power-action-detail="${action.id}"
-        ></small>
-      </div>
-    </article>
-  `;
-
-  const renderPowerShortcutGroup = (group) => {
-    const actions = POWER_SHORTCUT_ACTIONS.filter(
-      (action) => action.groupId === group.id,
-    )
-      .map(renderPowerShortcutAction)
-      .join("");
-
-    return `
-      <section class="power-shortcuts-group" data-power-group="${group.id}">
-        <div class="power-shortcuts-group__header">
-          <h3 class="power-shortcuts-group__title" data-i18n="${group.titleKey}">
-            ${t(group.titleKey)}
-          </h3>
-          <p class="power-shortcuts-group__hint" data-i18n="${group.hintKey}">
-            ${t(group.hintKey)}
-          </p>
-        </div>
-        <div class="power-shortcuts-group__grid">
-          ${actions}
-        </div>
-      </section>
-    `;
-  };
-
-  const powerShortcutGroupsHtml = POWER_SHORTCUT_GROUPS.map(
-    renderPowerShortcutGroup,
-  ).join("");
-
   view.innerHTML = `
   <header
         id="tools-launcher-header"
@@ -370,10 +295,6 @@ export default function renderToolsView() {
             <i class="fa-solid fa-box-archive" aria-hidden="true"></i>
             <span data-i18n="tools.nav.current.backup">${t("tools.nav.current.backup")}</span>
           </button>
-          <button type="button" class="tools-sidebar__item" data-tool-nav="power">
-            <i class="fa-solid fa-power-off" aria-hidden="true"></i>
-            <span data-i18n="tools.nav.current.power">${t("tools.nav.current.power")}</span>
-          </button>
         </nav>
       </aside>
 
@@ -424,13 +345,6 @@ export default function renderToolsView() {
               <span data-i18n="tools.launcher.open.mediaInspector">Media Inspector</span>
               <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.mediaInspector">
                 ${t("tools.launcher.desc.mediaInspector")}
-              </small>
-            </button>
-            <button id="tools-open-power" type="button" class="tools-launcher-button" data-ui="tools-launcher-card">
-              <i class="fa-solid fa-power-off"></i>
-              <span data-i18n="tools.launcher.open.power">Power Shortcuts</span>
-              <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.power">
-                ${t("tools.launcher.desc.power")}
               </small>
             </button>
             <button id="tools-open-wg" type="button" class="tools-launcher-button" data-ui="tools-launcher-card">
@@ -674,133 +588,6 @@ export default function renderToolsView() {
 
         ${renderMediaConverterSection(t)}
 
-        <section class="tools-view hidden" data-tool-view="power" aria-label="${t("tools.nav.current.power")}">
-          <article id="tools-restart-card" class="tools-card tools-detail-card">
-            <div class="power-shortcuts-dashboard">
-              <div class="power-shortcuts-header">
-                <div class="power-shortcuts-header__top">
-                  <div class="power-shortcuts-header__title-wrap">
-                    <h2 data-i18n="quickActions.power.title">${t("quickActions.power.title")}</h2>
-                    <p id="restart-shortcut-note" class="tools-card__hint power-shortcuts-header__hint" data-i18n="quickActions.power.hint">
-                      ${t("quickActions.power.hint")}
-                    </p>
-                  </div>
-                  <div class="power-shortcuts-header__actions">
-                    <button
-                      id="power-open-howto"
-                      type="button"
-                      class="small-button power-howto-open"
-                      data-bs-toggle="tooltip"
-                      data-bs-placement="top"
-                      data-i18n-title="quickActions.power.howto.open"
-                      data-i18n-aria="quickActions.power.howto.open"
-                      title="${t("quickActions.power.howto.open")}"
-                      aria-label="${t("quickActions.power.howto.open")}"
-                    >
-                      <i class="fa-regular fa-circle-question"></i>
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <section
-                id="power-session-summary"
-                class="power-session-summary hidden"
-                aria-live="polite"
-              >
-                <div class="power-session-summary__copy">
-                  <strong data-i18n="quickActions.power.session.title">${t("quickActions.power.session.title")}</strong>
-                  <span id="power-session-summary-text">${t("quickActions.power.session.empty")}</span>
-                  <small id="power-session-summary-detail" class="power-session-summary__detail hidden"></small>
-                </div>
-                <div class="power-session-summary__actions">
-                  <button id="power-repeat-last-action" type="button" class="small-button">
-                    <span data-i18n="quickActions.power.createAnother">${t("quickActions.power.createAnother")}</span>
-                  </button>
-                  <button id="power-clear-status" type="button" class="small-button">
-                    <span data-i18n="quickActions.power.clearStatus">${t("quickActions.power.clearStatus")}</span>
-                  </button>
-                </div>
-              </section>
-              <div
-                id="power-platform-banner"
-                class="power-platform-banner hidden"
-                role="status"
-                aria-live="polite"
-              >
-                <i class="fa-solid fa-circle-info"></i>
-                <div class="power-platform-banner__content">
-                  <strong data-i18n="quickActions.power.banner.title">${t("quickActions.power.banner.title")}</strong>
-                  <span id="power-platform-banner-text" data-i18n="quickActions.power.banner.windowsOnly">
-                    ${t("quickActions.power.banner.windowsOnly")}
-                  </span>
-                </div>
-              </div>
-              <div class="power-shortcuts-groups power-shortcuts-actions">
-                ${powerShortcutGroupsHtml}
-              </div>
-            </div>
-            <div id="power-howto-modal" class="power-howto-overlay hidden" aria-hidden="true">
-              <div
-                id="power-howto-dialog"
-                class="power-howto-dialog"
-                role="dialog"
-                aria-modal="true"
-                aria-hidden="true"
-                aria-labelledby="power-howto-title"
-                tabindex="-1"
-              >
-                <div class="power-howto-header">
-                  <h3 id="power-howto-title" data-i18n="quickActions.power.howto.title">${t("quickActions.power.howto.title")}</h3>
-                  <button id="power-howto-close" type="button" class="small-button" data-i18n-aria="quickActions.power.howto.close" aria-label="${t("quickActions.power.howto.close")}">
-                    <i class="fa-solid fa-xmark"></i>
-                  </button>
-                </div>
-                <div id="power-howto-step" class="power-howto-step muted"></div>
-                <div class="power-howto-viewport">
-                  <div id="power-howto-track" class="power-howto-track">
-                    <article class="power-howto-slide" data-howto-slide="0">
-                      <div class="power-howto-slide__icon"><i class="fa-brands fa-windows"></i></div>
-                      <h4 data-i18n="quickActions.power.howto.slide1.title">${t("quickActions.power.howto.slide1.title")}</h4>
-                      <p data-i18n="quickActions.power.howto.slide1.desc">${t("quickActions.power.howto.slide1.desc")}</p>
-                    </article>
-                    <article class="power-howto-slide" data-howto-slide="1">
-                      <div class="power-howto-slide__icon"><i class="fa-solid fa-list-check"></i></div>
-                      <h4 data-i18n="quickActions.power.howto.slide2.title">${t("quickActions.power.howto.slide2.title")}</h4>
-                      <p data-i18n="quickActions.power.howto.slide2.desc">${t("quickActions.power.howto.slide2.desc")}</p>
-                    </article>
-                    <article class="power-howto-slide" data-howto-slide="2">
-                      <div class="power-howto-slide__icon"><i class="fa-solid fa-desktop"></i></div>
-                      <h4 data-i18n="quickActions.power.howto.slide3.title">${t("quickActions.power.howto.slide3.title")}</h4>
-                      <p data-i18n="quickActions.power.howto.slide3.desc">${t("quickActions.power.howto.slide3.desc")}</p>
-                    </article>
-                    <article class="power-howto-slide" data-howto-slide="3">
-                      <div class="power-howto-slide__icon"><i class="fa-regular fa-circle-check"></i></div>
-                      <h4 data-i18n="quickActions.power.howto.slide4.title">${t("quickActions.power.howto.slide4.title")}</h4>
-                      <p data-i18n="quickActions.power.howto.slide4.desc">${t("quickActions.power.howto.slide4.desc")}</p>
-                    </article>
-                  </div>
-                </div>
-                <div id="power-howto-dots" class="power-howto-dots" role="tablist" data-i18n-aria="quickActions.power.howto.title" aria-label="${t("quickActions.power.howto.title")}">
-                  <button type="button" class="power-howto-dot" data-index="0" aria-label="${t("quickActions.power.howto.step", { current: 1, total: 4 })}"></button>
-                  <button type="button" class="power-howto-dot" data-index="1" aria-label="${t("quickActions.power.howto.step", { current: 2, total: 4 })}"></button>
-                  <button type="button" class="power-howto-dot" data-index="2" aria-label="${t("quickActions.power.howto.step", { current: 3, total: 4 })}"></button>
-                  <button type="button" class="power-howto-dot" data-index="3" aria-label="${t("quickActions.power.howto.step", { current: 4, total: 4 })}"></button>
-                </div>
-                <div class="power-howto-actions">
-                  <button id="power-howto-prev" type="button" class="small-button">
-                    <i class="fa-solid fa-arrow-left"></i>
-                    <span data-i18n="quickActions.power.howto.prev">${t("quickActions.power.howto.prev")}</span>
-                  </button>
-                  <button id="power-howto-next" type="button" class="small-button">
-                    <span data-i18n="quickActions.power.howto.next">${t("quickActions.power.howto.next")}</span>
-                    <i class="fa-solid fa-arrow-right"></i>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </article>
-        </section>
-
         <section
           class="tools-view hidden"
           data-tool-view="backup"
@@ -817,9 +604,6 @@ export default function renderToolsView() {
   cleanup.addCleanup(entranceAnimation.cancel);
   entranceAnimation.prepare();
 
-  const isPowerToolSupportedPlatform = (info = toolState.toolsPlatformInfo) =>
-    toolState.isPowerToolSupportedPlatform(info);
-
   const isToolAvailable = (toolView, info = toolState.toolsPlatformInfo) =>
     toolState.isToolAvailable(toolView, info);
 
@@ -832,7 +616,6 @@ export default function renderToolsView() {
       "downloader-tools",
       "media-inspector",
       "media-converter",
-      "power",
       "backup",
     ];
     const availableCount = availableToolViews.filter((toolView) =>
@@ -1128,7 +911,6 @@ export default function renderToolsView() {
     const openDownloaderToolsBtn = getEl("tools-open-downloader-tools", view);
     const openMediaInspectorBtn = getEl("tools-open-media-inspector", view);
     const openMediaConverterBtn = getEl("tools-open-media-converter", view);
-    const openPowerBtn = getEl("tools-open-power", view);
     const openBackupBtn = getEl("tools-open-backup", view);
     const sidebarToggle = getEl("tools-sidebar-toggle", view);
     const sidebarNavigation = getEl("tools-sidebar-navigation", view);
@@ -1138,39 +920,12 @@ export default function renderToolsView() {
         toolState.readDeveloperToolsUnlocked(),
       );
       if (
-        !openPowerBtn ||
         !openBackupBtn ||
         !launcherAvailableGrid ||
         !launcherUnavailableGrid ||
         !launcherUnavailableSection
       ) {
         return;
-      }
-
-      const powerSupported = isPowerToolSupportedPlatform(
-        toolState.toolsPlatformInfo,
-      );
-      const powerAvailable = isToolAvailable("power");
-      if (!powerSupported) {
-        openPowerBtn.classList.add("hidden");
-        openPowerBtn.disabled = true;
-        openPowerBtn.setAttribute("aria-disabled", "true");
-      } else if (powerAvailable) {
-        openPowerBtn.classList.remove("hidden");
-        if (openPowerBtn.parentElement !== launcherAvailableGrid) {
-          launcherAvailableGrid.appendChild(openPowerBtn);
-        }
-        openPowerBtn.disabled = false;
-        openPowerBtn.removeAttribute("aria-disabled");
-        openPowerBtn.classList.remove("is-unavailable");
-      } else {
-        openPowerBtn.classList.remove("hidden");
-        if (openPowerBtn.parentElement !== launcherUnavailableGrid) {
-          launcherUnavailableGrid.appendChild(openPowerBtn);
-        }
-        openPowerBtn.disabled = true;
-        openPowerBtn.setAttribute("aria-disabled", "true");
-        openPowerBtn.classList.add("is-unavailable");
       }
 
       if (openBackupBtn.parentElement !== launcherAvailableGrid) {
@@ -1205,7 +960,6 @@ export default function renderToolsView() {
     openMediaConverterBtn?.addEventListener("click", () =>
       setToolView("media-converter"),
     );
-    openPowerBtn?.addEventListener("click", () => setToolView("power"));
     openBackupBtn?.addEventListener("click", () => {
       ensureBackupToolView();
       setToolView("backup");
@@ -1232,10 +986,6 @@ export default function renderToolsView() {
       return !!modal && !modal.classList.contains("hidden");
     };
 
-    const isPowerHowtoOpen = () => {
-      const modal = getEl("power-howto-modal", view);
-      return !!modal && !modal.classList.contains("hidden");
-    };
 
     cleanup.onWindowEvent("tools:developer-unlock-changed", (event) => {
       const enabled = !!event?.detail?.enabled;
@@ -1272,24 +1022,6 @@ export default function renderToolsView() {
         if (key === "ArrowRight") {
           e.preventDefault();
           setWgHowtoSlide(wgHowtoIndex + 1);
-          return;
-        }
-      }
-      if (isPowerHowtoOpen()) {
-        const key = String(e.key || "");
-        if (key === "Escape" || key === "Esc") {
-          e.preventDefault();
-          closePowerHowtoModal();
-          return;
-        }
-        if (key === "ArrowLeft") {
-          e.preventDefault();
-          setPowerHowtoSlide(powerHowtoIndex - 1);
-          return;
-        }
-        if (key === "ArrowRight") {
-          e.preventDefault();
-          setPowerHowtoSlide(powerHowtoIndex + 1);
           return;
         }
       }
@@ -1550,10 +1282,6 @@ export default function renderToolsView() {
     cleanup.onWindowEvent("i18n:changed", () => {
       setAdvancedOpen(advancedPanel?.classList.contains("is-open"));
       setToolView(toolState.currentToolView, { persist: false });
-      setPowerAvailabilityUi({
-        isWindows: toolState.isWindowsPlatform,
-        showTool: isPowerToolSupportedPlatform(toolState.toolsPlatformInfo),
-      });
     });
 
     const wgOpenHowtoBtn = getEl("wg-open-howto", view);
@@ -1657,300 +1385,6 @@ export default function renderToolsView() {
       registerCleanup: cleanup.addCleanup,
     });
 
-    const restartCard = getEl("tools-restart-card", view);
-    const powerOpenHowtoBtn = getEl("power-open-howto", view);
-    const powerHowtoModalEl = getEl("power-howto-modal", view);
-    const powerHowtoDialogEl = getEl("power-howto-dialog", view);
-    const powerHowtoTrackEl = getEl("power-howto-track", view);
-    const powerHowtoStepEl = getEl("power-howto-step", view);
-    const powerHowtoCloseBtn = getEl("power-howto-close", view);
-    const powerHowtoPrevBtn = getEl("power-howto-prev", view);
-    const powerHowtoNextBtn = getEl("power-howto-next", view);
-    const powerHowtoDotsEl = getEl("power-howto-dots", view);
-    const powerHowtoDots = Array.from(
-      powerHowtoDotsEl?.querySelectorAll(".power-howto-dot") || [],
-    );
-    const powerHowtoSlideCount = 4;
-    let powerHowtoIndex = 0;
-    let powerHowtoReturnFocusEl = null;
-    const restartShortcutNote = getEl("restart-shortcut-note", view);
-    const powerPlatformBanner = getEl("power-platform-banner", view);
-    const powerPlatformBannerText = getEl("power-platform-banner-text", view);
-    const powerSessionSummary = getEl("power-session-summary", view);
-    const powerSessionSummaryText = getEl("power-session-summary-text", view);
-    const powerSessionSummaryDetail = getEl(
-      "power-session-summary-detail",
-      view,
-    );
-    const powerRepeatLastActionBtn = getEl("power-repeat-last-action", view);
-    const powerClearStatusBtn = getEl("power-clear-status", view);
-    const powerShortcutActions = POWER_SHORTCUT_ACTIONS.map((action) => ({
-      ...action,
-      button: getEl(action.buttonId, view),
-      resultEl: getEl(action.resultId, view),
-      detailEl: getEl(action.detailId, view),
-      stateEl: getEl(action.stateId, view),
-      cardEl: view.querySelector(`[data-power-action="${action.id}"]`),
-      invoke: () => window.electron?.tools?.[action.invokeMethod]?.(),
-    }));
-    let powerBusy = false;
-    let powerLastSuccessfulActionId = "";
-
-    const updatePowerHowtoUi = () => {
-      if (!powerHowtoTrackEl) return;
-      powerHowtoTrackEl.style.transform = `translateX(-${powerHowtoIndex * 100}%)`;
-      if (powerHowtoStepEl) {
-        powerHowtoStepEl.textContent = t("quickActions.power.howto.step", {
-          current: powerHowtoIndex + 1,
-          total: powerHowtoSlideCount,
-        });
-      }
-      if (powerHowtoPrevBtn) powerHowtoPrevBtn.disabled = powerHowtoIndex <= 0;
-      if (powerHowtoNextBtn) {
-        powerHowtoNextBtn.disabled =
-          powerHowtoIndex >= powerHowtoSlideCount - 1;
-      }
-      powerHowtoDots.forEach((dot, idx) => {
-        const isActive = idx === powerHowtoIndex;
-        dot.classList.toggle("is-active", isActive);
-        dot.setAttribute("aria-current", isActive ? "true" : "false");
-      });
-    };
-
-    const setPowerHowtoSlide = (index) => {
-      const nextIndex = Math.max(
-        0,
-        Math.min(Number(index) || 0, powerHowtoSlideCount - 1),
-      );
-      powerHowtoIndex = nextIndex;
-      updatePowerHowtoUi();
-    };
-
-    const openPowerHowtoModal = () => {
-      if (!powerHowtoModalEl || !powerHowtoDialogEl) return;
-      powerHowtoReturnFocusEl = document.activeElement;
-      acquireDocumentScrollLock(POWER_HOWTO_SCROLL_LOCK_OWNER);
-      powerHowtoModalEl.classList.remove("hidden");
-      powerHowtoModalEl.setAttribute("aria-hidden", "false");
-      powerHowtoDialogEl.setAttribute("aria-hidden", "false");
-      setPowerHowtoSlide(0);
-      cleanup.setTimeout(() => powerHowtoCloseBtn?.focus(), 0);
-    };
-
-    const closePowerHowtoModal = ({ returnFocus = true } = {}) => {
-      if (!powerHowtoModalEl || !powerHowtoDialogEl) return;
-      powerHowtoModalEl.classList.add("hidden");
-      powerHowtoModalEl.setAttribute("aria-hidden", "true");
-      powerHowtoDialogEl.setAttribute("aria-hidden", "true");
-      releaseDocumentScrollLock(POWER_HOWTO_SCROLL_LOCK_OWNER);
-      if (returnFocus) {
-        if (powerHowtoReturnFocusEl?.focus) powerHowtoReturnFocusEl.focus();
-        else powerOpenHowtoBtn?.focus();
-      }
-    };
-
-    const setPowerActionVisualState = (
-      action,
-      state,
-      { message = "", detail = "", detailTitle = "" } = {},
-    ) => {
-      const tone = getPowerActionStateTone(state);
-      if (action.stateEl) {
-        action.stateEl.textContent = t(`quickActions.power.status.${state}`);
-        action.stateEl.className = `power-shortcut-card__state is-${state}`;
-      }
-      if (action.resultEl) {
-        action.resultEl.textContent = message;
-        action.resultEl.className = `quick-action-result power-shortcut-card__result-text ${tone}`;
-      }
-      if (action.detailEl) {
-        action.detailEl.textContent = detail;
-        action.detailEl.classList.toggle("hidden", !detail);
-        action.detailEl.title = detailTitle || detail || "";
-      }
-      if (action.cardEl) {
-        action.cardEl.classList.toggle("is-busy", state === "creating");
-        action.cardEl.classList.toggle("is-success", state === "success");
-        action.cardEl.classList.toggle("is-error", state === "error");
-      }
-    };
-
-    const resetPowerActionState = (action) => {
-      setPowerActionVisualState(action, "idle");
-    };
-
-    const resetAllPowerActionStates = () => {
-      powerShortcutActions.forEach(resetPowerActionState);
-      powerLastSuccessfulActionId = "";
-      powerSessionSummary?.classList.add("hidden");
-      if (powerSessionSummaryText) {
-        powerSessionSummaryText.textContent = t(
-          "quickActions.power.session.empty",
-        );
-      }
-      if (powerSessionSummaryDetail) {
-        powerSessionSummaryDetail.textContent = "";
-        powerSessionSummaryDetail.classList.add("hidden");
-        powerSessionSummaryDetail.title = "";
-      }
-    };
-
-    const showPowerSessionSummary = (action, detail = "") => {
-      powerLastSuccessfulActionId = action.id;
-      powerSessionSummary?.classList.remove("hidden");
-      if (powerSessionSummaryText) {
-        powerSessionSummaryText.textContent = t(
-          "quickActions.power.session.success",
-          {
-            action: t(action.cardTitleKey),
-          },
-        );
-      }
-      if (powerSessionSummaryDetail) {
-        powerSessionSummaryDetail.textContent = detail;
-        powerSessionSummaryDetail.classList.toggle("hidden", !detail);
-        powerSessionSummaryDetail.title = detail || "";
-      }
-    };
-
-    const setPowerButtonsBusy = (busy, { isWindows, showTool }) => {
-      powerBusy = !!busy;
-      const enabled = isPowerActionEnabled({ isWindows, showTool, busy });
-      powerShortcutActions.forEach((action) => {
-        if (!action.button) return;
-        action.button.toggleAttribute("disabled", !enabled);
-        action.button.classList.toggle("is-disabled", !enabled);
-      });
-    };
-
-    function setPowerAvailabilityUi({ isWindows, showTool }) {
-      const windowsOnlyText = t("quickActions.power.windowsOnly");
-      const windowsReadyText = t("quickActions.power.windowsReady");
-      const windowsOnlyBannerText = t("quickActions.power.banner.windowsOnly");
-      const previewBannerText = t("quickActions.power.banner.previewOnly");
-      if (!showTool) {
-        restartCard?.classList.add("hidden");
-        openPowerBtn?.classList.add("hidden");
-        powerPlatformBanner?.classList.add("hidden");
-        if (powerPlatformBannerText) {
-          powerPlatformBannerText.textContent = windowsOnlyBannerText;
-        }
-        if (restartShortcutNote) {
-          restartShortcutNote.textContent = windowsOnlyText;
-        }
-      } else {
-        restartCard?.classList.remove("hidden");
-        openPowerBtn?.classList.remove("hidden");
-        if (restartShortcutNote) {
-          restartShortcutNote.textContent = isWindows
-            ? windowsReadyText
-            : windowsOnlyText;
-        }
-        if (powerPlatformBannerText) {
-          powerPlatformBannerText.textContent = isWindows
-            ? windowsOnlyBannerText
-            : previewBannerText;
-        }
-        powerPlatformBanner?.classList.toggle("hidden", !!isWindows);
-      }
-
-      setPowerButtonsBusy(powerBusy, { isWindows, showTool });
-    }
-
-    powerShortcutActions.forEach((action) => {
-      action.button?.addEventListener("click", async () => {
-        if (powerBusy || action.button?.disabled) return;
-        const confirmed = await showConfirmationDialog({
-          title: t(action.titleKey),
-          subtitle: t("confirm.default.subtitle"),
-          message: t(action.confirmKey),
-          tone: "info",
-        });
-        if (!confirmed) return;
-
-        powerShortcutActions.forEach((item) =>
-          item.id === action.id
-            ? setPowerActionVisualState(item, "creating", {
-                message: t("quickActions.power.result.creating", {
-                  action: t(item.cardTitleKey),
-                }),
-              })
-            : resetPowerActionState(item),
-        );
-        setPowerButtonsBusy(true, {
-          isWindows: toolState.isWindowsPlatform,
-          showTool: isPowerToolSupportedPlatform(toolState.toolsPlatformInfo),
-        });
-
-        const res = await action.invoke();
-        setPowerButtonsBusy(false, {
-          isWindows: toolState.isWindowsPlatform,
-          showTool: isPowerToolSupportedPlatform(toolState.toolsPlatformInfo),
-        });
-        if (!res?.success) {
-          setPowerActionVisualState(action, "error", {
-            message: t("quickActions.power.result.error", {
-              action: t(action.cardTitleKey),
-            }),
-            detail: res?.error || "",
-            detailTitle: res?.error || "",
-          });
-          powerSessionSummary?.classList.add("hidden");
-          powerLastSuccessfulActionId = "";
-          return;
-        }
-        const detail = res?.path || t("quickActions.power.desktopLocation");
-        setPowerActionVisualState(action, "success", {
-          message: t("quickActions.power.result.created", {
-            action: t(action.cardTitleKey),
-          }),
-          detail,
-          detailTitle: detail,
-        });
-        showPowerSessionSummary(action, detail);
-      });
-    });
-
-    powerRepeatLastActionBtn?.addEventListener("click", () => {
-      const action = powerShortcutActions.find(
-        (item) => item.id === powerLastSuccessfulActionId,
-      );
-      resetAllPowerActionStates();
-      action?.button?.focus();
-    });
-
-    powerClearStatusBtn?.addEventListener("click", () => {
-      resetAllPowerActionStates();
-      powerClearStatusBtn?.focus();
-    });
-
-    resetAllPowerActionStates();
-
-    powerOpenHowtoBtn?.addEventListener("click", () => openPowerHowtoModal());
-    powerHowtoCloseBtn?.addEventListener("click", () => closePowerHowtoModal());
-    powerHowtoPrevBtn?.addEventListener("click", () =>
-      setPowerHowtoSlide(powerHowtoIndex - 1),
-    );
-    powerHowtoNextBtn?.addEventListener("click", () =>
-      setPowerHowtoSlide(powerHowtoIndex + 1),
-    );
-    powerHowtoDots.forEach((dot) => {
-      dot.addEventListener("click", () => {
-        setPowerHowtoSlide(Number(dot.dataset.index || "0"));
-      });
-    });
-    powerHowtoModalEl?.addEventListener("mousedown", (event) => {
-      if (event.target === powerHowtoModalEl) closePowerHowtoModal();
-    });
-    updatePowerHowtoUi();
-
-    const showPowerTool = isPowerToolSupportedPlatform(
-      toolState.toolsPlatformInfo,
-    );
-    setPowerAvailabilityUi({
-      isWindows: toolState.isWindowsPlatform,
-      showTool: showPowerTool,
-    });
     applyDeveloperToolsAvailability();
   };
 

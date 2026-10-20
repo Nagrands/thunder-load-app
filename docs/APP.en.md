@@ -61,7 +61,6 @@ The Tools launcher contains:
 | Media Inspector  | Read container, stream, codec, bitrate, HDR, and subtitle data through `ffprobe`             | Requires `ffprobe`                                             |
 | Format Converter | Convert one local audio or video file through `ffmpeg`                                       | Requires `ffmpeg`                                              |
 | Backup           | Run reusable source-to-destination archive profiles with filters, logs, and preflight checks | Cross-platform behavior uses platform archive tools            |
-| Quick Shortcuts  | Create Windows power, recovery, and system shortcuts                                         | Actions are Windows-only; macOS can expose a developer preview |
 
 Tools and Backup are always available. Backup remains inside this section, not
 a top-level tab.

@@ -162,114 +162,6 @@ export const toolsTranslations = {
     "quickActions.converter.title": "Конвертер форматов",
     "quickActions.converter.subtitle":
       "Преобразование аудио и видео после загрузки.",
-    "quickActions.power.title": "Быстрые ярлыки",
-    "quickActions.power.hint":
-      "Создаёт системные ярлыки на рабочем столе Windows и показывает результат по каждому действию.",
-    "quickActions.power.windowsOnly":
-      "Доступно только в Windows. На этой платформе действия отключены.",
-    "quickActions.power.windowsReady":
-      "Windows обнаружена. Ярлыки можно создавать сразу из карточек ниже.",
-    "quickActions.power.banner.title": "Ограничение платформы",
-    "quickActions.power.banner.windowsOnly":
-      "Создание ярлыков доступно только в Windows. На текущей платформе действия отключены.",
-    "quickActions.power.banner.previewOnly":
-      "Инструмент доступен для просмотра интерфейса, но создание ярлыков работает только в Windows.",
-    "quickActions.power.group.power.title": "Питание",
-    "quickActions.power.group.power.hint":
-      "Базовые действия для быстрого перезапуска или выключения системы.",
-    "quickActions.power.group.recovery.title": "Загрузка и восстановление",
-    "quickActions.power.group.recovery.hint":
-      "Переход в UEFI и расширенные сценарии загрузки Windows.",
-    "quickActions.power.group.system.title": "Системные утилиты",
-    "quickActions.power.group.system.hint":
-      "Быстрые точки входа в системные настройки и администрирование.",
-    "quickActions.power.session.title": "Последнее действие выполнено",
-    "quickActions.power.session.empty": "Статус пока не сформирован.",
-    "quickActions.power.session.success": "Ярлык «{action}» создан.",
-    "quickActions.power.desktopLocation": "Рабочий стол Windows",
-    "quickActions.power.createAnother": "Создать ещё",
-    "quickActions.power.clearStatus": "Очистить статус",
-    "quickActions.power.status.idle": "Ожидание",
-    "quickActions.power.status.creating": "Создаём",
-    "quickActions.power.status.success": "Готово",
-    "quickActions.power.status.error": "Ошибка",
-    "quickActions.power.result.creating": "Создаём ярлык «{action}»...",
-    "quickActions.power.result.created": "Ярлык «{action}» создан.",
-    "quickActions.power.result.error": "Не удалось создать ярлык «{action}».",
-    "quickActions.power.howto.open": "Как это работает",
-    "quickActions.power.howto.title": "Как работают Быстрые ярлыки",
-    "quickActions.power.howto.close": "Закрыть",
-    "quickActions.power.howto.prev": "Назад",
-    "quickActions.power.howto.next": "Далее",
-    "quickActions.power.howto.step": "Шаг {current} из {total}",
-    "quickActions.power.howto.slide1.title": "Проверьте платформу",
-    "quickActions.power.howto.slide1.desc":
-      "Создание ярлыков работает только в Windows. На других платформах интерфейс доступен как preview.",
-    "quickActions.power.howto.slide2.title": "Выберите нужный ярлык",
-    "quickActions.power.howto.slide2.desc":
-      "Выберите карточку нужного действия и проверьте краткое описание перед созданием.",
-    "quickActions.power.howto.slide3.title": "Подтвердите создание",
-    "quickActions.power.howto.slide3.desc":
-      "После подтверждения ярлык будет создан на рабочем столе Windows.",
-    "quickActions.power.howto.slide4.title": "Проверьте результат",
-    "quickActions.power.howto.slide4.desc":
-      "Карточка покажет состояние, а верхний блок сохранит последнее успешное действие этой сессии.",
-    "quickActions.restart.title": "Создание ярлыка перезагрузки",
-    "quickActions.restart.cardTitle": "Перезагрузка",
-    "quickActions.restart.cardHint":
-      "Перезапускает Windows сразу после запуска ярлыка.",
-    "quickActions.restart.action": "Создать ярлык перезагрузки",
-    "quickActions.restart.confirm": "Создать ярлык перезагрузки?",
-    "quickActions.restart.error": "Не удалось создать ярлык перезагрузки",
-    "quickActions.restart.created": "Ярлык перезагрузки создан: Рабочий стол",
-    "quickActions.uefi.title": "Создание ярлыка BIOS/UEFI",
-    "quickActions.uefi.cardTitle": "BIOS/UEFI",
-    "quickActions.uefi.cardHint":
-      "Перезапускает систему в настройки прошивки UEFI.",
-    "quickActions.uefi.action": "Создать ярлык BIOS/UEFI",
-    "quickActions.uefi.confirm": "Создать ярлык перезагрузки в BIOS/UEFI?",
-    "quickActions.uefi.error": "Не удалось создать ярлык BIOS/UEFI",
-    "quickActions.uefi.created": "Ярлык BIOS/UEFI создан: Рабочий стол",
-    "quickActions.advancedBoot.title": "Создание ярлыка расширенной загрузки",
-    "quickActions.advancedBoot.cardTitle": "Расширенная загрузка",
-    "quickActions.advancedBoot.cardHint":
-      "Открывает параметры восстановления Windows.",
-    "quickActions.advancedBoot.action": "Создать ярлык расширенной загрузки",
-    "quickActions.advancedBoot.confirm": "Создать ярлык расширенной загрузки?",
-    "quickActions.advancedBoot.error":
-      "Не удалось создать ярлык расширенной загрузки",
-    "quickActions.advancedBoot.created":
-      "Ярлык расширенной загрузки создан: Рабочий стол",
-    "quickActions.shutdown.title": "Создание ярлыка выключения",
-    "quickActions.shutdown.cardTitle": "Выключение",
-    "quickActions.shutdown.cardHint":
-      "Выключает Windows сразу после запуска ярлыка.",
-    "quickActions.shutdown.action": "Создать ярлык выключения",
-    "quickActions.shutdown.confirm": "Создать ярлык выключения?",
-    "quickActions.shutdown.error": "Не удалось создать ярлык выключения",
-    "quickActions.shutdown.created": "Ярлык выключения создан: Рабочий стол",
-    "quickActions.programs.title":
-      "Создание ярлыка установки и удаления программ",
-    "quickActions.programs.cardTitle": "Установка и удаление программ",
-    "quickActions.programs.cardHint":
-      "Открывает классическое окно со списком установленных программ.",
-    "quickActions.programs.action":
-      "Создать ярлык установки и удаления программ",
-    "quickActions.programs.confirm":
-      "Создать ярлык установки и удаления программ?",
-    "quickActions.programs.error":
-      "Не удалось создать ярлык установки и удаления программ",
-    "quickActions.programs.created":
-      "Ярлык установки и удаления программ создан: Рабочий стол",
-    "quickActions.diskCleanup.title": "Создание ярлыка чистки диска",
-    "quickActions.diskCleanup.cardTitle": "Чистка диска",
-    "quickActions.diskCleanup.cardHint":
-      "Запускает системную утилиту cleanmgr для удаления временных файлов.",
-    "quickActions.diskCleanup.action": "Создать ярлык чистки диска",
-    "quickActions.diskCleanup.confirm": "Создать ярлык чистки диска?",
-    "quickActions.diskCleanup.error": "Не удалось создать ярлык чистки диска",
-    "quickActions.diskCleanup.created":
-      "Ярлык чистки диска создан: Рабочий стол",
     "tools.dashboard.title": "Панель инструментов",
     "tools.wg.quick.title": "WG Quick",
     "tools.wg.quick.hint": "Быстрые действия для восстановления WireGuard.",
@@ -304,15 +196,12 @@ export const toolsTranslations = {
     "tools.launcher.unavailableTitle": "Недоступно",
     "tools.launcher.open.wg": "WG Unlock",
     "tools.launcher.open.hash": "Проверка хеша",
-    "tools.launcher.open.power": "Быстрые ярлыки",
     "tools.launcher.open.backup": "Backup",
     "tools.launcher.open.mediaInspector": "Media Inspector",
     "tools.launcher.open.mediaConverter": "Конвертер форматов",
     "tools.launcher.open.downloaderTools": "Зависимости загрузчика",
     "tools.launcher.desc.wg": "Восстановление WireGuard.",
     "tools.launcher.desc.hash": "Сравнение контрольных сумм файлов.",
-    "tools.launcher.desc.power":
-      "Системные ярлыки и быстрые действия для Windows.",
     "tools.launcher.desc.backup":
       "Резервное копирование и журнал операций.",
     "tools.launcher.desc.mediaInspector":
@@ -323,20 +212,16 @@ export const toolsTranslations = {
       "Установка и обновление yt-dlp, ffmpeg и Deno.",
     "tools.launcher.shortcut.wg": "Alt+1",
     "tools.launcher.shortcut.hash": "Alt+2",
-    "tools.launcher.shortcut.power": "Alt+3",
     "tools.launcher.shortcut.wg.mac": "⌥1",
     "tools.launcher.shortcut.hash.mac": "⌥2",
-    "tools.launcher.shortcut.power.mac": "⌥3",
-    "tools.launcher.hotkeysHint":
-      "Горячие клавиши: Alt+1, Alt+2, Alt+3, Esc",
-    "tools.launcher.hotkeysHint.mac": "Горячие клавиши: ⌥1, ⌥2, ⌥3, Esc",
+    "tools.launcher.hotkeysHint": "Горячие клавиши: Alt+1, Alt+2, Esc",
+    "tools.launcher.hotkeysHint.mac": "Горячие клавиши: ⌥1, ⌥2, Esc",
     "tools.nav.back": "Назад к инструментам",
     "tools.nav.current.wg": "WG Unlock",
     "tools.nav.current.hash": "Проверка хеша",
     "tools.nav.current.downloaderTools": "Зависимости загрузчика",
     "tools.nav.current.mediaInspector": "Media Inspector",
     "tools.nav.current.mediaConverter": "Конвертер форматов",
-    "tools.nav.current.power": "Быстрые ярлыки",
     "tools.nav.current.backup": "Backup",
     "tools.converter.title": "Конвертер форматов",
     "tools.converter.subtitle":
@@ -1030,112 +915,6 @@ export const toolsTranslations = {
     "quickActions.converter.title": "Format Converter",
     "quickActions.converter.subtitle":
       "Convert audio and video files after download.",
-    "quickActions.power.title": "Windows Power Shortcuts",
-    "quickActions.power.hint":
-      "Creates Windows desktop shortcuts and shows a clear result for each action.",
-    "quickActions.power.windowsOnly":
-      "Available only on Windows. Actions are disabled on this platform.",
-    "quickActions.power.windowsReady":
-      "Windows is detected. You can create shortcuts directly from the cards below.",
-    "quickActions.power.banner.title": "Platform limitation",
-    "quickActions.power.banner.windowsOnly":
-      "Shortcut creation is available only on Windows. Actions are disabled on this platform.",
-    "quickActions.power.banner.previewOnly":
-      "The tool stays visible for UI preview, but shortcut creation works only on Windows.",
-    "quickActions.power.group.power.title": "Power",
-    "quickActions.power.group.power.hint":
-      "Core restart and shutdown shortcuts for quick system control.",
-    "quickActions.power.group.recovery.title": "Startup and recovery",
-    "quickActions.power.group.recovery.hint":
-      "UEFI access and advanced Windows startup scenarios.",
-    "quickActions.power.group.system.title": "System utilities",
-    "quickActions.power.group.system.hint":
-      "Fast entry points into Windows settings and admin tools.",
-    "quickActions.power.session.title": "Last action completed",
-    "quickActions.power.session.empty": "No shortcut has been created yet.",
-    "quickActions.power.session.success": "Shortcut “{action}” was created.",
-    "quickActions.power.desktopLocation": "Windows desktop",
-    "quickActions.power.createAnother": "Create another",
-    "quickActions.power.clearStatus": "Clear status",
-    "quickActions.power.status.idle": "Idle",
-    "quickActions.power.status.creating": "Creating",
-    "quickActions.power.status.success": "Done",
-    "quickActions.power.status.error": "Error",
-    "quickActions.power.result.creating": "Creating “{action}” shortcut...",
-    "quickActions.power.result.created": "Shortcut “{action}” created.",
-    "quickActions.power.result.error":
-      "Failed to create the “{action}” shortcut.",
-    "quickActions.power.howto.open": "How it works",
-    "quickActions.power.howto.title": "How Power Shortcuts works",
-    "quickActions.power.howto.close": "Close",
-    "quickActions.power.howto.prev": "Back",
-    "quickActions.power.howto.next": "Next",
-    "quickActions.power.howto.step": "Step {current} of {total}",
-    "quickActions.power.howto.slide1.title": "Check platform",
-    "quickActions.power.howto.slide1.desc":
-      "Shortcut creation works only on Windows. On other platforms the UI stays visible as a preview.",
-    "quickActions.power.howto.slide2.title": "Choose shortcut type",
-    "quickActions.power.howto.slide2.desc":
-      "Pick the action card you need and review its short description.",
-    "quickActions.power.howto.slide3.title": "Confirm creation",
-    "quickActions.power.howto.slide3.desc":
-      "After confirmation, the shortcut is created on your Windows desktop.",
-    "quickActions.power.howto.slide4.title": "Review result",
-    "quickActions.power.howto.slide4.desc":
-      "The card shows its state, and the top summary keeps the last successful action in the current session.",
-    "quickActions.restart.title": "Create restart shortcut",
-    "quickActions.restart.cardTitle": "Restart",
-    "quickActions.restart.cardHint":
-      "Restarts Windows immediately when the shortcut is launched.",
-    "quickActions.restart.action": "Create restart shortcut",
-    "quickActions.restart.confirm": "Create a restart shortcut?",
-    "quickActions.restart.error": "Failed to create restart shortcut",
-    "quickActions.restart.created": "Restart shortcut created: Desktop",
-    "quickActions.uefi.title": "Create BIOS/UEFI shortcut",
-    "quickActions.uefi.cardTitle": "BIOS/UEFI",
-    "quickActions.uefi.cardHint":
-      "Restarts Windows directly into UEFI firmware settings.",
-    "quickActions.uefi.action": "Create BIOS/UEFI shortcut",
-    "quickActions.uefi.confirm": "Create a BIOS/UEFI reboot shortcut?",
-    "quickActions.uefi.error": "Failed to create BIOS/UEFI shortcut",
-    "quickActions.uefi.created": "BIOS/UEFI shortcut created: Desktop",
-    "quickActions.advancedBoot.title": "Create advanced startup shortcut",
-    "quickActions.advancedBoot.cardTitle": "Advanced startup",
-    "quickActions.advancedBoot.cardHint":
-      "Opens Windows advanced recovery options on reboot.",
-    "quickActions.advancedBoot.action": "Create advanced startup shortcut",
-    "quickActions.advancedBoot.confirm": "Create an advanced startup shortcut?",
-    "quickActions.advancedBoot.error":
-      "Failed to create advanced startup shortcut",
-    "quickActions.advancedBoot.created":
-      "Advanced startup shortcut created: Desktop",
-    "quickActions.shutdown.title": "Create shutdown shortcut",
-    "quickActions.shutdown.cardTitle": "Shutdown",
-    "quickActions.shutdown.cardHint":
-      "Shuts down Windows immediately when the shortcut is launched.",
-    "quickActions.shutdown.action": "Create shutdown shortcut",
-    "quickActions.shutdown.confirm": "Create a shutdown shortcut?",
-    "quickActions.shutdown.error": "Failed to create shutdown shortcut",
-    "quickActions.shutdown.created": "Shutdown shortcut created: Desktop",
-    "quickActions.programs.title": "Create Programs and Features shortcut",
-    "quickActions.programs.cardTitle": "Programs and Features",
-    "quickActions.programs.cardHint":
-      "Opens the classic list of installed Windows programs.",
-    "quickActions.programs.action": "Create Programs and Features shortcut",
-    "quickActions.programs.confirm": "Create a Programs and Features shortcut?",
-    "quickActions.programs.error":
-      "Failed to create Programs and Features shortcut",
-    "quickActions.programs.created":
-      "Programs and Features shortcut created: Desktop",
-    "quickActions.diskCleanup.title": "Create Disk Cleanup shortcut",
-    "quickActions.diskCleanup.cardTitle": "Disk Cleanup",
-    "quickActions.diskCleanup.cardHint":
-      "Launches the built-in cleanmgr utility to remove temporary files.",
-    "quickActions.diskCleanup.action": "Create Disk Cleanup shortcut",
-    "quickActions.diskCleanup.confirm": "Create a Disk Cleanup shortcut?",
-    "quickActions.diskCleanup.error": "Failed to create Disk Cleanup shortcut",
-    "quickActions.diskCleanup.created":
-      "Disk Cleanup shortcut created: Desktop",
     "tools.dashboard.title": "Tools dashboard",
     "tools.wg.quick.title": "WG Quick",
     "tools.wg.quick.hint": "Fast recovery actions for WireGuard.",
@@ -1170,15 +949,12 @@ export const toolsTranslations = {
     "tools.launcher.unavailableTitle": "Unavailable",
     "tools.launcher.open.wg": "WG Unlock",
     "tools.launcher.open.hash": "Hash Check",
-    "tools.launcher.open.power": "Shortcuts",
     "tools.launcher.open.backup": "Backup",
     "tools.launcher.open.mediaInspector": "Media Inspector",
     "tools.launcher.open.mediaConverter": "Format Converter",
     "tools.launcher.open.downloaderTools": "Downloader Dependencies",
     "tools.launcher.desc.wg": "Quick WireGuard recovery actions.",
     "tools.launcher.desc.hash": "Compare file checksums.",
-    "tools.launcher.desc.power":
-      "Windows system shortcuts and quick access actions.",
     "tools.launcher.desc.backup": "Backup profiles and operations log.",
     "tools.launcher.desc.mediaInspector":
       "Inspect the container, tracks, and technical metadata of a local media file.",
@@ -1188,19 +964,16 @@ export const toolsTranslations = {
       "Install and update yt-dlp, ffmpeg, and Deno.",
     "tools.launcher.shortcut.wg": "Alt+1",
     "tools.launcher.shortcut.hash": "Alt+2",
-    "tools.launcher.shortcut.power": "Alt+3",
-    "tools.launcher.hotkeysHint": "Hotkeys: Alt+1, Alt+2, Alt+3, Esc",
+    "tools.launcher.hotkeysHint": "Hotkeys: Alt+1, Alt+2, Esc",
     "tools.launcher.shortcut.wg.mac": "⌥1",
     "tools.launcher.shortcut.hash.mac": "⌥2",
-    "tools.launcher.shortcut.power.mac": "⌥3",
-    "tools.launcher.hotkeysHint.mac": "Hotkeys: ⌥1, ⌥2, ⌥3, Esc",
+    "tools.launcher.hotkeysHint.mac": "Hotkeys: ⌥1, ⌥2, Esc",
     "tools.nav.back": "Back to tools",
     "tools.nav.current.wg": "WG Unlock",
     "tools.nav.current.hash": "Hash Check",
     "tools.nav.current.downloaderTools": "Downloader Dependencies",
     "tools.nav.current.mediaInspector": "Media Inspector",
     "tools.nav.current.mediaConverter": "Format Converter",
-    "tools.nav.current.power": "Power Shortcuts",
     "tools.nav.current.backup": "Backup",
     "tools.converter.title": "Format Converter",
     "tools.converter.subtitle":

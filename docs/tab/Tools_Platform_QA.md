@@ -33,8 +33,6 @@ alias: Проверка Tools на Windows и macOS
 
 - Открыть вкладку `Tools`.
 - Проверить launcher, счетчик инструментов, переходы между инструментами.
-- Ожидание на macOS: Windows-действия не выполняются; developer-preview доступен только после разблокировки developer tools.
-- Ожидание на Windows: power-раздел активен, ярлыки создаются.
 
 2. **Tools -> Зависимости загрузчика -> `#tools-info`**
 
@@ -60,28 +58,23 @@ alias: Проверка Tools на Windows и macOS
 - Сравнить два файла, проверить сценарий с expected hash.
 - Убедиться, что во время вычисления блокируются повторные действия.
 
-6. **Power shortcuts**
-
-- Windows: создать все доступные ярлыки, проверить наличие файлов на Desktop и корректный запуск.
-- macOS: действия Windows не должны выполняться; должен быть корректный `unsupported/disabled`.
-
-7. **Media Inspector**
+6. **Media Inspector**
 
 - Выбрать видео или аудиофайл и выполнить анализ.
 - Проверить контейнер, потоки, кодеки, предупреждения, копирование отчета и открытие папки.
 - При недоступном `ffprobe` должен отображаться понятный dependency error.
 
-9. **WG Unlock**
+7. **WG Unlock**
 
 - Проверить загрузку текущей конфигурации, preview изменений и запуск поддерживаемого сценария.
 - Убедиться, что платформенные команды и подсказки соответствуют текущей ОС.
 
-10. **Backup**
+8. **Backup**
 
 - Создать профиль, выполнить префлайт и запустить резервное копирование.
 - Проверить лог, открытие source/destination, фильтры, bulk actions и обработку ошибок.
 
-11. **Регресс устойчивости**
+9. **Регресс устойчивости**
 
 - 5-10 раз открыть/закрыть `Settings` и `Tools`, переключать вкладки.
 - Убедиться, что нет визуальных вспышек, утечек слушателей и повторной привязки обработчиков.
@@ -93,7 +86,7 @@ alias: Проверка Tools на Windows и macOS
 | Feature                                       | Windows (actual) | Windows (status) | macOS (actual) | macOS (status) | Notes / screenshot |
 | --------------------------------------------- | ---------------- | ---------------- | -------------- | -------------- | ------------------ |
 | Tools launcher + счетчик                      |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
-| Tools navigation / back / shortcuts           |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
+| Tools navigation / back                    |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
 | `#tools-info` compact summary + quick actions |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
 | Check updates / update / install flow         |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
 | Tools location flow                           |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
@@ -101,13 +94,10 @@ alias: Проверка Tools на Windows и macOS
 | Media Inspector                               |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
 | WG Unlock                                     |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
 | Backup                                        |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
-| Power shortcuts (Windows-specific)            |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
 | Reopen stability (5-10 циклов)                |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
 
 ## Критерии приемки
 
 1. Инструменты открываются и основные сценарии работают на обеих ОС.
-2. Windows-специфичные действия выполняются только на Windows.
-3. На macOS нет ложной доступности Windows-функций.
-4. `#tools-info` стабильно обновляет состояние без полного перерендеринга.
-5. Нет платформенных регрессий для WG Unlock, hash, media inspector, Backup, location и update сценариев.
+2. `#tools-info` стабильно обновляет состояние без полного перерендеринга.
+3. Нет платформенных регрессий для WG Unlock, hash, media inspector, Backup, location и update сценариев.

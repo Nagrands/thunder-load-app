@@ -10,9 +10,9 @@ describe("createToolViewState", () => {
     const state = createToolViewState();
 
     localStorage.setItem("toolsRememberLastView", "true");
-    localStorage.setItem("toolsLastView", "power");
+    localStorage.setItem("toolsLastView", "hash");
     state.setPlatformInfo({ isWindows: true, platform: "win32" });
-    expect(state.isToolAvailable("power")).toBe(true);
+    expect(state.isToolAvailable("hash")).toBe(true);
     expect(state.resolveInitialToolView()).toBe("launcher");
   });
 
@@ -29,15 +29,15 @@ describe("createToolViewState", () => {
     expect(state.resolveInitialToolView()).toBe("launcher");
   });
 
-  test("tracks developer unlock state for macOS power tools", () => {
+  test("tracks developer unlock state", () => {
     const state = createToolViewState();
 
     state.setPlatformInfo({ isWindows: false, platform: "darwin" });
     state.setDeveloperToolsUnlocked(false);
-    expect(state.isPowerToolAvailable()).toBe(false);
+    expect(state.developerToolsUnlocked).toBe(false);
 
     state.setDeveloperToolsUnlocked(true);
-    expect(state.isPowerToolAvailable()).toBe(true);
+    expect(state.developerToolsUnlocked).toBe(true);
     expect(window.__thunder_dev_tools_unlocked__).toBe(true);
   });
 
@@ -48,7 +48,6 @@ describe("createToolViewState", () => {
     state.setPlatformInfo({ isWindows: false, platform: "darwin" });
 
     expect(state.readDeveloperToolsUnlocked()).toBe(true);
-    expect(state.isPowerToolAvailable()).toBe(true);
+    expect(state.developerToolsUnlocked).toBe(true);
   });
-
 });
