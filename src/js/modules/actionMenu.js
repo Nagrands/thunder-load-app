@@ -1,5 +1,7 @@
 import { t } from "./i18n.js";
 
+let menuInstanceCounter = 0;
+
 function getFocusableItems(menu) {
   return Array.from(
     menu.querySelectorAll('[role="menuitem"]:not([hidden]):not([disabled])'),
@@ -9,18 +11,20 @@ function getFocusableItems(menu) {
 function positionMenu(menu, root, point = {}) {
   const bounds = root.getBoundingClientRect();
   const menuBounds = menu.getBoundingClientRect();
+  const menuWidth = menu.offsetWidth || menuBounds.width;
+  const menuHeight = menu.offsetHeight || menuBounds.height;
   const left = Math.max(
     8,
     Math.min(
       (point.x ?? bounds.left) - bounds.left,
-      bounds.width - menuBounds.width - 8,
+      bounds.width - menuWidth - 8,
     ),
   );
   const top = Math.max(
     8,
     Math.min(
       (point.y ?? bounds.top) - bounds.top,
-      bounds.height - menuBounds.height - 8,
+      bounds.height - menuHeight - 8,
     ),
   );
   menu.style.left = `${left}px`;
@@ -32,6 +36,8 @@ function createActionMenu({
   items = [],
   className = "action-menu",
   dataUi = "action-menu",
+  headerKey = "",
+  header = "",
   onAction,
   resolveItemState,
   renderIcon,
@@ -39,11 +45,32 @@ function createActionMenu({
   if (!(root instanceof HTMLElement)) {
     throw new TypeError("createActionMenu requires an HTMLElement root");
   }
+  const instanceId = `${String(dataUi || "action-menu").replace(
+    /[^a-z0-9_-]+/gi,
+    "-",
+  )}-${++menuInstanceCounter}`;
   const menu = document.createElement("div");
   menu.className = className;
+  menu.id = instanceId;
   menu.dataset.ui = dataUi;
   menu.setAttribute("role", "menu");
   menu.hidden = true;
+
+  const headerText = headerKey ? t(headerKey) : header;
+  if (headerText) {
+    const headerElement = document.createElement("div");
+    headerElement.className = "action-menu__header";
+    headerElement.id = `${instanceId}-title`;
+    headerElement.setAttribute("role", "presentation");
+    const headerLabel = document.createElement("span");
+    headerLabel.className = "action-menu__header-label";
+    if (headerKey) headerLabel.dataset.i18n = headerKey;
+    headerLabel.textContent = headerText;
+    headerElement.appendChild(headerLabel);
+    menu.appendChild(headerElement);
+    menu.setAttribute("aria-labelledby", headerElement.id);
+  }
+
   items.forEach((item) => {
     const button = document.createElement("button");
     button.type = "button";
@@ -51,10 +78,34 @@ function createActionMenu({
     if (item.dataAttribute) button.setAttribute(item.dataAttribute, item.id);
     button.setAttribute("role", "menuitem");
     if (item.danger) button.classList.add("is-danger");
-    const iconMarkup = renderIcon?.(item) || "";
-    button.innerHTML = `${iconMarkup}<span data-i18n="${item.labelKey || ""}">${
-      item.labelKey ? t(item.labelKey) : item.label || item.id
-    }</span>`;
+    button.innerHTML = renderIcon?.(item) || "";
+    const labelElement = document.createElement("span");
+    labelElement.className = "action-menu__label";
+    if (item.labelKey) {
+      labelElement.dataset.i18n = item.labelKey;
+      labelElement.textContent = t(item.labelKey);
+    } else {
+      labelElement.textContent = item.label || item.id;
+    }
+    const descriptionText = item.descriptionKey
+      ? t(item.descriptionKey)
+      : item.description;
+    if (descriptionText) {
+      const descriptionElement = document.createElement("span");
+      descriptionElement.className = "action-menu__description";
+      descriptionElement.id = `${instanceId}-${item.id}-description`;
+      if (item.descriptionKey) {
+        descriptionElement.dataset.i18n = item.descriptionKey;
+      }
+      descriptionElement.textContent = descriptionText;
+      button.setAttribute("aria-describedby", descriptionElement.id);
+      const copy = document.createElement("span");
+      copy.className = "action-menu__copy";
+      copy.append(labelElement, descriptionElement);
+      button.appendChild(copy);
+    } else {
+      button.appendChild(labelElement);
+    }
     menu.appendChild(button);
   });
   root.appendChild(menu);
@@ -82,8 +133,10 @@ function createActionMenu({
       button.disabled = Boolean(state.disabled);
       button.setAttribute("aria-disabled", String(Boolean(state.disabled)));
       const labelKey = state.labelKey || item.labelKey;
-      const label = labelKey ? t(labelKey) : state.label || item.label || item.id;
-      const labelElement = button.querySelector("span");
+      const label = labelKey
+        ? t(labelKey)
+        : state.label || item.label || item.id;
+      const labelElement = button.querySelector(".action-menu__label");
       if (labelElement) {
         labelElement.textContent = label;
         if (labelKey) labelElement.dataset.i18n = labelKey;

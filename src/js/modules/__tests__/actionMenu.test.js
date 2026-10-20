@@ -30,6 +30,27 @@ describe("action menu", () => {
     controller.dispose();
   });
 
+  test("renders an optional header and item descriptions", () => {
+    document.body.innerHTML = '<main id="root"></main>';
+    const root = document.getElementById("root");
+    const controller = createActionMenu({
+      root,
+      dataUi: "test-menu",
+      header: "Actions",
+      items: [{ id: "open", label: "Open", description: "Open the item" }],
+    });
+    const menu = controller.element;
+    const header = menu.querySelector(".action-menu__header");
+    const item = menu.querySelector('[data-action="open"]');
+    const description = item.querySelector(".action-menu__description");
+
+    expect(header.textContent).toBe("Actions");
+    expect(menu.getAttribute("aria-labelledby")).toBe(header.id);
+    expect(description.textContent).toBe("Open the item");
+    expect(item.getAttribute("aria-describedby")).toBe(description.id);
+    controller.dispose();
+  });
+
   test("dispatches an enabled action", () => {
     document.body.innerHTML = '<main id="root"><button id="trigger">Menu</button></main>';
     const root = document.getElementById("root");

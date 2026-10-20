@@ -1,10 +1,25 @@
 import { createActionMenu } from "../../actionMenu.js";
 
 const ITEMS = [
-  ["download-next", "list-start", "queue.menu.downloadNext"],
-  ["move-top", "arrow-up-to-line", "queue.menu.moveTop"],
-  ["move-bottom", "arrow-down-to-line", "queue.menu.moveBottom"],
-  ["remove", "trash-2", "queue.menu.remove"],
+  [
+    "download-next",
+    "list-start",
+    "queue.menu.downloadNext",
+    "queue.menu.downloadNextHint",
+  ],
+  [
+    "move-top",
+    "arrow-up-to-line",
+    "queue.menu.moveTop",
+    "queue.menu.moveTopHint",
+  ],
+  [
+    "move-bottom",
+    "arrow-down-to-line",
+    "queue.menu.moveBottom",
+    "queue.menu.moveBottomHint",
+  ],
+  ["remove", "trash-2", "queue.menu.remove", "queue.menu.removeHint"],
 ];
 
 function createQueueActionMenu({ root, onAction }) {
@@ -12,10 +27,12 @@ function createQueueActionMenu({ root, onAction }) {
     root,
     className: "queue-action-menu action-menu",
     dataUi: "queue-action-menu",
-    items: ITEMS.map(([id, icon, labelKey]) => ({
+    headerKey: "queue.menu.title",
+    items: ITEMS.map(([id, icon, labelKey, descriptionKey]) => ({
       id,
       icon,
       labelKey,
+      descriptionKey,
       danger: id === "remove",
       dataAttribute: "data-queue-menu-action",
     })),
