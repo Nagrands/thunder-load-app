@@ -31746,8 +31746,9 @@ video {
   background: linear-gradient(145deg, rgba(13, 24, 40, 0.84), rgba(7, 13, 23, 0.88));
 }
 .tools-card.media-inspector-card .media-inspector-path-panel.is-empty {
-  min-height: 286px;
-  gap: 15px;
+  min-height: 230px;
+  gap: 12px;
+  margin: 20px;
   border-width: 1.5px;
   border-color: rgba(var(--color-accent-rgb), 0.32);
   background: radial-gradient(ellipse at 50% 34%, rgba(var(--color-accent-rgb), 0.14), transparent 48%), linear-gradient(145deg, rgba(9, 20, 34, 0.88), rgba(5, 11, 20, 0.94));
@@ -31771,6 +31772,19 @@ video {
 .tools-card.media-inspector-card .media-inspector-path-panel.is-empty .media-inspector-drop-hint {
   max-width: 38ch;
   font-size: 0.82rem;
+}
+.tools-card.media-inspector-card .media-inspector-path-panel.is-empty .media-inspector-path-panel__controls {
+  width: fit-content;
+  justify-items: center;
+}
+.tools-card.media-inspector-card .media-inspector-path-panel.is-empty .media-inspector-primary {
+  width: auto;
+  min-width: 220px;
+  max-width: 100%;
+  padding-inline: 24px;
+}
+.tools-card.media-inspector-card .media-inspector-path-panel.is-empty .media-inspector-status.is-idle {
+  display: none;
 }
 .tools-card.media-inspector-card .media-inspector-summary-grid {
   gap: 10px;
@@ -31871,7 +31885,8 @@ video {
 }
 @media (max-width: 768px) {
   .tools-card.media-inspector-card .media-inspector-path-panel.is-empty {
-    min-height: 220px;
+    min-height: 200px;
+    padding: 16px;
   }
 }
 .tools-shell .quick-action-controls {
