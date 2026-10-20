@@ -60,21 +60,12 @@ alias: Проверка Tools на Windows и macOS
 - Сравнить два файла, проверить сценарий с expected hash.
 - Убедиться, что во время вычисления блокируются повторные действия.
 
-6. **File Sorter**
-
-- Создать и изменить категории, проверить валидацию повторяющихся расширений и
-  сброс стандартных правил.
-- Выполнить обязательный предпросмотр, применить только часть выбранных операций
-  и убедиться, что изменение настроек инвалидирует старый план.
-- Проверить поиск, фильтры, выбор всех видимых строк, конфликты имен, экспорт,
-  открытие папки и отмену последнего запуска.
-
-7. **Power shortcuts**
+6. **Power shortcuts**
 
 - Windows: создать все доступные ярлыки, проверить наличие файлов на Desktop и корректный запуск.
 - macOS: действия Windows не должны выполняться; должен быть корректный `unsupported/disabled`.
 
-8. **Media Inspector**
+7. **Media Inspector**
 
 - Выбрать видео или аудиофайл и выполнить анализ.
 - Проверить контейнер, потоки, кодеки, предупреждения, копирование отчета и открытие папки.
@@ -108,7 +99,6 @@ alias: Проверка Tools на Windows и macOS
 | Tools location flow                           |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
 | Hash tool                                     |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
 | Media Inspector                               |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
-| File Sorter preview / selected apply / undo   |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
 | WG Unlock                                     |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
 | Backup                                        |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
 | Power shortcuts (Windows-specific)            |                  | PASS/FAIL        |                | PASS/FAIL      |                    |
@@ -120,4 +110,4 @@ alias: Проверка Tools на Windows и macOS
 2. Windows-специфичные действия выполняются только на Windows.
 3. На macOS нет ложной доступности Windows-функций.
 4. `#tools-info` стабильно обновляет состояние без полного перерендеринга.
-5. Нет платформенных регрессий для WG Unlock, hash, media inspector, sorter, Backup, location и update сценариев.
+5. Нет платформенных регрессий для WG Unlock, hash, media inspector, Backup, location и update сценариев.

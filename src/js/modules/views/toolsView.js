@@ -17,8 +17,6 @@ import {
   renderMediaConverterSection,
 } from "./tools/mediaConverterSection.js";
 import { initMediaInspectorSection } from "./tools/mediaInspectorSection.js";
-import { initFileSorterSection } from "./tools/fileSorterSection.js";
-import { renderFileSorterView } from "./tools/fileSorterView.js";
 import {
   initHashCheckSection,
   renderHashCheckSection,
@@ -372,10 +370,6 @@ export default function renderToolsView() {
             <i class="fa-solid fa-box-archive" aria-hidden="true"></i>
             <span data-i18n="tools.nav.current.backup">${t("tools.nav.current.backup")}</span>
           </button>
-          <button type="button" class="tools-sidebar__item" data-tool-nav="sorter">
-            <i class="fa-solid fa-folder-tree" aria-hidden="true"></i>
-            <span data-i18n="tools.nav.current.sorter">${t("tools.nav.current.sorter")}</span>
-          </button>
           <button type="button" class="tools-sidebar__item" data-tool-nav="power">
             <i class="fa-solid fa-power-off" aria-hidden="true"></i>
             <span data-i18n="tools.nav.current.power">${t("tools.nav.current.power")}</span>
@@ -458,20 +452,7 @@ export default function renderToolsView() {
             >
               ${t("tools.launcher.unavailableTitle")}
             </h3>
-            <div class="tools-launcher-unavailable-grid">
-              <button
-                id="tools-open-sorter"
-                type="button"
-                class="tools-launcher-button"
-                data-ui="tools-launcher-card"
-              >
-                <i class="fa-solid fa-folder-tree"></i>
-                <span data-i18n="tools.launcher.open.sorter">${t("tools.launcher.open.sorter")}</span>
-                <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.sorter">
-                  ${t("tools.launcher.desc.sorter")}
-                </small>
-              </button>
-            </div>
+            <div class="tools-launcher-unavailable-grid"></div>
           </div>
         </div>
       </section>
@@ -820,8 +801,6 @@ export default function renderToolsView() {
           </article>
         </section>
 
-        ${renderFileSorterView(t)}
-
         <section
           class="tools-view hidden"
           data-tool-view="backup"
@@ -855,7 +834,6 @@ export default function renderToolsView() {
       "media-converter",
       "power",
       "backup",
-      "sorter",
     ];
     const availableCount = availableToolViews.filter((toolView) =>
       isToolAvailable(toolView),
@@ -1152,7 +1130,6 @@ export default function renderToolsView() {
     const openMediaConverterBtn = getEl("tools-open-media-converter", view);
     const openPowerBtn = getEl("tools-open-power", view);
     const openBackupBtn = getEl("tools-open-backup", view);
-    const openSorterBtn = getEl("tools-open-sorter", view);
     const sidebarToggle = getEl("tools-sidebar-toggle", view);
     const sidebarNavigation = getEl("tools-sidebar-navigation", view);
 
@@ -1163,7 +1140,6 @@ export default function renderToolsView() {
       if (
         !openPowerBtn ||
         !openBackupBtn ||
-        !openSorterBtn ||
         !launcherAvailableGrid ||
         !launcherUnavailableGrid ||
         !launcherUnavailableSection
@@ -1197,15 +1173,9 @@ export default function renderToolsView() {
         openPowerBtn.classList.add("is-unavailable");
       }
 
-      if (openSorterBtn.parentElement !== launcherAvailableGrid) {
-        launcherAvailableGrid.appendChild(openSorterBtn);
-      }
       if (openBackupBtn.parentElement !== launcherAvailableGrid) {
         launcherAvailableGrid.appendChild(openBackupBtn);
       }
-      openSorterBtn.disabled = false;
-      openSorterBtn.removeAttribute("aria-disabled");
-      openSorterBtn.classList.remove("is-unavailable");
       openBackupBtn.disabled = false;
       openBackupBtn.removeAttribute("aria-disabled");
       openBackupBtn.classList.remove("is-unavailable");
@@ -1239,10 +1209,6 @@ export default function renderToolsView() {
     openBackupBtn?.addEventListener("click", () => {
       ensureBackupToolView();
       setToolView("backup");
-    });
-    openSorterBtn?.addEventListener("click", () => {
-      if (!isToolAvailable("sorter")) return;
-      setToolView("sorter");
     });
     view.querySelectorAll("[data-tool-nav]").forEach((button) => {
       button.addEventListener("click", () => {
@@ -1678,12 +1644,6 @@ export default function renderToolsView() {
 
     initHashCheckSection({ view, cleanup });
 
-    initFileSorterSection({
-      view,
-      getEl,
-      t,
-      registerCleanup: cleanup.addCleanup,
-    });
     initMediaInspectorSection({
       view,
       getEl,

@@ -177,12 +177,6 @@ try {
     "tools:converterConvert",
     "tools:converterCancel",
     "tools:converterProgress",
-    "tools:sorterPickFolder",
-    "tools:sorterOpenFolder",
-    "tools:previewSorterPlan",
-    "tools:applySorterPlan",
-    "tools:undoSorterRun",
-    "tools:sorterExport",
     "tools:createWindowsRestartShortcut",
     "tools:createWindowsShutdownShortcut",
     "tools:createWindowsUefiRebootShortcut",
@@ -474,16 +468,6 @@ try {
         safeInvoke("tools:converterCancel", payload),
       onConverterProgress: (callback) =>
         safeOn("tools:converterProgress", callback),
-      pickSorterFolder: () => safeInvoke("tools:sorterPickFolder"),
-      openSorterFolder: (folderPath) =>
-        safeInvoke("tools:sorterOpenFolder", folderPath),
-      previewSorterPlan: (payload) =>
-        safeInvoke("tools:previewSorterPlan", payload),
-      applySorterPlan: (payload) =>
-        safeInvoke("tools:applySorterPlan", payload),
-      undoSorterRun: (payload) => safeInvoke("tools:undoSorterRun", payload),
-      exportSorterResult: (payload) =>
-        safeInvoke("tools:sorterExport", payload),
       createWindowsRestartShortcut: () =>
         safeInvoke("tools:createWindowsRestartShortcut"),
       createWindowsShutdownShortcut: () =>

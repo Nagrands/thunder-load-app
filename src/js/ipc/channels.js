@@ -146,12 +146,6 @@ const CHANNELS = Object.freeze({
   TOOLS_CONVERTER_CONVERT: "tools:converterConvert",
   TOOLS_CONVERTER_CANCEL: "tools:converterCancel",
   TOOLS_CONVERTER_PROGRESS: "tools:converterProgress",
-  TOOLS_SORTER_PICK_FOLDER: "tools:sorterPickFolder",
-  TOOLS_SORTER_OPEN_FOLDER: "tools:sorterOpenFolder",
-  TOOLS_SORTER_PREVIEW_PLAN: "tools:previewSorterPlan",
-  TOOLS_SORTER_APPLY_PLAN: "tools:applySorterPlan",
-  TOOLS_SORTER_UNDO_RUN: "tools:undoSorterRun",
-  TOOLS_SORTER_EXPORT: "tools:sorterExport",
   TOOLS_CREATE_WINDOWS_RESTART_SHORTCUT: "tools:createWindowsRestartShortcut",
   TOOLS_CREATE_WINDOWS_SHUTDOWN_SHORTCUT: "tools:createWindowsShutdownShortcut",
   TOOLS_CREATE_WINDOWS_UEFI_REBOOT_SHORTCUT:

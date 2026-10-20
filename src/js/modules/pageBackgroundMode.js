@@ -11,7 +11,6 @@ const TOOL_MODE_MAP = {
   hash: "tools",
   "media-inspector": "tools",
   power: "tools",
-  sorter: "tools",
   backup: "backup",
 };
 

@@ -45,7 +45,6 @@ function createToolViewState() {
 
   const isToolAvailable = (toolView, info = state.toolsPlatformInfo) => {
     if (toolView === "power") return isPowerToolAvailable(info);
-    if (toolView === "sorter") return true;
     if (toolView === "media-inspector") return true;
     if (toolView === "media-converter") return true;
     if (toolView === "backup") return true;

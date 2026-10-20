@@ -83,23 +83,7 @@ async function renderView() {
 }
 
 async function openTool(el, tool) {
-  const id =
-    tool === "wg"
-      ? "#tools-open-wg"
-      : tool === "hash"
-        ? "#tools-open-hash"
-        : tool === "downloader-tools"
-          ? "#tools-open-downloader-tools"
-          : tool === "media-inspector"
-            ? "#tools-open-media-inspector"
-            : tool === "media-converter"
-              ? "#tools-open-media-converter"
-              : tool === "power"
-                ? "#tools-open-power"
-                : tool === "backup"
-                  ? "#tools-open-backup"
-                  : "#tools-open-sorter";
-  el.querySelector(id)?.click();
+  el.querySelector(`#tools-open-${tool}`)?.click();
   await nextTick();
 }
 
@@ -124,73 +108,6 @@ describe("toolsView quick actions", () => {
         pickFileForHash: jest.fn().mockResolvedValue({
           success: true,
           filePath: "/tmp/demo.bin",
-        }),
-        pickSorterFolder: jest.fn().mockResolvedValue({
-          success: true,
-          folderPath: "/tmp/sorter",
-        }),
-        openSorterFolder: jest.fn().mockResolvedValue({
-          success: true,
-          folderPath: "/tmp/sorter",
-        }),
-        exportSorterResult: jest.fn().mockResolvedValue({
-          success: true,
-          filePath: "/tmp/file-sorter.txt",
-        }),
-        previewSorterPlan: jest.fn().mockResolvedValue({
-          success: true,
-          planId: "plan-1",
-          planned: 2,
-          totalFiles: 2,
-          skipped: 0,
-          categoryCount: {
-            Images: 1,
-            Documents: 1,
-          },
-          errors: [],
-          operations: [
-            {
-              id: "operation-1",
-              fileName: "first.txt",
-              category: "Documents",
-              targetPath: "/tmp/sorter/Documents/first.txt",
-              status: "planned",
-            },
-            {
-              id: "operation-2",
-              fileName: "second.jpg",
-              category: "Images",
-              targetPath: "/tmp/sorter/Images/second.jpg",
-              status: "planned",
-            },
-          ],
-        }),
-        applySorterPlan: jest.fn().mockResolvedValue({
-          success: true,
-          runId: "run-1",
-          moved: 2,
-          totalFiles: 2,
-          skipped: 0,
-          operations: [
-            {
-              id: "operation-1",
-              fileName: "first.txt",
-              category: "Documents",
-              targetPath: "/tmp/sorter/Documents/first.txt",
-              status: "moved",
-            },
-            {
-              id: "operation-2",
-              fileName: "second.jpg",
-              category: "Images",
-              targetPath: "/tmp/sorter/Images/second.jpg",
-              status: "moved",
-            },
-          ],
-        }),
-        undoSorterRun: jest.fn().mockResolvedValue({
-          success: true,
-          restored: 2,
         }),
         calculateHash: jest.fn().mockResolvedValue({
           success: true,
@@ -427,7 +344,7 @@ describe("toolsView quick actions", () => {
     );
     expect(el.querySelector('[data-ui="tools-entrance-root"]')).not.toBeNull();
     expect(el.querySelectorAll('[data-ui="tools-launcher-card"]').length).toBe(
-      8,
+      7,
     );
     expect(
       el
@@ -458,7 +375,7 @@ describe("toolsView quick actions", () => {
   test("shows total tools counter for macos", async () => {
     const el = await renderView();
     expect(el.querySelector("#tools-launcher-tools-count")?.textContent).toBe(
-      "tools.launcher.totalLabel: 7",
+      "tools.launcher.totalLabel: 6",
     );
   });
 
@@ -693,7 +610,7 @@ describe("toolsView quick actions", () => {
     ).toBe(false);
     expect(
       el.querySelectorAll(".tools-launcher-grid .tools-launcher-button").length,
-    ).toBe(8);
+    ).toBe(7);
     expect(el.querySelector("#tools-open-media-inspector")).not.toBeNull();
     expect(
       el.querySelector("#tools-launcher-unavailable-section"),
@@ -760,444 +677,8 @@ describe("toolsView quick actions", () => {
         ?.classList.contains("hidden"),
     ).toBe(true);
     expect(el.querySelector("#tools-launcher-tools-count")?.textContent).toBe(
-      "tools.launcher.totalLabel: 7",
+      "tools.launcher.totalLabel: 6",
     );
-  });
-
-  test("does not restore File Sorter from legacy state", async () => {
-    localStorage.setItem("toolsRememberLastView", "true");
-    localStorage.setItem("toolsLastView", "sorter");
-    const el = await renderView();
-    expect(
-      el.querySelector("#tools-launcher")?.classList.contains("hidden"),
-    ).toBe(false);
-    expect(
-      el
-        .querySelector('[data-tool-view="sorter"]')
-        ?.classList.contains("hidden"),
-    ).toBe(true);
-  });
-
-  test("shows File Sorter as available tool and opens it", async () => {
-    const el = await renderView();
-    const sorterBtn = el.querySelector("#tools-open-sorter");
-    expect(sorterBtn?.closest(".tools-launcher-grid")).not.toBeNull();
-    expect(sorterBtn?.disabled).toBe(false);
-
-    sorterBtn?.click();
-    await nextTick();
-    expect(
-      el
-        .querySelector('[data-tool-view="sorter"]')
-        ?.classList.contains("hidden"),
-    ).toBe(false);
-  });
-
-  test("keeps File Sorter available when developer mode is enabled", async () => {
-    window.__thunder_dev_tools_unlocked__ = true;
-    const el = await renderView();
-    const sorterBtn = el.querySelector("#tools-open-sorter");
-    const powerBtn = el.querySelector("#tools-open-power");
-
-    expect(sorterBtn?.disabled).toBe(false);
-    expect(sorterBtn?.classList.contains("is-unavailable")).toBe(false);
-    expect(powerBtn?.disabled).toBe(false);
-    expect(powerBtn?.classList.contains("is-unavailable")).toBe(false);
-    expect(el.querySelector("#tools-launcher-tools-count")?.textContent).toBe(
-      "tools.launcher.totalLabel: 8",
-    );
-
-    sorterBtn?.click();
-    await nextTick();
-    expect(
-      el
-        .querySelector('[data-tool-view="sorter"]')
-        ?.classList.contains("hidden"),
-    ).toBe(false);
-  });
-
-  test("supports editable rules, mandatory preview, selection, apply, export, and undo", async () => {
-    const el = await renderView();
-    await openTool(el, "sorter");
-
-    expect(el.querySelector(".sorter-shell")).not.toBeNull();
-    expect(el.querySelector(".sorter-config-surface")).not.toBeNull();
-    expect(el.querySelector(".sorter-folder-line")).not.toBeNull();
-    expect(el.querySelector(".sorter-header__actions")).not.toBeNull();
-    expect(el.querySelector(".sorter-preview-summary")).not.toBeNull();
-    expect(el.querySelector(".sorter-preview-toolbar")).not.toBeNull();
-    expect(el.querySelector(".sorter-options-panel")).not.toBeNull();
-    expect(el.querySelector(".sorter-rules-panel")).not.toBeNull();
-    expect(el.querySelector(".sorter-category-help")?.textContent).toContain(
-      "tools.sorter.rules.compactHint",
-    );
-    expect(el.querySelector(".sorter-preview-insights")).not.toBeNull();
-    expect(el.querySelector(".sorter-preview-main")).not.toBeNull();
-    expect(el.querySelector(".sorter-preview-support")).toBeNull();
-    expect(el.querySelector("#sorter-preview-list-count")).not.toBeNull();
-    expect(el.querySelector("#sorter-breakdown-count")).not.toBeNull();
-    const rules = el.querySelectorAll(
-      "#sorter-rules-list .sorter-category-item",
-    );
-    expect(rules.length).toBe(6);
-    expect(
-      el.querySelector('[data-rule-id="other"] .sorter-rule-name')?.disabled,
-    ).toBe(true);
-    expect(el.querySelector("#sorter-conflict-mode")).not.toBeNull();
-    expect(el.querySelector("#sorter-conflict-mode")?.type).toBe("hidden");
-    expect(el.querySelector("#sorter-conflict-toggle")).not.toBeNull();
-    expect(
-      el.querySelector("#sorter-conflict-menu")?.getAttribute("role"),
-    ).toBe("listbox");
-    expect(el.querySelector("#sorter-recursive")).not.toBeNull();
-    expect(el.querySelector("#sorter-ignore-extensions")).not.toBeNull();
-    expect(el.querySelector("#sorter-ignore-folders")).not.toBeNull();
-    expect(el.querySelector("#sorter-rule-add")).not.toBeNull();
-    expect(el.querySelector("#sorter-rules-reset")).not.toBeNull();
-    expect(el.querySelector("#sorter-preview-run")).not.toBeNull();
-    expect(el.querySelector("#sorter-preview-run")?.getAttribute("title")).toBe(
-      "tools.sorter.preview.show",
-    );
-    expect(
-      el.querySelector("#sorter-preview-run")?.getAttribute("aria-expanded"),
-    ).toBe("false");
-    expect(el.querySelector("#sorter-apply-run")).not.toBeNull();
-    expect(
-      el
-        .querySelector("#sorter-apply-run")
-        ?.classList.contains("sorter-apply-primary"),
-    ).toBe(true);
-    expect(el.querySelector("#sorter-apply-run")?.disabled).toBe(true);
-    expect(el.querySelector("#sorter-preview-search")).not.toBeNull();
-    expect(
-      el.querySelector("#sorter-preview-search")?.closest("label")?.textContent,
-    ).toContain("tools.sorter.preview.searchLabel");
-    expect(el.querySelector("#sorter-preview-category-filter")).not.toBeNull();
-    expect(
-      el.querySelector("#sorter-preview-category-filter")?.closest("label")
-        ?.textContent,
-    ).toContain("tools.sorter.preview.categoryFilterLabel");
-    expect(el.querySelector("#sorter-preview-status-filter")).not.toBeNull();
-    expect(
-      el.querySelector("#sorter-preview-status-filter")?.closest("label")
-        ?.textContent,
-    ).toContain("tools.sorter.preview.statusFilterLabel");
-    expect(
-      el.querySelector(".sorter-preview-apply-copy")?.textContent,
-    ).toContain("tools.sorter.preview.applyHint");
-    expect(el.querySelector("#sorter-preview-select-all")).not.toBeNull();
-    expect(el.querySelector("#sorter-export-format")).not.toBeNull();
-    expect(
-      el.querySelector("#sorter-export-format")?.getAttribute("aria-label"),
-    ).toBe("tools.sorter.exportFormatLabel");
-    expect(el.querySelector("#sorter-copy-result")).not.toBeNull();
-    expect(el.querySelector("#sorter-export-result")).not.toBeNull();
-    expect(el.querySelector("#sorter-log-path")).toBeNull();
-    expect(el.querySelector("#sorter-open-howto")).toBeNull();
-    expect(el.querySelector("#sorter-howto-modal")).toBeNull();
-
-    el.querySelector("#sorter-preview-run")?.click();
-    await nextTick();
-    expect(window.electron.tools.previewSorterPlan).not.toHaveBeenCalled();
-
-    el.querySelector("#sorter-pick-folder")?.click();
-    await nextTick();
-    el.querySelector("#sorter-conflict-toggle")?.click();
-    el.querySelector('[data-conflict-mode="skip"]')?.click();
-    expect(el.querySelector("#sorter-conflict-mode")?.value).toBe("skip");
-    expect(
-      el
-        .querySelector("#sorter-conflict-toggle")
-        ?.getAttribute("aria-expanded"),
-    ).toBe("false");
-    el.querySelector("#sorter-recursive").checked = true;
-    el.querySelector("#sorter-recursive")?.dispatchEvent(
-      new Event("change", { bubbles: true }),
-    );
-    const firstRule = el.querySelector('[data-rule-id="images"]');
-    expect(
-      Array.from(
-        firstRule.querySelectorAll(".sorter-category-field > span"),
-      ).map((label) => label.textContent),
-    ).toEqual([
-      "tools.sorter.rules.nameShort",
-      "tools.sorter.rules.folderShort",
-      "tools.sorter.rules.extensionsShort",
-    ]);
-    expect(firstRule.children).toHaveLength(4);
-    expect(
-      el.querySelector(
-        '[data-rule-id="other"] .sorter-category-delete i.fa-lock',
-      ),
-    ).not.toBeNull();
-    firstRule.querySelector(".sorter-rule-name").value = "Photos";
-    firstRule
-      .querySelector(".sorter-rule-name")
-      .dispatchEvent(new Event("input", { bubbles: true }));
-    firstRule.querySelector(".sorter-rule-folder").value = "Pictures";
-    firstRule
-      .querySelector(".sorter-rule-folder")
-      .dispatchEvent(new Event("input", { bubbles: true }));
-    firstRule.querySelector(".sorter-rule-extensions").value = ".jpg, .png";
-    firstRule
-      .querySelector(".sorter-rule-extensions")
-      .dispatchEvent(new Event("input", { bubbles: true }));
-    el.querySelector("#sorter-rule-add")?.click();
-    expect(
-      el.querySelectorAll("#sorter-rules-list .sorter-category-item").length,
-    ).toBe(7);
-    const newRule = el.querySelector('[data-rule-id^="rule-"]');
-    newRule.querySelector(".sorter-rule-name").value = "Code";
-    newRule
-      .querySelector(".sorter-rule-name")
-      .dispatchEvent(new Event("input", { bubbles: true }));
-    newRule.querySelector(".sorter-rule-folder").value = "Code";
-    newRule
-      .querySelector(".sorter-rule-folder")
-      .dispatchEvent(new Event("input", { bubbles: true }));
-    newRule.querySelector(".sorter-rule-extensions").value = ".js";
-    newRule
-      .querySelector(".sorter-rule-extensions")
-      .dispatchEvent(new Event("input", { bubbles: true }));
-    newRule.querySelector(".sorter-category-delete")?.click();
-    expect(
-      el.querySelectorAll("#sorter-rules-list .sorter-category-item").length,
-    ).toBe(6);
-    el.querySelector("#sorter-rule-add")?.click();
-    const replacementRule = el.querySelector('[data-rule-id^="rule-"]');
-    replacementRule.querySelector(".sorter-rule-name").value = "Code";
-    replacementRule
-      .querySelector(".sorter-rule-name")
-      .dispatchEvent(new Event("input", { bubbles: true }));
-    replacementRule.querySelector(".sorter-rule-folder").value = "Code";
-    replacementRule
-      .querySelector(".sorter-rule-folder")
-      .dispatchEvent(new Event("input", { bubbles: true }));
-    replacementRule.querySelector(".sorter-rule-extensions").value = ".js";
-    replacementRule
-      .querySelector(".sorter-rule-extensions")
-      .dispatchEvent(new Event("input", { bubbles: true }));
-
-    const previewPanel = el.querySelector("#sorter-preview-panel");
-    const previewTitle = el.querySelector("#sorter-preview-title");
-    previewPanel.scrollIntoView = jest.fn();
-    const focusPreviewTitle = jest.spyOn(previewTitle, "focus");
-    window.requestAnimationFrame = jest.fn((callback) => {
-      callback();
-      return 1;
-    });
-
-    el.querySelector("#sorter-preview-run")?.click();
-    await nextTick();
-    await nextTick();
-
-    expect(window.electron.tools.previewSorterPlan).toHaveBeenLastCalledWith({
-      folderPath: "/tmp/sorter",
-      conflictMode: "skip",
-      recursive: true,
-      ignoreExtensions: "",
-      ignoreFolders: "",
-      rules: expect.arrayContaining([
-        expect.objectContaining({
-          id: "images",
-          name: "Photos",
-          folderName: "Pictures",
-          extensions: ".jpg, .png",
-        }),
-        expect.objectContaining({
-          id: "other",
-          locked: true,
-        }),
-      ]),
-    });
-    expect(
-      el.querySelectorAll("#sorter-breakdown-list .sorter-breakdown-item")
-        .length,
-    ).toBe(2);
-    expect(el.querySelector("#sorter-preview-list-count")?.textContent).toBe(
-      "2",
-    );
-    expect(el.querySelector("#sorter-breakdown-count")?.textContent).toBe("2");
-    expect(el.querySelector("#sorter-apply-run")?.disabled).toBe(false);
-    expect(
-      el.querySelector("#sorter-preview-run")?.getAttribute("aria-expanded"),
-    ).toBe("true");
-    expect(
-      el.querySelector("#sorter-preview-run")?.classList.contains("is-active"),
-    ).toBe(true);
-    expect(previewPanel.scrollIntoView).toHaveBeenCalledWith({
-      behavior: "smooth",
-      block: "start",
-    });
-    expect(focusPreviewTitle).toHaveBeenCalledWith({ preventScroll: true });
-
-    el.querySelector("#sorter-preview-run")?.click();
-    expect(
-      el.querySelector("#sorter-preview-panel")?.classList.contains("hidden"),
-    ).toBe(true);
-    expect(
-      el.querySelector("#sorter-preview-run")?.getAttribute("aria-expanded"),
-    ).toBe("false");
-    expect(window.electron.tools.previewSorterPlan).toHaveBeenCalledTimes(1);
-
-    el.querySelector("#sorter-preview-run")?.click();
-    await nextTick();
-    expect(
-      el.querySelector("#sorter-preview-panel")?.classList.contains("hidden"),
-    ).toBe(false);
-    expect(window.electron.tools.previewSorterPlan).toHaveBeenCalledTimes(1);
-    expect(previewPanel.scrollIntoView).toHaveBeenCalledTimes(2);
-
-    el.querySelector("#sorter-preview-search").value = "second";
-    el.querySelector("#sorter-preview-search")?.dispatchEvent(
-      new Event("input", { bubbles: true }),
-    );
-    expect(
-      el.querySelectorAll("#sorter-preview-list .sorter-preview-row").length,
-    ).toBe(1);
-    expect(
-      el.querySelector("#sorter-preview-list .sorter-preview-row__target-wrap"),
-    ).toBeNull();
-    el.querySelector("#sorter-preview-select-all").checked = false;
-    el.querySelector("#sorter-preview-select-all")?.dispatchEvent(
-      new Event("change", { bubbles: true }),
-    );
-    expect(el.querySelector("#sorter-apply-run")?.disabled).toBe(false);
-
-    showConfirmationDialog.mockResolvedValueOnce(true);
-    el.querySelector("#sorter-apply-run")?.click();
-    await nextTick();
-    await nextTick();
-    expect(showConfirmationDialog).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: "tools.sorter.confirm.title",
-      }),
-    );
-    expect(window.electron.tools.applySorterPlan).toHaveBeenCalledWith({
-      planId: "plan-1",
-      operationIds: ["operation-1"],
-    });
-    expect(
-      el.querySelector("#sorter-result-panel")?.classList.contains("hidden"),
-    ).toBe(false);
-    expect(
-      el.querySelector("#sorter-undo-run")?.classList.contains("hidden"),
-    ).toBe(false);
-
-    el.querySelector("#sorter-export-format").value = "json";
-    el.querySelector("#sorter-copy-result")?.click();
-    await nextTick();
-    expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
-      expect.stringContaining('"runId": "run-1"'),
-    );
-    el.querySelector("#sorter-export-result")?.click();
-    await nextTick();
-    expect(window.electron.tools.exportSorterResult).toHaveBeenCalledWith(
-      expect.objectContaining({
-        format: "json",
-        suggestedName: expect.stringMatching(/\.json$/),
-        content: expect.stringContaining('"runId": "run-1"'),
-      }),
-    );
-    expect(localStorage.getItem("toolsSorterConflictMode")).toBe("skip");
-    expect(localStorage.getItem("toolsSorterRecursive")).toBe("true");
-    expect(localStorage.getItem("toolsSorterRules")).toContain('"Photos"');
-
-    el.querySelector("#sorter-undo-run")?.click();
-    await nextTick();
-    expect(window.electron.tools.undoSorterRun).toHaveBeenCalledWith({
-      runId: "run-1",
-    });
-    expect(
-      el.querySelector("#sorter-undo-run")?.classList.contains("hidden"),
-    ).toBe(true);
-  });
-
-  test("keeps operation selection across filters and invalidates stale previews", async () => {
-    const el = await renderView();
-    await openTool(el, "sorter");
-    el.querySelector("#sorter-pick-folder")?.click();
-    await nextTick();
-    el.querySelector("#sorter-preview-run")?.click();
-    await nextTick();
-
-    el.querySelector("#sorter-preview-search").value = "second";
-    el.querySelector("#sorter-preview-search")?.dispatchEvent(
-      new Event("input", { bubbles: true }),
-    );
-    el.querySelector(".sorter-operation-select").checked = false;
-    el.querySelector(".sorter-operation-select")?.dispatchEvent(
-      new Event("change", { bubbles: true }),
-    );
-    el.querySelector("#sorter-preview-search").value = "";
-    el.querySelector("#sorter-preview-search")?.dispatchEvent(
-      new Event("input", { bubbles: true }),
-    );
-    const selectedRows = Array.from(
-      el.querySelectorAll(".sorter-operation-select"),
-    ).filter((checkbox) => checkbox.checked);
-    expect(selectedRows).toHaveLength(1);
-
-    el.querySelector("#sorter-preview-run")?.click();
-    expect(
-      el.querySelector("#sorter-preview-panel")?.classList.contains("hidden"),
-    ).toBe(true);
-
-    el.querySelector("#sorter-conflict-toggle")?.click();
-    el.querySelector('[data-conflict-mode="replace"]')?.click();
-    expect(
-      el.querySelector("#sorter-preview-panel")?.classList.contains("hidden"),
-    ).toBe(true);
-    expect(el.querySelector("#sorter-apply-run")?.disabled).toBe(true);
-
-    el.querySelector("#sorter-preview-run")?.click();
-    await nextTick();
-    expect(window.electron.tools.previewSorterPlan).toHaveBeenCalledTimes(2);
-  });
-
-  test("localizes known sorter reasons and falls back to the original message", async () => {
-    window.electron.tools.previewSorterPlan.mockResolvedValueOnce({
-      success: true,
-      planId: "plan-reasons",
-      planned: 0,
-      totalFiles: 2,
-      skipped: 2,
-      categoryCount: { Other: 2 },
-      errors: [],
-      operations: [
-        {
-          id: "hidden-file",
-          fileName: ".DS_Store",
-          category: "Other",
-          status: "skipped",
-          selectable: false,
-          reasonCode: "ignored-hidden",
-          message: "Hidden files are skipped",
-        },
-        {
-          id: "unknown-reason",
-          fileName: "unknown.bin",
-          category: "Other",
-          status: "error",
-          selectable: false,
-          reasonCode: "future-reason",
-          message: "Future backend warning",
-        },
-      ],
-    });
-    const el = await renderView();
-    await openTool(el, "sorter");
-    el.querySelector("#sorter-pick-folder")?.click();
-    await nextTick();
-    el.querySelector("#sorter-preview-run")?.click();
-    await nextTick();
-    await nextTick();
-
-    const messages = Array.from(
-      el.querySelectorAll(".sorter-problem-item span"),
-    ).map((item) => item.textContent);
-    expect(messages).toContain("tools.sorter.reason.ignoredHidden");
-    expect(messages).toContain("Future backend warning");
   });
 
   test("shows Media Inspector as available tool and opens it", async () => {
@@ -1883,7 +1364,7 @@ describe("toolsView quick actions", () => {
     const el = await renderView();
     const root = el.querySelector("#wireguard-view");
     const downloaderToolsBtn = el.querySelector("#tools-open-downloader-tools");
-    const sorterBtn = el.querySelector("#tools-open-sorter");
+    const wgBtn = el.querySelector("#tools-open-wg");
     downloaderToolsBtn?.focus();
     root?.dispatchEvent(
       new KeyboardEvent("keydown", {
@@ -1892,7 +1373,7 @@ describe("toolsView quick actions", () => {
       }),
     );
     await nextTick();
-    expect(document.activeElement).toBe(sorterBtn);
+    expect(document.activeElement).toBe(wgBtn);
   });
 
   test("does not switch tools with Alt+2", async () => {
