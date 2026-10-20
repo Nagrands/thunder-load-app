@@ -24143,43 +24143,61 @@ video {
 
 .download-destination {
   display: grid;
-  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 10px;
-  min-height: 44px;
-  padding: 7px 9px 7px 12px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.025);
+  min-height: 48px;
+  padding: 6px 8px 6px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(150, 185, 228, 0.1);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.015)), rgba(4, 9, 19, 0.34);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .download-destination__icon {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  border: 1px solid rgba(var(--color-accent-rgb), 0.16);
+  background: rgba(var(--color-accent-rgb), 0.08);
   color: var(--color-accent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.download-destination__icon i {
+  font-size: 15px;
+}
+
+.download-destination__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
 .download-destination__label {
-  color: rgba(202, 216, 235, 0.68);
-  font-size: 0.78rem;
+  overflow: hidden;
+  color: rgba(202, 216, 235, 0.56);
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
   white-space: nowrap;
 }
 
 .download-destination__path {
   min-width: 0;
   overflow: hidden;
-  color: rgba(239, 246, 255, 0.92);
+  color: rgba(239, 246, 255, 0.94);
   font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.25;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.download-destination__change {
-  min-height: 44px;
-  padding: 0 11px;
-  border-radius: var(--border-radius);
-  border: 1px solid rgba(var(--color-accent-rgb), 0.2);
-  background: rgba(var(--color-accent-rgb), 0.08);
-  color: var(--color-accent);
-  font-size: 0.76rem;
-  font-weight: 650;
 }
 
 .download-destination__actions {
@@ -24188,29 +24206,57 @@ video {
   gap: 6px;
 }
 
-.download-destination__open {
+.download-destination__open,
+.download-destination__change {
+  min-height: 36px;
   display: inline-flex;
-  width: 44px;
-  min-width: 44px;
-  min-height: 44px;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(var(--color-accent-rgb), 0.2);
-  border-radius: var(--border-radius);
-  background: rgba(var(--color-accent-rgb), 0.08);
-  color: var(--color-accent);
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 650;
+  transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+}
+.download-destination__open:focus-visible,
+.download-destination__change:focus-visible {
+  outline: 2px solid rgba(var(--color-accent-rgb), 0.78);
+  outline-offset: 1px;
+}
+.download-destination__open:disabled,
+.download-destination__change:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.download-destination__open {
+  width: 36px;
+  min-width: 36px;
+  padding: 0;
+  border: 1px solid rgba(170, 198, 236, 0.14);
+  background: rgba(255, 255, 255, 0.035);
+  color: rgba(226, 238, 255, 0.72);
 }
 .download-destination__open svg {
-  width: 17px;
-  height: 17px;
+  width: 16px;
+  height: 16px;
 }
-.download-destination__open:hover:not(:disabled), .download-destination__open:focus-visible:not(:disabled) {
-  border-color: rgba(var(--color-accent-rgb), 0.48);
-  background: rgba(var(--color-accent-rgb), 0.16);
+.download-destination__open:hover:not(:disabled) {
+  border-color: rgba(var(--color-accent-rgb), 0.4);
+  background: rgba(var(--color-accent-rgb), 0.12);
+  color: #fff;
 }
-.download-destination__open:focus-visible:not(:disabled) {
-  outline: 2px solid rgba(var(--color-accent-rgb), 0.72);
-  outline-offset: 2px;
+
+.download-destination__change {
+  padding: 0 12px;
+  border: 1px solid rgba(var(--color-accent-rgb), 0.24);
+  background: rgba(var(--color-accent-rgb), 0.1);
+  color: var(--color-accent);
+}
+.download-destination__change:hover:not(:disabled) {
+  border-color: rgba(var(--color-accent-rgb), 0.46);
+  background: rgba(var(--color-accent-rgb), 0.18);
+  color: #eaf7ff;
+  box-shadow: 0 4px 14px rgba(var(--color-accent-rgb), 0.14);
 }
 
 .downloads-toolbar {
@@ -26166,9 +26212,6 @@ video {
   }
 }
 @container downloader-preview (max-width: 720px) {
-  .download-destination {
-    grid-template-columns: auto minmax(0, 1fr) auto;
-  }
   .download-destination__label {
     display: none;
   }

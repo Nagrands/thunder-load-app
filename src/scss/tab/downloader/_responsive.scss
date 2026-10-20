@@ -26,10 +26,6 @@
 }
 
 @container downloader-preview (max-width: 720px) {
-  .download-destination {
-    grid-template-columns: auto minmax(0, 1fr) auto;
-  }
-
   .download-destination__label {
     display: none;
   }
