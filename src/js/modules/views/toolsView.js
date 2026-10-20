@@ -313,46 +313,40 @@ export default function renderToolsView() {
         <div class="tools-launcher-inner">
           <div class="tools-launcher-grid">
             <button id="tools-open-downloader-tools" type="button" class="tools-launcher-button" data-ui="tools-launcher-card">
-              <i class="fa-solid fa-download"></i>
-              <span data-i18n="tools.launcher.open.downloaderTools">${t("tools.launcher.open.downloaderTools")}</span>
-              <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.downloaderTools">
-                ${t("tools.launcher.desc.downloaderTools")}
-              </small>
+              <span class="tools-launcher-button__icon"><i class="fa-solid fa-download" aria-hidden="true"></i></span>
+              <i class="tools-launcher-button__arrow fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+              <span class="tools-launcher-button__title" data-i18n="tools.launcher.open.downloaderTools">${t("tools.launcher.open.downloaderTools")}</span>
+              <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.downloaderTools">${t("tools.launcher.desc.downloaderTools")}</small>
             </button>
             <button id="tools-open-media-converter" type="button" class="tools-launcher-button" data-ui="tools-launcher-card">
-              <i class="fa-solid fa-right-left"></i>
-              <span data-i18n="tools.launcher.open.mediaConverter">${t("tools.launcher.open.mediaConverter")}</span>
-              <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.mediaConverter">
-                ${t("tools.launcher.desc.mediaConverter")}
-              </small>
+              <span class="tools-launcher-button__icon"><i class="fa-solid fa-right-left" aria-hidden="true"></i></span>
+              <i class="tools-launcher-button__arrow fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+              <span class="tools-launcher-button__title" data-i18n="tools.launcher.open.mediaConverter">${t("tools.launcher.open.mediaConverter")}</span>
+              <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.mediaConverter">${t("tools.launcher.desc.mediaConverter")}</small>
             </button>
             <button id="tools-open-hash" type="button" class="tools-launcher-button" data-ui="tools-launcher-card">
-              <i class="fa-solid fa-fingerprint"></i>
-              <span data-i18n="tools.launcher.open.hash">Hash Check</span>
-              <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.hash">
-                ${t("tools.launcher.desc.hash")}
-              </small>
+              <span class="tools-launcher-button__icon"><i class="fa-solid fa-fingerprint" aria-hidden="true"></i></span>
+              <i class="tools-launcher-button__arrow fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+              <span class="tools-launcher-button__title" data-i18n="tools.launcher.open.hash">Hash Check</span>
+              <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.hash">${t("tools.launcher.desc.hash")}</small>
             </button>
             <button id="tools-open-backup" type="button" class="tools-launcher-button" data-ui="tools-launcher-card">
-              <i class="fa-solid fa-box-archive"></i>
-              <span data-i18n="tools.launcher.open.backup">Backup</span>
-              <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.backup">
-                ${t("tools.launcher.desc.backup")}
-              </small>
+              <span class="tools-launcher-button__icon"><i class="fa-solid fa-box-archive" aria-hidden="true"></i></span>
+              <i class="tools-launcher-button__arrow fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+              <span class="tools-launcher-button__title" data-i18n="tools.launcher.open.backup">Backup</span>
+              <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.backup">${t("tools.launcher.desc.backup")}</small>
             </button>
             <button id="tools-open-media-inspector" type="button" class="tools-launcher-button" data-ui="tools-launcher-card">
-              <i class="fa-solid fa-film"></i>
-              <span data-i18n="tools.launcher.open.mediaInspector">Media Inspector</span>
-              <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.mediaInspector">
-                ${t("tools.launcher.desc.mediaInspector")}
-              </small>
+              <span class="tools-launcher-button__icon"><i class="fa-solid fa-film" aria-hidden="true"></i></span>
+              <i class="tools-launcher-button__arrow fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+              <span class="tools-launcher-button__title" data-i18n="tools.launcher.open.mediaInspector">Media Inspector</span>
+              <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.mediaInspector">${t("tools.launcher.desc.mediaInspector")}</small>
             </button>
             <button id="tools-open-wg" type="button" class="tools-launcher-button" data-ui="tools-launcher-card">
-              <i class="fa-solid fa-satellite-dish"></i>
-              <span data-i18n="tools.launcher.open.wg">WG Unlock</span>
-              <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.wg">
-                ${t("tools.launcher.desc.wg")}
-              </small>
+              <span class="tools-launcher-button__icon"><i class="fa-solid fa-satellite-dish" aria-hidden="true"></i></span>
+              <i class="tools-launcher-button__arrow fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+              <span class="tools-launcher-button__title" data-i18n="tools.launcher.open.wg">WG Unlock</span>
+              <small class="tools-launcher-button__desc" data-i18n="tools.launcher.desc.wg">${t("tools.launcher.desc.wg")}</small>
             </button>
           </div>
 

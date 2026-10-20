@@ -1557,7 +1557,7 @@ $wg-max-width: 1200px;
 .tools-launcher-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+  gap: 12px;
 }
 
 .tools-launcher-unavailable-section {
@@ -1580,48 +1580,106 @@ $wg-max-width: 1200px;
 
 .tools-launcher-button {
   position: relative;
-  min-height: 290px;
-  border-radius: var(--border-radius);
-  border: 1px solid var(--color-hover);
-  background: var(--thunder-panel-bg);
-  color: var(--thunder-electric);
+  min-height: 190px;
+  overflow: hidden;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background:
+    radial-gradient(ellipse at 100% 0%, rgba(var(--color-accent-rgb), 0.13), transparent 54%),
+    linear-gradient(145deg, rgba(27, 34, 47, 0.96), rgba(13, 17, 25, 0.96));
+  color: var(--color-highlight);
   display: grid;
-  place-items: center;
-  place-content: center;
-  gap: 12px;
-  // padding: 50px 20px;
-  text-align: center;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto 1fr auto;
+  align-items: start;
+  justify-items: start;
+  gap: 14px 10px;
+  padding: 20px;
+  text-align: left;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
   transition:
-    transform 0.24s ease,
-    border-color 0.24s ease,
-    background-color 0.24s ease;
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
 
-  i {
-    font-size: 2.85rem;
-    color: rgba(var(--color-accent-rgb), 0.98);
+  &::after {
+    content: "";
+    position: absolute;
+    inset: auto 16px 0;
+    height: 2px;
+    background: linear-gradient(90deg, rgba(var(--color-accent-rgb), 0.9), transparent);
+    opacity: 0.45;
+    transition: opacity 0.2s ease;
   }
 
-  > span {
-    font-weight: 600;
-    font-size: 1.35rem;
-    letter-spacing: 0.03rem;
+  .tools-launcher-button__icon {
+    grid-column: 1;
+    grid-row: 1;
+    width: 46px;
+    height: 46px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(var(--color-accent-rgb), 0.22);
+    border-radius: 14px;
+    background: rgba(var(--color-accent-rgb), 0.1);
+    color: var(--thunder-electric);
+
+    i {
+      font-size: 1.15rem;
+    }
+  }
+
+  .tools-launcher-button__arrow {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+    margin: 6px 2px 0 0;
+    color: rgba(255, 255, 255, 0.38);
+    font-size: 0.85rem;
+    transition: color 0.2s ease, transform 0.2s ease;
+  }
+
+  .tools-launcher-button__title {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    align-self: end;
+    font-weight: 650;
+    font-size: 1.05rem;
+    line-height: 1.25;
+    letter-spacing: 0.01em;
   }
 
   .tools-launcher-button__desc {
+    grid-column: 1 / -1;
+    grid-row: 3;
     margin: 0;
-    max-width: 20ch;
-    font-style: italic;
-    color: var(--color-quality);
+    max-width: 34ch;
+    color: rgba(224, 231, 242, 0.62);
+    font-size: 0.82rem;
+    line-height: 1.45;
   }
 
   &:hover {
-    color: var(--color-highlight);
-    transform: translateY(-1px);
+    color: #fff;
+    transform: translateY(-3px);
+    border-color: rgba(var(--color-accent-rgb), 0.42);
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.25);
+
+    &::after {
+      opacity: 1;
+    }
+
+    .tools-launcher-button__arrow {
+      color: var(--thunder-electric);
+      transform: translate(2px, -2px);
+    }
   }
 
   &:focus-visible {
     outline: none;
-    border-color: rgba(var(--color-accent-rgb), 0.9);
+    border-color: rgba(var(--color-accent-rgb), 0.85);
+    box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb), 0.2);
   }
 }
 
@@ -1632,11 +1690,13 @@ $wg-max-width: 1200px;
   background: rgba(255, 255, 255, 0.03);
   box-shadow: none;
 
-  i {
+  .tools-launcher-button__icon {
     color: rgba(255, 255, 255, 0.42);
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.08);
   }
 
-  > span,
+  .tools-launcher-button__title,
   .tools-launcher-button__desc {
     color: rgba(255, 255, 255, 0.62);
   }
@@ -1647,6 +1707,15 @@ $wg-max-width: 1200px;
     border-color: rgba(255, 255, 255, 0.12);
     box-shadow: none;
     background: rgba(255, 255, 255, 0.03);
+
+    .tools-launcher-button__arrow {
+      color: rgba(255, 255, 255, 0.38);
+      transform: none;
+    }
+
+    &::after {
+      opacity: 0;
+    }
   }
 
   &:focus-visible {
@@ -4421,10 +4490,11 @@ $wg-max-width: 1200px;
   }
 
   .tools-launcher-button {
-    min-height: 220px;
+    min-height: 166px;
+    padding: 16px;
 
-    > span {
-      font-size: 1.45rem;
+    .tools-launcher-button__title {
+      font-size: 1rem;
     }
 
     .tools-launcher-button__desc {
