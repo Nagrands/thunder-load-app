@@ -91,6 +91,50 @@ export default function renderToolsView() {
 
   const cleanup = createCleanupRegistry();
   const toolState = createToolViewState();
+  const toolNavigationItems = [
+    ["launcher", "fa-grip", "tools.sidebar.all"],
+    ["downloader-tools", "fa-download", "tools.nav.current.downloaderTools"],
+    ["wg", "fa-globe", "tools.nav.current.wg"],
+    ["hash", "fa-fingerprint", "tools.nav.current.hash"],
+    ["media-converter", "fa-right-left", "tools.nav.current.mediaConverter"],
+    ["media-inspector", "fa-film", "tools.nav.current.mediaInspector"],
+    ["backup", "fa-box-archive", "tools.nav.current.backup"],
+  ];
+  const renderToolNavigation = (className) => toolNavigationItems.map(
+    ([tool, icon, labelKey]) => `<button type="button" class="${className}" data-tool-nav="${tool}" data-i18n-title="${labelKey}" title="${t(labelKey)}" aria-label="${t(labelKey)}"><i class="fa-solid ${icon}" aria-hidden="true"></i><span data-i18n="${labelKey}">${t(labelKey)}</span></button>`,
+  ).join("");
+  let desktopToolNavigation = null;
+
+  const mountDesktopToolNavigation = () => {
+    const groupMenu = document.querySelector(".group-menu");
+    const toolsTab = groupMenu?.querySelector('[data-menu="wireguard"]');
+    if (!groupMenu || !toolsTab) return;
+    desktopToolNavigation?.remove();
+    desktopToolNavigation = document.createElement("nav");
+    desktopToolNavigation.className = "app-sidebar__tools-nav";
+    desktopToolNavigation.setAttribute("aria-label", t("tools.sidebar.aria"));
+    desktopToolNavigation.setAttribute("role", "group");
+    desktopToolNavigation.innerHTML = renderToolNavigation("app-sidebar__tool-item");
+    toolsTab.insertAdjacentElement("afterend", desktopToolNavigation);
+    const syncVisibility = (event) => {
+      desktopToolNavigation?.classList.toggle(
+        "is-visible",
+        String(event?.detail?.id || "") === "wireguard",
+      );
+    };
+    cleanup.onWindowEvent("tabs:activated", syncVisibility);
+    syncVisibility({ detail: { id: document.querySelector(".group-menu .menu-item.active")?.dataset?.menu } });
+    cleanup.addCleanup(() => {
+      desktopToolNavigation?.remove();
+      desktopToolNavigation = null;
+    });
+    desktopToolNavigation.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-tool-nav]");
+      if (!button || !desktopToolNavigation.contains(button)) return;
+      const nextView = button.dataset.toolNav;
+      selectToolView(nextView);
+    });
+  };
   const logController = createLogController({ view, getEl, t });
   const log = logController.log;
   const clearLog = logController.clearLog;
@@ -266,35 +310,8 @@ export default function renderToolsView() {
             <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
           </button>
         </div>
-        <nav id="tools-sidebar-navigation" class="tools-sidebar__navigation">
-          <button type="button" class="tools-sidebar__item is-active" data-tool-nav="launcher" aria-current="page">
-            <i class="fa-solid fa-grip" aria-hidden="true"></i>
-            <span data-i18n="tools.sidebar.all">${t("tools.sidebar.all")}</span>
-          </button>
-          <button type="button" class="tools-sidebar__item" data-tool-nav="downloader-tools">
-            <i class="fa-solid fa-download" aria-hidden="true"></i>
-            <span data-i18n="tools.nav.current.downloaderTools">${t("tools.nav.current.downloaderTools")}</span>
-          </button>
-          <button type="button" class="tools-sidebar__item" data-tool-nav="wg">
-            <i class="fa-solid fa-globe" aria-hidden="true"></i>
-            <span data-i18n="tools.nav.current.wg">${t("tools.nav.current.wg")}</span>
-          </button>
-          <button type="button" class="tools-sidebar__item" data-tool-nav="hash">
-            <i class="fa-solid fa-fingerprint" aria-hidden="true"></i>
-            <span data-i18n="tools.nav.current.hash">${t("tools.nav.current.hash")}</span>
-          </button>
-          <button type="button" class="tools-sidebar__item" data-tool-nav="media-converter">
-            <i class="fa-solid fa-right-left" aria-hidden="true"></i>
-            <span data-i18n="tools.nav.current.mediaConverter">${t("tools.nav.current.mediaConverter")}</span>
-          </button>
-          <button type="button" class="tools-sidebar__item" data-tool-nav="media-inspector">
-            <i class="fa-solid fa-film" aria-hidden="true"></i>
-            <span data-i18n="tools.nav.current.mediaInspector">${t("tools.nav.current.mediaInspector")}</span>
-          </button>
-          <button type="button" class="tools-sidebar__item" data-tool-nav="backup">
-            <i class="fa-solid fa-box-archive" aria-hidden="true"></i>
-            <span data-i18n="tools.nav.current.backup">${t("tools.nav.current.backup")}</span>
-          </button>
+        <nav id="tools-sidebar-navigation" class="tools-sidebar__navigation" aria-label="${t("tools.sidebar.aria")}">
+          ${renderToolNavigation("tools-sidebar__item")}
         </nav>
       </aside>
 
@@ -696,7 +713,7 @@ export default function renderToolsView() {
       }
     }
 
-    view.querySelectorAll("[data-tool-nav]").forEach((button) => {
+    [...view.querySelectorAll("[data-tool-nav]"), ...(desktopToolNavigation?.querySelectorAll("[data-tool-nav]") || [])].forEach((button) => {
       const toolView = button.dataset.toolNav;
       const available =
         toolView === "launcher" || isToolAvailable(toolView);
@@ -738,6 +755,15 @@ export default function renderToolsView() {
       );
       firstLauncherBtn?.focus();
     }
+  };
+
+  const selectToolView = (nextView) => {
+    if (!isToolAvailable(nextView)) return;
+    if (nextView === "backup") ensureBackupToolView();
+    setToolView(nextView, {
+      persist: nextView !== "launcher",
+      focusLauncher: nextView === "launcher",
+    });
   };
 
   // =============================================
@@ -959,7 +985,7 @@ export default function renderToolsView() {
         "hidden",
         launcherUnavailableGrid.children.length === 0,
       );
-      view.querySelectorAll("[data-tool-nav]").forEach((button) => {
+      [...view.querySelectorAll("[data-tool-nav]"), ...(desktopToolNavigation?.querySelectorAll("[data-tool-nav]") || [])].forEach((button) => {
         const toolView = button.dataset.toolNav;
         button.classList.toggle(
           "hidden",
@@ -990,15 +1016,11 @@ export default function renderToolsView() {
     });
     view.querySelectorAll("[data-tool-nav]").forEach((button) => {
       button.addEventListener("click", () => {
-        const nextView = button.dataset.toolNav;
-        if (!isToolAvailable(nextView)) return;
-        if (nextView === "backup") ensureBackupToolView();
-        setToolView(nextView, {
-          persist: nextView !== "launcher",
-          focusLauncher: nextView === "launcher",
-        });
+        selectToolView(button.dataset.toolNav);
       });
     });
+    mountDesktopToolNavigation();
+    setToolView(toolState.currentToolView, { persist: false });
     sidebarToggle?.addEventListener("click", () => {
       const open = sidebarToggle.getAttribute("aria-expanded") !== "true";
       sidebarToggle.setAttribute("aria-expanded", String(open));

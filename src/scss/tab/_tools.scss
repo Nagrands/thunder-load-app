@@ -1263,14 +1263,6 @@ $wg-max-width: 1200px;
   }
 }
 
-.tools-shell.is-launcher {
-  grid-template-columns: minmax(0, 1fr);
-
-  > .tools-sidebar {
-    display: none;
-  }
-}
-
 .tools-workspace {
   display: grid;
   align-content: start;
@@ -1403,7 +1395,17 @@ $wg-max-width: 1200px;
   }
 }
 
-@media (max-width: 920px) {
+@media (min-width: 901px) {
+  .tools-shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .tools-sidebar {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
   .tools-shell {
     grid-template-columns: minmax(0, 1fr);
   }

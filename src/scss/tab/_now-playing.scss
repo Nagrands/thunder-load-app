@@ -16,6 +16,7 @@ body.is-now-playing-active {
     position: fixed;
     inset: 0;
     width: 100%;
+    margin: 0;
     max-width: none;
     height: 100dvh;
     min-height: 0;
@@ -58,6 +59,7 @@ body.is-now-playing-active {
   position: fixed;
   inset: 0;
   width: 100%;
+  margin: 0;
   max-width: none;
   height: 100dvh;
   min-height: 0;

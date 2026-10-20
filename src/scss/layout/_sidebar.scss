@@ -491,6 +491,48 @@ $transition-interactive:
     min-width: 0;
   }
 
+  .app-sidebar__tools-nav {
+    display: none;
+    gap: 3px;
+    padding: 2px 0 5px 14px;
+    border-left: 1px solid rgba(var(--color-accent-rgb), 0.2);
+    margin: -2px 0 3px 18px;
+
+    &.is-visible { display: grid; }
+  }
+
+  .app-sidebar__tool-item {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    width: 100%;
+    min-width: 0;
+    min-height: 32px;
+    padding: 0 9px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--color-quality);
+    font: inherit;
+    font-size: 12px;
+    text-align: left;
+    cursor: pointer;
+
+    i { width: 16px; text-align: center; }
+    span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    &:hover,
+    &.is-active,
+    &[aria-current="page"] {
+      color: var(--color-highlight);
+      border-color: rgba(var(--color-accent-rgb), 0.18);
+      background: rgba(var(--color-accent-rgb), 0.1);
+    }
+
+    &.is-active i,
+    &[aria-current="page"] i { color: var(--color-accent); }
+  }
+
   .menu-item {
     -webkit-app-region: no-drag;
     position: relative;
@@ -799,6 +841,8 @@ body.low-effects .app-sidebar__action--tools.is-busy {
 // ============================================================
 
 @media (max-width: $breakpoint-tablet) {
+  .app-sidebar__tools-nav { display: none !important; }
+
   .app-sidebar {
     inset: auto 8px calc(8px + env(safe-area-inset-bottom, 0px));
     width: auto;
@@ -953,10 +997,27 @@ body.low-effects .app-sidebar__action--tools.is-busy {
     .app-sidebar__tab-nav .menu-item i {
       font-size: 22px;
     }
+
+    .app-sidebar__tools-nav {
+      padding: 3px 0;
+      margin: 0;
+      border: 0;
+    }
+
+    .app-sidebar__tool-item {
+      justify-content: center;
+      min-height: 40px;
+      padding: 0;
+
+      span { display: none; }
+      i { font-size: 18px; }
+    }
   }
 }
 
 @media (max-width: $breakpoint-mobile) {
+  .app-sidebar__tools-nav { display: none !important; }
+
   .app-sidebar__action {
     width: $sidebar-action-size;
     padding: 0;

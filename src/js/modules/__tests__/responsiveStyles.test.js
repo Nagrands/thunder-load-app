@@ -15,12 +15,20 @@ describe("application responsive contract", () => {
     path.join(root, "src/scss/layout/_sidebar.scss"),
     "utf8",
   );
+  const toolsStyles = fs.readFileSync(
+    path.join(root, "src/scss/tab/_tools.scss"),
+    "utf8",
+  );
   const topBarTemplate = fs.readFileSync(
     path.join(root, "templates/partials/top-bar.njk"),
     "utf8",
   );
   const layout = fs.readFileSync(
     path.join(root, "src/scss/components/_layout-ui.scss"),
+    "utf8",
+  );
+  const nowPlaying = fs.readFileSync(
+    path.join(root, "src/scss/tab/_now-playing.scss"),
     "utf8",
   );
   const history = fs.readFileSync(
@@ -96,6 +104,31 @@ describe("application responsive contract", () => {
     expect(sidebar).toContain(".app-sidebar__brand-version {\n      display: none;");
     expect(sidebar).toContain("font-size: 22px;");
     expect(topBarTemplate).not.toContain("top-bar__divider");
+  });
+
+  test("nests tool navigation in the desktop sidebar and retains the narrow menu", () => {
+    expect(sidebar).toContain(".app-sidebar__tools-nav");
+    expect(sidebar).toContain(".app-sidebar__tool-item");
+    expect(sidebar).toContain("span { display: none; }");
+    expect(sidebar).toContain(".app-sidebar__tools-nav { display: none !important; }");
+    expect(toolsStyles).toContain("@media (min-width: 901px)");
+    expect(toolsStyles).toContain(".tools-sidebar {\n    display: none;");
+    expect(toolsStyles).toContain("@media (max-width: 900px)");
+  });
+
+  test("removes the desktop sidebar offset from fullscreen main view", () => {
+    const immersiveShell = nowPlaying.slice(
+      nowPlaying.indexOf("body.now-playing-immersive"),
+      nowPlaying.indexOf(".now-playing.is-cursor-hidden"),
+    );
+    const fullscreenView = nowPlaying.slice(
+      nowPlaying.indexOf("#main-view.main-view--now-playing-active"),
+      nowPlaying.indexOf("#now-playing-view-wrapper"),
+    );
+
+    expect(immersiveShell).toContain("#main-view {");
+    expect(immersiveShell).toContain("margin: 0;");
+    expect(fullscreenView).toContain("margin: 0;");
   });
 
   test("stacks downloader tool badges within the sidebar width", () => {

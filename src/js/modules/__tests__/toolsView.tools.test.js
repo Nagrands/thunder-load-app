@@ -322,6 +322,39 @@ describe("toolsView quick actions", () => {
     ).toBe("tools.launcher.availableTitle");
   });
 
+  test("mounts a synchronized tools submenu under the main Tools tab", async () => {
+    const groupMenu = document.createElement("div");
+    groupMenu.className = "group-menu";
+    const toolsTab = document.createElement("button");
+    toolsTab.className = "menu-item active";
+    toolsTab.dataset.menu = "wireguard";
+    groupMenu.appendChild(toolsTab);
+    document.body.appendChild(groupMenu);
+
+    const el = await renderView();
+    const desktopNav = groupMenu.querySelector(".app-sidebar__tools-nav");
+    expect(desktopNav).not.toBeNull();
+    expect(desktopNav?.classList.contains("is-visible")).toBe(true);
+    expect(desktopNav?.querySelector('[data-tool-nav="launcher"]')?.getAttribute("aria-current")).toBe("page");
+
+    desktopNav?.querySelector('[data-tool-nav="hash"]')?.click();
+    await nextTick();
+    expect(el.querySelector('[data-tool-nav="hash"]')?.getAttribute("aria-current")).toBe("page");
+    expect(desktopNav?.querySelector('[data-tool-nav="hash"]')?.getAttribute("aria-current")).toBe("page");
+
+    desktopNav?.querySelector('[data-tool-nav="launcher"]')?.click();
+    await nextTick();
+    expect(el.querySelector('[data-tool-nav="launcher"]')?.getAttribute("aria-current")).toBe("page");
+
+    window.dispatchEvent(new CustomEvent("tabs:activated", { detail: { id: "download" } }));
+    expect(desktopNav?.classList.contains("is-visible")).toBe(false);
+    window.dispatchEvent(new CustomEvent("tabs:activated", { detail: { id: "wireguard" } }));
+    expect(desktopNav?.classList.contains("is-visible")).toBe(true);
+
+    el.dispatchEvent(new CustomEvent("tools:view-hidden", { bubbles: true }));
+    expect(groupMenu.querySelector(".app-sidebar__tools-nav")).toBeNull();
+  });
+
   test("uses localized launcher strings in initial markup", async () => {
     const el = await renderView();
 
