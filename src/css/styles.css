@@ -31506,6 +31506,177 @@ video {
   background: rgba(239, 68, 68, 0.08);
 }
 
+.tools-card.media-inspector-card {
+  --inspector-line: rgba(148, 163, 184, 0.13);
+  --inspector-surface: rgba(8, 15, 27, 0.76);
+  background: radial-gradient(ellipse at 92% 0%, rgba(var(--color-accent-rgb), 0.12), transparent 36%), linear-gradient(145deg, rgba(13, 22, 37, 0.98), rgba(5, 10, 18, 0.98));
+}
+.tools-card.media-inspector-card::before {
+  opacity: 0.1;
+  background-size: 100% 40px;
+}
+.tools-card.media-inspector-card .media-inspector-header {
+  min-height: 126px;
+  padding: 24px 28px;
+  background: linear-gradient(90deg, rgba(var(--color-accent-rgb), 0.035), transparent 68%);
+}
+.tools-card.media-inspector-card .media-inspector-header__icon {
+  width: 58px;
+  height: 58px;
+  border-radius: 18px;
+  color: #b6efff;
+  background: linear-gradient(145deg, rgba(var(--color-accent-rgb), 0.24), rgba(var(--color-accent-rgb), 0.07));
+  box-shadow: 0 8px 24px rgba(var(--color-accent-rgb), 0.08), inset 0 1px rgba(255, 255, 255, 0.12);
+}
+.tools-card.media-inspector-card .media-inspector-header__copy h2,
+.tools-card.media-inspector-card .media-inspector-header__copy h3 {
+  font-size: 1.32rem;
+  letter-spacing: -0.025em;
+}
+.tools-card.media-inspector-card .media-inspector-header__copy p {
+  margin-top: 3px;
+  font-size: 0.84rem;
+}
+.tools-card.media-inspector-card .media-inspector-header__engine {
+  min-height: 30px;
+  padding-inline: 12px;
+  color: #b7e8f4;
+  border-color: rgba(var(--color-accent-rgb), 0.2);
+  background: rgba(var(--color-accent-rgb), 0.08);
+}
+.tools-card.media-inspector-card .media-inspector-path-panel {
+  border-radius: 20px;
+  background: linear-gradient(145deg, rgba(13, 24, 40, 0.84), rgba(7, 13, 23, 0.88));
+}
+.tools-card.media-inspector-card .media-inspector-path-panel.is-empty {
+  min-height: 286px;
+  gap: 15px;
+  border-width: 1.5px;
+  border-color: rgba(var(--color-accent-rgb), 0.32);
+  background: radial-gradient(ellipse at 50% 34%, rgba(var(--color-accent-rgb), 0.14), transparent 48%), linear-gradient(145deg, rgba(9, 20, 34, 0.88), rgba(5, 11, 20, 0.94));
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.035);
+}
+.tools-card.media-inspector-card .media-inspector-path-panel.is-empty .media-inspector-path-panel__icon {
+  width: 70px;
+  height: 70px;
+  border-radius: 22px;
+  color: #b6efff;
+  border-color: rgba(var(--color-accent-rgb), 0.28);
+  background: linear-gradient(145deg, rgba(var(--color-accent-rgb), 0.2), rgba(var(--color-accent-rgb), 0.06));
+  box-shadow: 0 10px 34px rgba(var(--color-accent-rgb), 0.1);
+  font-size: 1.35rem;
+}
+.tools-card.media-inspector-card .media-inspector-path-panel.is-empty .media-inspector-file-pill {
+  color: var(--color-highlight);
+  font-size: 1.08rem;
+  font-weight: 650;
+}
+.tools-card.media-inspector-card .media-inspector-path-panel.is-empty .media-inspector-drop-hint {
+  max-width: 38ch;
+  font-size: 0.82rem;
+}
+.tools-card.media-inspector-card .media-inspector-summary-grid {
+  gap: 10px;
+  padding: 12px;
+}
+.tools-card.media-inspector-card .media-inspector-metric {
+  min-height: 104px;
+  padding: 15px;
+  grid-template-columns: 28px minmax(0, 1fr);
+  align-content: start;
+  gap: 9px 8px;
+  border: 1px solid var(--inspector-line);
+  border-radius: 14px;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.015));
+}
+.tools-card.media-inspector-card .media-inspector-metric:last-child {
+  border-right: 1px solid var(--inspector-line);
+}
+.tools-card.media-inspector-card .media-inspector-metric i {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: rgba(var(--color-accent-rgb), 0.1);
+  color: #a8eaff;
+  font-size: 0.72rem;
+}
+.tools-card.media-inspector-card .media-inspector-metric span {
+  font-size: 0.72rem;
+  line-height: 1.25;
+}
+.tools-card.media-inspector-card .media-inspector-metric strong {
+  align-self: end;
+  font-size: 1.08rem;
+  letter-spacing: -0.015em;
+}
+.tools-card.media-inspector-card .media-inspector-report__header {
+  padding: 18px 20px;
+  background: rgba(255, 255, 255, 0.018);
+}
+.tools-card.media-inspector-card .media-inspector-report__header h3 {
+  font-size: 1.08rem;
+  letter-spacing: -0.015em;
+}
+.tools-card.media-inspector-card .media-inspector-stream-section {
+  position: relative;
+  overflow: hidden;
+  border-radius: 17px;
+  background: linear-gradient(145deg, rgba(12, 20, 33, 0.88), rgba(7, 13, 23, 0.84));
+}
+.tools-card.media-inspector-card .media-inspector-stream-section::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 2px;
+  background: rgba(var(--color-accent-rgb), 0.6);
+  opacity: 0.7;
+}
+.tools-card.media-inspector-card .media-inspector-stream-section.media-inspector-stream-section--video::before {
+  background: linear-gradient(90deg, #5bc0eb, transparent 75%);
+}
+.tools-card.media-inspector-card .media-inspector-stream-section.media-inspector-stream-section--audio::before {
+  background: linear-gradient(90deg, #8bdb9b, transparent 75%);
+}
+.tools-card.media-inspector-card .media-inspector-stream-section.media-inspector-stream-section--subtitle::before {
+  background: linear-gradient(90deg, #b9a0ff, transparent 75%);
+}
+.tools-card.media-inspector-card .media-inspector-stream-section.media-inspector-stream-section--warnings::before {
+  background: linear-gradient(90deg, #f4bd69, transparent 75%);
+}
+.tools-card.media-inspector-card .media-inspector-stream-section__header {
+  padding-bottom: 3px;
+}
+.tools-card.media-inspector-card .media-inspector-stream-section__header h4 {
+  font-size: 0.82rem;
+  letter-spacing: 0.035em;
+}
+.tools-card.media-inspector-card .media-inspector-stream-card {
+  border-radius: 12px;
+  background: rgba(3, 8, 16, 0.44);
+}
+
+@container media-inspector (max-width: 520px) {
+  .tools-card.media-inspector-card .media-inspector-header {
+    min-height: 0;
+    padding: 16px;
+    gap: 12px;
+  }
+  .tools-card.media-inspector-card .media-inspector-summary-grid {
+    gap: 8px;
+    padding: 10px;
+  }
+  .tools-card.media-inspector-card .media-inspector-metric {
+    min-height: 88px;
+    padding: 12px;
+  }
+}
+@media (max-width: 768px) {
+  .tools-card.media-inspector-card .media-inspector-path-panel.is-empty {
+    min-height: 220px;
+  }
+}
 .tools-shell .quick-action-controls {
   gap: 10px;
 }
