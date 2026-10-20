@@ -9,9 +9,12 @@ function buildDom() {
         <h2 data-ui="batch-review-title"></h2>
         <label data-ui="batch-review-input-wrap"><textarea data-ui="batch-review-input"></textarea></label>
         <input data-ui="batch-review-search" />
+        <button data-action="batch-review-filter" data-filter="all"></button>
+        <button data-action="batch-review-filter" data-filter="available"></button>
+        <button data-action="batch-review-filter" data-filter="problems"></button>
         <span data-ui="batch-review-count"></span>
         <span data-ui="batch-review-issues"></span>
-        <span data-ui="batch-review-quality"></span>
+        <span class="batch-review-chip"><span data-ui="batch-review-quality"></span></span>
         <div data-ui="batch-review-list"></div>
         <div data-ui="batch-review-pagination"><span data-ui="batch-review-page"></span></div>
         <button data-action="batch-review-prev"></button>
@@ -19,8 +22,12 @@ function buildDom() {
         <button data-action="batch-review-select-all"></button>
         <button data-action="batch-review-clear"></button>
         <button data-action="batch-review-cancel"></button>
-        <button data-action="batch-review-enqueue"></button>
-        <button data-action="batch-review-download"></button>
+        <button data-action="batch-review-enqueue">
+          <span data-ui="batch-review-enqueue-label"></span>
+        </button>
+        <button data-action="batch-review-download">
+          <span data-ui="batch-review-download-label"></span>
+        </button>
       </div>
     </div>
   `;
@@ -28,10 +35,21 @@ function buildDom() {
 
 describe("batch review controller", () => {
   let controller;
+  let getVideoPreviewMock;
 
   beforeEach(() => {
     jest.resetModules();
     buildDom();
+    getVideoPreviewMock = jest.fn().mockResolvedValue({
+      success: true,
+      title: "Resolved title",
+      duration: 125,
+      thumbnail: "https://example.com/thumb.jpg",
+      uploader: "Example channel",
+    });
+    jest.doMock("../videoInfoBroker.js", () => ({
+      getVideoPreview: getVideoPreviewMock,
+    }));
     jest.doMock("../i18n.js", () => ({
       t: (key, vars = {}) => `${key}:${JSON.stringify(vars)}`,
     }));
@@ -77,6 +95,15 @@ describe("batch review controller", () => {
     expect(
       document.querySelector('[data-ui="batch-review-count"]').textContent,
     ).toContain('"selected":1,"total":1');
+    expect(
+      document.querySelector('[data-ui="batch-review-download-label"]')
+        .textContent,
+    ).toContain('"count":1');
+    expect(
+      document
+        .querySelector('[data-ui="batch-review-list"]')
+        .classList.contains("batch-review-modal__list--grid"),
+    ).toBe(false);
     document.querySelector('[data-action="batch-review-enqueue"]').click();
 
     await expect(pending).resolves.toEqual({
@@ -84,6 +111,91 @@ describe("batch review controller", () => {
       urls: ["https://example.com/a"],
       action: "enqueue",
     });
+  });
+
+  test("loads titles and thumbnails for batch links", async () => {
+    const pending = controller.openBatch({ text: "https://example.com/a" });
+
+    await new Promise((resolve) => setTimeout(resolve, 120));
+
+    const row = document.querySelector(".batch-review-item");
+    expect(getVideoPreviewMock).toHaveBeenCalledWith("https://example.com/a");
+    expect(row.querySelector("strong").textContent).toBe("Resolved title");
+    expect(row.querySelector("img")?.getAttribute("src")).toBe(
+      "https://example.com/thumb.jpg",
+    );
+    expect(row.classList.contains("is-loading")).toBe(false);
+    expect(row.querySelector(".batch-review-item__badge--loading")).toBeNull();
+
+    controller.cancel();
+    await expect(pending).resolves.toBeNull();
+  });
+
+  test("debounces metadata requests while the batch text changes", async () => {
+    const input = document.querySelector('[data-ui="batch-review-input"]');
+    const pending = controller.openBatch({ text: "" });
+
+    input.value = "https://example.com/a";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    input.value = "https://example.com/b";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+
+    expect(getVideoPreviewMock).not.toHaveBeenCalled();
+
+    await new Promise((resolve) => setTimeout(resolve, 520));
+
+    expect(getVideoPreviewMock).toHaveBeenCalledTimes(1);
+    expect(getVideoPreviewMock).toHaveBeenCalledWith("https://example.com/b");
+
+    controller.cancel();
+    await expect(pending).resolves.toBeNull();
+  });
+
+  test("filters items by availability", async () => {
+    const pending = controller.openBatch({
+      text: [
+        "https://example.com/a",
+        "https://example.com/a",
+        "https://unsupported.example/b",
+      ].join("\n"),
+    });
+
+    const problems = document.querySelector('[data-filter="problems"]');
+    problems.click();
+    expect(problems.getAttribute("aria-pressed")).toBe("true");
+    expect(document.querySelectorAll(".batch-review-item")).toHaveLength(2);
+
+    document.querySelector('[data-filter="available"]').click();
+    expect(document.querySelectorAll(".batch-review-item")).toHaveLength(1);
+
+    document.querySelector('[data-filter="all"]').click();
+    expect(document.querySelectorAll(".batch-review-item")).toHaveLength(3);
+
+    controller.cancel();
+    await expect(pending).resolves.toBeNull();
+  });
+
+  test("playlist mode uses a card grid and hides the source panel", async () => {
+    const pending = controller.openPlaylist({
+      items: [{ id: "a", url: "https://example.com/a", title: "Alpha" }],
+    });
+
+    expect(
+      document
+        .getElementById("batch-review-modal")
+        .classList.contains("is-playlist"),
+    ).toBe(true);
+    expect(
+      document
+        .querySelector('[data-ui="batch-review-list"]')
+        .classList.contains("batch-review-modal__list--grid"),
+    ).toBe(true);
+    expect(
+      document.querySelector('[data-ui="batch-review-input-wrap"]').hidden,
+    ).toBe(true);
+
+    controller.cancel();
+    await expect(pending).resolves.toBeNull();
   });
 
   test("search does not clear hidden playlist selections", async () => {

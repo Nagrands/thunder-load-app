@@ -8,7 +8,7 @@
 >
   <div class="modal-content batch-review-modal__dialog">
     <header class="batch-review-modal__header">
-      <div>
+      <div class="batch-review-modal__heading">
         <p class="batch-review-modal__eyebrow" data-ui="batch-review-eyebrow"></p>
         <h2 id="batch-review-title" data-ui="batch-review-title"></h2>
         <p class="batch-review-modal__hint" data-i18n="batchReview.hint">Проверьте ссылки и выберите элементы для загрузки.</p>
@@ -19,40 +19,82 @@
     </header>
 
     <div class="batch-review-modal__body">
-      <label class="batch-review-modal__input" data-ui="batch-review-input-wrap">
-        <span data-i18n="batchReview.inputLabel">Ссылки</span>
-        <textarea data-ui="batch-review-input" rows="5" data-i18n-placeholder="batchReview.inputPlaceholder" placeholder="Вставьте по одной или несколько ссылок"></textarea>
-      </label>
-
-      <div class="batch-review-modal__toolbar">
-        <label class="batch-review-modal__search">
-          <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-          <input type="search" data-ui="batch-review-search" data-i18n-placeholder="batchReview.search" placeholder="Поиск" />
+      <aside class="batch-review-modal__source" data-ui="batch-review-input-wrap">
+        <label class="batch-review-modal__input">
+          <span class="batch-review-modal__field-label">
+            <i class="fa-solid fa-link" aria-hidden="true"></i>
+            <span data-i18n="batchReview.inputLabel">Ссылки</span>
+          </span>
+          <textarea data-ui="batch-review-input" rows="8" data-i18n-placeholder="batchReview.inputPlaceholder" placeholder="Вставьте по одной или несколько ссылок"></textarea>
         </label>
-        <button type="button" class="batch-review-modal__toolbar-action" data-action="batch-review-select-all" data-i18n="batchReview.selectAll">Выбрать всё</button>
-        <button type="button" class="batch-review-modal__toolbar-action" data-action="batch-review-clear" data-i18n="batchReview.clear">Снять выбор</button>
-      </div>
+        <p class="batch-review-modal__source-hint" data-i18n="batchReview.inputHint">Вставляйте ссылки по одной или списком — результаты обновятся автоматически.</p>
+      </aside>
 
-      <div class="batch-review-modal__summary" aria-live="polite">
-        <strong data-ui="batch-review-count"></strong>
-        <span data-ui="batch-review-issues"></span>
-        <span data-ui="batch-review-quality"></span>
-      </div>
-      <p class="batch-review-modal__notice" data-i18n="batchReview.subtitleNotice">Субтитры для пакетной загрузки отключены; выбранный Video/Audio профиль применяется ко всем элементам.</p>
-      <div class="batch-review-modal__list" data-ui="batch-review-list" role="list"></div>
-      <div class="batch-review-modal__pagination" data-ui="batch-review-pagination" hidden>
-        <button type="button" class="btn btn-secondary" data-action="batch-review-prev" data-i18n="batchReview.previous">Назад</button>
-        <span data-ui="batch-review-page"></span>
-        <button type="button" class="btn btn-secondary" data-action="batch-review-next" data-i18n="batchReview.next">Далее</button>
-      </div>
+      <section class="batch-review-modal__results">
+        <div class="batch-review-modal__summary" aria-live="polite">
+          <span class="batch-review-chip batch-review-chip--selected">
+            <i class="fa-solid fa-check-double" aria-hidden="true"></i>
+            <span data-ui="batch-review-count"></span>
+          </span>
+          <span class="batch-review-chip batch-review-chip--issues">
+            <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+            <span data-ui="batch-review-issues"></span>
+          </span>
+          <span class="batch-review-chip batch-review-chip--quality">
+            <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+            <span data-ui="batch-review-quality"></span>
+          </span>
+          <p class="batch-review-modal__notice">
+            <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+            <span data-i18n="batchReview.subtitleNotice">Субтитры для пакетной загрузки отключены; выбранный Video/Audio профиль применяется ко всем элементам.</span>
+          </p>
+        </div>
+
+        <div class="batch-review-modal__toolbar">
+          <label class="batch-review-modal__search">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <input type="search" data-ui="batch-review-search" data-i18n-placeholder="batchReview.search" placeholder="Поиск по названию или URL" />
+          </label>
+          <div class="batch-review-modal__filters" role="group" aria-label="Фильтр ссылок" data-i18n-aria="batchReview.filtersAria">
+            <button type="button" class="batch-review-modal__filter is-active" data-action="batch-review-filter" data-filter="all" aria-pressed="true" data-i18n="batchReview.filter.all">Все</button>
+            <button type="button" class="batch-review-modal__filter" data-action="batch-review-filter" data-filter="available" aria-pressed="false" data-i18n="batchReview.filter.available">Доступные</button>
+            <button type="button" class="batch-review-modal__filter" data-action="batch-review-filter" data-filter="problems" aria-pressed="false" data-i18n="batchReview.filter.problems">С проблемами</button>
+          </div>
+        </div>
+
+        <div class="batch-review-modal__selection">
+          <button type="button" class="batch-review-modal__selection-action" data-action="batch-review-select-all">
+            <i class="fa-solid fa-check-double" aria-hidden="true"></i>
+            <span data-i18n="batchReview.selectAll">Выбрать всё</span>
+          </button>
+          <button type="button" class="batch-review-modal__selection-action" data-action="batch-review-clear">
+            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            <span data-i18n="batchReview.clear">Снять выбор</span>
+          </button>
+        </div>
+
+        <div class="batch-review-modal__list" data-ui="batch-review-list" role="list"></div>
+
+        <div class="batch-review-modal__pagination" data-ui="batch-review-pagination" hidden>
+          <button type="button" class="btn btn-secondary" data-action="batch-review-prev" data-i18n="batchReview.previous">Назад</button>
+          <span data-ui="batch-review-page"></span>
+          <button type="button" class="btn btn-secondary" data-action="batch-review-next" data-i18n="batchReview.next">Далее</button>
+        </div>
+      </section>
     </div>
 
     <footer class="batch-review-modal__footer">
       <span data-ui="batch-review-limit" data-i18n="batchReview.limit">В очереди может ожидать до 200 задач.</span>
       <div>
-        <button type="button" class="btn btn-secondary" data-action="batch-review-cancel" data-i18n="modal.confirm.cancel">Отмена</button>
-        <button type="button" class="btn btn-secondary" data-action="batch-review-enqueue" data-i18n="batchReview.enqueue">Добавить выбранное в очередь</button>
-        <button type="button" class="btn btn-primary" data-action="batch-review-download" data-i18n="batchReview.download">Скачать выбранное</button>
+        <button type="button" class="btn btn-secondary batch-review-modal__cancel" data-action="batch-review-cancel" data-i18n="modal.confirm.cancel">Отмена</button>
+        <button type="button" class="btn btn-secondary" data-action="batch-review-enqueue">
+          <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
+          <span data-ui="batch-review-enqueue-label" data-i18n="batchReview.enqueue">Добавить выбранное в очередь</span>
+        </button>
+        <button type="button" class="btn btn-primary" data-action="batch-review-download">
+          <i class="fa-solid fa-download" aria-hidden="true"></i>
+          <span data-ui="batch-review-download-label" data-i18n="batchReview.download">Скачать выбранное</span>
+        </button>
       </div>
     </footer>
   </div>

@@ -9,10 +9,13 @@ import {
   releaseBodyScrollLock,
 } from "../../scrollLockManager.js";
 import { isSupportedUrl, isValidUrl } from "../../validation.js";
+import { createBatchMetadataLoader } from "./metadata.js";
 import { normalizePlaylistItems, parseBatchText } from "./model.js";
 import { renderBatchReviewItems } from "./view.js";
 
 const PAGE_SIZE = 100;
+const METADATA_DEBOUNCE_MS = 450;
+const METADATA_RENDER_DEBOUNCE_MS = 50;
 const SCROLL_LOCK_OWNER = "batch-review-modal";
 let runtime = null;
 let committedDraft = null;
@@ -39,6 +42,7 @@ function createBatchReviewController() {
     inputWrap: modal.querySelector('[data-ui="batch-review-input-wrap"]'),
     input: modal.querySelector('[data-ui="batch-review-input"]'),
     search: modal.querySelector('[data-ui="batch-review-search"]'),
+    filters: [...modal.querySelectorAll('[data-action="batch-review-filter"]')],
     count: modal.querySelector('[data-ui="batch-review-count"]'),
     issues: modal.querySelector('[data-ui="batch-review-issues"]'),
     quality: modal.querySelector('[data-ui="batch-review-quality"]'),
@@ -48,7 +52,11 @@ function createBatchReviewController() {
     previous: modal.querySelector('[data-action="batch-review-prev"]'),
     next: modal.querySelector('[data-action="batch-review-next"]'),
     enqueue: modal.querySelector('[data-action="batch-review-enqueue"]'),
+    enqueueLabel: modal.querySelector('[data-ui="batch-review-enqueue-label"]'),
     download: modal.querySelector('[data-action="batch-review-download"]'),
+    downloadLabel: modal.querySelector(
+      '[data-ui="batch-review-download-label"]',
+    ),
   };
   const state = {
     mode: "batch",
@@ -58,23 +66,89 @@ function createBatchReviewController() {
     selected: new Set(),
     page: 0,
     query: "",
+    filter: "all",
     sourceText: "",
     sourceUrl: "",
     revision: 0,
     resolver: null,
     previousFocus: null,
+    isOpen: false,
   };
   const unregister = registerModal(modal);
+  let metadataTimer = null;
+  let metadataDebounceActive = false;
+  let renderTimer = null;
+  const metadataLoader = createBatchMetadataLoader({ onUpdate: applyMetadata });
+
+  function cancelMetadataTimer() {
+    if (metadataTimer !== null) {
+      window.clearTimeout(metadataTimer);
+      metadataTimer = null;
+    }
+    metadataDebounceActive = false;
+  }
+
+  function cancelScheduledRender() {
+    if (renderTimer !== null) {
+      window.clearTimeout(renderTimer);
+      renderTimer = null;
+    }
+  }
+
+  function scheduleRender() {
+    if (renderTimer !== null) return;
+    renderTimer = window.setTimeout(() => {
+      renderTimer = null;
+      render();
+    }, METADATA_RENDER_DEBOUNCE_MS);
+  }
+
+  function applyMetadata(url, info) {
+    const title = String(info?.title || "").trim();
+    const thumbnail = String(info?.thumbnail || "").trim();
+    const duration = Math.max(0, Number(info?.duration) || 0);
+    const uploader = String(info?.uploader || info?.channel || "").trim();
+    const hasPreview = Boolean(title || thumbnail);
+    let updated = false;
+    state.items.forEach((item) => {
+      if (item.url !== url) return;
+      if (item.available) {
+        item.metadataPending = false;
+        item.metadataFailed = !info || !hasPreview;
+      }
+      if (info) {
+        if (title) item.title = title;
+        if (thumbnail) item.thumbnail = thumbnail;
+        if (duration) item.duration = duration;
+        if (uploader) item.uploader = uploader;
+      }
+      updated = true;
+    });
+    if (updated) scheduleRender();
+  }
+
+  function ensureVisibleMetadata(pageItems) {
+    if (!state.isOpen || state.mode !== "batch") return;
+    const urls = pageItems
+      .filter((item) => item.available && item.metadataPending)
+      .map((item) => item.url);
+    if (urls.length) metadataLoader.ensure(urls);
+  }
 
   const filteredItems = () => {
     const query = state.query.trim().toLowerCase();
-    if (!query) return state.items;
-    return state.items.filter((item) =>
-      `${item.title} ${item.url} ${item.uploader}`.toLowerCase().includes(query),
-    );
+    return state.items.filter((item) => {
+      if (state.filter === "available" && !item.available) return false;
+      if (state.filter === "problems" && item.available) return false;
+      if (!query) return true;
+      return `${item.title} ${item.url} ${item.uploader}`
+        .toLowerCase()
+        .includes(query);
+    });
   };
 
-  function render() {
+  function render({ ensureMetadata = true, resetScroll = false } = {}) {
+    const previousScrollTop = elements.list.scrollTop;
     const filtered = filteredItems();
     const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
     state.page = Math.min(state.page, pageCount - 1);
@@ -89,6 +163,7 @@ function createBatchReviewController() {
       emptyKey: state.items.length ? "batchReview.noMatches" : "batchReview.empty",
       t,
     });
+    elements.list.scrollTop = resetScroll ? 0 : previousScrollTop;
     const selectedCount = state.selected.size;
     elements.count.textContent = t("batchReview.selected", {
       selected: selectedCount,
@@ -102,6 +177,20 @@ function createBatchReviewController() {
     elements.quality.textContent = quality
       ? t("batchReview.sharedQuality", { quality })
       : "";
+    elements.quality
+      .closest(".batch-review-chip")
+      ?.classList.toggle("is-empty", !quality);
+    elements.filters.forEach((button) => {
+      const active = (button.dataset.filter || "all") === state.filter;
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-pressed", String(active));
+    });
+    const isPlaylist = state.mode === "playlist";
+    elements.list.classList.toggle(
+      "batch-review-modal__list--grid",
+      isPlaylist,
+    );
+    modal.classList.toggle("is-playlist", isPlaylist);
     elements.pagination.hidden = pageCount <= 1;
     elements.page.textContent = t("batchReview.page", {
       page: state.page + 1,
@@ -111,6 +200,19 @@ function createBatchReviewController() {
     elements.next.disabled = state.page >= pageCount - 1;
     elements.enqueue.disabled = selectedCount === 0;
     elements.download.disabled = selectedCount === 0;
+    if (elements.enqueueLabel) {
+      elements.enqueueLabel.textContent = t("batchReview.enqueueCount", {
+        count: selectedCount,
+      });
+    }
+    if (elements.downloadLabel) {
+      elements.downloadLabel.textContent = t("batchReview.downloadCount", {
+        count: selectedCount,
+      });
+    }
+    if (ensureMetadata && !metadataDebounceActive) {
+      ensureVisibleMetadata(pageItems);
+    }
   }
 
   function syncHeading() {
@@ -126,8 +228,12 @@ function createBatchReviewController() {
     );
   }
 
-  function setBatchText(text) {
+  function setBatchText(text, { immediateMetadata = false } = {}) {
     const parsed = parseBatchText(text, { isValidUrl, isSupportedUrl });
+    parsed.valid.forEach((item) => {
+      item.metadataPending = true;
+      item.metadataFailed = false;
+    });
     const previousUrls = new Set(
       state.items.filter((item) => state.selected.has(item.id)).map((item) => item.url),
     );
@@ -147,10 +253,27 @@ function createBatchReviewController() {
         .map((item) => item.id),
     );
     state.page = 0;
-    render();
+    metadataLoader.reset();
+    cancelScheduledRender();
+    cancelMetadataTimer();
+    if (immediateMetadata || !parsed.valid.length) {
+      render({ resetScroll: true });
+      return;
+    }
+    metadataDebounceActive = true;
+    metadataTimer = window.setTimeout(() => {
+      metadataTimer = null;
+      metadataDebounceActive = false;
+      render();
+    }, METADATA_DEBOUNCE_MS);
+    render({ ensureMetadata: false, resetScroll: true });
   }
 
   function close(result = null) {
+    state.isOpen = false;
+    cancelMetadataTimer();
+    cancelScheduledRender();
+    metadataLoader.reset();
     closeRegisteredModal(modal);
     releaseBodyScrollLock(SCROLL_LOCK_OWNER);
     const resolve = state.resolver;
@@ -179,19 +302,24 @@ function createBatchReviewController() {
 
   function open({ mode, text = "", sourceUrl = "", items = [] }) {
     if (state.resolver) close(null);
+    state.isOpen = true;
     state.mode = mode;
     state.sourceUrl = sourceUrl;
     state.revision += 1;
     state.query = "";
     state.page = 0;
+    state.filter = "all";
     state.previousFocus = document.activeElement;
     elements.search.value = "";
     elements.inputWrap.hidden = mode !== "batch";
     syncHeading();
     if (mode === "batch") {
       elements.input.value = text;
-      setBatchText(text);
+      setBatchText(text, { immediateMetadata: true });
     } else {
+      cancelMetadataTimer();
+      cancelScheduledRender();
+      metadataLoader.reset();
       state.sourceText = "";
       state.items = normalizePlaylistItems(items);
       state.duplicates = [];
@@ -199,7 +327,7 @@ function createBatchReviewController() {
       state.selected = new Set(
         state.items.filter((item) => item.available).map((item) => item.id),
       );
-      render();
+      render({ resetScroll: true });
     }
     openRegisteredModal(modal);
     acquireBodyScrollLock(SCROLL_LOCK_OWNER);
@@ -211,11 +339,18 @@ function createBatchReviewController() {
   }
 
   const onClick = (event) => {
-    const action = event.target.closest("[data-action]")?.dataset.action;
+    const actionElement = event.target.closest("[data-action]");
+    const action = actionElement?.dataset.action;
     if (!action) return;
     if (action === "batch-review-cancel") close(null);
     if (action === "batch-review-download") submit("download");
     if (action === "batch-review-enqueue") submit("enqueue");
+    if (action === "batch-review-filter") {
+      state.filter = actionElement.dataset.filter || "all";
+      state.page = 0;
+      metadataLoader.reset();
+      render({ resetScroll: true });
+    }
     if (action === "batch-review-select-all") {
       state.selected = new Set(
         state.items.filter((item) => item.available).map((item) => item.id),
@@ -228,11 +363,13 @@ function createBatchReviewController() {
     }
     if (action === "batch-review-prev") {
       state.page -= 1;
-      render();
+      metadataLoader.reset();
+      render({ resetScroll: true });
     }
     if (action === "batch-review-next") {
       state.page += 1;
-      render();
+      metadataLoader.reset();
+      render({ resetScroll: true });
     }
   };
   const onChange = (event) => {
@@ -267,7 +404,8 @@ function createBatchReviewController() {
   const onSearch = () => {
     state.query = elements.search.value;
     state.page = 0;
-    render();
+    metadataLoader.reset();
+    render({ resetScroll: true });
   };
   const onOverlayClick = (event) => {
     if (event.target === modal) close(null);
@@ -293,6 +431,7 @@ function createBatchReviewController() {
     reset: resetBatchReview,
     dispose() {
       close(null);
+      metadataLoader.dispose();
       unregister();
       elements.input.removeEventListener("input", onInput);
       elements.search.removeEventListener("input", onSearch);

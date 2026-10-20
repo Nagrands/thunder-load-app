@@ -30,6 +30,13 @@ function renderBatchReviewItems({ container, items, selected, emptyKey, t }) {
     checkbox.dataset.itemId = item.id;
     const thumb = document.createElement("span");
     thumb.className = "batch-review-item__thumb";
+    const fallback = document.createElement("i");
+    fallback.className =
+      item.metadataPending && !item.thumbnail
+        ? "fa-solid fa-circle-notch fa-spin"
+        : "fa-solid fa-film";
+    fallback.setAttribute("aria-hidden", "true");
+    thumb.appendChild(fallback);
     if (item.thumbnail) {
       const image = document.createElement("img");
       image.src = item.thumbnail;
@@ -43,19 +50,38 @@ function renderBatchReviewItems({ container, items, selected, emptyKey, t }) {
     const title = document.createElement("strong");
     title.textContent = item.title || item.url;
     const meta = document.createElement("small");
-    const status =
-      item.reviewStatus && item.reviewStatus !== "valid"
-        ? t(`batchReview.status.${item.reviewStatus}`)
-        : "";
+    const status = item.metadataPending
+      ? t("batchReview.status.loading")
+      : item.metadataFailed
+        ? t("batchReview.status.metadataFailed")
+        : item.reviewStatus && item.reviewStatus !== "valid"
+          ? t(`batchReview.status.${item.reviewStatus}`)
+          : "";
+    const badgeKind = item.metadataPending
+      ? "loading"
+      : item.metadataFailed
+        ? "metadata-failed"
+        : item.reviewStatus;
     meta.textContent = [
       `#${item.index}`,
       item.uploader,
       formatDuration(item.duration),
-      status,
     ]
       .filter(Boolean)
       .join(" · ");
-    copy.append(title, meta);
+    const metaLine = document.createElement("span");
+    metaLine.className = "batch-review-item__meta";
+    metaLine.appendChild(meta);
+    if (status) {
+      const badge = document.createElement("span");
+      badge.className = `batch-review-item__badge batch-review-item__badge--${badgeKind}`;
+      badge.textContent = status;
+      metaLine.appendChild(badge);
+    }
+    copy.append(title, metaLine);
+    row.classList.toggle("is-loading", Boolean(item.metadataPending));
+    row.classList.toggle("is-selected", checkbox.checked);
+    if (item.metadataPending) row.setAttribute("aria-busy", "true");
     row.append(checkbox, thumb, copy);
     container.appendChild(row);
   });
