@@ -26,6 +26,11 @@
 }
 
 @container downloader-preview (max-width: 720px) {
+  .download-destination {
+    gap: 8px;
+    padding-left: 7px;
+  }
+
   .download-destination__label {
     display: none;
   }
@@ -36,6 +41,10 @@
 }
 
 @container downloader-preview (max-width: 520px) {
+  .download-destination__change {
+    padding-inline: 9px;
+  }
+
   .downloader-view .url-input-main {
     grid-template-columns: minmax(0, 1fr) auto;
   }

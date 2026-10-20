@@ -3,7 +3,7 @@
 import { showToast } from "../toast.js";
 import { showConfirmationDialog } from "../modals.js";
 import { initTooltips } from "../tooltipInitializer.js";
-import { applyI18n, getLanguage, t } from "../i18n.js";
+import { applyI18n, t } from "../i18n.js";
 import { consumeRequestedToolsView } from "../toolsNavigation.js";
 import {
   deactivateToolsInfo,
@@ -147,20 +147,11 @@ export default function renderToolsView() {
   const getLogText = logController.getLogText;
 
   let currentMsg = ")";
-  let tipsIntervalId = null;
-  let tipsSwapTimer = null;
-  let tipsFadeTimer = null;
-  let tipsPaused = false;
-  let tipsItems = [];
-  let tipsIndex = 0;
   const WG_HOWTO_SCROLL_LOCK_OWNER = "tools-howto-wg";
 
   const disposeView = () => {
     destroyToolsInfo();
     releaseDocumentScrollLock(WG_HOWTO_SCROLL_LOCK_OWNER);
-    tipsIntervalId = cleanup.clearInterval(tipsIntervalId);
-    tipsSwapTimer = cleanup.clearTimeout(tipsSwapTimer);
-    tipsFadeTimer = cleanup.clearTimeout(tipsFadeTimer);
     cleanup.dispose();
   };
 
@@ -528,24 +519,6 @@ export default function renderToolsView() {
                 <div class="info-card">
                   <h3><i class="fa-solid fa-circle-info"></i> <span data-i18n="wg.info.title">${t("wg.info.title")}</span></h3>
                   <p data-i18n="wg.info.body">${t("wg.info.body")}</p>
-                </div>
-                <div class="info-card wg-meta-card">
-                  <div class="meta-row wg-meta-tips">
-                    <h3><i class="fa-solid fa-lightbulb"></i> <span data-i18n="wg.tips.title">${t("wg.tips.title")}</span></h3>
-                    <p id="wg-tips-text" data-i18n-html="wg.tips.body">${t("wg.tips.body")}</p>
-                    <div class="wg-tips-controls">
-                      <button id="wg-tip-prev" type="button" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" data-i18n-title="wg.tips.prev" title="${t("wg.tips.prev")}">
-                        <i class="fa-solid fa-chevron-left"></i>
-                      </button>
-                      <button id="wg-tip-toggle" type="button" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" data-i18n-title="wg.tips.pause" title="${t("wg.tips.pause")}">
-                        <i class="fa-solid fa-pause"></i>
-                      </button>
-                      <button id="wg-tip-next" type="button" class="small-button" data-bs-toggle="tooltip" data-bs-placement="top" data-i18n-title="wg.tips.next" title="${t("wg.tips.next")}">
-                        <i class="fa-solid fa-chevron-right"></i>
-                      </button>
-                      <span id="wg-tips-counter" class="wg-tips-counter">1/1</span>
-                    </div>
-                  </div>
                 </div>
                 <div class="wg-section">
                   <details class="wg-log-block">
@@ -1643,131 +1616,6 @@ export default function renderToolsView() {
       setupEventHandlers();
       entranceAnimation.play();
       updateLogControls();
-      // Анимация и автосмена советов
-      const initTipsRotation = async (lang = "ru") => {
-        const tipsCard = view
-          .querySelector(".info-card h3 i.fa-lightbulb")
-          ?.closest(".info-card");
-        if (!tipsCard) return;
-
-        const p = tipsCard.querySelector("#wg-tips-text");
-        const prevBtn = tipsCard.querySelector("#wg-tip-prev");
-        const nextBtn = tipsCard.querySelector("#wg-tip-next");
-        const toggleBtn = tipsCard.querySelector("#wg-tip-toggle");
-        const counterEl = tipsCard.querySelector("#wg-tips-counter");
-        if (!p || !prevBtn || !nextBtn || !toggleBtn || !counterEl) return;
-
-        try {
-          const tipsPath =
-            lang === "en" ? "info/tips.en.json" : "info/tips.json";
-          const response = await fetch(tipsPath);
-          const data = await response.json();
-          tipsItems = Array.isArray(data.tips) ? data.tips : [];
-          if (!tipsItems.length) return;
-
-          const clearTipsTimers = () => {
-            if (tipsIntervalId) {
-              tipsIntervalId = cleanup.clearInterval(tipsIntervalId);
-            }
-          };
-
-          const clearTipsAnimationTimers = () => {
-            if (tipsSwapTimer) {
-              tipsSwapTimer = cleanup.clearTimeout(tipsSwapTimer);
-            }
-            if (tipsFadeTimer) {
-              tipsFadeTimer = cleanup.clearTimeout(tipsFadeTimer);
-            }
-          };
-
-          const updateToggleUi = () => {
-            const icon = toggleBtn.querySelector("i");
-            prevBtn.setAttribute("title", t("wg.tips.prev"));
-            nextBtn.setAttribute("title", t("wg.tips.next"));
-            if (tipsPaused) {
-              if (icon) icon.className = "fa-solid fa-play";
-              toggleBtn.setAttribute("title", t("wg.tips.play"));
-              toggleBtn.setAttribute("data-i18n-title", "wg.tips.play");
-            } else {
-              if (icon) icon.className = "fa-solid fa-pause";
-              toggleBtn.setAttribute("title", t("wg.tips.pause"));
-              toggleBtn.setAttribute("data-i18n-title", "wg.tips.pause");
-            }
-          };
-
-          const updateCounter = () => {
-            counterEl.textContent = t("wg.tips.counter", {
-              current: Math.min(tipsItems.length, tipsIndex + 1),
-              total: tipsItems.length,
-            });
-          };
-
-          const renderTip = (nextIndex, { animate = true } = {}) => {
-            if (!tipsItems.length) return;
-            tipsIndex =
-              ((nextIndex % tipsItems.length) + tipsItems.length) %
-              tipsItems.length;
-            const text = tipsItems[tipsIndex];
-            if (!animate) {
-              p.textContent = text;
-              p.classList.remove("fade-out", "fade-in");
-              updateCounter();
-              return;
-            }
-            p.classList.add("fade-out");
-            clearTipsAnimationTimers();
-            tipsSwapTimer = cleanup.setTimeout(() => {
-              p.textContent = text;
-              p.classList.remove("fade-out");
-              p.classList.add("fade-in");
-              tipsFadeTimer = cleanup.setTimeout(
-                () => p.classList.remove("fade-in"),
-                800,
-              );
-              updateCounter();
-            }, 180);
-          };
-
-          const scheduleRotation = () => {
-            clearTipsTimers();
-            if (tipsPaused || tipsItems.length <= 1) return;
-            tipsIntervalId = cleanup.setInterval(() => {
-              renderTip(tipsIndex + 1);
-            }, 8000);
-          };
-
-          renderTip(tipsIndex, { animate: false });
-          updateToggleUi();
-          scheduleRotation();
-
-          if (!tipsCard.dataset.tipsWired) {
-            tipsCard.dataset.tipsWired = "1";
-
-            prevBtn.addEventListener("click", () => {
-              renderTip(tipsIndex - 1);
-              scheduleRotation();
-            });
-            nextBtn.addEventListener("click", () => {
-              renderTip(tipsIndex + 1);
-              scheduleRotation();
-            });
-            toggleBtn.addEventListener("click", () => {
-              tipsPaused = !tipsPaused;
-              updateToggleUi();
-              scheduleRotation();
-              initTooltips();
-            });
-          }
-          initTooltips();
-        } catch (err) {
-          console.error("Не удалось загрузить советы:", err);
-        }
-      };
-      await initTipsRotation(getLanguage());
-      cleanup.onWindowEvent("i18n:changed", (e) => {
-        const next = e?.detail?.lang || getLanguage();
-        initTipsRotation(next);
-      });
       cleanup.onWindowEvent("tools:navigate", (event) => {
         const requestedTool = String(event?.detail?.toolView || "").trim();
         if (!requestedTool) return;

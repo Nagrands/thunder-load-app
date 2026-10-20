@@ -524,14 +524,6 @@ export const toolsTranslations = {
       "Лог активности. Включите режим отладки для подробного вывода.",
     "wg.log.ui.copied": "Скопировано",
     "wg.log.ui.exporting": "Экспорт...",
-    "wg.tips.title": "Советы",
-    "wg.tips.body":
-      "• Используйте режим отладки для подробного лога<br>• Проверьте настройки брандмауэра<br>• Убедитесь, что удаленный хост доступен",
-    "wg.tips.prev": "Предыдущий совет",
-    "wg.tips.next": "Следующий совет",
-    "wg.tips.pause": "Пауза",
-    "wg.tips.play": "Продолжить",
-    "wg.tips.counter": "{current}/{total}",
     "wg.confirm.send": "Отправить запрос на {target}?",
     "wg.confirm.resetAll":
       "Вы уверены, что хотите сбросить все настройки полей к значениям по умолчанию?",
@@ -1273,14 +1265,6 @@ export const toolsTranslations = {
       "Activity log. Enable debug mode for detailed output.",
     "wg.log.ui.copied": "Copied",
     "wg.log.ui.exporting": "Exporting...",
-    "wg.tips.title": "Tips",
-    "wg.tips.body":
-      "• Use debug mode for detailed logging<br>• Check firewall settings<br>• Make sure the remote host is reachable",
-    "wg.tips.prev": "Previous tip",
-    "wg.tips.next": "Next tip",
-    "wg.tips.pause": "Pause",
-    "wg.tips.play": "Resume",
-    "wg.tips.counter": "{current}/{total}",
     "wg.confirm.send": "Send request to {target}?",
     "wg.confirm.resetAll":
       "Are you sure you want to reset all field settings to defaults?",

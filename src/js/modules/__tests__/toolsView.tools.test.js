@@ -322,6 +322,14 @@ describe("toolsView quick actions", () => {
     ).toBe("tools.launcher.availableTitle");
   });
 
+  test("does not render the WG Unlock tips card", async () => {
+    const el = await renderView();
+
+    expect(el.querySelector(".wg-meta-tips")).toBeNull();
+    expect(el.querySelector("#wg-tips-text")).toBeNull();
+    expect(el.querySelector("#wg-tip-toggle")).toBeNull();
+  });
+
   test("mounts a synchronized tools submenu under the main Tools tab", async () => {
     const groupMenu = document.createElement("div");
     groupMenu.className = "group-menu";

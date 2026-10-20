@@ -83,7 +83,7 @@ $transition-interactive:
   display: none;
 }
 
-@media (min-width: $breakpoint-tablet + 1px) {
+@media (min-width: #{$breakpoint-tablet + 1px}) {
   body.is-mac .app-sidebar__panel {
     padding-top: 52px;
   }
@@ -914,7 +914,7 @@ body.low-effects .app-sidebar__action--tools.is-busy {
   }
 }
 
-@media (min-width: $breakpoint-tablet + 1px) {
+@media (min-width: #{$breakpoint-tablet + 1px}) {
   body.app-sidebar-collapsed {
     .app-sidebar__zone--lead {
       align-items: stretch;

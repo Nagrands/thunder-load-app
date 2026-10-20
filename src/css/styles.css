@@ -24370,26 +24370,25 @@ video {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
   min-height: 48px;
-  padding: 6px 8px 6px 10px;
-  border-radius: 10px;
-  border: 1px solid rgba(150, 185, 228, 0.1);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.015)), rgba(4, 9, 19, 0.34);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  padding: 6px 7px 6px 9px;
+  border-radius: 12px;
+  border: 1px solid rgba(150, 185, 228, 0.14);
+  background: rgba(5, 11, 23, 0.46);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
 }
 
 .download-destination__icon {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 9px;
-  border: 1px solid rgba(var(--color-accent-rgb), 0.16);
-  background: rgba(var(--color-accent-rgb), 0.08);
+  border-radius: 10px;
+  border: 1px solid rgba(var(--color-accent-rgb), 0.22);
+  background: rgba(var(--color-accent-rgb), 0.12);
   color: var(--color-accent);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 .download-destination__icon i {
   font-size: 15px;
@@ -24404,7 +24403,7 @@ video {
 
 .download-destination__label {
   overflow: hidden;
-  color: rgba(202, 216, 235, 0.56);
+  color: rgba(202, 216, 235, 0.68);
   font-size: 0.64rem;
   font-weight: 700;
   letter-spacing: 0.07em;
@@ -24417,9 +24416,9 @@ video {
 .download-destination__path {
   min-width: 0;
   overflow: hidden;
-  color: rgba(239, 246, 255, 0.94);
-  font-size: 0.82rem;
-  font-weight: 600;
+  color: #f4f8ff;
+  font-size: 0.84rem;
+  font-weight: 650;
   line-height: 1.25;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -24433,11 +24432,11 @@ video {
 
 .download-destination__open,
 .download-destination__change {
-  min-height: 36px;
+  min-height: 34px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
+  border-radius: 9px;
   font-size: 0.75rem;
   font-weight: 650;
   transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
@@ -24454,8 +24453,8 @@ video {
 }
 
 .download-destination__open {
-  width: 36px;
-  min-width: 36px;
+  width: 34px;
+  min-width: 34px;
   padding: 0;
   border: 1px solid rgba(170, 198, 236, 0.14);
   background: rgba(255, 255, 255, 0.035);
@@ -24472,16 +24471,17 @@ video {
 }
 
 .download-destination__change {
-  padding: 0 12px;
-  border: 1px solid rgba(var(--color-accent-rgb), 0.24);
-  background: rgba(var(--color-accent-rgb), 0.1);
-  color: var(--color-accent);
+  padding: 0 13px;
+  border: 1px solid rgba(var(--color-accent-rgb), 0.54);
+  background: var(--color-accent);
+  color: #07111f;
+  box-shadow: 0 2px 8px rgba(var(--color-accent-rgb), 0.16);
 }
 .download-destination__change:hover:not(:disabled) {
-  border-color: rgba(var(--color-accent-rgb), 0.46);
-  background: rgba(var(--color-accent-rgb), 0.18);
-  color: #eaf7ff;
-  box-shadow: 0 4px 14px rgba(var(--color-accent-rgb), 0.14);
+  border-color: rgba(var(--color-accent-rgb), 0.78);
+  background: color-mix(in srgb, var(--color-accent) 88%, white);
+  color: #07111f;
+  box-shadow: 0 4px 12px rgba(var(--color-accent-rgb), 0.24);
 }
 
 .downloads-toolbar {
@@ -26437,6 +26437,10 @@ video {
   }
 }
 @container downloader-preview (max-width: 720px) {
+  .download-destination {
+    gap: 8px;
+    padding-left: 7px;
+  }
   .download-destination__label {
     display: none;
   }
@@ -26445,6 +26449,9 @@ video {
   }
 }
 @container downloader-preview (max-width: 520px) {
+  .download-destination__change {
+    padding-inline: 9px;
+  }
   .downloader-view .url-input-main {
     grid-template-columns: minmax(0, 1fr) auto;
   }
@@ -28692,72 +28699,6 @@ video {
   color: var(--color-quality);
   line-height: 1.5;
   margin: 0;
-}
-.wg-side-panel .info-card .wg-tips-controls {
-  margin-top: 12px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.wg-side-panel .info-card .wg-tips-controls .small-button {
-  min-width: 34px;
-  justify-content: center;
-  padding: 8px 10px;
-}
-.wg-side-panel .info-card .wg-tips-counter {
-  margin-left: auto;
-  font-size: 12px;
-  color: var(--color-quality);
-  opacity: 0.9;
-  font-variant-numeric: tabular-nums;
-  min-width: 48px;
-  text-align: right;
-}
-.wg-side-panel .info-card.wg-meta-card .meta-row {
-  display: grid;
-  gap: 6px;
-}
-.wg-side-panel .info-card.wg-meta-card .meta-row h3 {
-  margin: 0;
-  font-size: 14px;
-  color: var(--color-quality);
-  opacity: 0.95;
-}
-.wg-side-panel .info-card.wg-meta-card .meta-row p {
-  margin: 0;
-  font-size: 15px;
-  line-height: 1.35;
-  color: var(--color-highlight);
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  font-variant-numeric: tabular-nums;
-}
-.wg-side-panel .info-card.wg-meta-card .meta-row.wg-meta-tips p {
-  font-size: 13px;
-  font-weight: 400;
-  color: var(--color-quality);
-  line-height: 1.5;
-}
-.wg-side-panel .info-card.wg-meta-card .meta-row.wg-meta-tips .wg-tips-controls {
-  margin-top: 10px;
-}
-.wg-side-panel .info-card.wg-meta-card .meta-divider {
-  height: 1px;
-  margin: 14px 0;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.26), rgba(255, 255, 255, 0));
-}
-.wg-side-panel .info-card.wg-meta-card #wg-connection-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-.wg-side-panel .info-card.wg-meta-card #wg-connection-status::before {
-  content: "";
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: currentColor;
-  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.05);
 }
 
 #wg-status-indicator {
