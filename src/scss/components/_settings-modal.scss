@@ -59,8 +59,7 @@
 
     &:hover {
       border-color: var(--settings-border);
-      background: var(--settings-surface-hover);
-      color: var(--settings-copy);
+      color: var(--color-accent);
     }
 
     &:active {
@@ -602,7 +601,7 @@
   padding: 0;
   border: 1px solid var(--settings-border);
   border-radius: 11px;
-  background: var(--settings-surface-raised);
+  background: transparent;
   color: var(--settings-muted);
   cursor: pointer;
   transition:

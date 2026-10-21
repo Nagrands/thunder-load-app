@@ -28,9 +28,6 @@ const elements = {
   videoSelect: document.getElementById("downloader-video-quality"),
   audioSelect: document.getElementById("downloader-audio-quality"),
   subtitleSelect: document.getElementById("downloader-subtitle-quality"),
-  videoMeta: document.getElementById("downloader-video-meta"),
-  audioMeta: document.getElementById("downloader-audio-meta"),
-  subtitleMeta: document.getElementById("downloader-subtitle-meta"),
   summary: document.getElementById("downloader-output-summary"),
   status: document.getElementById("downloader-quality-status"),
   advanced: document.getElementById("downloader-advanced-formats"),
@@ -64,10 +61,6 @@ function renderOptions(select, options, selectedId = "") {
     select.value = selectedId;
   }
   select.disabled = options.length === 0;
-}
-
-function setMeta(element, option) {
-  if (element) element.textContent = option?.meta || "";
 }
 
 function setActionAvailability(enabled) {
@@ -125,9 +118,6 @@ function syncSelectionUi() {
   const video = getSelected(state.videoOptions, elements.videoSelect);
   const audio = getSelected(state.audioOptions, elements.audioSelect);
   const subtitle = getSelected(state.subtitleOptions, elements.subtitleSelect);
-  setMeta(elements.videoMeta, video);
-  setMeta(elements.audioMeta, audio);
-  setMeta(elements.subtitleMeta, subtitle);
   const selection = getCurrentSelection();
   if (elements.summary) {
     elements.summary.textContent =

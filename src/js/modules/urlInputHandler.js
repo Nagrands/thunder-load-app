@@ -506,12 +506,12 @@ function initUrlInputHandler() {
     card.style.display = data.title || data.thumbnail ? "" : "none";
     card.hidden = !(data.title || data.thumbnail);
     card.classList.add("visible");
-    card.classList.remove("is-collapsed");
     setStateClass("has-preview", card.style.display !== "none");
     updatePreviewDetails(data);
-    currentLivePreview = data.livePreview
+    const playablePreview = data.livePreview || data.backgroundPreview;
+    currentLivePreview = playablePreview
       ? {
-          ...data.livePreview,
+          ...playablePreview,
           pageUrl:
             data?.webpage_url || data?.original_url || lastPreviewUrl || "",
           title: data.title || "",
@@ -687,17 +687,6 @@ function initUrlInputHandler() {
         setStateClass("has-preview", false);
         clearDownloaderBackgroundPreview();
         hideDownloaderLivePreview();
-      });
-    }
-
-    const collapseBtn = document.getElementById("preview-collapse");
-    collapseBtn?.setAttribute("aria-expanded", "true");
-    if (collapseBtn && !collapseBtn.dataset.bound) {
-      collapseBtn.dataset.bound = "1";
-      collapseBtn.addEventListener("click", () => {
-        const collapsed = !card.classList.contains("is-collapsed");
-        card.classList.toggle("is-collapsed", collapsed);
-        collapseBtn.setAttribute("aria-expanded", collapsed ? "false" : "true");
       });
     }
 
@@ -911,7 +900,8 @@ function initUrlInputHandler() {
 
     try {
       const data = await fetchPreviewInfo(url, { force: true });
-      if (!data?.success || !data?.livePreview?.src) {
+      const playablePreview = data?.livePreview || data?.backgroundPreview;
+      if (!data?.success || !playablePreview?.src) {
         currentLivePreview = null;
         livePreviewOpen = false;
         hideDownloaderLivePreview();
@@ -920,7 +910,7 @@ function initUrlInputHandler() {
       }
 
       currentLivePreview = {
-        ...data.livePreview,
+        ...playablePreview,
         pageUrl: data?.webpage_url || data?.original_url || url,
         title: data.title || "",
         source: detectPreviewHost(data),

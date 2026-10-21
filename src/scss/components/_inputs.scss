@@ -618,12 +618,12 @@
     top: 50%;
     display: inline-flex;
     align-items: center;
-    gap: 12px;
-    min-height: 48px;
-    padding: 7px 20px 7px 8px;
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    z-index: 2;
+    gap: 8px;
+    min-height: 42px;
+    padding: 6px 16px 6px 7px;
     border-radius: 999px;
-    background: rgba(8, 13, 22, 0.6);
+    background: rgba(8, 13, 22, 0.78);
     color: #fff;
     cursor: pointer;
     transform: translate(-50%, -50%);
@@ -646,8 +646,8 @@
       flex: 0 0 auto;
       display: inline-grid;
       place-items: center;
-      width: 34px;
-      height: 34px;
+      width: 30px;
+      height: 30px;
       border-radius: 999px;
       background: rgba(236, 242, 250, 0.92);
       color: #0d1520;
@@ -656,8 +656,8 @@
 
     .preview-live-play__label {
       flex: 0 0 auto;
-      font-size: 0.9rem;
-      font-weight: 700;
+      font-size: 0.75rem;
+      font-weight: 500;
       letter-spacing: 0.02em;
       white-space: nowrap;
     }
@@ -779,6 +779,7 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
+    justify-content: flex-end;
     gap: 6px;
     width: 100%;
     min-width: 0;
@@ -893,7 +894,6 @@
     transform: none;
   }
 
-  .preview-collapse,
   .preview-close {
     position: static;
     width: 30px;
@@ -905,8 +905,7 @@
     justify-content: center;
     padding: 0;
     border-radius: 10px;
-    background: rgba(255, 255, 255, 0.04);
-    color: rgba(218, 231, 249, 0.78);
+    color: var(--thunder-blue);
     cursor: pointer;
     transition:
       background-color 0.18s ease,
@@ -925,46 +924,6 @@
     }
   }
 
-  &.is-collapsed {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: "body";
-    min-height: 74px;
-    padding-block: 14px;
-
-    .preview-card__thumb,
-    .preview-media,
-    .preview-badges,
-    .preview-details,
-    .preview-card__actions,
-    .preview-actions {
-      display: none;
-    }
-
-    .preview-card__body,
-    .preview-meta {
-      min-height: 0;
-      gap: 5px;
-      align-content: center;
-    }
-
-    .preview-card__controls {
-      top: 50%;
-      gap: 6px;
-      transform: translateY(-50%);
-    }
-
-    .preview-collapse,
-    .preview-close {
-      width: 30px;
-      height: 30px;
-      min-width: 30px;
-      min-height: 30px;
-    }
-
-    .preview-collapse i {
-      transform: rotate(180deg);
-    }
-  }
 }
 
 @media (max-width: 720px) {

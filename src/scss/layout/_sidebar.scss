@@ -16,7 +16,7 @@ $sidebar-mobile-tab-height: 38px;
 }
 
 body.app-sidebar-collapsed {
-  --app-sidebar-width: 76px;
+  --app-sidebar-width: 84px;
 }
 
 // Базовые переходы
@@ -103,9 +103,9 @@ $transition-interactive:
   height: 100%;
   padding: 16px 12px 12px;
   border-right: 1px solid var(--thunder-border);
-  background: color-mix(in srgb, var(--thunder-surface-strong) 94%, #050b14);
+  background: transparent;
   box-shadow: 12px 0 34px rgba(0, 0, 0, 0.22);
-  backdrop-filter: blur(18px) saturate(140%);
+  backdrop-filter: blur(12px) saturate(140%);
   transition:
     $transition-fade-slide,
     border-color 180ms ease,

@@ -96,9 +96,8 @@
   min-height: 48px;
   padding: 6px 7px 6px 9px;
   border-radius: 12px;
-  border: 1px solid rgba(150, 185, 228, 0.14);
+  border: 1px solid transparent;
   background: rgba(5, 11, 23, 0.46);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
 }
 
 .download-destination__icon {
@@ -109,7 +108,7 @@
   justify-content: center;
   border-radius: 10px;
   border: 1px solid rgba(var(--color-accent-rgb), 0.22);
-  background: rgba(var(--color-accent-rgb), 0.12);
+  background: transparent;
   color: var(--color-accent);
 
   i {
@@ -127,9 +126,9 @@
 .download-destination__label {
   overflow: hidden;
   color: rgba(202, 216, 235, 0.68);
-  font-size: 0.64rem;
-  font-weight: 700;
-  letter-spacing: 0.07em;
+  font-size: 0.5rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
   line-height: 1.1;
   text-overflow: ellipsis;
   text-transform: uppercase;
@@ -139,9 +138,9 @@
 .download-destination__path {
   min-width: 0;
   overflow: hidden;
-  color: #f4f8ff;
-  font-size: 0.84rem;
-  font-weight: 650;
+  color: var(--thunder-blue);
+  font-size: 0.8rem;
+  font-weight: 550;
   line-height: 1.25;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -202,9 +201,8 @@
 .download-destination__change {
   padding: 0 13px;
   border: 1px solid rgba(var(--color-accent-rgb), 0.54);
-  background: var(--color-accent);
-  color: #07111f;
-  box-shadow: 0 2px 8px rgba(var(--color-accent-rgb), 0.16);
+  background: var(--color-hover);
+  color: var(--color-accent);
 
   &:hover:not(:disabled) {
     border-color: rgba(var(--color-accent-rgb), 0.78);
@@ -221,21 +219,11 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 10px 16px;
-  margin-top: 14px;
   padding: 8px 10px;
   border-radius: var(--border-radius);
   border: 1px solid rgba(150, 185, 228, 0.14);
-  background:
-    radial-gradient(
-      130% 220% at 0% 0%,
-      rgba(var(--color-accent-rgb), 0.12),
-      transparent 58%
-    ),
-    linear-gradient(180deg, rgba(17, 27, 46, 0.78), rgba(5, 11, 23, 0.9));
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.05),
-    0 12px 28px rgba(2, 7, 18, 0.3);
-  backdrop-filter: blur(14px) saturate(115%);
+  background: transparent;
+  backdrop-filter: blur(8px) saturate(115%);
   -webkit-backdrop-filter: blur(14px) saturate(115%);
 }
 
@@ -285,9 +273,7 @@
   gap: 6px;
   padding: 4px;
   border-radius: 10px;
-  border: 1px solid rgba(170, 198, 236, 0.1);
   background: rgba(3, 8, 18, 0.42);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.24);
 }
 
 .downloads-toolbar .queue-action-button {
@@ -298,11 +284,10 @@
   gap: 8px;
   padding: 0 12px;
   border: 1px solid transparent;
-  border-radius: 7px;
+  border-radius: var(--border-radius);
   color: rgba(223, 235, 252, 0.82);
   background: transparent;
-  font-size: 0.79rem;
-  font-weight: 600;
+  font-size: 0.75rem;
   line-height: 1;
   white-space: nowrap;
   transition:

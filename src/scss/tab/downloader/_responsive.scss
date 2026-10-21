@@ -8,9 +8,15 @@
     gap: 14px;
 
     .preview-thumb-wrap {
-      height: 100%;
+      width: 100%;
+      height: auto;
       min-height: 0;
+      max-height: none;
       aspect-ratio: 16 / 9;
+    }
+
+    .preview-card__body {
+      padding: 0;
     }
   }
 
@@ -54,8 +60,9 @@
   }
 
   .downloader-selection-card__footer {
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
   }
 
   .downloader-advanced-formats {
@@ -64,7 +71,13 @@
   }
 
   .downloader-selection-card__actions {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    flex: 1 1 100%;
+  }
+
+  .downloader-selection-card__enqueue,
+  .downloader-selection-card__download {
+    white-space: normal;
   }
 }
 

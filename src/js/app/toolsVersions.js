@@ -15,6 +15,7 @@ const {
   prepareBinaryForExecution,
   resolveRuntimeBinaryDetails,
 } = require("./runtimeTools");
+const YTDLP_VERSION_TIMEOUT_MS = 30_000;
 
 /**
  * Run a binary with args and return its first line of stdout (or null).
@@ -120,7 +121,11 @@ async function getToolsVersions(store) {
   const yt = { ok: ytExists && ytDetails.executable, path: ytPath };
   if (yt.ok) {
     await prepareBinaryForExecution(ytPath);
-    const ver = await runVersion(ytPath, ["--version"]);
+    const ver = await runVersion(
+      ytPath,
+      ["--version"],
+      YTDLP_VERSION_TIMEOUT_MS,
+    );
     if (ver) yt.version = ver;
   }
 

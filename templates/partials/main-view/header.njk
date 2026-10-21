@@ -75,6 +75,7 @@
           <img id="preview-thumb" alt="Превью" data-i18n-alt="preview.alt" loading="lazy" hidden />
           <button id="preview-open-live" class="preview-live-play hidden" type="button" aria-label="Открыть предпросмотр" data-i18n-aria="input.url.preview.openLiveTitle" title="Открыть предпросмотр" data-i18n-title="input.url.preview.openLiveTitle">
             <i class="fa-solid fa-play" aria-hidden="true"></i>
+            <span class="preview-live-play__label" data-i18n="input.url.preview.buttonLabel">Предпросмотр</span>
           </button>
           <span id="preview-duration-overlay" class="preview-duration-overlay hidden"></span>
         </div>
@@ -96,17 +97,17 @@
       <div class="downloader-selection-card__quality" aria-label="Быстрый выбор формата" data-i18n-aria="quality.quick.group">
         <label class="downloader-quality-field" for="downloader-video-quality">
           <span class="downloader-quality-field__icon downloader-quality-field__icon--video" aria-hidden="true"><i class="fa-solid fa-film"></i></span>
-          <span class="downloader-quality-field__copy"><span class="downloader-quality-field__label" data-i18n="quality.quick.video">Видео</span><span id="downloader-video-meta" class="downloader-quality-field__meta"></span></span>
+          <span class="downloader-quality-field__copy"><span class="downloader-quality-field__label" data-i18n="quality.quick.video">Видео</span></span>
           <select id="downloader-video-quality" disabled></select>
         </label>
         <label class="downloader-quality-field" for="downloader-audio-quality">
           <span class="downloader-quality-field__icon downloader-quality-field__icon--audio" aria-hidden="true"><i class="fa-solid fa-music"></i></span>
-          <span class="downloader-quality-field__copy"><span class="downloader-quality-field__label" data-i18n="quality.quick.audio">Аудио</span><span id="downloader-audio-meta" class="downloader-quality-field__meta"></span></span>
+          <span class="downloader-quality-field__copy"><span class="downloader-quality-field__label" data-i18n="quality.quick.audio">Аудио</span></span>
           <select id="downloader-audio-quality" disabled></select>
         </label>
         <label class="downloader-quality-field" for="downloader-subtitle-quality">
           <span class="downloader-quality-field__icon downloader-quality-field__icon--subs" aria-hidden="true"><i class="fa-solid fa-closed-captioning"></i></span>
-          <span class="downloader-quality-field__copy"><span class="downloader-quality-field__label" data-i18n="quality.quick.subtitles">Субтитры</span><span id="downloader-subtitle-meta" class="downloader-quality-field__meta"></span></span>
+          <span class="downloader-quality-field__copy"><span class="downloader-quality-field__label" data-i18n="quality.quick.subtitles">Субтитры</span></span>
           <select id="downloader-subtitle-quality" disabled></select>
         </label>
 
@@ -126,7 +127,6 @@
       </div>
 
       <div class="preview-card__controls">
-        <button id="preview-collapse" class="preview-collapse" type="button" aria-label="Свернуть предпросмотр" data-i18n-aria="input.url.preview.collapse"><i class="fa-solid fa-chevron-up" aria-hidden="true"></i></button>
         <button class="preview-close" type="button" aria-label="Закрыть предпросмотр" data-i18n-aria="input.url.preview.close"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
       </div>
     </section>

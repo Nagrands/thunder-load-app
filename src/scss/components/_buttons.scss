@@ -13,12 +13,17 @@
   @include mixins.button-base;
   position: relative;
   overflow: hidden;
-  padding: 0.7em 3.4em;
-  transition: all var(--btn-hover-duration) cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  padding: 0.65em 1.15em;
+  transition:
+    background-color var(--btn-hover-duration) ease,
+    border-color var(--btn-hover-duration) ease,
+    color var(--btn-hover-duration) ease,
+    box-shadow var(--btn-hover-duration) ease,
+    transform var(--btn-hover-duration) ease;
 
   color: var(--color-highlight);
   border: 1px solid var(--thunder-border);
-  // border-radius: 16px;
+  border-radius: var(--thunder-radius-md);
 
   &::before,
   &::after {
@@ -29,8 +34,8 @@
     transform: translateY(-1px);
     background: var(--thunder-control-hover);
     border-color: var(--thunder-border-strong);
-    color: var(--thunder-bolt);
-    box-shadow: var(--thunder-glow);
+    color: var(--color-highlight);
+    box-shadow: 0 5px 14px rgba(0, 0, 0, 0.18);
   }
 
   &:active {
@@ -110,55 +115,51 @@
 }
 
 .btn-primary {
-  background: linear-gradient(
-    135deg,
-    rgba(var(--thunder-electric-rgb), 0.28) 0%,
-    rgba(var(--thunder-blue-rgb), 0.18) 52%,
-    rgba(var(--thunder-electric-rgb), 0.08) 100%
-  );
-  border-color: rgba(var(--thunder-electric-rgb), 0.38);
+  background: #0866e8;
+  border-color: #1478ff;
+  color: #fff;
 }
 
-.btn-primary:hover {
-  background: linear-gradient(
-    135deg,
-    rgba(var(--thunder-electric-rgb), 0.36) 0%,
-    rgba(var(--thunder-blue-rgb), 0.24) 50%,
-    rgba(var(--thunder-electric-rgb), 0.14) 100%
-  );
-  border-color: rgba(var(--thunder-electric-rgb), 0.56);
+.btn-primary:hover:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--thunder-blue);
+  border-color: #4593ff;
+  color: var(--color-highlight);
 }
 
 .btn-secondary {
   gap: 0;
   white-space: nowrap;
-  background: linear-gradient(
-    135deg,
-    rgba(var(--thunder-blue-rgb), 0.18) 0%,
-    rgba(var(--thunder-electric-rgb), 0.09) 50%,
-    rgba(255, 255, 255, 0.035) 100%
-  );
-  border-color: rgba(var(--thunder-electric-rgb), 0.22);
+  background: rgba(10, 17, 29, 0.32);
+  border-color: rgba(var(--thunder-blue-rgb), 0.56);
+  color: color-mix(in srgb, var(--color-highlight) 78%, #70adff 22%);
+}
+
+.btn-secondary:hover:not(:disabled):not([aria-disabled="true"]) {
+  background: rgba(var(--thunder-blue-rgb), 0.12);
+  border-color: rgba(var(--thunder-blue-rgb), 0.82);
+  color: #fff;
 }
 
 .btn-ghost {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.035);
+  border-color: rgba(180, 201, 230, 0.16);
 }
 
 .btn-ghost:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(180, 201, 230, 0.28);
 }
 
 .btn-danger {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 80, 80, 0.25) 0%,
-    rgba(255, 80, 80, 0.15) 50%,
-    rgba(255, 80, 80, 0.08) 100%
-  );
-  border-color: rgba(255, 80, 80, 0.3);
+  background: rgba(217, 61, 76, 0.14);
+  border-color: rgba(255, 104, 119, 0.38);
+  color: #ff9ca6;
+}
+
+.btn-danger:hover:not(:disabled):not([aria-disabled="true"]) {
+  background: rgba(217, 61, 76, 0.24);
+  border-color: rgba(255, 104, 119, 0.62);
+  color: #ffc0c6;
 }
 
 .btn-icon {

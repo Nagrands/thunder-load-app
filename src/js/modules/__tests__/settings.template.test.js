@@ -48,6 +48,10 @@ describe("settings template structure", () => {
     expect(previewHtml).toContain('id="preview-duration-overlay"');
     expect(thumbHtml).toContain('id="preview-open-live"');
     expect(thumbHtml).toContain('class="preview-live-play hidden"');
+    expect(thumbHtml).toContain('class="preview-live-play__label"');
+    expect(previewHtml).not.toContain('id="downloader-video-meta"');
+    expect(previewHtml).not.toContain('id="downloader-audio-meta"');
+    expect(previewHtml).not.toContain('id="downloader-subtitle-meta"');
     expect(actionsHtml).not.toContain('id="preview-open-live"');
     expect(actionsHtml).not.toContain("Открыть live preview");
   });

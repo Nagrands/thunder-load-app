@@ -71,6 +71,7 @@ describe("toolsVersions", () => {
   });
 
   test("reads yt-dlp version from stdout", async () => {
+    const setTimeoutSpy = jest.spyOn(global, "setTimeout");
     mockSpawn
       .mockImplementationOnce(() => createProc({ stdout: "2026.03.01\n" }))
       .mockImplementationOnce(() =>
@@ -82,6 +83,11 @@ describe("toolsVersions", () => {
     const versions = await getToolsVersions();
 
     expect(versions.ytDlp.version).toBe("2026.03.01");
+    expect(setTimeoutSpy).toHaveBeenNthCalledWith(
+      1,
+      expect.any(Function),
+      30_000,
+    );
     expect(mockSpawn).toHaveBeenCalledWith(
       "/tmp/tools/yt-dlp",
       ["--version"],

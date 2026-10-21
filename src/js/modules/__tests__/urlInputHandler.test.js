@@ -66,7 +66,6 @@ const buildDom = () => {
         </div>
         <div id="preview-actions" class="preview-card__actions preview-actions"></div>
         <div class="preview-card__controls">
-          <button id="preview-collapse" type="button" aria-expanded="true"></button>
           <button class="preview-close" type="button"></button>
         </div>
         <div id="preview-live-player" class="hidden">
@@ -945,6 +944,36 @@ describe("urlInputHandler", () => {
     expect(playButton?.getAttribute("aria-label")).toBe(
       "Открыть встроенный preview-плеер со звуком",
     );
+  });
+
+  test("shows preview overlay for an available background preview stream", async () => {
+    const { input } = getState();
+    const playButton = document.getElementById("preview-open-live");
+    const listener = jest.fn();
+    window.addEventListener("downloader:live-preview-open", listener);
+    getVideoInfoMock.mockResolvedValueOnce({
+      success: true,
+      title: "YouTube demo",
+      thumbnail: "https://example.com/thumb.jpg",
+      backgroundPreview: {
+        src: "https://example.com/video-preview.mp4",
+        mime: "video/mp4",
+        container: "mp4",
+      },
+    });
+
+    input.value = "https://www.youtube.com/watch?v=demo";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    jest.advanceTimersByTime(600);
+    await flushPromises();
+
+    expect(playButton?.classList).not.toContain("hidden");
+    playButton.click();
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect(listener.mock.calls[0][0].detail.preview.src).toBe(
+      "https://example.com/video-preview.mp4",
+    );
+    window.removeEventListener("downloader:live-preview-open", listener);
   });
 
   test("clicking live preview action dispatches explicit player-open event", async () => {
