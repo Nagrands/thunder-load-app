@@ -2,6 +2,7 @@
 
 const buildDom = () => {
   document.body.innerHTML = `
+    <div class="downloader-view">
     <div class="input-container">
       <div class="url-entry-shell">
         <div class="url-input-wrapper">
@@ -75,6 +76,7 @@ const buildDom = () => {
           </video>
         </div>
       </div>
+    </div>
     </div>
     <div id="download-quality-modal" class="modal-overlay" aria-hidden="true"></div>
   `;
@@ -685,6 +687,7 @@ describe("urlInputHandler", () => {
 
     expect(getVideoInfoMock).not.toHaveBeenCalled();
     expect(previewCard.style.display).toBe("none");
+    expect(document.querySelector(".downloader-view").classList.contains("has-preview")).toBe(false);
   });
 
   test("shows preview spinner while waiting and fetching preview", async () => {
@@ -835,6 +838,7 @@ describe("urlInputHandler", () => {
     expect(previewCard.style.display).not.toBe("none");
     expect(wrapper.classList.contains("has-preview")).toBe(true);
     expect(container.classList.contains("has-preview")).toBe(true);
+    expect(document.querySelector(".downloader-view").classList.contains("has-preview")).toBe(true);
     expect(clearDownloaderBackgroundPreviewMock).toHaveBeenCalled();
   });
 
@@ -1147,6 +1151,7 @@ describe("urlInputHandler", () => {
 
     previewCard.querySelector(".preview-close").click();
 
+    expect(document.querySelector(".downloader-view").classList.contains("has-preview")).toBe(false);
     expect(clearDownloaderBackgroundPreviewMock).toHaveBeenCalled();
     expect(hideDownloaderLivePreviewMock).toHaveBeenCalled();
   });

@@ -55,10 +55,14 @@ function initUrlInputHandler() {
 
   const inputContainer = document.querySelector(".input-container");
   const wrapperEl = document.querySelector(".url-input-wrapper");
+  const downloaderViewEl = document.querySelector(".downloader-view");
 
   const setStateClass = (className, enabled) => {
     wrapperEl?.classList.toggle(className, enabled);
     inputContainer?.classList.toggle(className, enabled);
+    if (className === "has-preview") {
+      downloaderViewEl?.classList.toggle(className, enabled);
+    }
   };
 
   const getIdleHelperKey = () => {
@@ -456,6 +460,7 @@ function initUrlInputHandler() {
       livePreviewOpen = false;
       card.style.display = "none";
       card.hidden = true;
+      card.classList.remove("visible");
       card.classList.remove("pos-top");
       setStateClass("has-preview", false);
       if (chooseItemsBtn) chooseItemsBtn.style.display = "none";
@@ -503,10 +508,11 @@ function initUrlInputHandler() {
       img.style.display = "none";
       img.hidden = true;
     }
-    card.style.display = data.title || data.thumbnail ? "" : "none";
-    card.hidden = !(data.title || data.thumbnail);
-    card.classList.add("visible");
-    setStateClass("has-preview", card.style.display !== "none");
+    const hasPreviewContent = Boolean(data.title || data.thumbnail);
+    card.style.display = hasPreviewContent ? "" : "none";
+    card.hidden = !hasPreviewContent;
+    card.classList.toggle("visible", hasPreviewContent);
+    setStateClass("has-preview", hasPreviewContent);
     updatePreviewDetails(data);
     const playablePreview = data.livePreview || data.backgroundPreview;
     currentLivePreview = playablePreview

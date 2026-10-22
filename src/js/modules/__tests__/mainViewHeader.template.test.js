@@ -13,15 +13,17 @@ describe("main view header template", () => {
     const dropZoneStart = template.indexOf('class="url-drop-zone"');
     const destinationStart = template.indexOf('class="download-destination"');
     const cardStart = template.indexOf('id="preview-card"');
+    const urlShellStart = template.indexOf('class="url-entry-shell"');
 
     expect(inputStart).toBeGreaterThan(-1);
     expect(rowStart).toBeGreaterThan(-1);
     expect(rowStart).toBeGreaterThan(inputStart);
     expect(dropZoneStart).toBeGreaterThan(rowStart);
     expect(destinationStart).toBeGreaterThan(rowStart);
-    expect(cardStart).toBeGreaterThan(dropZoneStart);
+    expect(cardStart).toBeGreaterThan(-1);
+    expect(cardStart).toBeLessThan(urlShellStart);
 
-    const redesignedShellHtml = template.slice(inputStart, cardStart);
+    const redesignedShellHtml = template.slice(urlShellStart);
 
     expect(redesignedShellHtml).toContain('id="url-helper-text"');
     expect(redesignedShellHtml).toContain('id="open-batch-review"');

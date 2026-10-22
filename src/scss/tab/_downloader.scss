@@ -100,7 +100,29 @@
 }
 
 .downloader-shell {
+  max-height: 640px;
   margin-bottom: 18px;
+  overflow: hidden;
+  opacity: 1;
+  transition:
+    max-height 320ms ease,
+    margin-bottom 320ms ease,
+    opacity 220ms ease,
+    visibility 0s linear 0s;
+  visibility: visible;
+}
+
+.downloader-view.has-preview .downloader-shell {
+  max-height: 0;
+  margin-bottom: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    max-height 320ms ease,
+    margin-bottom 320ms ease,
+    opacity 220ms ease,
+    visibility 0s linear 320ms;
+  visibility: hidden;
 }
 
 .downloader-shell-header {
