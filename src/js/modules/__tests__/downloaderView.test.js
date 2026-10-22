@@ -81,6 +81,14 @@ describe("downloaderView hero", () => {
       ),
     ).not.toBeNull();
     expect(wrapper.querySelector(".wg-glass > .downloads-toolbar")).toBeNull();
+    const urlWrapper = wrapper.querySelector(".url-input-wrapper--downloader");
+    const quickAccess = urlWrapper?.querySelector(":scope > .downloads-toolbar");
+    const historyContainer = urlWrapper?.querySelector(
+      ":scope > #history-container",
+    );
+    expect(historyContainer).not.toBeNull();
+    expect(quickAccess.nextElementSibling).toBe(historyContainer);
+    expect(wrapper.querySelector(".wg-glass > #history-container")).toBeNull();
     expect(wrapper.querySelector(".downloads-toolbar").getAttribute("aria-label")).toBe(
       "Quick access",
     );

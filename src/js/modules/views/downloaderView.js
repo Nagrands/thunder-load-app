@@ -128,7 +128,10 @@ export default function renderDownloader(wrapper) {
     }
     if (queueInfo) glass.appendChild(queueInfo);
     if (queueStart) glass.appendChild(queueStart);
-    if (historySection) glass.appendChild(historySection);
+    if (historySection) {
+      if (urlInputWrapper) urlInputWrapper.appendChild(historySection);
+      else glass.appendChild(historySection);
+    }
 
     center.appendChild(glass);
 
