@@ -150,6 +150,7 @@ function initUrlInputHandler() {
   const setPreviewLoading = (isLoading) => {
     wrapperEl?.classList.toggle("is-preview-loading", isLoading);
     setStateClass("is-preview-loading", isLoading);
+    if (isLoading) setStateClass("has-preview", false);
     if (previewSpinner) {
       previewSpinner.classList.toggle("hidden", !isLoading);
       previewSpinner.setAttribute("aria-hidden", isLoading ? "false" : "true");

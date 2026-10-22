@@ -28,6 +28,11 @@ describe("main view header template", () => {
     expect(redesignedShellHtml).toContain('id="url-helper-text"');
     expect(redesignedShellHtml).toContain('id="open-batch-review"');
     expect(redesignedShellHtml).toContain('id="download-destination-path"');
+    expect(redesignedShellHtml).toContain('class="url-input-secondary"');
+    expect(redesignedShellHtml).toContain('id="downloads-open-folder"');
+    expect(redesignedShellHtml).toContain('id="select-folder"');
+    expect(redesignedShellHtml).toContain('id="open-batch-review"');
+    expect(redesignedShellHtml).toContain('data-i18n-aria="batchReview.open"');
     expect(redesignedShellHtml).not.toContain("downloader-view-mode");
     expect(redesignedShellHtml).toContain('for="url"');
     expect(redesignedShellHtml).toContain('data-i18n="input.url.drop.title"');
@@ -67,6 +72,15 @@ describe("main view header template", () => {
     expect(footerHtml).toContain('id="download-button"');
     expect(template).not.toContain('id="open-last-video"');
     expect(template).not.toContain('id="open-folder"');
+
+    const generatedHtml = fs.readFileSync(
+      path.resolve(process.cwd(), "src/index.html"),
+      "utf8",
+    );
+    expect(generatedHtml.indexOf('id="preview-card"')).toBeLessThan(
+      generatedHtml.indexOf('class="url-entry-shell"'),
+    );
+    expect(generatedHtml).toContain('class="url-input-secondary"');
 
     const queueTemplate = fs.readFileSync(
       path.resolve(process.cwd(), "templates/partials/main-view/queue.njk"),

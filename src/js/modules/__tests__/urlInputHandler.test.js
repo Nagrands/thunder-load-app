@@ -821,7 +821,7 @@ describe("urlInputHandler", () => {
     expect(container.classList.contains("drag-over")).toBe(false);
   });
 
-  test("marks shell as having preview when preview data is rendered", async () => {
+  test("marks downloader view as having preview when data is rendered", async () => {
     const { input, wrapper, container, previewCard } = getState();
     getVideoInfoMock.mockResolvedValueOnce({
       success: true,
@@ -838,8 +838,45 @@ describe("urlInputHandler", () => {
     expect(previewCard.style.display).not.toBe("none");
     expect(wrapper.classList.contains("has-preview")).toBe(true);
     expect(container.classList.contains("has-preview")).toBe(true);
-    expect(document.querySelector(".downloader-view").classList.contains("has-preview")).toBe(true);
+    expect(
+      document
+        .querySelector(".downloader-view")
+        .classList.contains("has-preview"),
+    ).toBe(true);
     expect(clearDownloaderBackgroundPreviewMock).toHaveBeenCalled();
+  });
+
+  test("expands URL controls again while loading a new preview", async () => {
+    const { input } = getState();
+    getVideoInfoMock.mockResolvedValueOnce({
+      success: true,
+      title: "First video",
+      thumbnail: "https://example.com/first.jpg",
+    });
+
+    input.value = "https://example.com/first";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    jest.advanceTimersByTime(600);
+    await flushPromises();
+    expect(
+      document
+        .querySelector(".downloader-view")
+        .classList.contains("has-preview"),
+    ).toBe(true);
+
+    input.value = "https://example.com/second";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+
+    expect(
+      document
+        .querySelector(".downloader-view")
+        .classList.contains("has-preview"),
+    ).toBe(false);
+    expect(
+      document
+        .querySelector(".url-input-wrapper")
+        .classList.contains("is-preview-loading"),
+    ).toBe(true);
   });
 
   test("enables downloader background video for YouTube preview candidates", async () => {

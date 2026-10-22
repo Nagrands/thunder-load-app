@@ -7,16 +7,17 @@
   }
 
   .url-input-wrapper--downloader {
-    gap: 12px;
-    border-radius: 20px;
-    border-color: rgba(var(--color-accent-rgb), 0.22);
-    background:
-      radial-gradient(
-        72% 120% at 0% 0%,
-        rgba(var(--color-accent-rgb), 0.09),
-        transparent 62%
-      ),
-      linear-gradient(145deg, rgba(8, 16, 31, 0.96), rgba(6, 12, 24, 0.92));
+    gap: 6px;
+    padding: 8px;
+    border-radius: 15px;
+    border-color: rgba(var(--color-accent-rgb), 0.16);
+    background: rgba(7, 13, 24, 0.68);
+    box-shadow: none;
+    transition:
+      gap 180ms ease,
+      padding 180ms ease,
+      border-color 180ms ease,
+      background-color 180ms ease;
 
     &:focus-within {
       border-color: rgba(var(--color-accent-rgb), 0.46);
@@ -30,46 +31,185 @@
   }
 
   .url-input-main {
-    gap: 8px;
-    min-height: 58px;
-    padding: 6px;
-    border-radius: 14px;
-    border: 1px solid rgba(153, 189, 235, 0.2);
-    background: rgba(5, 11, 23, 0.72);
+    gap: 6px;
+    min-height: 44px;
+    padding: 2px;
+    border-radius: 11px;
+    border: 1px solid rgba(153, 189, 235, 0.12);
+    background: rgba(5, 11, 23, 0.48);
+    transition:
+      min-height 180ms ease,
+      border-color 180ms ease,
+      background-color 180ms ease;
   }
 
   .url-input-leading {
-    min-width: 46px;
+    min-width: 34px;
   }
 
   .url-input-leading__icon {
-    width: 46px;
-    height: 46px;
-    border-radius: 11px;
-    background: rgba(var(--color-accent-rgb), 0.07);
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    background: transparent;
+  }
+
+  .url-input-leading__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 
   .url-input-field {
-    min-height: 46px;
-    padding: 0 10px;
+    min-height: 36px;
+    padding: 0 8px;
     border: 0;
     background: transparent;
   }
 
+  .url-input-field:focus-within {
+    box-shadow: none;
+  }
+
+  .url-input-field input {
+    min-width: 0;
+    min-height: 36px;
+    padding: 0;
+    background: transparent;
+    font-size: 0.88rem;
+  }
+
   .button-grid {
     flex-wrap: nowrap;
-    gap: 6px;
+    gap: 2px;
   }
 
   .paste-button,
   .clear-button {
-    min-width: 44px;
-    min-height: 44px;
-    border-radius: 11px;
+    width: 34px;
+    min-width: 34px;
+    min-height: 34px;
+    padding: 0;
+    border-radius: 9px;
+  }
+
+  .paste-button span,
+  .clear-button span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .url-input-secondary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    min-width: 0;
+    padding-inline: 4px;
+    transition:
+      gap 180ms ease,
+      min-height 180ms ease,
+      padding 180ms ease;
   }
 
   .url-input-service-row {
-    padding-inline: 2px;
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 0;
+  }
+
+  .url-input-statusline {
+    min-width: 0;
+    gap: 7px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    font-size: 0.72rem;
+  }
+
+  .url-input-statusline__dot {
+    width: 6px;
+    height: 6px;
+    flex: 0 0 auto;
+  }
+
+  .url-helper-text {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .download-destination {
+    display: flex;
+    flex: 0 1 auto;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    min-height: 30px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+
+  .download-destination__icon {
+    width: 24px;
+    height: 24px;
+    flex: 0 0 auto;
+    border: 0;
+  }
+
+  .download-destination__meta {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .download-destination__label {
+    display: none;
+  }
+
+  .download-destination__path {
+    max-width: min(32vw, 280px);
+    font-size: 0.7rem;
+  }
+
+  .download-destination__actions {
+    flex: 0 0 auto;
+    gap: 4px;
+  }
+
+  .download-destination__open,
+  .download-destination__change,
+  .url-input-service-row__batch {
+    min-height: 30px;
+    border-radius: 8px;
+    font-size: 0.68rem;
+  }
+
+  .download-destination__open {
+    width: 30px;
+    min-width: 30px;
+    height: 30px;
+  }
+
+  .download-destination__change {
+    gap: 6px;
+    padding: 0 9px;
+  }
+
+  .url-input-service-row__batch {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 9px;
+    white-space: nowrap;
   }
 
   .url-drop-zone {
@@ -84,6 +224,54 @@
     border: 1px dashed rgba(137, 178, 229, 0.3);
     background: rgba(4, 10, 21, 0.34);
     text-align: center;
+  }
+
+  .url-input-wrapper--downloader.has-preview {
+    gap: 4px;
+    padding: 6px;
+
+    .url-input-main {
+      min-height: 40px;
+    }
+
+    .url-input-secondary {
+      justify-content: flex-end;
+      min-height: 30px;
+    }
+
+    .url-input-service-row,
+    .download-destination__icon,
+    .url-input-action-label {
+      display: none;
+    }
+
+    .download-destination__meta {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .download-destination {
+      flex: 0 0 auto;
+    }
+
+    .download-destination__open,
+    .download-destination__change,
+    .url-input-service-row__batch {
+      width: 30px;
+      min-width: 30px;
+      height: 30px;
+      padding: 0;
+      justify-content: center;
+      border: 1px solid rgba(150, 185, 228, 0.12);
+      background: rgba(255, 255, 255, 0.035);
+      color: rgba(220, 232, 250, 0.76);
+    }
   }
 
 }

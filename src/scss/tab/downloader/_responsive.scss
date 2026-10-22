@@ -31,6 +31,22 @@
   }
 }
 
+@container downloader-preview (max-width: 600px) {
+  .downloader-view .url-input-wrapper--downloader .url-input-secondary {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .downloader-view .url-input-wrapper--downloader .url-input-service-row {
+    flex: 1 1 100%;
+  }
+
+  .downloader-view .url-input-wrapper--downloader .download-destination {
+    flex: 1 1 100%;
+    justify-content: space-between;
+  }
+}
+
 @container downloader-preview (max-width: 720px) {
   .download-destination {
     gap: 8px;
@@ -83,7 +99,9 @@
 
 @media (prefers-reduced-motion: reduce) {
   .downloader-view .url-input-wrapper--downloader,
-  .downloader-view .url-drop-zone {
+  .downloader-view .url-drop-zone,
+  .downloader-view .url-input-main,
+  .downloader-view .url-input-secondary {
     transition: none;
   }
 }
