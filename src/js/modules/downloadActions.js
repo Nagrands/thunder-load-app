@@ -135,8 +135,16 @@ async function initDownloadActions() {
     if (openLastVideoButton) openLastVideoButton.disabled = false;
   });
   initDownloadButton();
-  // Обработчик открытия папки загрузок
-  openFolderButton.addEventListener("click", handleOpenFolder);
+  // Открытие папки по нажатию на область назначения; вложенные действия работают отдельно.
+  openFolderButton.addEventListener("click", (event) => {
+    if (event.target.closest("button")) return;
+    handleOpenFolder();
+  });
+  openFolderButton.addEventListener("keydown", (event) => {
+    if (event.target !== openFolderButton || !["Enter", " "].includes(event.key)) return;
+    event.preventDefault();
+    handleOpenFolder();
+  });
 
   // Обработчик открытия последнего видео
   openLastVideoButton.addEventListener("click", async () => {

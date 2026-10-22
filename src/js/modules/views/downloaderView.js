@@ -18,6 +18,7 @@ export default function renderDownloader(wrapper) {
     const find = (sel) => wrapper.querySelector(sel);
 
     const headerEl = find("header");
+    const urlInputWrapper = find(".url-input-wrapper--downloader");
     const buttonGroup = find("nav.button-group");
     const historySection = find("#history-container");
     const downloadsToolbar = find(".downloads-toolbar");
@@ -121,7 +122,10 @@ export default function renderDownloader(wrapper) {
     if (buttonGroup && !headerEl?.contains(buttonGroup)) {
       glass.appendChild(buttonGroup);
     }
-    if (downloadsToolbar) glass.appendChild(downloadsToolbar);
+    if (downloadsToolbar) {
+      if (urlInputWrapper) urlInputWrapper.appendChild(downloadsToolbar);
+      else glass.appendChild(downloadsToolbar);
+    }
     if (queueInfo) glass.appendChild(queueInfo);
     if (queueStart) glass.appendChild(queueStart);
     if (historySection) glass.appendChild(historySection);

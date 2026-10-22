@@ -213,25 +213,13 @@
             </div>
           </div>
 
-          <div class="download-destination" data-ui="download-destination">
+          <div class="download-destination" data-ui="download-destination" role="button" tabindex="0" aria-label="Открыть папку с видео" data-i18n-aria="actions.openFolder" title="Открыть папку с видео" data-i18n-title="actions.videoFolder">
             <span class="download-destination__icon" aria-hidden="true"><i class="fa-regular fa-folder-open"></i></span>
             <span class="download-destination__meta">
               <span class="download-destination__label" data-i18n="downloader.destination.label">Сохранить в</span>
               <strong id="download-destination-path" class="download-destination__path" data-i18n="downloader.destination.loading">Загрузка пути…</strong>
             </span>
             <span class="download-destination__actions">
-              <button
-                id="downloads-open-folder"
-                data-shortcut-action="downloads.folder.open"
-                type="button"
-                class="download-destination__open"
-                aria-label="Открыть папку с видео"
-                data-i18n-aria="actions.openFolder"
-                title="Папка с видео"
-                data-i18n-title="actions.videoFolder"
-              >
-                <i data-lucide="folder-open" aria-hidden="true"></i>
-              </button>
               <button id="select-folder" type="button" class="download-destination__change" aria-label="Изменить папку загрузки" data-i18n-aria="downloader.destination.change" title="Изменить папку загрузки" data-i18n-title="downloader.destination.change">
                 <i class="fa-solid fa-folder-open" aria-hidden="true"></i><span class="url-input-action-label" data-i18n="downloader.destination.change">Изменить</span>
               </button>

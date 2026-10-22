@@ -6,10 +6,8 @@ const initTooltipsMock = jest.fn();
 
 function buildDom() {
   document.body.innerHTML = `
-    <button id="open-folder"></button>
+    <div data-ui="download-destination"><button id="select-folder"></button><strong id="download-destination-path"></strong></div>
     <button id="open-last-video"></button>
-    <button id="select-folder"></button>
-    <strong id="download-destination-path"></strong>
   `;
 }
 
@@ -36,7 +34,7 @@ describe("downloadActions", () => {
 
   async function loadModule() {
     jest.doMock("../domElements.js", () => ({
-      openFolderButton: document.getElementById("open-folder"),
+      openFolderButton: document.querySelector('[data-ui="download-destination"]'),
       openLastVideoButton: document.getElementById("open-last-video"),
       selectFolderButton: document.getElementById("select-folder"),
     }));
@@ -80,13 +78,41 @@ describe("downloadActions", () => {
     const { initDownloadActions } = await loadModule();
 
     initDownloadActions();
-    document.getElementById("open-folder").click();
+    document.querySelector('[data-ui="download-destination"]').click();
     await Promise.resolve();
 
     expect(showToastMock).toHaveBeenCalledWith(
       "Could not determine the downloads folder.",
       "warning",
     );
+  });
+
+  test("opens the downloads folder when the destination area is clicked", async () => {
+    const { initDownloadActions } = await loadModule();
+
+    initDownloadActions();
+    document.querySelector('[data-ui="download-destination"]').click();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(window.electron.invoke).toHaveBeenCalledWith("get-download-path");
+    expect(window.electron.invoke).toHaveBeenCalledWith(
+      "open-download-folder",
+      "/tmp/downloads",
+    );
+  });
+
+  test("clicking the folder selection action does not open the destination", async () => {
+    const { initDownloadActions } = await loadModule();
+
+    initDownloadActions();
+    document.getElementById("select-folder").click();
+    await Promise.resolve();
+
+    expect(window.electron.invoke).toHaveBeenCalledWith("select-download-folder");
+    expect(
+      window.electron.invoke.mock.calls.some(([channel]) => channel === "open-download-folder"),
+    ).toBe(false);
   });
 
   test("shows warning when last downloaded file path is missing", async () => {

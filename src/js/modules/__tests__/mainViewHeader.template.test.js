@@ -29,7 +29,8 @@ describe("main view header template", () => {
     expect(redesignedShellHtml).toContain('id="open-batch-review"');
     expect(redesignedShellHtml).toContain('id="download-destination-path"');
     expect(redesignedShellHtml).toContain('class="url-input-secondary"');
-    expect(redesignedShellHtml).toContain('id="downloads-open-folder"');
+    expect(redesignedShellHtml).toContain('data-ui="download-destination"');
+    expect(redesignedShellHtml).not.toContain('id="downloads-open-folder"');
     expect(redesignedShellHtml).toContain('id="select-folder"');
     expect(redesignedShellHtml).toContain('id="open-batch-review"');
     expect(redesignedShellHtml).toContain('data-i18n-aria="batchReview.open"');
@@ -91,7 +92,7 @@ describe("main view header template", () => {
     expect(queueTemplate).toContain('data-i18n="actions.cancelDownload.short"');
     expect(queueTemplate).toContain('id="download-cancel-count"');
     expect(queueTemplate).not.toContain('id="open-folder"');
-    expect(template).toContain('id="downloads-open-folder"');
+    expect(template).not.toContain('id="downloads-open-folder"');
 
     const mainViewTemplate = fs.readFileSync(
       path.resolve(process.cwd(), "templates/partials/main-view.njk"),

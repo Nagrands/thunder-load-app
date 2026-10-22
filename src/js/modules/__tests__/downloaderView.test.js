@@ -9,15 +9,17 @@ const buildWrapper = () => {
     <header>
       <div class="input-container">
         <div class="url-entry-shell">
-          <div class="url-input-wrapper">
+          <div class="url-input-wrapper url-input-wrapper--downloader">
           </div>
         </div>
       </div>
     </header>
-    <section class="downloads-toolbar">
-      <strong>Downloads</strong>
+    <section class="downloads-toolbar" aria-label="Quick access">
+      <div class="downloads-toolbar__title"><strong>Downloads</strong></div>
+      <div class="downloads-toolbar__actions">
       <button id="open-last-video"></button>
       <button id="open-folder"></button>
+      </div>
     </section>
     <div id="download-queue-info" class="download-queue-info hidden"></div>
     <div id="queue-start-indicator" class="queue-start-indicator hidden"></div>
@@ -37,7 +39,7 @@ describe("downloaderView hero", () => {
     localStorage.clear();
   });
 
-  test("builds illustrated hero with separate status row and preserved ids", () => {
+  test("builds illustrated hero with integrated quick access and preserved ids", () => {
     const { wrapper } = buildWrapper();
 
     renderDownloader(wrapper);
@@ -73,6 +75,15 @@ describe("downloaderView hero", () => {
       wrapper.querySelector("#downloader-media-inspector-slot"),
     ).toBeNull();
     expect(wrapper.querySelector(".downloads-toolbar")).not.toBeNull();
+    expect(
+      wrapper.querySelector(
+        ".url-input-wrapper--downloader > .downloads-toolbar",
+      ),
+    ).not.toBeNull();
+    expect(wrapper.querySelector(".wg-glass > .downloads-toolbar")).toBeNull();
+    expect(wrapper.querySelector(".downloads-toolbar").getAttribute("aria-label")).toBe(
+      "Quick access",
+    );
     expect(
       wrapper.querySelector(".downloads-toolbar #open-last-video"),
     ).not.toBeNull();
