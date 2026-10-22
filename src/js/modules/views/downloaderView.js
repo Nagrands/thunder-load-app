@@ -122,12 +122,18 @@ export default function renderDownloader(wrapper) {
     if (buttonGroup && !headerEl?.contains(buttonGroup)) {
       glass.appendChild(buttonGroup);
     }
+    if (queueInfo) {
+      if (urlInputWrapper) urlInputWrapper.appendChild(queueInfo);
+      else glass.appendChild(queueInfo);
+    }
+    if (queueStart) {
+      if (urlInputWrapper) urlInputWrapper.appendChild(queueStart);
+      else glass.appendChild(queueStart);
+    }
     if (downloadsToolbar) {
       if (urlInputWrapper) urlInputWrapper.appendChild(downloadsToolbar);
       else glass.appendChild(downloadsToolbar);
     }
-    if (queueInfo) glass.appendChild(queueInfo);
-    if (queueStart) glass.appendChild(queueStart);
     if (historySection) {
       if (urlInputWrapper) urlInputWrapper.appendChild(historySection);
       else glass.appendChild(historySection);

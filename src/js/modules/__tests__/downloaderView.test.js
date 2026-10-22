@@ -21,7 +21,11 @@ const buildWrapper = () => {
       <button id="open-folder"></button>
       </div>
     </section>
-    <div id="download-queue-info" class="download-queue-info hidden"></div>
+    <div id="download-queue-info" class="download-queue-info hidden">
+      <button id="queue-start-button"></button>
+      <button id="queue-pause-button"></button>
+      <button id="queue-clear-button"></button>
+    </div>
     <div id="queue-start-indicator" class="queue-start-indicator hidden"></div>
     <section id="history-container">
       <div class="history-toolbar"></div>
@@ -82,13 +86,21 @@ describe("downloaderView hero", () => {
     ).not.toBeNull();
     expect(wrapper.querySelector(".wg-glass > .downloads-toolbar")).toBeNull();
     const urlWrapper = wrapper.querySelector(".url-input-wrapper--downloader");
+    const queueInfo = urlWrapper?.querySelector(":scope > #download-queue-info");
+    const queueStart = urlWrapper?.querySelector(":scope > #queue-start-indicator");
     const quickAccess = urlWrapper?.querySelector(":scope > .downloads-toolbar");
-    const historyContainer = urlWrapper?.querySelector(
-      ":scope > #history-container",
-    );
+    const historyContainer = urlWrapper?.querySelector(":scope > #history-container");
+    expect(queueInfo).not.toBeNull();
+    expect(queueStart).not.toBeNull();
+    expect(queueInfo.closest(".url-input-wrapper--downloader")).toBe(urlWrapper);
+    expect(queueInfo.querySelector("#queue-start-button")).not.toBeNull();
+    expect(queueInfo.querySelector("#queue-pause-button")).not.toBeNull();
+    expect(queueInfo.querySelector("#queue-clear-button")).not.toBeNull();
+    expect(queueInfo.nextElementSibling).toBe(queueStart);
+    expect(queueStart.nextElementSibling).toBe(quickAccess);
     expect(historyContainer).not.toBeNull();
     expect(quickAccess.nextElementSibling).toBe(historyContainer);
-    expect(wrapper.querySelector(".wg-glass > #history-container")).toBeNull();
+    expect(wrapper.querySelector(".wg-glass > #download-queue-info")).toBeNull();
     expect(wrapper.querySelector(".downloads-toolbar").getAttribute("aria-label")).toBe(
       "Quick access",
     );
