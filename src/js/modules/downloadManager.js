@@ -2321,8 +2321,18 @@ function initDownloadButton() {
       if (action === "menu") {
         const index = findPendingQueueIndex(actionJobId);
         const total = getPendingDownloadJobs(state).length;
+        const task = findDownloadJob(state, actionJobId);
+        const title =
+          String(task?.title || "").trim() ||
+          makeQueueTitle(task?.url) ||
+          makeQueueUrlLabel(task?.url);
         queueActionMenu?.open(
-          { jobId: actionJobId, isFirst: index === 0, isLast: index === total - 1 },
+          {
+            jobId: actionJobId,
+            title,
+            isFirst: index === 0,
+            isLast: index === total - 1,
+          },
           actionButton,
           { x: actionButton.getBoundingClientRect().right, y: actionButton.getBoundingClientRect().bottom },
         );

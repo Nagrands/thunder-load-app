@@ -38,6 +38,7 @@ function createActionMenu({
   dataUi = "action-menu",
   headerKey = "",
   header = "",
+  resolveHeader,
   onAction,
   resolveItemState,
   renderIcon,
@@ -57,12 +58,13 @@ function createActionMenu({
   menu.hidden = true;
 
   const headerText = headerKey ? t(headerKey) : header;
+  let headerLabel = null;
   if (headerText) {
     const headerElement = document.createElement("div");
     headerElement.className = "action-menu__header";
     headerElement.id = `${instanceId}-title`;
     headerElement.setAttribute("role", "presentation");
-    const headerLabel = document.createElement("span");
+    headerLabel = document.createElement("span");
     headerLabel.className = "action-menu__header-label";
     if (headerKey) headerLabel.dataset.i18n = headerKey;
     headerLabel.textContent = headerText;
@@ -126,6 +128,10 @@ function createActionMenu({
     close();
     context = nextContext;
     trigger = nextTrigger;
+    if (headerLabel) {
+      headerLabel.textContent = resolveHeader?.(context) || headerText;
+      headerLabel.removeAttribute("data-i18n");
+    }
     items.forEach((item) => {
       const button = menu.querySelector(`[data-action="${item.id}"]`);
       const state = resolveItemState?.(item, context) || {};
@@ -151,6 +157,7 @@ function createActionMenu({
   function handleDocumentClick(event) {
     const item = event.target.closest?.("[data-action]");
     if (item && menu.contains(item)) {
+      if (item.hidden || item.disabled) return;
       const action = item.dataset.action;
       const actionContext = context;
       close();

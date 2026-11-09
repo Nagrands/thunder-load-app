@@ -69,13 +69,15 @@ function getMenuItems() {
 }
 
 function getEnabledMenuItems() {
-  return getMenuItems().filter((item) => !item.disabled);
+  return getMenuItems().filter((item) => !item.hidden && !item.disabled);
 }
 
-function setMenuItemDisabled(item, disabled) {
+function setMenuItemAvailable(item, available) {
   if (!item) return;
-  item.disabled = Boolean(disabled);
-  item.setAttribute("aria-disabled", disabled ? "true" : "false");
+  item.hidden = !available;
+  item.disabled = false;
+  item.setAttribute("aria-hidden", available ? "false" : "true");
+  item.setAttribute("aria-disabled", "false");
 }
 
 function focusMenuItem(item) {
@@ -163,9 +165,15 @@ async function showContextMenu(event, logEntry) {
   for (const menuItem of getMenuItems()) {
     const commandId = getHistoryCommandByContextId(menuItem.id);
     if (!commandId) continue;
-    setMenuItemDisabled(
+    setMenuItemAvailable(
       menuItem,
-      !isHistoryCommandAvailable(commandId, entry, { fileExists }),
+      isHistoryCommandAvailable(commandId, entry, { fileExists }),
+    );
+  }
+  const separator = contextMenu.querySelector(".context-menu__separator");
+  if (separator) {
+    separator.hidden = !["open-video", "open-folder", "open-site"].some(
+      (id) => !contextMenu.querySelector(`#${id}`)?.hidden,
     );
   }
 
@@ -238,7 +246,9 @@ async function handleContextMenuClick(event) {
   const targetElement = event.target;
   const menuItem = targetElement.closest("button[role='menuitem']");
 
-  if (!menuItem || menuItem.disabled || !currentLogEntry) return;
+  if (!menuItem || menuItem.hidden || menuItem.disabled || !currentLogEntry) {
+    return;
+  }
 
   const action = getHistoryCommandByContextId(menuItem.id);
   const { filePath } = getEntryData(currentLogEntry);

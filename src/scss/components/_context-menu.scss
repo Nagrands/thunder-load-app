@@ -33,6 +33,10 @@
   animation: context-menu-in 150ms ease-out;
   transform-origin: top left;
 
+  [hidden] {
+    display: none !important;
+  }
+
   &::before {
     position: absolute;
     inset: 0 14px auto;

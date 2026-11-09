@@ -18886,6 +18886,9 @@ hr {
   animation: context-menu-in 150ms ease-out;
   transform-origin: top left;
 }
+.context-menu [hidden] {
+  display: none !important;
+}
 .context-menu::before {
   position: absolute;
   inset: 0 14px auto;
@@ -26376,6 +26379,7 @@ video {
   max-width: min(288px, 100vw - 24px);
   max-height: min(420px, 100vh - 24px);
   padding: 8px;
+  overflow-x: hidden;
   overflow-y: auto;
   border: 1px solid var(--queue-menu-border);
   border-radius: 14px;
@@ -26388,6 +26392,9 @@ video {
   scrollbar-color: rgba(var(--color-accent-rgb), 0.34) transparent;
 }
 .queue-action-menu[hidden] {
+  display: none;
+}
+.queue-action-menu button[hidden] {
   display: none;
 }
 .queue-action-menu::before {
@@ -26420,6 +26427,20 @@ video {
   font-weight: 750;
   letter-spacing: 0.1em;
   text-transform: uppercase;
+}
+.queue-action-menu .action-menu__header .action-menu__header-label {
+  flex: 1 1 0%;
+  width: 0;
+  max-width: 190px;
+  min-width: 0;
+  overflow: hidden;
+  color: rgba(235, 244, 255, 0.82);
+  font-size: 0.76rem;
+  font-weight: 650;
+  letter-spacing: 0;
+  text-overflow: ellipsis;
+  text-transform: none;
+  white-space: nowrap;
 }
 .queue-action-menu .action-menu__header::before {
   width: 6px;

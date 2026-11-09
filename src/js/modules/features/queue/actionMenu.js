@@ -28,6 +28,7 @@ function createQueueActionMenu({ root, onAction }) {
     className: "queue-action-menu action-menu",
     dataUi: "queue-action-menu",
     headerKey: "queue.menu.title",
+    resolveHeader: (context) => context?.title,
     items: ITEMS.map(([id, icon, labelKey, descriptionKey]) => ({
       id,
       icon,
@@ -39,7 +40,7 @@ function createQueueActionMenu({ root, onAction }) {
     renderIcon: (item) =>
       `<i data-lucide="${item.icon}" aria-hidden="true"></i>`,
     resolveItemState: (item, context) => ({
-      disabled:
+      hidden:
         (item.id === "move-top" && context?.isFirst) ||
         (item.id === "move-bottom" && context?.isLast),
     }),

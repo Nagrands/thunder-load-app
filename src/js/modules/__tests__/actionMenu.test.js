@@ -1,4 +1,5 @@
 import { createActionMenu } from "../actionMenu.js";
+import { createQueueActionMenu } from "../features/queue/actionMenu.js";
 
 describe("action menu", () => {
   test("supports dynamic state, keyboard navigation and focus restoration", () => {
@@ -27,6 +28,69 @@ describe("action menu", () => {
     );
     expect(controller.element.hidden).toBe(true);
     expect(document.activeElement).toBe(trigger);
+    controller.dispose();
+  });
+
+  test("hides unavailable items and skips them when dispatching actions", () => {
+    document.body.innerHTML = '<main id="root"><button id="trigger">Menu</button></main>';
+    const root = document.getElementById("root");
+    root.getBoundingClientRect = () => ({ left: 0, top: 0, width: 500, height: 400 });
+    const onAction = jest.fn();
+    const controller = createActionMenu({
+      root,
+      items: [
+        { id: "unavailable", label: "Unavailable" },
+        { id: "available", label: "Available" },
+      ],
+      resolveItemState: (item) => ({ hidden: item.id === "unavailable" }),
+      onAction,
+    });
+
+    controller.open({}, document.getElementById("trigger"));
+    const unavailable = controller.element.querySelector(
+      '[data-action="unavailable"]',
+    );
+    expect(unavailable.hidden).toBe(true);
+    expect(document.activeElement.dataset.action).toBe("available");
+
+    unavailable.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(onAction).not.toHaveBeenCalled();
+    controller.dispose();
+  });
+
+  test("hides queue moves that cannot change the current position", () => {
+    document.body.innerHTML = '<main id="root"><button id="trigger">Menu</button></main>';
+    const root = document.getElementById("root");
+    root.getBoundingClientRect = () => ({ left: 0, top: 0, width: 500, height: 400 });
+    const controller = createQueueActionMenu({ root, onAction: jest.fn() });
+
+    controller.open(
+      { title: "Example video", isFirst: true, isLast: false },
+      document.getElementById("trigger"),
+    );
+    expect(
+      controller.element.querySelector(".action-menu__header-label").textContent,
+    ).toBe("Example video");
+    expect(
+      controller.element.querySelector('[data-action="move-top"]').hidden,
+    ).toBe(true);
+    expect(
+      controller.element.querySelector('[data-action="move-bottom"]').hidden,
+    ).toBe(false);
+
+    controller.open(
+      { title: "Second video", isFirst: false, isLast: true },
+      document.getElementById("trigger"),
+    );
+    expect(
+      controller.element.querySelector(".action-menu__header-label").textContent,
+    ).toBe("Second video");
+    expect(
+      controller.element.querySelector('[data-action="move-top"]').hidden,
+    ).toBe(false);
+    expect(
+      controller.element.querySelector('[data-action="move-bottom"]').hidden,
+    ).toBe(true);
     controller.dispose();
   });
 

@@ -244,7 +244,7 @@ describe("context menu UI", () => {
     expect(menu.style.display).toBe("none");
   });
 
-  test("does not execute disabled menu item", async () => {
+  test("hides and does not execute unavailable menu items", async () => {
     window.electron.invoke.mockImplementation(async (channel) => {
       if (channel === "check-file-exists") return false;
       return null;
@@ -256,7 +256,9 @@ describe("context menu UI", () => {
     await openContextMenuOnEntry();
 
     const openVideo = document.getElementById("open-video");
-    expect(openVideo.disabled).toBe(true);
+    expect(openVideo.hidden).toBe(true);
+    expect(document.getElementById("delete-file").hidden).toBe(true);
+    expect(document.getElementById("delete-entry").hidden).toBe(false);
 
     openVideo.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     await flush();
