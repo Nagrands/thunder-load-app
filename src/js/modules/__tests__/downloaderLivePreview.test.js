@@ -28,6 +28,7 @@ describe("downloaderLivePreview", () => {
           <video id="preview-live-video" controls tabindex="0">
             <source id="preview-live-video-source" />
           </video>
+          <audio id="preview-live-audio" class="hidden" controls hidden></audio>
         </div>
       </div>
     `;
@@ -126,6 +127,25 @@ describe("downloaderLivePreview", () => {
     expect(document.body.classList.contains("modal-scroll-lock")).toBe(false);
     expect(source.getAttribute("src")).toBeNull();
     expect(pauseMock).toHaveBeenCalled();
+  });
+
+  test("uses a separate audio control when preview streams are split", async () => {
+    api.initDownloaderLivePreview();
+    await api.openDownloaderLivePreview({
+      src: "https://cdn.example.com/video.mp4",
+      mime: "video/mp4",
+      audioSrc: "https://cdn.example.com/audio.m4a",
+      audioMime: "audio/mp4",
+    });
+
+    const video = document.getElementById("preview-live-video");
+    const audio = document.getElementById("preview-live-audio");
+    expect(video.controls).toBe(false);
+    expect(video.muted).toBe(true);
+    expect(audio.hidden).toBe(false);
+    expect(audio.getAttribute("src")).toBe("https://cdn.example.com/audio.m4a");
+    expect(audio.volume).toBe(1);
+    expect(playMock).toHaveBeenCalledTimes(2);
   });
 
   test("closes modal on Escape and returns focus to opener", async () => {

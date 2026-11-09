@@ -13,6 +13,7 @@ import {
 import { updateButtonState } from "./state.js";
 import { isDownloaderAvailable } from "./downloaderAvailability.js";
 import { t } from "./i18n.js";
+import { showToast } from "./toast.js";
 import { formatDownloadErrorToast } from "./downloadErrorUi.js";
 import {
   RECOVERY_EVENT,
@@ -143,6 +144,7 @@ function initUrlInputHandler() {
   let backgroundRecoveryInFlight = false;
   let livePreviewButton = null;
   let currentLivePreview = null;
+  let currentLivePreviewNeedsAudioResolve = false;
   let livePreviewOpen = false;
   let fullInfoWarmupTimer = null;
   let fullInfoWarmupUrl = "";
@@ -382,6 +384,60 @@ function initUrlInputHandler() {
       : {}),
   });
 
+  const dispatchLivePreview = (preview) => {
+    window.dispatchEvent(
+      new CustomEvent(LIVE_PREVIEW_PLAY_EVENT, {
+        detail: {
+          preview,
+          options: buildLivePreviewOptions(preview, {
+            pageUrl: urlInput.value.trim(),
+          }),
+        },
+      }),
+    );
+  };
+
+  const openCurrentLivePreview = async () => {
+    if (!currentLivePreview?.src) return;
+    let preview = currentLivePreview;
+
+    if (currentLivePreviewNeedsAudioResolve) {
+      const requestedUrl = normalizeUrlInput(urlInput.value).trim();
+      if (!requestedUrl) return;
+      livePreviewButton.disabled = true;
+      livePreviewButton.setAttribute("aria-busy", "true");
+      try {
+        const fullInfo = await getVideoInfo(requestedUrl);
+        if (normalizeUrlInput(urlInput.value).trim() !== requestedUrl) return;
+        if (!fullInfo?.success || !fullInfo.livePreview?.src) {
+          showToast(t("input.url.preview.audioUnavailable"), "warning");
+          return;
+        }
+
+        preview = {
+          ...fullInfo.livePreview,
+          pageUrl:
+            fullInfo.webpage_url || fullInfo.original_url || requestedUrl,
+          title: fullInfo.title || currentLivePreview.title || "",
+          source: detectPreviewHost(fullInfo),
+          duration: fullInfo.duration
+            ? durationToStr(fullInfo.duration)
+            : currentLivePreview.duration || "",
+        };
+        currentLivePreview = preview;
+        currentLivePreviewNeedsAudioResolve = false;
+      } catch {
+        showToast(t("input.url.preview.audioUnavailable"), "warning");
+        return;
+      } finally {
+        livePreviewButton.disabled = false;
+        livePreviewButton.removeAttribute("aria-busy");
+      }
+    }
+
+    dispatchLivePreview(preview);
+  };
+
   const syncLivePreviewButton = () => {
     if (!livePreviewButton) {
       livePreviewButton = document.getElementById("preview-open-live");
@@ -428,18 +484,7 @@ function initUrlInputHandler() {
       "title",
       t("input.url.preview.openLiveTitle"),
     );
-    livePreviewButton.onclick = () => {
-      window.dispatchEvent(
-        new CustomEvent(LIVE_PREVIEW_PLAY_EVENT, {
-          detail: {
-            preview: currentLivePreview,
-            options: buildLivePreviewOptions(currentLivePreview, {
-              pageUrl: urlInput.value.trim(),
-            }),
-          },
-        }),
-      );
-    };
+    livePreviewButton.onclick = () => void openCurrentLivePreview();
   };
 
   const renderPreview = (data) => {
@@ -458,6 +503,7 @@ function initUrlInputHandler() {
     livePreviewButton = document.getElementById("preview-open-live");
     if (!data || !data.success) {
       currentLivePreview = null;
+      currentLivePreviewNeedsAudioResolve = false;
       livePreviewOpen = false;
       card.style.display = "none";
       card.hidden = true;
@@ -490,6 +536,12 @@ function initUrlInputHandler() {
     );
     hideInlineError();
     previewTitleEl.textContent = data.title || "";
+    const thumbnailSrc = String(
+      data.thumbnail ||
+        data.livePreview?.poster ||
+        data.backgroundPreview?.poster ||
+        "",
+    ).trim();
     const durationLabel = data.duration ? durationToStr(data.duration) : "";
     if (previewDurationEl) {
       previewDurationEl.textContent = durationLabel;
@@ -500,8 +552,8 @@ function initUrlInputHandler() {
       previewDurationOverlayEl.classList.toggle("hidden", !durationLabel);
     }
     previewTitleEl.setAttribute("title", data.title || "");
-    if (data.thumbnail) {
-      img.src = data.thumbnail;
+    if (thumbnailSrc) {
+      img.src = thumbnailSrc;
       img.style.display = "";
       img.hidden = false;
     } else {
@@ -509,13 +561,16 @@ function initUrlInputHandler() {
       img.style.display = "none";
       img.hidden = true;
     }
-    const hasPreviewContent = Boolean(data.title || data.thumbnail);
+    const hasPreviewContent = Boolean(data.title || thumbnailSrc);
     card.style.display = hasPreviewContent ? "" : "none";
     card.hidden = !hasPreviewContent;
     card.classList.toggle("visible", hasPreviewContent);
     setStateClass("has-preview", hasPreviewContent);
-    updatePreviewDetails(data);
+    updatePreviewDetails({ ...data, thumbnail: thumbnailSrc });
     const playablePreview = data.livePreview || data.backgroundPreview;
+    currentLivePreviewNeedsAudioResolve = Boolean(
+      !data.livePreview && data.backgroundPreview?.src,
+    );
     currentLivePreview = playablePreview
       ? {
           ...playablePreview,
@@ -686,6 +741,7 @@ function initUrlInputHandler() {
       closeBtn.dataset.bound = "1";
       closeBtn.addEventListener("click", () => {
         currentLivePreview = null;
+        currentLivePreviewNeedsAudioResolve = false;
         livePreviewOpen = false;
         card.style.display = "none";
         card.hidden = true;
@@ -906,10 +962,19 @@ function initUrlInputHandler() {
     if (!url || (requestedUrl && requestedUrl !== url)) return;
 
     try {
-      const data = await fetchPreviewInfo(url, { force: true });
-      const playablePreview = data?.livePreview || data?.backgroundPreview;
+      let data = await fetchPreviewInfo(url, { force: true });
+      if (
+        data?.success &&
+        !data.livePreview?.src &&
+        data.backgroundPreview?.src
+      ) {
+        const fullInfo = await getVideoInfo(url);
+        if (fullInfo?.success) data = fullInfo;
+      }
+      const playablePreview = data?.livePreview;
       if (!data?.success || !playablePreview?.src) {
         currentLivePreview = null;
+        currentLivePreviewNeedsAudioResolve = false;
         livePreviewOpen = false;
         hideDownloaderLivePreview();
         syncLivePreviewButton();
@@ -923,6 +988,7 @@ function initUrlInputHandler() {
         source: detectPreviewHost(data),
         duration: data.duration ? durationToStr(data.duration) : "",
       };
+      currentLivePreviewNeedsAudioResolve = false;
       livePreviewOpen = true;
       syncLivePreviewButton();
       window.dispatchEvent(
@@ -937,6 +1003,7 @@ function initUrlInputHandler() {
       );
     } catch {
       currentLivePreview = null;
+      currentLivePreviewNeedsAudioResolve = false;
       livePreviewOpen = false;
       hideDownloaderLivePreview();
       syncLivePreviewButton();

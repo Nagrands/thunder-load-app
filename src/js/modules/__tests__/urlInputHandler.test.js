@@ -987,32 +987,54 @@ describe("urlInputHandler", () => {
     );
   });
 
-  test("shows preview overlay for an available background preview stream", async () => {
+  test("offers the live preview for background-only preview streams", async () => {
     const { input } = getState();
     const playButton = document.getElementById("preview-open-live");
     const listener = jest.fn();
     window.addEventListener("downloader:live-preview-open", listener);
-    getVideoInfoMock.mockResolvedValueOnce({
+    const previewInfo = {
       success: true,
       title: "YouTube demo",
-      thumbnail: "https://example.com/thumb.jpg",
       backgroundPreview: {
         src: "https://example.com/video-preview.mp4",
         mime: "video/mp4",
         container: "mp4",
+        poster: "https://example.com/background-poster.jpg",
       },
-    });
+    };
+    const audioInfo = {
+      success: true,
+      title: "YouTube demo",
+      livePreview: {
+        src: "https://example.com/video-with-audio.mp4",
+        mime: "video/mp4",
+        audioSrc: "https://example.com/audio.m4a",
+        audioMime: "audio/mp4",
+      },
+    };
+    getVideoInfoMock.mockImplementation(async (channel) =>
+      channel === "get-video-preview" ? previewInfo : audioInfo,
+    );
 
     input.value = "https://www.youtube.com/watch?v=demo";
     input.dispatchEvent(new Event("input", { bubbles: true }));
     jest.advanceTimersByTime(600);
     await flushPromises();
 
+    const previewThumbnail = document.getElementById("preview-thumb");
+    expect(previewThumbnail.src).toBe(
+      "https://example.com/background-poster.jpg",
+    );
+    expect(previewThumbnail.hidden).toBe(false);
     expect(playButton?.classList).not.toContain("hidden");
     playButton.click();
+    await flushPromises();
     expect(listener).toHaveBeenCalledTimes(1);
     expect(listener.mock.calls[0][0].detail.preview.src).toBe(
-      "https://example.com/video-preview.mp4",
+      "https://example.com/video-with-audio.mp4",
+    );
+    expect(listener.mock.calls[0][0].detail.preview.audioSrc).toBe(
+      "https://example.com/audio.m4a",
     );
     window.removeEventListener("downloader:live-preview-open", listener);
   });

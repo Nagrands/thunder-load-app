@@ -87,6 +87,8 @@ export const coreTranslations = {
       "Открыть встроенный preview-плеер со звуком",
     "input.url.preview.closeLiveTitle":
       "Закрыть встроенный preview-плеер со звуком",
+    "input.url.preview.audioUnavailable":
+      "Не удалось найти видеопоток со звуком для этого ролика.",
     "input.url.preview.liveTitle": "Live preview",
     "input.url.preview.liveClose": "Закрыть live preview",
     "input.paste": "Вставить из буфера",
@@ -288,6 +290,8 @@ export const coreTranslations = {
       "Open the embedded live preview player with sound",
     "input.url.preview.closeLiveTitle":
       "Close the embedded live preview player with sound",
+    "input.url.preview.audioUnavailable":
+      "Could not find a video stream with audio for this video.",
     "input.url.preview.liveTitle": "Live preview",
     "input.url.preview.liveClose": "Close live preview",
     "input.paste": "Paste from clipboard",

@@ -251,6 +251,30 @@ describe("selectYouTubeBackgroundPreview", () => {
     expect(nonYoutube).toBeNull();
   });
 
+  test("pairs direct video-only and audio-only formats for live preview", () => {
+    const result = selectYouTubeLivePreview({
+      thumbnails: [{ url: "https://i.ytimg.com/vi/demo/maxresdefault.jpg", width: 1280 }],
+      formats: [
+        {
+          url: "https://rr1---sn.example.googlevideo.com/videoplayback?itag=137",
+          ext: "mp4", protocol: "https", vcodec: "avc1.640028", acodec: "none",
+          width: 1920, height: 1080, vbr: 3500,
+        },
+        {
+          url: "https://rr1---sn.example.googlevideo.com/videoplayback?itag=140",
+          ext: "m4a", protocol: "https", vcodec: "none", acodec: "mp4a.40.2", abr: 128,
+        },
+      ],
+    }, "https://www.youtube.com/watch?v=demo");
+
+    expect(result).toEqual(expect.objectContaining({
+      src: "https://rr1---sn.example.googlevideo.com/videoplayback?itag=137",
+      mime: "video/mp4",
+      audioSrc: "https://rr1---sn.example.googlevideo.com/videoplayback?itag=140",
+      audioMime: "audio/mp4",
+    }));
+  });
+
   test("keeps background and live preview selection independent", () => {
     const info = {
       thumbnails: [

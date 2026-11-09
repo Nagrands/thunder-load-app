@@ -11,6 +11,7 @@ let panelEl = null;
 let dialogEl = null;
 let videoEl = null;
 let sourceEl = null;
+let audioEl = null;
 let closeButtonEl = null;
 let titleEl = null;
 let metaEl = null;
@@ -26,6 +27,7 @@ const DEFAULT_TITLE = "Live preview";
 const FOCUSABLE_SELECTOR = [
   "button:not([disabled])",
   "video[controls]",
+  "audio[controls]",
   "a[href]",
   "input:not([disabled])",
   "select:not([disabled])",
@@ -39,6 +41,7 @@ function syncRefs() {
     panelEl?.querySelector(".preview-live-player-modal__dialog") || null;
   videoEl = document.getElementById("preview-live-video");
   sourceEl = document.getElementById("preview-live-video-source");
+  audioEl = document.getElementById("preview-live-audio");
   closeButtonEl = document.getElementById("preview-live-close");
   titleEl = document.getElementById("preview-live-title");
   metaEl = document.getElementById("preview-live-meta");
@@ -55,21 +58,29 @@ function emitState(isOpen) {
 }
 
 function pauseLivePreview() {
-  if (!videoEl) return;
-  try {
-    videoEl.pause();
-  } catch {}
+  for (const media of [videoEl, audioEl]) {
+    try { media?.pause(); } catch {}
+  }
 }
 
 function getCurrentPlaybackTime() {
   if (!videoEl) return null;
-  const value = Number(videoEl.currentTime);
+  const value = Number(audioEl && !audioEl.hidden ? audioEl.currentTime : videoEl.currentTime);
   return Number.isFinite(value) && value > 0 ? value : null;
 }
 
 function resetPlayerState() {
   if (!videoEl || !sourceEl) return;
   pauseLivePreview();
+  videoEl.controls = true;
+  videoEl.muted = false;
+  if (audioEl) {
+    audioEl.hidden = true;
+    audioEl.classList.add("hidden");
+    audioEl.removeAttribute("src");
+    audioEl.removeAttribute("aria-label");
+    audioEl.load();
+  }
   videoEl.removeAttribute("poster");
   videoEl.removeAttribute("aria-label");
   sourceEl.removeAttribute("src");
@@ -207,15 +218,26 @@ async function openDownloaderLivePreview(preview = null, options = {}) {
   if (preview.mime) {
     sourceEl.type = preview.mime;
   }
-  videoEl.removeAttribute("muted");
-  videoEl.defaultMuted = false;
-  videoEl.muted = false;
+  const separateAudio = Boolean(preview.audioSrc && audioEl);
+  videoEl.controls = !separateAudio;
+  videoEl.muted = separateAudio;
+  videoEl.defaultMuted = separateAudio;
   videoEl.volume = 1;
+  if (separateAudio) {
+    audioEl.hidden = false;
+    audioEl.classList.remove("hidden");
+    audioEl.src = preview.audioSrc;
+    audioEl.volume = 1;
+    audioEl.muted = false;
+    audioEl.setAttribute("aria-label", `${String(options?.title || preview?.title || DEFAULT_TITLE)} audio controls`);
+    if (preview.audioMime) audioEl.setAttribute("type", preview.audioMime);
+    audioEl.load();
+  }
   videoEl.load();
   // `load()` resets media state in Chromium; reapply the audible state before
   // starting the newly selected stream.
-  videoEl.defaultMuted = false;
-  videoEl.muted = false;
+  videoEl.defaultMuted = separateAudio;
+  videoEl.muted = separateAudio;
   videoEl.volume = 1;
   // Start playback while the open button's user activation is still active.
   // Focus and modal work below can otherwise cause Chromium to reject audio
@@ -224,10 +246,17 @@ async function openDownloaderLivePreview(preview = null, options = {}) {
   try {
     playAttempt = videoEl.play();
   } catch {}
+  let audioPlayAttempt;
+  if (separateAudio) {
+    try { audioPlayAttempt = audioEl.play(); } catch {}
+  }
   if (pendingResumeTime && pendingResumeTime > 0) {
     try {
       videoEl.currentTime = pendingResumeTime;
     } catch {}
+    if (separateAudio) {
+      try { audioEl.currentTime = pendingResumeTime; } catch {}
+    }
   }
   pendingResumeTime = null;
 
@@ -240,6 +269,9 @@ async function openDownloaderLivePreview(preview = null, options = {}) {
 
   if (playAttempt && typeof playAttempt.catch === "function") {
     await playAttempt.catch(() => {});
+  }
+  if (audioPlayAttempt && typeof audioPlayAttempt.catch === "function") {
+    await audioPlayAttempt.catch(() => {});
   }
 
   return true;
@@ -304,6 +336,30 @@ function initDownloaderLivePreview() {
   });
 
   videoEl.addEventListener("error", handlePlaybackError);
+  audioEl?.addEventListener("error", handlePlaybackError);
+  videoEl.addEventListener("play", () => {
+    if (audioEl && !audioEl.hidden && audioEl.paused) audioEl.play().catch(() => {});
+  });
+  videoEl.addEventListener("pause", () => {
+    if (audioEl && !audioEl.hidden && !audioEl.paused) audioEl.pause();
+  });
+  audioEl?.addEventListener("play", () => {
+    if (videoEl && videoEl.paused) videoEl.play().catch(() => {});
+  });
+  audioEl?.addEventListener("pause", () => {
+    if (videoEl && !videoEl.paused) videoEl.pause();
+  });
+  audioEl?.addEventListener("timeupdate", () => {
+    if (!videoEl || audioEl.hidden || !Number.isFinite(audioEl.currentTime) || !Number.isFinite(videoEl.currentTime)) return;
+    if (Math.abs(audioEl.currentTime - videoEl.currentTime) > 0.35) {
+      try { videoEl.currentTime = audioEl.currentTime; } catch {}
+    }
+  });
+  audioEl?.addEventListener("seeking", () => {
+    if (videoEl && audioEl && !audioEl.hidden && Math.abs(videoEl.currentTime - audioEl.currentTime) > 0.35) {
+      try { videoEl.currentTime = audioEl.currentTime; } catch {}
+    }
+  });
   document.addEventListener("visibilitychange", handleVisibilityPause);
   document.addEventListener("keydown", handleEscapeClose);
   window.addEventListener("blur", handleVisibilityPause);

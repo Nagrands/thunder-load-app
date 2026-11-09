@@ -1090,6 +1090,16 @@
     overflow: hidden;
   }
 
+  .preview-live-player-modal__audio {
+    display: block;
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  .preview-live-player-modal__audio.hidden {
+    display: none;
+  }
+
   @media (max-width: 720px) {
     align-items: flex-start;
     padding: 14px;

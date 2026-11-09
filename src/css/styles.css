@@ -14998,6 +14998,14 @@ body.is-mac .window-controls .btn-minimize {
   box-shadow: 0 18px 44px rgba(0, 0, 0, 0.34);
   overflow: hidden;
 }
+.preview-live-player-modal .preview-live-player-modal__audio {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+}
+.preview-live-player-modal .preview-live-player-modal__audio.hidden {
+  display: none;
+}
 @media (max-width: 720px) {
   .preview-live-player-modal {
     align-items: flex-start;

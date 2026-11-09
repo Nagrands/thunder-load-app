@@ -242,6 +242,20 @@ function isPlayableLivePreviewFormat(format = {}) {
   return true;
 }
 
+function isPlayableLivePreviewAudioFormat(format = {}) {
+  const src = String(format?.url || "").trim();
+  if (!hasValidHttpUrl(src)) return false;
+  const protocol = String(format?.protocol || "").trim().toLowerCase();
+  if (UNSUPPORTED_PROTOCOLS.has(protocol)) return false;
+  const container = String(format?.ext || "").trim().toLowerCase() ||
+    (String(format?.mime_type || "").toLowerCase().includes("webm") ? "webm" : "");
+  if (!["m4a", "mp4", "webm"].includes(container)) return false;
+  const acodec = String(format?.acodec || "").trim().toLowerCase();
+  const vcodec = String(format?.vcodec || "").trim().toLowerCase();
+  return !!acodec && acodec !== "none" && (!vcodec || vcodec === "none") &&
+    !format?.manifest_url && !format?.fragment_base_url;
+}
+
 function selectYouTubeBackgroundPreview(info = {}, sourceUrl = "") {
   if (!isYouTubeUrl(sourceUrl)) return null;
   if (info?.is_live || info?.was_live) return null;
@@ -302,7 +316,38 @@ function selectYouTubeLivePreview(info = {}, sourceUrl = "") {
     })
     .sort((left, right) => right.score - left.score)[0];
 
-  if (!candidate) return null;
+  if (!candidate) {
+    const video = formats
+      .filter((format) => isPlayablePreviewFormat(format) &&
+        String(format?.vcodec || "").trim().toLowerCase() !== "none" &&
+        String(format?.acodec || "").trim().toLowerCase() === "none")
+      .map((format) => ({ format, container: normalizeContainer(format) }))
+      .sort((a, b) => scoreLivePreviewFormat(a.format, a.container) - scoreLivePreviewFormat(b.format, b.container))
+      .pop();
+    const audio = formats
+      .filter(isPlayableLivePreviewAudioFormat)
+      .sort((a, b) => {
+        const containerScore = (f) => ["m4a", "mp4"].includes(String(f.ext || "").toLowerCase()) ? 2 : 1;
+        return containerScore(a) - containerScore(b) || (Number(a.abr || 0) - Number(b.abr || 0));
+      })
+      .pop();
+    if (!video || !audio) return null;
+    const audioContainer = String(audio.ext || "").trim().toLowerCase() ||
+      (String(audio.mime_type || "").toLowerCase().includes("webm") ? "webm" : "m4a");
+    const audioMime = String(audio.mime_type || "").startsWith("audio/")
+      ? String(audio.mime_type).split(";")[0]
+      : audioContainer === "webm" ? "audio/webm" : "audio/mp4";
+    return {
+      src: String(video.format.url).trim(),
+      poster,
+      mime: getMimeType(video.format, video.container),
+      container: video.container,
+      width: Number(video.format.width || 0) || null,
+      height: Number(video.format.height || 0) || null,
+      audioSrc: String(audio.url).trim(),
+      audioMime,
+    };
+  }
 
   return {
     src: candidate.src,
