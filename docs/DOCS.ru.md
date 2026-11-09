@@ -36,8 +36,6 @@
 Минимальный план проверок:
 
 - Для логики: `pnpm run check`.
-- Для Player/main media-кода: отдельно убедиться, что
-  `pnpm run typecheck:player` входит в выполненный набор.
 - Для `templates/*.njk`: `pnpm run templates:build` и связанные тесты.
 - Для `src/scss/*.scss`: `pnpm run css:build`.
 - Для пользовательских изменений: обновление `whats-new.md` и `whats-new.en.md`, затем `pnpm run whats-new:build`.

@@ -17,7 +17,6 @@ const docs = defineCollection({
     section: z.enum([
       "getting-started",
       "downloader",
-      "player",
       "tools",
       "settings",
       "support"

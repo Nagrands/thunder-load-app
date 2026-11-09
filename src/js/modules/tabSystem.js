@@ -8,23 +8,13 @@ export default class TabSystem {
       throw new Error("TabSystem: containers not found");
 
     this.tabs = new Map();
-    this.navigationProxies = new Set();
     this.activeTabId = null;
     this.ANIM_MS = 250; // длительность анимации (ms)
-    this._NOW_PLAYING_ID = "now-playing";
   }
 
   _syncActiveTabLayoutState(id = "") {
     if (!this.view) return;
     this.view.dataset.activeTab = id || "";
-    this.view.classList.toggle(
-      "main-view--now-playing-active",
-      id === this._NOW_PLAYING_ID,
-    );
-    document.body?.classList.toggle(
-      "is-now-playing-active",
-      id === this._NOW_PLAYING_ID,
-    );
   }
 
   addTab(id, label, iconCls, renderCb, hooks = {}) {
@@ -65,7 +55,6 @@ export default class TabSystem {
       render: renderCb,
       ...hooks,
     });
-    this._syncNavigationProxies();
   }
 
   setTabLabel(id, label) {
@@ -75,64 +64,6 @@ export default class TabSystem {
     rec.labelEl.textContent = label;
     rec.button.setAttribute("aria-label", label);
     rec.button.setAttribute("title", label);
-    this._syncNavigationProxies();
-  }
-
-  mountNavigationProxy(container, { excludeIds = [] } = {}) {
-    if (!(container instanceof Element)) return () => {};
-    const proxy = {
-      container,
-      excludeIds: new Set(excludeIds),
-      buttons: new Map(),
-      cleanups: new Map(),
-    };
-    this.navigationProxies.add(proxy);
-    this._syncNavigationProxy(proxy);
-    return () => {
-      if (!this.navigationProxies.delete(proxy)) return;
-      proxy.cleanups.forEach((cleanup) => cleanup());
-      proxy.cleanups.clear();
-      proxy.buttons.clear();
-      container.replaceChildren();
-    };
-  }
-
-  _syncNavigationProxy(proxy) {
-    if (!proxy?.container) return;
-    this.tabs.forEach((rec, id) => {
-      if (proxy.excludeIds.has(id)) return;
-      let button = proxy.buttons.get(id);
-      if (!button) {
-        button = document.createElement("button");
-        button.type = "button";
-        button.className = "now-playing__tab-link";
-        button.dataset.tabTarget = id;
-        button.dataset.bsToggle = "tooltip";
-        button.dataset.bsPlacement = "bottom";
-        const icon = document.createElement("i");
-        icon.className = rec.iconCls;
-        icon.setAttribute("aria-hidden", "true");
-        button.appendChild(icon);
-        const onClick = () => this.activateTab(id);
-        button.addEventListener("click", onClick);
-        proxy.cleanups.set(id, () =>
-          button.removeEventListener("click", onClick),
-        );
-        proxy.buttons.set(id, button);
-        proxy.container.appendChild(button);
-      }
-      const label = rec.label || rec.labelEl?.textContent || id;
-      button.setAttribute("aria-label", label);
-      button.setAttribute("title", label);
-      const hidden = rec.button?.style.display === "none";
-      button.hidden = hidden;
-      button.disabled = hidden;
-      button.style.display = hidden ? "none" : "";
-    });
-  }
-
-  _syncNavigationProxies() {
-    this.navigationProxies.forEach((proxy) => this._syncNavigationProxy(proxy));
   }
 
   activateTab(id) {
@@ -197,7 +128,6 @@ export default class TabSystem {
     el.classList.remove("tab-hide"); //  <<<  важно!
     this.activeTabId = id;
     this._syncActiveTabLayoutState(id);
-    this._syncNavigationProxies();
     // небольшая пауза – чтобы transition сработал
     requestAnimationFrame(() => {
       if (this.activeTabId === id && !el.classList.contains("tab-hide")) {

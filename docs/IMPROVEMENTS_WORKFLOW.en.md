@@ -32,7 +32,6 @@ Baseline execution standard for every task: `docs/DOCS.en.md` (`Discover → Org
 
 - `pnpm run lint` — strict lint (no warnings).
 - `pnpm test` — unit tests.
-- `pnpm run typecheck:player` — required when Player code changes.
 - `pnpm run check` — final combined validation.
 - For UI changes, run quick manual checks of key scenarios.
 - For new IPC, verify the channel registry, handler, preload whitelist, and

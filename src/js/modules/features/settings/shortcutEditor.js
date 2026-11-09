@@ -24,7 +24,6 @@ const CATEGORY_ICONS = Object.freeze({
   downloads: "fa-download",
   system: "fa-display",
   sites: "fa-globe",
-  player: "fa-circle-play",
 });
 
 let catalog = [];
@@ -65,10 +64,6 @@ function formatAccelerator(accelerator) {
     return part;
   });
   return labels.join(isMac ? "" : " + ");
-}
-
-function isPlayerAction(action) {
-  return action?.categoryKey === "shortcuts.categories.player";
 }
 
 function getCategoryKey(action) {
@@ -286,17 +281,6 @@ function createGroup(categoryKey, actions) {
   identity.append(icon, title, count);
   header.append(identity);
 
-  if (categoryId === "player") {
-    const reset = createIconButton({
-      className: "shortcut-editor__group-reset",
-      icon: "fa-rotate-left",
-      label: t("settings.shortcuts.reset.player"),
-      dataAttribute: "shortcutPlayerReset",
-    });
-    reset.addEventListener("click", () => void resetPlayerShortcuts());
-    header.append(reset);
-  }
-
   const rows = document.createElement("div");
   rows.className = "shortcut-editor__group-rows";
   rows.append(...actions.map(createRow));
@@ -495,39 +479,6 @@ async function resetShortcut(actionId) {
   applyPayload(result.payload);
   render();
   announce(t("settings.shortcuts.resetSingleSuccess"));
-}
-
-async function resetPlayerShortcuts() {
-  const next = { ...assignments };
-  catalog.filter(isPlayerAction).forEach((action) => {
-    next[getActionId(action)] = action.defaultAccelerator;
-  });
-  try {
-    const result = await window.electron.invoke("shortcuts:replace", {
-      assignments: next,
-    });
-    const normalized = normalizeSetResult(result);
-    if (normalized.status === "conflict") {
-      const owner = actionById(normalized.conflictingActionId);
-      announce(
-        t("settings.shortcuts.conflict", {
-          action: owner
-            ? getActionText(owner, "name")
-            : normalized.conflictingActionId,
-        }),
-      );
-      return;
-    }
-    if (normalized.status !== "ok") throw new Error(normalized.error);
-    pendingConflict = null;
-    applyPayload(result);
-    render();
-    announce(t("settings.shortcuts.resetPlayerSuccess"));
-    showToast(t("settings.shortcuts.resetPlayerSuccess"), "success");
-  } catch (error) {
-    logRendererError("Settings", "player-shortcuts-reset-failed", error);
-    announce(t("settings.shortcuts.error"));
-  }
 }
 
 async function swapConflict(actionId) {

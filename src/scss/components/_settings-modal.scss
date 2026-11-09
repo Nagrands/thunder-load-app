@@ -1224,8 +1224,7 @@
 }
 
 .quality-profile-segment,
-.settings-parallel-segment,
-.settings-player-segment {
+.settings-parallel-segment {
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: 1fr;
@@ -1301,10 +1300,7 @@
   }
 }
 
-.settings-parallel-item,
-.settings-player-position-row,
-.settings-player-repeat-row,
-.settings-player-volume-row {
+.settings-parallel-item {
   display: flex;
   align-items: center;
   gap: 18px;
@@ -1330,64 +1326,6 @@
 
 #settings-download-parallel-value {
   display: none;
-}
-
-.settings-player-grid {
-  align-items: start;
-}
-
-.settings-player-control-copy,
-.settings-player-volume-label {
-  display: grid;
-  grid-template-columns: 28px minmax(0, 1fr);
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  margin-right: auto;
-
-  > i {
-    color: var(--color-accent);
-    text-align: center;
-  }
-
-  > span {
-    display: grid;
-    gap: 2px;
-  }
-
-  strong {
-    color: var(--settings-copy);
-    font-size: 13px;
-  }
-
-  small {
-    color: var(--settings-muted);
-    font-size: 11px;
-  }
-}
-
-.settings-player-segment {
-  flex: 0 0 auto;
-}
-
-.settings-player-volume-control {
-  display: grid;
-  grid-template-columns: minmax(120px, 1fr) 44px;
-  align-items: center;
-  gap: 8px;
-  width: min(260px, 48%);
-
-  input {
-    width: 100%;
-    accent-color: var(--color-accent);
-  }
-
-  output {
-    color: var(--settings-copy);
-    font-size: 12px;
-    font-weight: 700;
-    text-align: right;
-  }
 }
 
 .settings-advanced {
@@ -1962,9 +1900,6 @@
     transform: none;
   }
 
-  .settings-player-grid {
-    grid-template-columns: 1fr;
-  }
 }
 
 @media (max-width: 760px) {
@@ -2096,17 +2031,13 @@
     grid-template-columns: 1fr;
   }
 
-  .settings-control--split,
-  .settings-player-position-row,
-  .settings-player-repeat-row,
-  .settings-player-volume-row {
+  .settings-control--split {
     align-items: stretch;
     flex-direction: column;
   }
 
   .settings-control__actions,
-  .settings-control__actions .dropdown,
-  .settings-player-volume-control {
+  .settings-control__actions .dropdown {
     width: 100%;
   }
 

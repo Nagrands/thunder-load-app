@@ -146,41 +146,6 @@ body.format-window {
     white-space: nowrap;
   }
 
-  .player-library__header {
-    grid-template-columns: minmax(150px, 0.8fr) minmax(240px, 1.5fr) auto;
-    gap: 8px;
-  }
-
-  .player-library__heading p,
-  .player-library__header-actions span,
-  .player-library__close span {
-    display: none;
-  }
-
-  .player-library__body {
-    display: block;
-    position: relative;
-  }
-
-  .player-library__playlists {
-    position: absolute;
-    z-index: 32;
-    inset: -50px auto -4px -10px;
-    width: min(280px, 82vw);
-    transform: translateX(-105%);
-    visibility: hidden;
-  }
-
-  .player-library.is-sidebar-open .player-library__playlists {
-    transform: translateX(0);
-    visibility: visible;
-  }
-
-  .player-library__sidebar-toggle,
-  .player-library__sidebar-scrim:not([hidden]) {
-    display: inline-flex;
-  }
-
   .tools-shell {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -242,17 +207,6 @@ body.format-window {
     width: calc(100vw - 16px);
     height: calc(100dvh - 16px);
     max-height: calc(100dvh - 16px);
-  }
-
-  .player-library {
-    gap: 8px;
-    padding: 62px 10px 8px;
-  }
-
-  .player-library__close {
-    width: 40px;
-    min-width: 40px;
-    padding: 0;
   }
 
   .tools-shell {
@@ -418,28 +372,6 @@ body.format-window {
     padding-block: 10px;
   }
 
-  .player-library {
-    gap: 6px;
-    padding-top: 54px;
-  }
-
-  .player-library__heading p,
-  .player-library__eyebrow,
-  .player-library__operation-status:empty {
-    display: none;
-  }
-
-  .now-playing__sidebar {
-    padding-top: 32px;
-    padding-bottom: 12px;
-  }
-
-  .now-playing__current-card,
-  .now-playing__track-stage {
-    gap: 6px;
-    margin-bottom: 6px;
-  }
-
   .products-center {
     padding-block: 8px;
   }
@@ -454,11 +386,5 @@ body.format-window {
   // active navigation tab; decorative heroes yield space to primary actions.
   .tab-hero {
     display: none;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .player-library__playlists {
-    transition: none !important;
   }
 }

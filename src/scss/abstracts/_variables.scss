@@ -53,13 +53,6 @@ $windows-tray-row-height: 42px;
 $windows-tray-details-height: 52px;
 $windows-tray-row-radius: 6px;
 
-// Now Playing cinematic scene
-$now-playing-panel-width: clamp(280px, 27vw, 400px);
-$now-playing-panel-padding: clamp(28px, 2.25vw, 36px);
-$now-playing-compact-panel-width: clamp(252px, 31vw, 286px);
-$now-playing-reveal-zone: 24px;
-$now-playing-motion: 260ms cubic-bezier(0.22, 1, 0.36, 1);
-
 // Tools entrance motion
 $tools-entrance-header-duration: 180ms;
 $tools-entrance-card-duration: 220ms;

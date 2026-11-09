@@ -4,7 +4,6 @@ import { alternateLocale, contentSlug, localeFromId, useTranslations } from "@/i
 describe("localization helpers", () => {
   it("maps content identifiers and alternate locales", () => {
     expect(contentSlug("ru/installation.mdx")).toBe("installation");
-    expect(localeFromId("en/player")).toBe("en");
     expect(alternateLocale("ru")).toBe("en");
     expect(alternateLocale("en")).toBe("ru");
   });

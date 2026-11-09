@@ -65,7 +65,6 @@ const {
   setupGlobalShortcuts,
 } = require("./app/shortcuts.js");
 const { createWebControlServer } = require("./app/webControlServer.js");
-const { createMediaOpenService } = require("./app/mediaOpenService.js");
 const {
   createDownloadPreferences,
 } = require("./app/download/preferences.js");
@@ -87,7 +86,6 @@ const shutdownCoordinator = new ShutdownCoordinator({ logger: mainLogger });
 
 // Keep the legacy Windows taskbar and notification identity used through 1.5.4.
 app.setAppUserModelId("Thunderload");
-const mediaOpenService = createMediaOpenService({ app, fs });
 
 // Define essential paths
 const historyFilePath = path.join(
@@ -113,10 +111,6 @@ const ytDlpPath = path.join(
 const ffmpegPath = path.join(
   binDir,
   process.platform === "win32" ? "ffmpeg.exe" : "ffmpeg",
-);
-const ffprobePath = path.join(
-  binDir,
-  process.platform === "win32" ? "ffprobe.exe" : "ffprobe",
 );
 
 mainLogger.info("app-starting", { version: app.getVersion() });
@@ -181,7 +175,6 @@ async function getAppVersion() {
 if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {
-  mediaOpenService.enqueueArgv(process.argv, process.cwd());
   const dependencies = {
     mainWindow: null,
     store,
@@ -199,7 +192,6 @@ if (!app.requestSingleInstanceLock()) {
     webControlServer: null,
     dispatchPendingWhatsNew: () => false,
     clearPendingWhatsNewVersion: () => false,
-    mediaOpenService,
     diagnosticsLogger,
   };
 
@@ -366,13 +358,11 @@ if (!app.requestSingleInstanceLock()) {
         getAppVersion,
         ytDlpPath,
         ffmpegPath,
-        ffprobePath,
         fileExists,
         () => downloadRuntime?.isBusy?.() || false,
         mainLogger,
       ),
     );
-    mediaOpenService.setMainWindow(mainWindow);
 
     // DevTools noticeably increase GPU usage; keep them closed in production
     if (isDev || process.env.OPEN_DEVTOOLS === "1") {
@@ -422,8 +412,7 @@ if (!app.requestSingleInstanceLock()) {
   /**
    * Handle second instance lock.
    */
-  app.on("second-instance", (_event, argv, workingDirectory) => {
-    mediaOpenService.enqueueArgv(argv, workingDirectory);
+  app.on("second-instance", (_event) => {
     if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore();
       mainWindow.show();
@@ -477,7 +466,6 @@ shutdownCoordinator.register("application-runtime", async () => {
   await processSupervisor.terminateAll("app-shutdown");
   await webControlServer?.dispose?.();
   disposeWindowRuntime();
-  mediaOpenService.dispose();
   fsCache.clear();
   app.isQuitting = true;
   store.set("isCloseNotificationShown", false);

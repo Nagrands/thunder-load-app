@@ -82,26 +82,6 @@ try {
     "diagnostics:set-level",
     "diagnostics:export",
     "diagnostics:log",
-    "now-playing:import-files",
-    "now-playing:import-folder",
-    "now-playing:import-paths",
-    "now-playing:import-youtube-video",
-    "now-playing:analyze-youtube-video",
-    "now-playing:resolve-youtube-track",
-    "now-playing:create-local-playback-session",
-    "now-playing:get-audio-tracks",
-    "now-playing:close-playback-session",
-    "now-playing:get-timeline-preview",
-    "now-playing:cancel-timeline-preview",
-    "now-playing:get-state",
-    "now-playing:set-state",
-    "now-playing:update-settings",
-    "now-playing:reveal-track",
-    "now-playing:open-track-location",
-    "now-playing:open-files",
-    "now-playing:open-files-ready",
-    "now-playing:media-state",
-    "now-playing:media-command",
     "window:get-fullscreen",
     "window:set-fullscreen",
     "window:fullscreen-changed",
@@ -377,12 +357,6 @@ try {
    *   resetLocation: () => Promise<{ success: boolean, path?: string, error?: string }>,
    * }} tools
    * @property {{
-   *   importFiles: () => Promise<any>,
-   *   importFolder: () => Promise<any>,
-   *   getDroppedFilePath: (file: File) => string,
-   *   getState: () => Promise<any>,
-   *   setState: (state: any) => Promise<any>,
-   * }} nowPlaying
    * @property {{
    *   getState: () => Promise<{ success: boolean, data: { isFullscreen: boolean }|null, error: any }>,
    *   setState: (enabled: boolean) => Promise<{ success: boolean, data: { isFullscreen: boolean }|null, error: any }>,
@@ -463,49 +437,6 @@ try {
         safeInvoke("tools:converterCancel", payload),
       onConverterProgress: (callback) =>
         safeOn("tools:converterProgress", callback),
-    },
-
-    nowPlaying: {
-      importFiles: () => safeInvoke("now-playing:import-files"),
-      importFolder: () => safeInvoke("now-playing:import-folder"),
-      importPaths: (paths) => safeInvoke("now-playing:import-paths", paths),
-      getDroppedFilePath: (file) => {
-        try {
-          return webUtils.getPathForFile(file);
-        } catch {
-          return "";
-        }
-      },
-      analyzeYouTubeVideo: (url, options = {}) =>
-        safeInvoke("now-playing:analyze-youtube-video", url, options),
-      importYouTubeVideo: (url, qualitySelection = null) =>
-        safeInvoke("now-playing:import-youtube-video", url, qualitySelection),
-      resolveYouTubeTrack: (sourceRef, options = {}) =>
-        safeInvoke("now-playing:resolve-youtube-track", sourceRef, options),
-      createLocalPlaybackSession: (request) =>
-        safeInvoke("now-playing:create-local-playback-session", request),
-      getAudioTracks: (request) =>
-        safeInvoke("now-playing:get-audio-tracks", request),
-      closePlaybackSession: (sessionId) =>
-        safeInvoke("now-playing:close-playback-session", sessionId),
-      getTimelinePreview: (request) =>
-        safeInvoke("now-playing:get-timeline-preview", request),
-      cancelTimelinePreview: (requestId) =>
-        safeSend("now-playing:cancel-timeline-preview", requestId),
-      getState: () => safeInvoke("now-playing:get-state"),
-      setState: (state) => safeInvoke("now-playing:set-state", state),
-      updateSettings: (settings) =>
-        safeInvoke("now-playing:update-settings", settings),
-      revealTrack: (sourceRef) =>
-        safeInvoke("now-playing:reveal-track", sourceRef),
-      openTrackLocation: (sourceRef) =>
-        safeInvoke("now-playing:open-track-location", sourceRef),
-      publishMediaState: (snapshot) =>
-        safeSend("now-playing:media-state", snapshot),
-      onOpenFiles: (callback) => safeOn("now-playing:open-files", callback),
-      notifyOpenFilesReady: () => safeSend("now-playing:open-files-ready"),
-      onMediaCommand: (callback) =>
-        safeOn("now-playing:media-command", callback),
     },
 
     fullscreen: {

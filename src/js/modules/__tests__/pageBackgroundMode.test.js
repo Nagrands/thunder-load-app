@@ -23,9 +23,9 @@ describe("pageBackgroundMode", () => {
     expect(document.body.dataset.pageMode).toBe("downloader");
 
     window.dispatchEvent(
-      new CustomEvent("tabs:activated", { detail: { id: "now-playing" } }),
+      new CustomEvent("tabs:activated", { detail: { id: "removed-tab" } }),
     );
-    expect(document.body.dataset.pageMode).toBe("now-playing");
+    expect(document.body.dataset.pageMode).toBe("downloader");
   });
 
   test("switches to backup mode for the backup tool view and returns to tools", () => {

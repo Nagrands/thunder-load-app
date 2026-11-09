@@ -11,8 +11,6 @@ const LOG_SCOPES = Object.freeze([
   "Main",
   "IPC",
   "Downloader",
-  "Player",
-  "MediaLibrary",
   "Tools",
   "Settings",
   "FFmpeg",

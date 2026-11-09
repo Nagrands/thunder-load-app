@@ -80,10 +80,10 @@ describe("sidebarNavigation", () => {
     expect(document.getElementById("dl-tools-action").classList.contains("is-context-hidden")).toBe(true);
   });
 
-  test("does not render the active tab label in the bottom sidebar zone", async () => {
+  test("keeps footer labels hidden on the Downloader tab", async () => {
     const { initSidebarNavigation } = await loadModule();
     initSidebarNavigation();
-    window.dispatchEvent(new CustomEvent("tabs:activated", { detail: { id: "now-playing" } }));
+    window.dispatchEvent(new CustomEvent("tabs:activated", { detail: { id: "download" } }));
     expect(document.getElementById("footer-active-section")).toBeNull();
     expect(document.getElementById("footer-status-meta")).toBeNull();
   });

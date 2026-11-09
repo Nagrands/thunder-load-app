@@ -37,8 +37,8 @@ describe("localizedUrl", () => {
 describe("switchLocalePath", () => {
   it("replaces the locale segment and preserves the rest of the path", () => {
     vi.stubEnv("BASE_URL", "/thunder-load-app/");
-    expect(switchLocalePath("/thunder-load-app/ru/docs/player/", "en")).toBe(
-      "/thunder-load-app/en/docs/player/"
+    expect(switchLocalePath("/thunder-load-app/ru/docs/install/", "en")).toBe(
+      "/thunder-load-app/en/docs/install/",
     );
     expect(switchLocalePath("/thunder-load-app/en/", "ru")).toBe("/thunder-load-app/ru/");
   });

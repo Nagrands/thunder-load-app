@@ -38,17 +38,6 @@ related tools (yt-dlp, ffmpeg, Deno).
   - shared modules: `src/js/modules/shared/` and legacy modules under `src/js/modules/`.
 - IPC and preload: `src/js/app/ipcHandlers.js`, `src/js/ipc/channels.js`, `src/js/preload.js`.
 
-### Where Player Lives
-
-- Renderer: `src/js/modules/nowPlaying/` — media-library model, providers,
-  playback controller, queue, Media Session, context menu, and UI.
-- Main: `src/js/app/nowPlaying*.js` — state v3, import, YouTube, and HLS;
-  `src/js/app/mediaOpenService.js` handles files opened by the OS.
-- Player IPC follows `channels.js` → `ipcHandlers.js` and
-  `nowPlayingIpcHandlers.js` → the whitelist/API in `preload.js`.
-- See `docs/tab/Player_Tab.en.md` and
-  `docs/tab/Player_Platform_QA.md` for the complete map and packaged QA.
-
 ### Windows Tray Panel
 
 - `src/js/app/windowsTrayMenu.js` owns the separate frameless `BrowserWindow`,
@@ -78,17 +67,14 @@ related tools (yt-dlp, ffmpeg, Deno).
 
 - `pnpm test` — unit tests (Jest).
 - `pnpm run lint` — ESLint.
-- `pnpm run typecheck:player` — JavaScript typecheck for Player/main media code.
-- `pnpm run check` — lint + Player typecheck + Jest.
+- - `pnpm run check` — lint + Jest.
 - `console.log` is suppressed in tests via `src/js/tests/setupTests.js`.
 
 ## Build
 
 - `pnpm run build` — build for the current platform.
 - `pnpm run build-mac` / `pnpm run build-linux` — platform builds.
-- File-association or system-integration changes require packaged smoke on the
-  target OS using `docs/tab/Player_Platform_QA.md`.
-- Tray-panel changes require packaged Windows smoke for both system themes,
+- - Tray-panel changes require packaged Windows smoke for both system themes,
   DPI, taskbar placement, multiple monitors, blur/Escape, and keyboard control.
 
 ## What’s New (WhatsNew)

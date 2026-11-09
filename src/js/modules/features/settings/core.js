@@ -25,7 +25,6 @@ import { getLowEffects, setLowEffects } from "../../effectsMode.js";
 import { t } from "../../i18n.js";
 import {
   DEFAULT_CONFIG,
-  DEFAULT_PLAYER_SETTINGS,
   QUALITY_PROFILE_DEFAULT,
   QUALITY_PROFILE_KEY,
 } from "./defaults.js";
@@ -48,11 +47,6 @@ import {
 } from "./ytDlpCookiesSettings.js";
 import { initWebControlSettings } from "./webControlSettings.js";
 import { initDiagnosticsSettings } from "./diagnosticsSettings.js";
-import {
-  initPlayerSettings,
-  normalizePlayerSettings,
-} from "./playerSettings.js";
-import { applyPlayerSettings } from "../../nowPlaying/settingsEvents.js";
 import { initDownloaderBackgroundPreviewSetting } from "../../downloaderBackgroundPreview.js";
 import {
   logRendererError,
@@ -84,7 +78,6 @@ async function initSettings() {
   initDeveloperToolsGate();
 
   initDownloadQualityProfileSettings();
-  initPlayerSettings();
   initDownloaderBackgroundPreviewSetting();
 
   (function initDownloadParallelLimit() {
@@ -652,7 +645,6 @@ async function collectCurrentConfig() {
     toolsLocation,
     ytDlpCookies,
     shortcutsState,
-    playerState,
   ] = await Promise.all([
     getTheme(),
     getFontSize(),
@@ -671,7 +663,6 @@ async function collectCurrentConfig() {
       .invoke("get-ytdlp-cookies-settings")
       .catch(() => YTDLP_COOKIES_DEFAULT),
     window.electron.invoke("shortcuts:get").catch(() => null),
-    Promise.resolve(window.electron.nowPlaying?.getState?.()).catch(() => null),
   ]);
 
   const qualityProfile = (() => {
@@ -721,11 +712,6 @@ async function collectCurrentConfig() {
       fontSize,
       lowEffects: getLowEffects(),
     },
-    player: normalizePlayerSettings(
-      playerState?.success === false
-        ? DEFAULT_PLAYER_SETTINGS
-        : playerState?.data || playerState || DEFAULT_PLAYER_SETTINGS,
-    ),
     shortcuts: {
       disableGlobalShortcuts,
       assignments:
@@ -827,17 +813,6 @@ async function applyConfig(config, options = {}) {
   ];
 
   await Promise.all(ipcTasks);
-
-  const playerSettings = normalizePlayerSettings(cfg.player);
-  const playerResult = await window.electron.nowPlaying?.updateSettings?.(
-    playerSettings,
-  );
-  if (playerResult?.success === false) {
-    throw new Error(
-      playerResult.error?.message || t("settings.player.saveError"),
-    );
-  }
-  applyPlayerSettings(playerResult?.data || playerSettings);
 
   const assertShortcutResult = (result) => {
     if (result?.success !== false) return result;

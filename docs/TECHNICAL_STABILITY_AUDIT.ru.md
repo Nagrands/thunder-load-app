@@ -4,7 +4,7 @@
 
 ## Методика
 
-Проверена цепочка `renderer → preload → IPC → main → child process/network` для Downloader, Player, Media Library, Tools, Settings и Web Control. Для каждого долгоживущего ресурса определены владелец, точка создания, отмена и окончательное уничтожение. Гонки подтверждались чтением обеих сторон async-границы и регрессионным тестом до изменения поведения.
+Проверена цепочка `renderer → preload → IPC → main → child process/network` для Downloader, Tools, Settings и Web Control. Для каждого долгоживущего ресурса определены владелец, точка создания, отмена и окончательное уничтожение. Гонки подтверждались чтением обеих сторон async-границы и регрессионным тестом до изменения поведения.
 
 Холодный запуск измеряется встроенным `startupMetrics` по десяти запускам одной сборки на одном компьютере. Unit/integration-тесты не заменяют этот замер и packaged smoke на Windows/macOS; ручные результаты следует дописать перед релизом.
 
@@ -13,9 +13,6 @@
 | Область | Ресурс | Единственный владелец | Создание | Завершение |
 | --- | --- | --- | --- | --- |
 | Main | IPC runtime | application runtime | после создания окна | tracked `dispose()` перед новым окном и при shutdown |
-| Player | `PlaybackController` и две media layers | `NowPlayingView` | лениво при первом открытии Player | awaited `controller.dispose()` |
-| Player | HLS server/session/FFmpeg | `NowPlayingHlsService` | для несовместимого или multitrack media | `closeSession()`/`dispose()`, затем supervisor fallback |
-| Media Library | ffprobe/FFmpeg import tasks | main media service | на импорт/анализ | timeout, завершение операции или общий supervisor |
 | Downloader | job token, HTTP и yt-dlp/FFmpeg | конкретный download job | после принятия `jobId` | cancel job, completion или shutdown |
 | Tools | Converter/Inspector/Backup child process | конкретный tool request | после валидации payload | cancel/timeout/view disposal/shutdown |
 | Tools UI | listeners/timers/IPC subscriptions | tool cleanup registry | при render вкладки | при `onHide`/повторном render |
@@ -29,7 +26,7 @@
 
 - **Причина:** `app.activate` мог повторно вызвать `main()`, а `setupIpcHandlers()` регистрировал глобальные `ipcMain.handle/on` без ownership и cleanup.
 - **Проявление:** duplicate handler, старые замыкания на уничтоженное окно, двойные события.
-- **Исправление:** регистраторы получают tracked IPC facade. Перед новым window runtime снимаются только принадлежащие ему handlers/listeners; Player services возвращают awaited disposer.
+- **Исправление:** регистраторы получают tracked IPC facade. Перед новым window runtime снимаются только принадлежащие ему handlers/listeners.
 - **Доказательство:** `ipcRuntime.test.js`; повторный `dispose()` идемпотентен и не использует `removeAllListeners`.
 
 ### Высокий риск: Tray и window controls сохраняли первое окно
@@ -41,9 +38,9 @@
 
 ### Критический риск: конкурирующее завершение приложения
 
-- **Причина:** main, Player HLS и сервисы независимо слушали `before-quit`; Web Control и HLS очищались fire-and-forget.
-- **Исправление:** один `ShutdownCoordinator` переводит runtime `running → stopping → stopped`, ожидает IPC/Player, процессы, Web Control, clipboard, shortcuts и updater, затем повторяет quit один раз.
-- **Доказательство:** `shutdownCoordinator.test.js` и `nowPlayingIpcHandlers.test.js`.
+- **Причина:** main и сервисы независимо слушали `before-quit`; Web Control очищался fire-and-forget.
+- **Исправление:** один `ShutdownCoordinator` переводит runtime `running → stopping → stopped`, ожидает IPC, процессы, Web Control, clipboard, shortcuts и updater, затем повторяет quit один раз.
+- **Доказательство:** `shutdownCoordinator.test.js`.
 
 ### Критический риск: повторный quit не завершал packaged macOS process
 
@@ -57,12 +54,6 @@
 - **Причина:** параллельный download перезаписывал `activeDownloadToken`, а завершение одного job сбрасывало token другого.
 - **Исправление:** глобальный fallback удалён. Отмена и shutdown получают точные tokens из `activeDownloads`/video-info registry.
 - **Доказательство:** queue/cancel тесты и `ipcHandlers.toolsActions`.
-
-### Высокий риск: неожидаемый Player teardown
-
-- **Причина:** `PlaybackController.dispose()` запускал `releaseAllLayers()` через `void`, после чего view немедленно очищал providers.
-- **Исправление:** dispose возвращает один Promise, гасит обе media layers и ожидает все `releasePlayback()` до очистки providers.
-- **Доказательство:** stress-тест 100 быстрых переключений и блокирующий final release.
 
 ### Средний риск: повторная инициализация Downloader preview
 
@@ -92,9 +83,9 @@
 
 ### Системный риск: разрозненные процессы и журналы
 
-- **Причина:** Downloader, Converter, Backup, Media Library и Player использовали независимые `spawn/execFile`; stderr записывался как `error` даже при штатном прогрессе.
+- **Причина:** Downloader, Converter и Backup использовали независимые `spawn/execFile`; stderr записывался как `error` даже при штатном прогрессе.
 - **Исправление:** `ProcessSupervisor` регистрирует owner/tool/PID/correlation ID, поддерживает AbortSignal/timeout, `SIGTERM` и уничтожение дерева через `SIGKILL`. Сырой stderr yt-dlp/FFmpeg переведён на `debug`.
-- **Доказательство:** `processSupervisor.test.js` и профильные Downloader/Player/Tools тесты.
+- **Доказательство:** `processSupervisor.test.js` и профильные Downloader/Tools тесты.
 
 ### Средний риск: фоновые проверки Tools на каждом запуске
 
@@ -104,11 +95,11 @@
 
 ## Логирование и приватность
 
-Main-owned logger использует уровни `debug/info/warning/error` и scopes `Main`, `IPC`, `Downloader`, `Player`, `MediaLibrary`, `Tools`, `Settings`, `FFmpeg`, `yt-dlp`, `WebControl`. IPC фиксирует начало, завершение, duration и correlation ID без payload. По умолчанию записывается `info`; `debug` включается вручную в Settings.
+Main-owned logger использует уровни `debug/info/warning/error` и scopes `Main`, `IPC`, `Downloader`, `Tools`, `Settings`, `FFmpeg`, `yt-dlp`, `WebControl`. IPC фиксирует начало, завершение, duration и correlation ID без payload. По умолчанию записывается `info`; `debug` включается вручную в Settings.
 
 Логи ограничены пятью файлами по 10 МБ. Перед записью и экспортом скрываются token/cookie/authorization/secret параметры. ZIP содержит только логи и manifest с версиями Thunder/Electron/Node/ОС; медиатека, cookies и настройки не добавляются.
 
-Renderer Settings/Downloader/Web Control ошибки проходят через безопасный preload diagnostics API. Разрознённые `console.*` в проверенных main/Settings/Player/Downloader/Web Control путях удалены; сохранён только аварийный stderr fallback внутри самого logger на случай отказа ротации файла.
+Renderer Settings/Downloader/Web Control ошибки проходят через безопасный preload diagnostics API. Разрознённые `console.*` в проверенных main/Settings/Downloader/Web Control путях удалены; сохранён только аварийный stderr fallback внутри самого logger на случай отказа ротации файла.
 
 ## Платформенная проверка
 
@@ -116,7 +107,7 @@ Renderer Settings/Downloader/Web Control ошибки проходят чере�
 - Полный lint/typecheck/Jest и generated-artifact sync обязательны перед завершением задачи.
 - Свежая unsigned `mac-arm64` сборка успешно создана через `electron-builder --dir`; ICNS проверен packaged-валидатором.
 - Выполнено десять последовательных запусков финальной сборки: median `main window created and IPC ready` — 213,8 мс, median `renderer finished load` — 416,55 мс. Относительно десяти прогонов непосредственно до удаления фонового update-check это +0,7% и −1,3% соответственно, то есть регрессии critical time-to-ready нет. В журнале до всей стабилизации нет десяти однородных baseline-запусков, поэтому сравнение со старой архитектурой не заявляется.
-- macOS packaged smoke подтвердил idle quit и quit при активном Player/HLS. Playback-owned FFmpeg завершён контролируемым fallback `SIGKILL`; полный shutdown занял 1,527 с, оставшихся Thunder/yt-dlp/FFmpeg/ffprobe процессов нет.
+- macOS packaged smoke подтвердил idle quit и quit при полный shutdown занял 1,527 с, оставшихся Thunder/yt-dlp/FFmpeg/ffprobe процессов нет.
 - Отдельный macOS packaged smoke подтвердил цикл close → activate → recreate: после закрытия окна application process остался жив, повторная активация создала рабочее окно, а финальный quit выполнил единственную последовательность coordinator cleanup за 7 мс. После выхода не осталось Thunder/yt-dlp/FFmpeg/ffprobe процессов; packaged ICNS повторно прошёл валидатор.
 - macOS Web Control packaged smoke подтвердил `/downloader`, `/settings`, status/state/settings API, SSE `ready/state`, 15-секундный preview и реальный запуск Downloader. При quit активный Downloader-owned `yt-dlp` получил `SIGTERM`, Web Control остановился, весь shutdown занял 577 мс; оставшихся Thunder/yt-dlp/FFmpeg/ffprobe процессов нет.
 - После smoke Web Control выключен, download path, очередь и история возвращены к исходному состоянию, тестовая временная папка удалена. Пользовательский файл, затронутый найденной collision-проблемой, восстановлен до исходного размера 160 307 238 байт.

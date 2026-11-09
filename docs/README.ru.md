@@ -1,7 +1,7 @@
 # Thunder
 
-Кроссплатформенное Electron-приложение для скачивания и воспроизведения медиа,
-ведения истории и запуска прикладных инструментов.
+Кроссплатформенное Electron-приложение для скачивания медиа, ведения истории
+и запуска прикладных инструментов.
 
 ## Загрузка
 
@@ -9,8 +9,7 @@
 - Автоматические релизы публикуют Windows NSIS и macOS DMG для Intel и Apple Silicon на странице [Releases](https://github.com/Nagrands/thunder-load-app/releases).
 - Linux AppImage собирается командой `pnpm run build-linux`, но пока не входит в release workflow.
 - Текущие сборки macOS и Windows не подписаны.
-- Windows использует per-machine NSIS с elevation; macOS добавляет Thunder в
-  «Открыть с помощью», не назначая его приложением по умолчанию автоматически.
+- Windows использует per-machine NSIS с elevation.
 
 ## Возможности
 
@@ -18,10 +17,6 @@
 - Выбор видео, видео без аудио, аудиодорожки или MP3 перед запуском.
 - Сохраняемая очередь, плейлисты, защита от дублей и до двух параллельных загрузок.
 - История с поиском, фильтрами, сортировкой, пагинацией, отменой удаления и экспортом CSV/JSON.
-- Неблокирующий Плеер с локальными аудио/видео, медиатекой, плейлистами,
-  временной очередью, M3U/M3U8, выбором качества YouTube и HLS/FFmpeg fallback.
-- Системные media keys/metadata, macOS Dock Menu, ассоциации медиафайлов и
-  запуск файлов из Finder/Explorer.
 - Компактная Windows 11-style панель трея с системной темой, быстрыми действиями
   и полным управлением с клавиатуры.
 - Раздел `Products` для очистки, группировки и проверки товарных списков.
@@ -33,7 +28,6 @@
 
 - [Руководство по приложению](APP.ru.md)
 - [Downloader](tab/Downloader_Tab.md)
-- [Плеер](tab/Player_Tab.ru.md)
 - [Tools QA](tab/Tools_Platform_QA.md)
 
 ## Технологии и скрипты
@@ -49,8 +43,7 @@
 | `pnpm run build`                             | Сборка дистрибутива                            |
 | `pnpm run build-mac` / `pnpm run build-linux` | Сборки под конкретную ОС                       |
 | `pnpm test`                                  | Тесты Jest                                     |
-| `pnpm run typecheck:player`                  | Проверка типов модулей Плеера                  |
-| `pnpm run check`                             | Линт + typecheck Плеера + тесты                |
+| `pnpm run check`                             | Линт + тесты                |
 | `pnpm run css:build`                         | Сборка CSS из SCSS                             |
 | `pnpm run css:watch`                         | Автосборка SCSS                                |
 | `pnpm run templates:build`                   | Регенерация HTML из Nunjucks                   |

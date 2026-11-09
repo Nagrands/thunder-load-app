@@ -34,7 +34,6 @@
 
 - `pnpm run lint` — строгий линт без предупреждений.
 - `pnpm test` — unit‑тесты.
-- `pnpm run typecheck:player` — обязательный typecheck при изменениях Плеера.
 - `pnpm run check` — итоговая объединённая проверка.
 - При UI‑изменениях — ручная проверка ключевых сценариев.
 - При новых IPC проверить channel registry, handler, preload whitelist и

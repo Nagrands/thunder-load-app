@@ -46,11 +46,6 @@ export const mediaGallery = [
     id: "tools",
     image: "thunder-tools.png",
     labels: { ru: "Инструменты", en: "Tools" }
-  },
-  {
-    id: "player",
-    image: "thunder-player.png",
-    labels: { ru: "Плеер", en: "Player"}
   }
 ] as const;
 

@@ -7,7 +7,7 @@ describe("windowControls", () => {
   beforeEach(() => {
     document.body.innerHTML = `
       <button data-window-action="minimize"><span>Minimize</span></button>
-      <section id="player"></section>
+      <section id="app-view"></section>
     `;
     window.electron = {
       minimize: jest.fn(),
@@ -19,12 +19,12 @@ describe("windowControls", () => {
     disposeWindowControls();
   });
 
-  test("delegates global and dynamically mounted Player controls", () => {
+  test("delegates global and dynamically mounted window controls", () => {
     initWindowControls();
     initWindowControls();
 
     document.querySelector("[data-window-action='minimize'] span").click();
-    document.getElementById("player").innerHTML = `
+    document.getElementById("app-view").innerHTML = `
       <button data-window-action="close"><i></i></button>
     `;
     document.querySelector("[data-window-action='close'] i").click();

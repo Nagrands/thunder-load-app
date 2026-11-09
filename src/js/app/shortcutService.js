@@ -10,24 +10,6 @@ const SITE_ACTIONS = Object.freeze([
   ["site.coub.open", "openCoub", "https://www.coub.com", "4"],
 ]);
 
-const PLAYER_ACTIONS = Object.freeze([
-  ["player.togglePlayback", "togglePlayback", "Alt+P"],
-  ["player.stop", "stop", "Alt+X"],
-  ["player.previous", "previous", "Alt+Shift+Left"],
-  ["player.next", "next", "Alt+Shift+Right"],
-  ["player.seekBackward", "seekBackward", "Alt+Left"],
-  ["player.seekForward", "seekForward", "Alt+Right"],
-  ["player.toggleMute", "toggleMute", "Alt+M"],
-  ["player.volumeDown", "volumeDown", "Alt+Down"],
-  ["player.volumeUp", "volumeUp", "Alt+Up"],
-  ["player.toggleFullscreen", "toggleFullscreen", "Alt+Enter"],
-  ["player.open", "open", "CommandOrControl+4"],
-  ["player.openLibrary", "openLibrary", "CommandOrControl+Alt+4"],
-  ["player.toggleShuffle", "toggleShuffle", "Alt+S"],
-  ["player.cycleRepeat", "cycleRepeat", "Alt+R"],
-  ["player.showCurrentMediaInfo", "showCurrentMediaInfo", "Alt+I"],
-]);
-
 function createAction({
   id,
   scope = "local",
@@ -122,14 +104,6 @@ function createShortcutCatalog(platform = process.platform) {
         category: "sites",
         key,
         defaultAccelerator: `${siteModifier}+${number}`,
-      }),
-    ),
-    ...PLAYER_ACTIONS.map(([id, key, defaultAccelerator]) =>
-      createAction({
-        id,
-        category: "player",
-        key,
-        defaultAccelerator,
       }),
     ),
   ]);

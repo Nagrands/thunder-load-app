@@ -6,7 +6,6 @@ export function registerI18nListeners(tabs) {
     document.title = t("app.title");
     tabs.setTabLabel("download", t("tabs.download"));
     tabs.setTabLabel("wireguard", t("tabs.tools"));
-    tabs.setTabLabel("now-playing", t("tabs.nowPlaying"));
   };
   window.addEventListener("i18n:changed", onChanged);
   return () => window.removeEventListener("i18n:changed", onChanged);

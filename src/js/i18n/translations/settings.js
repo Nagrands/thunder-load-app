@@ -2,7 +2,6 @@ export const settingsTranslations = {
   ru: {
     "settings.tabs.general": "Общие",
     "settings.tabs.downloader": "Загрузчик",
-    "settings.tabs.player": "Плеер",
     "settings.tabs.appearance": "Внешний вид",
     "settings.tabs.shortcuts": "Горячие клавиши",
     "settings.tabs.about": "О приложении",
@@ -15,38 +14,6 @@ export const settingsTranslations = {
     "settings.search.results": "Результаты поиска по настройкам",
     "settings.search.empty": "Ничего не найдено",
     "settings.search.count": "Найдено настроек: {count}",
-    "settings.player.title": "Плеер",
-    "settings.player.hint":
-      "Настройте поведение панели и параметры воспроизведения.",
-    "settings.player.behavior": "Поведение",
-    "settings.player.behaviorHint":
-      "Управляйте доступностью панели и воспроизведением в фоне.",
-    "settings.player.sidebarPinned": "Закрепить боковую панель",
-    "settings.player.sidebarPinnedHint":
-      "Панель плейлиста всегда остаётся доступной.",
-    "settings.player.controlsPosition": "Положение панели",
-    "settings.player.controlsPositionHint":
-      "Разместите управление сверху или снизу окна Player.",
-    "settings.player.controlsPosition.top": "Сверху",
-    "settings.player.controlsPosition.bottom": "Снизу",
-    "settings.player.backgroundPlayback": "Фоновое воспроизведение",
-    "settings.player.backgroundPlaybackHint":
-      "Продолжать воспроизведение вне вкладки Player.",
-    "settings.player.playback": "Воспроизведение",
-    "settings.player.playbackHint":
-      "Настройте порядок, повтор и уровень громкости.",
-    "settings.player.shuffle": "Перемешивание",
-    "settings.player.shuffleHint":
-      "Воспроизводить элементы в случайном порядке.",
-    "settings.player.repeat": "Повтор",
-    "settings.player.repeatHint": "Выберите режим повтора очереди.",
-    "settings.player.repeat.off": "Выкл.",
-    "settings.player.repeat.one": "Один",
-    "settings.player.repeat.all": "Все",
-    "settings.player.volume": "Громкость",
-    "settings.player.volumeHint": "Установите уровень громкости Player.",
-    "settings.player.loadError": "Не удалось загрузить настройки Player.",
-    "settings.player.saveError": "Не удалось сохранить настройки Player.",
     "settings.startup.title": "Настройки запуска",
     "settings.startup.hint":
       "Настройте параметры запуска для удобного использования.",
@@ -224,11 +191,8 @@ export const settingsTranslations = {
     "settings.shortcuts.edit": "Изменить",
     "settings.shortcuts.unassigned": "Не назначено",
     "settings.shortcuts.reset.single": "Сбросить",
-    "settings.shortcuts.reset.player": "Сбросить горячие клавиши плеера",
     "settings.shortcuts.resetSingleSuccess":
       "Сочетание восстановлено по умолчанию",
-    "settings.shortcuts.resetPlayerSuccess":
-      "Горячие клавиши плеера восстановлены по умолчанию",
     "settings.shortcuts.recording": "Нажмите новую комбинацию клавиш…",
     "settings.shortcuts.scopeLocal": "В приложении",
     "settings.shortcuts.scopeGlobal": "Глобально",
@@ -251,52 +215,6 @@ export const settingsTranslations = {
     "shortcuts.categories.downloads": "Загрузки",
     "shortcuts.categories.system": "Система",
     "shortcuts.categories.sites": "Сайты",
-    "shortcuts.categories.player": "Плеер",
-    "shortcuts.actions.togglePlayback.title": "Воспроизведение / пауза",
-    "shortcuts.actions.togglePlayback.description":
-      "Запускает или приостанавливает текущий файл.",
-    "shortcuts.actions.stop.title": "Остановить воспроизведение",
-    "shortcuts.actions.stop.description":
-      "Останавливает воспроизведение и возвращает позицию в начало.",
-    "shortcuts.actions.previous.title": "Предыдущий файл",
-    "shortcuts.actions.previous.description":
-      "Переходит к предыдущему доступному файлу.",
-    "shortcuts.actions.next.title": "Следующий файл",
-    "shortcuts.actions.next.description":
-      "Переходит к следующему файлу или элементу очереди.",
-    "shortcuts.actions.seekBackward.title": "Перемотать назад",
-    "shortcuts.actions.seekBackward.description":
-      "Перематывает текущий файл назад на 10 секунд.",
-    "shortcuts.actions.seekForward.title": "Перемотать вперёд",
-    "shortcuts.actions.seekForward.description":
-      "Перематывает текущий файл вперёд на 10 секунд.",
-    "shortcuts.actions.toggleMute.title": "Включить / выключить звук",
-    "shortcuts.actions.toggleMute.description":
-      "Отключает звук или восстанавливает прежнюю громкость.",
-    "shortcuts.actions.volumeDown.title": "Уменьшить громкость",
-    "shortcuts.actions.volumeDown.description":
-      "Уменьшает громкость на 5 процентных пунктов.",
-    "shortcuts.actions.volumeUp.title": "Увеличить громкость",
-    "shortcuts.actions.volumeUp.description":
-      "Увеличивает громкость на 5 процентных пунктов.",
-    "shortcuts.actions.toggleFullscreen.title": "Полноэкранный режим",
-    "shortcuts.actions.toggleFullscreen.description":
-      "Открывает или закрывает полноэкранный режим плеера.",
-    "shortcuts.actions.open.title": "Открыть плеер",
-    "shortcuts.actions.open.description": "Переходит к полному плееру.",
-    "shortcuts.actions.openLibrary.title": "Открыть медиатеку",
-    "shortcuts.actions.openLibrary.description":
-      "Открывает медиатеку во вкладке плеера.",
-    "shortcuts.actions.toggleShuffle.title": "Перемешивание",
-    "shortcuts.actions.toggleShuffle.description":
-      "Включает или отключает случайный порядок воспроизведения.",
-    "shortcuts.actions.cycleRepeat.title": "Режим повтора",
-    "shortcuts.actions.cycleRepeat.description":
-      "Переключает повтор очереди, текущего файла и выключенный режим.",
-    "shortcuts.actions.showCurrentMediaInfo.title":
-      "Информация о текущем файле",
-    "shortcuts.actions.showCurrentMediaInfo.description":
-      "Показывает сведения о текущем медиафайле.",
     "shortcuts.actions.openShortcutSettings.title": "Открыть горячие клавиши",
     "shortcuts.actions.openShortcutSettings.description":
       "Открывает раздел горячих клавиш в настройках.",
@@ -393,7 +311,6 @@ export const settingsTranslations = {
   en: {
     "settings.tabs.general": "General",
     "settings.tabs.downloader": "Downloader",
-    "settings.tabs.player": "Player",
     "settings.tabs.appearance": "Appearance",
     "settings.tabs.shortcuts": "Shortcuts",
     "settings.tabs.about": "About app",
@@ -406,36 +323,6 @@ export const settingsTranslations = {
     "settings.search.results": "Settings search results",
     "settings.search.empty": "No settings found",
     "settings.search.count": "Settings found: {count}",
-    "settings.player.title": "Player",
-    "settings.player.hint":
-      "Configure panel behavior and playback preferences.",
-    "settings.player.behavior": "Behavior",
-    "settings.player.behaviorHint":
-      "Control panel availability and background playback.",
-    "settings.player.sidebarPinned": "Pin sidebar",
-    "settings.player.sidebarPinnedHint":
-      "Keep the playlist panel available at all times.",
-    "settings.player.controlsPosition": "Control bar position",
-    "settings.player.controlsPositionHint":
-      "Place playback controls at the top or bottom of the Player window.",
-    "settings.player.controlsPosition.top": "Top",
-    "settings.player.controlsPosition.bottom": "Bottom",
-    "settings.player.backgroundPlayback": "Background playback",
-    "settings.player.backgroundPlaybackHint":
-      "Continue playback outside the Player tab.",
-    "settings.player.playback": "Playback",
-    "settings.player.playbackHint": "Configure order, repeat, and volume.",
-    "settings.player.shuffle": "Shuffle",
-    "settings.player.shuffleHint": "Play items in random order.",
-    "settings.player.repeat": "Repeat",
-    "settings.player.repeatHint": "Choose a queue repeat mode.",
-    "settings.player.repeat.off": "Off",
-    "settings.player.repeat.one": "One",
-    "settings.player.repeat.all": "All",
-    "settings.player.volume": "Volume",
-    "settings.player.volumeHint": "Set the Player volume level.",
-    "settings.player.loadError": "Could not load Player settings.",
-    "settings.player.saveError": "Could not save Player settings.",
     "settings.startup.title": "Startup settings",
     "settings.startup.hint": "Configure startup behavior for convenience.",
     "settings.startup.autolaunchTitle": "Launch automatically",
@@ -607,10 +494,7 @@ export const settingsTranslations = {
     "settings.shortcuts.edit": "Change",
     "settings.shortcuts.unassigned": "Not assigned",
     "settings.shortcuts.reset.single": "Reset",
-    "settings.shortcuts.reset.player": "Reset player shortcuts",
     "settings.shortcuts.resetSingleSuccess": "Shortcut restored to its default",
-    "settings.shortcuts.resetPlayerSuccess":
-      "Player shortcuts restored to defaults",
     "settings.shortcuts.recording": "Press a new key combination…",
     "settings.shortcuts.scopeLocal": "In app",
     "settings.shortcuts.scopeGlobal": "Global",
@@ -632,7 +516,6 @@ export const settingsTranslations = {
     "shortcuts.categories.downloads": "Downloads",
     "shortcuts.categories.system": "System",
     "shortcuts.categories.sites": "Websites",
-    "shortcuts.categories.player": "Player",
     "shortcuts.actions.togglePlayback.title": "Play / pause",
     "shortcuts.actions.togglePlayback.description":
       "Starts or pauses the current media file.",
@@ -659,23 +542,6 @@ export const settingsTranslations = {
     "shortcuts.actions.volumeUp.title": "Volume up",
     "shortcuts.actions.volumeUp.description":
       "Increases volume by 5 percentage points.",
-    "shortcuts.actions.toggleFullscreen.title": "Fullscreen",
-    "shortcuts.actions.toggleFullscreen.description":
-      "Enters or exits the player's fullscreen mode.",
-    "shortcuts.actions.open.title": "Open player",
-    "shortcuts.actions.open.description": "Switches to the full player.",
-    "shortcuts.actions.openLibrary.title": "Open media library",
-    "shortcuts.actions.openLibrary.description":
-      "Opens the media library in the Player tab.",
-    "shortcuts.actions.toggleShuffle.title": "Shuffle",
-    "shortcuts.actions.toggleShuffle.description":
-      "Enables or disables shuffled playback.",
-    "shortcuts.actions.cycleRepeat.title": "Repeat mode",
-    "shortcuts.actions.cycleRepeat.description":
-      "Cycles queue repeat, current-file repeat, and off.",
-    "shortcuts.actions.showCurrentMediaInfo.title": "Current file information",
-    "shortcuts.actions.showCurrentMediaInfo.description":
-      "Shows information about the current media file.",
     "shortcuts.actions.openShortcutSettings.title": "Open shortcuts",
     "shortcuts.actions.openShortcutSettings.description":
       "Opens the Shortcuts section in Settings.",

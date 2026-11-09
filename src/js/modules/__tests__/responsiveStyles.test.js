@@ -27,10 +27,6 @@ describe("application responsive contract", () => {
     path.join(root, "src/scss/components/_layout-ui.scss"),
     "utf8",
   );
-  const nowPlaying = fs.readFileSync(
-    path.join(root, "src/scss/tab/_now-playing.scss"),
-    "utf8",
-  );
   const history = fs.readFileSync(
     path.join(root, "src/scss/components/_history.scss"),
     "utf8",
@@ -81,12 +77,10 @@ describe("application responsive contract", () => {
     expect(adaptive).toContain("body:not(.is-mac) .window-controls button");
   });
 
-  test("uses icon-first navigation and overlay media-library sidebar", () => {
+  test("uses icon-first navigation", () => {
     expect(adaptive).toContain(
       ".center-menu .menu-item:not(.active) .menu-text",
     );
-    expect(adaptive).toContain(".player-library.is-sidebar-open");
-    expect(adaptive).toContain("translateX(-105%)");
   });
 
   test("uses a fixed desktop sidebar and compact bottom navigation on narrow windows", () => {
@@ -100,7 +94,7 @@ describe("application responsive contract", () => {
     expect(layout).toContain("margin-left: var(--app-sidebar-width, 232px);");
     expect(adaptive).not.toContain(".app-sidebar--nav-mode");
     expect(sidebar).toContain("body.app-sidebar-collapsed");
-    expect(sidebar).toContain("--app-sidebar-width: 76px;");
+    expect(sidebar).toContain("--app-sidebar-width: 84px;");
     expect(sidebar).toContain(".app-sidebar__brand-version {\n      display: none;");
     expect(sidebar).toContain("font-size: 22px;");
     expect(topBarTemplate).not.toContain("top-bar__divider");
@@ -114,21 +108,6 @@ describe("application responsive contract", () => {
     expect(toolsStyles).toContain("@media (min-width: 901px)");
     expect(toolsStyles).toContain(".tools-sidebar {\n    display: none;");
     expect(toolsStyles).toContain("@media (max-width: 900px)");
-  });
-
-  test("removes the desktop sidebar offset from fullscreen main view", () => {
-    const immersiveShell = nowPlaying.slice(
-      nowPlaying.indexOf("body.now-playing-immersive"),
-      nowPlaying.indexOf(".now-playing.is-cursor-hidden"),
-    );
-    const fullscreenView = nowPlaying.slice(
-      nowPlaying.indexOf("#main-view.main-view--now-playing-active"),
-      nowPlaying.indexOf("#now-playing-view-wrapper"),
-    );
-
-    expect(immersiveShell).toContain("#main-view {");
-    expect(immersiveShell).toContain("margin: 0;");
-    expect(fullscreenView).toContain("margin: 0;");
   });
 
   test("stacks downloader tool badges within the sidebar width", () => {

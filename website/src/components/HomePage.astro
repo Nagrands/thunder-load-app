@@ -9,11 +9,7 @@ import {
   Film,
   Gauge,
   GitFork,
-  Headphones,
-  Library,
   MonitorCog,
-  Music2,
-  Play,
   ScanLine,
   Sparkles,
   WandSparkles,
@@ -42,14 +38,14 @@ const copy = isRu ? {
   heroBadge: `Thunder ${latest.version} уже доступен`,
   heroTitle: "Ваши медиа.",
   heroAccent: "На ваших условиях.",
-  heroLead: "Thunder объединяет загрузчик, медиаплеер, конвертер и полезные инструменты в одном быстром приложении.",
+  heroLead: "Thunder объединяет загрузчик, конвертер и полезные инструменты в одном быстром приложении.",
   download: "Скачать",
   docs: "Документация",
   trusted: "Прямые загрузки из GitHub",
   noTracking: "Без рекламы и трекеров",
   featuresEyebrow: "Всё необходимое",
   featuresTitle: "Один центр для работы с медиа",
-  featuresLead: "От ссылки до готового файла — Thunder берёт на себя загрузку, обработку, воспроизведение и организацию.",
+  featuresLead: "От ссылки до готового файла — Thunder берёт на себя загрузку, обработку и организацию.",
   galleryEyebrow: "Интерфейс",
   galleryTitle: "Понятный и простой",
   galleryLead: "Чистый рабочий процесс, понятные состояния и полный контроль без перегруженных панелей.",
@@ -70,14 +66,14 @@ const copy = isRu ? {
   heroBadge: `Thunder ${latest.version} is available`,
   heroTitle: "Your media.",
   heroAccent: "On your terms.",
-  heroLead: "Thunder brings a downloader, media player, converter, and practical tools together in one fast app.",
+  heroLead: "Thunder brings a downloader, converter, and practical tools together in one fast app.",
   download: "Download",
   docs: "Documentation",
   trusted: "Direct downloads from GitHub",
   noTracking: "No ads or trackers",
   featuresEyebrow: "Everything you need",
   featuresTitle: "One place for every media workflow",
-  featuresLead: "From a link to a finished file, Thunder handles downloading, processing, playback, and organization.",
+  featuresLead: "From a link to a finished file, Thunder handles downloading, processing, and organization.",
   galleryEyebrow: "Interface",
   galleryTitle: "Clear and simple",
   galleryLead: "A clean workflow, clear states, and full control without cluttered panels.",
@@ -98,20 +94,16 @@ const copy = isRu ? {
 
 const highlights = [
   { icon: Download, ru: ["Загрузчик", "Видео, аудио, субтитры и плейлисты с выбором качества до запуска."], en: ["Downloader", "Video, audio, subtitles, and playlists with quality selection before download."] },
-  { icon: Play, ru: ["Медиаплеер", "Локальные файлы, YouTube, HLS, очереди и плейлисты в неблокирующем плеере."], en: ["Media player", "Local files, YouTube, HLS, queues, and playlists in a non-blocking player."] },
-  { icon: Music2, ru: ["Now Playing", "Системные media keys, метаданные и управление воспроизведением."], en: ["Now Playing", "System media keys, metadata, and playback control."] },
   { icon: WandSparkles, ru: ["Конвертация", "Преобразование аудио и видео через управляемый FFmpeg."], en: ["Conversion", "Audio and video conversion powered by managed FFmpeg."] }
 ];
 
 const productCards = [
   { icon: Zap, ru: ["Загрузчик", "Очередь, качества, субтитры и быстрые действия."], en: ["Downloader", "Queue, quality choices, subtitles, and quick actions."] },
   { icon: Film, ru: ["Конвертер", "Готовые форматы и точный контроль результата."], en: ["Converter", "Practical presets and precise output control."] },
-  { icon: Headphones, ru: ["Медиаплеер", "Видео, музыка, HLS и несколько аудиодорожек."], en: ["Media player", "Video, music, HLS, and multiple audio tracks."] },
   { icon: Boxes, ru: ["Инструменты", "Хеши, Media Inspector и Backup."], en: ["Tools", "Hashes, Media Inspector, and Backup."] },
   { icon: Cloud, ru: ["Веб-интерфейс", "Удалённый доступ к основным сценариям загрузки."], en: ["Web interface", "Remote access to essential download workflows."] },
   { icon: Clock3, ru: ["История", "Поиск, фильтры, повтор и экспорт операций."], en: ["History", "Search, filters, repeat actions, and export."] },
-  { icon: Library, ru: ["Медиатека", "Плейлисты, очередь «Далее» и локальные папки."], en: ["Library", "Playlists, an Up Next queue, and local folders."] },
-  { icon: MonitorCog, ru: ["Система", "Tray, Dock, ассоциации файлов и горячие клавиши."], en: ["System", "Tray, Dock, file associations, and shortcuts."] }
+  { icon: MonitorCog, ru: ["Система", "Tray, Dock, ассоциации файлов и горячие клавиши."], en: ["System", "Tray, Dock, and shortcuts."] }
 ];
 
 const softwareJsonLd = {

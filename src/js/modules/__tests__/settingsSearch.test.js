@@ -28,7 +28,7 @@ function buildDom() {
         <div id="settings-search-live"></div>
       </div>
       <button id="general-tab">Общие</button>
-      <button id="player-tab">Плеер</button>
+      <button id="appearance-tab">Внешний вид</button>
       <div
         id="general-settings"
         class="tab-pane"
@@ -45,11 +45,11 @@ function buildDom() {
         </section>
       </div>
       <div
-        id="player-settings"
+        id="appearance-settings"
         class="tab-pane"
-        aria-labelledby="player-tab"
+        aria-labelledby="appearance-tab"
       >
-        <details id="player-details">
+        <details id="appearance-details">
           <div
             id="background-control"
             class="settings-control"
@@ -98,7 +98,7 @@ describe("settingsSearch", () => {
     const options = document.querySelectorAll(".settings-search-result");
     expect(options).toHaveLength(1);
     expect(options[0].textContent).toContain("Фоновое воспроизведение");
-    expect(options[0].textContent).toContain("Плеер");
+    expect(options[0].textContent).toContain("Внешний вид");
     expect(input.getAttribute("aria-expanded")).toBe("true");
   });
 
@@ -110,8 +110,8 @@ describe("settingsSearch", () => {
       new KeyboardEvent("keydown", { key: "Enter", bubbles: true }),
     );
 
-    expect(activateCategory).toHaveBeenCalledWith("player-settings");
-    expect(document.getElementById("player-details").open).toBe(true);
+    expect(activateCategory).toHaveBeenCalledWith("appearance-settings");
+    expect(document.getElementById("appearance-details").open).toBe(true);
     expect(document.activeElement.id).toBe("background-input");
     expect(
       document

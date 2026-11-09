@@ -4,7 +4,7 @@
 
 <h1 align="center">Thunder</h1>
 
-<p align="center"><em>Desktop media downloader, player, and utility toolbox</em></p>
+<p align="center"><em>Desktop media downloader and utility toolbox</em></p>
 
 <p align="center">
   <a href="https://nagrands.github.io/thunder-load-app/">Website</a> ·
@@ -23,8 +23,7 @@
 - Automated releases publish Windows NSIS and macOS DMG installers for Intel and Apple Silicon on [GitHub Releases](https://github.com/Nagrands/thunder-load-app/releases).
 - Linux AppImage packaging is available through `pnpm run build-linux`, but it is not part of the current release workflow.
 - Current macOS and Windows artifacts are unsigned.
-- Windows uses a per-machine NSIS installer with elevation. macOS registers
-  supported media as alternate Open With types without taking them by default.
+- Windows uses a per-machine NSIS installer with elevation.
 
 
 ## Features
@@ -33,11 +32,6 @@
 - Video, video-only, audio, and MP3 quality choices before download.
 - Persistent queue, playlist enqueueing, duplicate protection, and up to two parallel downloads.
 - Clipboard detection, URL preview, YouTube background/live preview, and quick actions.
-- Non-blocking Player media library with local audio/video, playlists,
-  transient Up Next queue, M3U/M3U8, YouTube quality selection, and HLS/FFmpeg
-  codec fallback.
-- System playback integration through Media Session, macOS Dock controls,
-  media-file associations, and Finder/Explorer open-file handling.
 - Windows 11-style tray panel with system-theme support, compact quick actions,
   complete keyboard navigation, and a native-menu fallback.
 - Download history with search, source filters, sorting, pagination, undo, and CSV/JSON export.
@@ -53,8 +47,6 @@ See the [application guide](docs/APP.en.md) for section details and platform lim
 <p align="center">
   <img src="assets/screenshots/thunder_download.png" alt="Downloader section" width="45%" />
   <img src="assets/screenshots/thunder_tools.png" alt="Tools section" width="45%" />
-  <img src="assets/screenshots/thunder_player.png" alt="Player section" width="45%" />
-  <img src="assets/screenshots/thunder_medialibrary.png" alt="Settings" width="45%" />
 </p>
 
 ## Tech Stack & Tooling
@@ -64,7 +56,6 @@ See the [application guide](docs/APP.en.md) for section details and platform lim
 - **Nunjucks** - generated application markup
 - **SCSS** - component and platform styles
 - **Jest, ESLint, and TypeScript checkJs** - tests and static checks
-- **hls.js** - HLS playback in Chromium
 - **yt-dlp, ffmpeg/ffprobe, and Deno** - managed runtime tools
 - **pnpm** - package manager
 
@@ -78,8 +69,7 @@ See the [application guide](docs/APP.en.md) for section details and platform lim
 | `pnpm run build`                            | Package the app for your platform        |
 | `pnpm run build-mac` / `pnpm run build-linux` | Platform-specific builds                 |
 | `pnpm test`                                 | Run Jest tests                           |
-| `pnpm run typecheck:player`                 | Player/main JavaScript type check        |
-| `pnpm run check`                            | Lint + Player typecheck + tests          |
+| `pnpm run check`                            | Lint + tests          |
 | `pnpm run css:build`                        | Build CSS from SCSS                      |
 | `pnpm run css:watch`                        | Watch & rebuild SCSS                     |
 | `pnpm run templates:build`                  | Rebuild HTML from Nunjucks templates     |
@@ -118,8 +108,6 @@ or use the `*:watch` commands.
 
 - [Application guide](docs/APP.en.md)
 - [Russian application guide](docs/APP.ru.md)
-- [Player guide and architecture](docs/tab/Player_Tab.en.md)
-- [Документация Плеера](docs/tab/Player_Tab.ru.md)
 - [Thunder brand guide](docs/brand/brand-guide.md)
 - [Developer workflow](docs/WORKFLOW.en.md)
 - [D.O.C.S. delivery method](docs/DOCS.en.md)

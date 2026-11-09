@@ -84,25 +84,25 @@ describe("TabSystem", () => {
 
   test("keeps generated tabs and panels accessible", () => {
     const tabs = new TabSystem(".group-menu", "#main-view");
-    tabs.addTab("now-playing", "Now Playing", "fa-solid fa-music", () => {
+    tabs.addTab("download", "Download", "fa-solid fa-download", () => {
       const el = document.createElement("section");
       return el;
     });
 
-    tabs.activateTab("now-playing");
+    tabs.activateTab("download");
 
-    const button = document.querySelector('[data-menu="now-playing"]');
-    const panel = document.querySelector('[data-tab-id="now-playing"]');
+    const button = document.querySelector('[data-menu="download"]');
+    const panel = document.querySelector('[data-tab-id="download"]');
     expect(button.getAttribute("role")).toBe("tab");
     expect(button.getAttribute("aria-selected")).toBe("true");
-    expect(button.getAttribute("aria-label")).toBe("Now Playing");
-    expect(button.getAttribute("title")).toBe("Now Playing");
+    expect(button.getAttribute("aria-label")).toBe("Download");
+    expect(button.getAttribute("title")).toBe("Download");
     expect(button.dataset.bsToggle).toBe("tooltip");
     expect(button.getAttribute("aria-controls")).toBe(panel.id);
     expect(panel.getAttribute("role")).toBe("tabpanel");
     expect(panel.getAttribute("aria-labelledby")).toBe(button.id);
-    expect(document.body.classList.contains("is-now-playing-active")).toBe(
-      true,
+    expect(document.getElementById("main-view").dataset.activeTab).toBe(
+      "download",
     );
   });
 
@@ -118,49 +118,6 @@ describe("TabSystem", () => {
     expect(button.querySelector(".menu-text").textContent).toBe("Загрузчик");
     expect(button.getAttribute("aria-label")).toBe("Загрузчик");
     expect(button.getAttribute("title")).toBe("Загрузчик");
-  });
-
-  test("mounts and disposes an icon-only navigation proxy", () => {
-    const tabs = new TabSystem(".group-menu", "#main-view");
-    tabs.addTab("download", "Download", "fa-solid fa-download", () =>
-      document.createElement("div"),
-    );
-    tabs.addTab("tools", "Tools", "fa-solid fa-toolbox", () =>
-      document.createElement("div"),
-    );
-    tabs.addTab("now-playing", "Player", "fa-solid fa-play", () =>
-      document.createElement("div"),
-    );
-    tabs.activateTab("now-playing");
-
-    const navigation = document.createElement("nav");
-    document.body.appendChild(navigation);
-    const dispose = tabs.mountNavigationProxy(navigation, {
-      excludeIds: ["now-playing"],
-    });
-
-    const buttons = navigation.querySelectorAll("[data-tab-target]");
-    expect(buttons).toHaveLength(2);
-    expect(navigation.textContent).toBe("");
-    expect(
-      navigation
-        .querySelector('[data-tab-target="download"]')
-        .getAttribute("aria-label"),
-    ).toBe("Download");
-    expect(
-      navigation.querySelector('[data-tab-target="download"]').dataset.bsToggle,
-    ).toBe("tooltip");
-
-    tabs.setTabLabel("download", "Загрузчик");
-    expect(navigation.querySelector('[data-tab-target="download"]').title).toBe(
-      "Загрузчик",
-    );
-
-    navigation.querySelector('[data-tab-target="tools"]').click();
-    expect(tabs.activeTabId).toBe("tools");
-
-    dispose();
-    expect(navigation.childElementCount).toBe(0);
   });
 
   test("keeps Downloader available when legacy developer preference exists", () => {

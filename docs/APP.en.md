@@ -14,30 +14,6 @@ This guide describes the current user-facing application.
 
 The downloader uses managed `yt-dlp`, `ffmpeg`, `ffprobe`, and Deno tools. Source support follows the installed `yt-dlp` version; preview-specific features are strongest for YouTube.
 
-### Player
-
-- The media library remains available when empty and never blocks playlist
-  navigation or creation.
-- Sources include local audio/video, folders, individual YouTube links,
-  M3U/M3U8, and compatible HTTP(S)/HLS media.
-- User playlists persist. A separate Up Next queue takes priority and is
-  cleared on restart.
-- The context menu supports playback, queueing, playlist add/reorder, reveal,
-  containing-folder open, information, display-title rename, and metadata-only
-  removal.
-- YouTube import analyzes formats through `yt-dlp` before choosing `Auto`,
-  `Best`, `Audio`, or an exact codec/FPS/bitrate/size option.
-- The dock remains available on pause and hides without a playback session. It
-  includes three repeat modes, transient volume feedback, and accessible
-  tooltip/ARIA labels.
-- Chromium Media Session supplies system metadata, state, position, and
-  Play/Pause/Next/Previous/Seek commands. macOS also has Dock transport items.
-- Files opened from Finder/Explorer are imported and started; remaining files
-  enter the transient queue.
-
-See the [Player documentation](tab/Player_Tab.en.md) for complete behavior,
-architecture, formats, security constraints, and validation.
-
 ### Products
 
 The Products section reformats structured product lists. It can:
@@ -86,7 +62,7 @@ opens the relevant section, expands hidden advanced controls, and highlights
 the selected setting. On narrow windows, navigation becomes a compact
 expandable menu without horizontal scrolling.
 
-Its six sections—General, Downloader, Player, Appearance, Shortcuts, and
+Its five sections—General, Downloader, Appearance, Shortcuts, and
 Other—support keyboard navigation, visible focus, and screen readers. General
 also provides compact runtime details, release notes, update checks, and a
 button that copies full diagnostic information.
@@ -107,7 +83,7 @@ Settings control:
 
 The Shortcuts section in Settings lists every application action, its scope,
 and its current key combination, grouping commands by purpose: interface,
-navigation, downloads, websites, and Player. Choose the edit action on a row
+navigation, downloads, and websites. Choose the edit action on a row
 and press the new combination; `Esc` cancels recording. When a combination is
 already assigned, Thunder lets you cancel or swap the two actions.
 
@@ -130,9 +106,8 @@ Default Electron data directories:
 The data folder keeps the historical `Thunder Load` name for compatibility, so
 upgrading to Thunder does not move settings or history.
 
-History, settings, cached previews, download queue state, the Player media
-library, and tool metadata are stored under the application profile or renderer
-storage. Player's transient queue is not persisted. Runtime binaries use the
+History, settings, cached previews, download queue state, and tool metadata are stored under the application profile or renderer
+storage. Runtime binaries use the
 configured tools directory and can be checked, updated, reinstalled, migrated,
 or reset from the tools manager.
 
@@ -140,10 +115,7 @@ or reset from the tools manager.
 
 Automated releases provide Windows NSIS and macOS DMG installers for `x64` and `arm64`. Application auto-updates are Windows-only; macOS users install new versions manually from the DMG release assets. These artifacts are currently unsigned. Linux AppImage packaging is available through `pnpm run build-linux` but is not part of the automated release workflow.
 
-Windows NSIS installs per-machine with elevation. macOS associations use
-`Viewer`/`Alternate`, making Thunder available in Open With without taking a
-format automatically. System Now Playing/SMTC and associations require packaged
-validation on the target operating system.
+Windows NSIS installs per-machine with elevation.
 
 On Windows, left-clicking the Thunder notification-area icon shows or hides the
 main window. Right-clicking opens a compact Windows 11-style panel with Open
@@ -152,16 +124,12 @@ follows the system theme and closes after an action, on blur, or when `Esc` is
 pressed. `Up`/`Down`, `Home`/`End`, and `Enter`/`Space` provide complete keyboard
 navigation; Thunder falls back to the native menu if the panel cannot load.
 
-Player requires FFmpeg for YouTube and AVI/MPEG fallback. YouTube playlists are
-not supported, and YouTube URLs inside M3U/M3U8 are skipped with a warning
-because they require interactive quality selection.
 
 On Linux, `ffmpeg` and `ffprobe` may need to be installed through the system package manager. Compatible runtime tools can also be resolved from `PATH`. Individual Tools features may have narrower platform support as listed above.
 
 ## Related Documentation
 
 - [Downloader implementation](tab/Downloader_Tab.md)
-- [Player guide and architecture](tab/Player_Tab.en.md)
 - [Tools platform QA](tab/Tools_Platform_QA.md)
 - [Developer workflow](WORKFLOW.en.md)
 - [D.O.C.S. methodology](DOCS.en.md)

@@ -104,56 +104,6 @@ describe("clipboardHandler", () => {
     });
   });
 
-  test("does not capture a copied URL while the player workspace is active", async () => {
-    document.body.classList.add("is-now-playing-active");
-
-    await jest.isolateModulesAsync(async () => {
-      let focusCallback = null;
-      window.electron = {
-        invoke: jest.fn(async () => true),
-        onWindowFocused: jest.fn((cb) => {
-          focusCallback = cb;
-        }),
-      };
-
-      const updateButtonState = jest.fn();
-      const updateIcon = jest.fn();
-      const showToast = jest.fn();
-      const isValidUrl = jest.fn(() => true);
-      const isSupportedUrl = jest.fn(() => true);
-      const tabButton = document.querySelector('[data-menu="download"]');
-      const tabClick = jest.spyOn(tabButton, "click");
-
-      jest.doMock("../state.js", () => ({
-        state: { isDownloading: false, lastPastedUrl: "" },
-        updateButtonState,
-      }));
-      jest.doMock("../validation.js", () => ({ isValidUrl, isSupportedUrl }));
-      jest.doMock("../domElements.js", () => ({
-        urlInput: document.getElementById("url"),
-      }));
-      jest.doMock("../iconUpdater.js", () => ({ updateIcon }));
-      jest.doMock("../toast.js", () => ({ showToast }));
-      jest.doMock("../i18n.js", () => ({ t: (key) => key }));
-      jest.doMock("../downloaderAvailability.js", () => ({
-        isDownloaderAvailable: jest.fn(() => true),
-      }));
-
-      const { initClipboardHandler } = await import("../clipboardHandler.js");
-      initClipboardHandler();
-      await focusCallback?.("https://example.com/video");
-
-      expect(window.electron.invoke).not.toHaveBeenCalled();
-      expect(tabClick).not.toHaveBeenCalled();
-      expect(isValidUrl).not.toHaveBeenCalled();
-      expect(isSupportedUrl).not.toHaveBeenCalled();
-      expect(document.getElementById("url").value).toBe("");
-      expect(updateIcon).not.toHaveBeenCalled();
-      expect(updateButtonState).not.toHaveBeenCalled();
-      expect(showToast).not.toHaveBeenCalled();
-    });
-  });
-
   test("does not auto-paste focused clipboard URL when yt-dlp is unavailable", async () => {
     await jest.isolateModulesAsync(async () => {
       let focusCallback = null;

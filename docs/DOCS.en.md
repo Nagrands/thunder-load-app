@@ -36,8 +36,6 @@ Actions:
 Minimum validation plan:
 
 - Logic changes: `pnpm run check`.
-- For Player/main media code, confirm that `pnpm run typecheck:player` is part of
-  the executed validation set.
 - `templates/*.njk` changes: `pnpm run templates:build` and related tests.
 - `src/scss/*.scss` changes: `pnpm run css:build`.
 - User-facing behavior changes: update `whats-new.md` and `whats-new.en.md`, then run `pnpm run whats-new:build`.

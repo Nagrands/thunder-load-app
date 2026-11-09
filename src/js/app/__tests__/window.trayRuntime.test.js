@@ -163,7 +163,6 @@ describe("tray runtime behavior", () => {
         minHeight: 500,
         icon: expect.objectContaining({ isEmpty: expect.any(Function) }),
         webPreferences: expect.objectContaining({
-          enableBlinkFeatures: "AudioVideoTracks",
         }),
       }),
     );

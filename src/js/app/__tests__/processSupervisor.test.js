@@ -9,7 +9,7 @@ describe("ProcessSupervisor", () => {
     child.once = child.once.bind(child);
     const supervisor = new ProcessSupervisor({ spawnImpl: () => child });
     expect(
-      supervisor.spawn("ffmpeg", [], {}, { owner: "Player", tool: "FFmpeg" }),
+      supervisor.spawn("ffmpeg", [], {}, { owner: "Tools", tool: "FFmpeg" }),
     ).toBe(child);
     expect(supervisor.getSnapshot()).toHaveLength(1);
     child.exitCode = 0;

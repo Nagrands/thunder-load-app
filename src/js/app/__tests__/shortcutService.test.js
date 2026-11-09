@@ -64,12 +64,12 @@ function createService(options = {}) {
 }
 
 describe("shortcutService", () => {
-  test("exposes 30 unique actions with platform defaults", () => {
+  test("exposes 15 unique actions with platform defaults", () => {
     const mac = createShortcutCatalog("darwin");
     const windows = createShortcutCatalog("win32");
 
-    expect(mac).toHaveLength(30);
-    expect(new Set(mac.map(({ id }) => id)).size).toBe(30);
+    expect(mac).toHaveLength(15);
+    expect(new Set(mac.map(({ id }) => id)).size).toBe(15);
     expect(mac.some(({ id }) => id === "app.reload")).toBe(false);
     expect(
       mac.find(({ id }) => id === "site.youtube.open").defaultAccelerator,
@@ -81,12 +81,6 @@ describe("shortcutService", () => {
     expect(mac.find(({ id }) => id === "settings.open").defaultAccelerator).toBe(
       "CommandOrControl+,",
     );
-    expect(
-      windows.find(({ id }) => id === "player.togglePlayback")
-        .defaultAccelerator,
-    ).toBe("Alt+P");
-    expect(windows.filter(({ categoryKey }) =>
-      categoryKey === "shortcuts.categories.player")).toHaveLength(15);
   });
 
   test("normalizes aliases and rejects unsafe combinations", () => {
@@ -133,7 +127,7 @@ describe("shortcutService", () => {
     );
   });
 
-  test("preserves existing assignments and leaves conflicting new defaults unassigned", () => {
+  test("preserves existing assignments", () => {
     const store = createStore({
       shortcutAssignments: {
         "settings.shortcuts.open": "CommandOrControl+P",
@@ -144,25 +138,12 @@ describe("shortcutService", () => {
     const { service } = createService({ store });
 
     expect(service.getState().assignments["theme.toggle"]).toBe("Alt+P");
-    expect(service.getState().assignments["player.togglePlayback"]).toBeNull();
     expect(store.set).toHaveBeenCalledWith(
       "shortcutAssignments",
       expect.objectContaining({
         "theme.toggle": "Alt+P",
-        "player.togglePlayback": null,
       }),
     );
-  });
-
-  test("round-trips explicitly unassigned shortcuts on import", () => {
-    const { service } = createService();
-    const replaced = service.replaceAssignments({
-      ...service.getState().assignments,
-      "player.togglePlayback": null,
-    });
-
-    expect(replaced.success).toBe(true);
-    expect(replaced.assignments["player.togglePlayback"]).toBeNull();
   });
 
   test("reports conflicts and swaps assignments atomically", () => {

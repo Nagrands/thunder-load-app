@@ -3,7 +3,6 @@ import { Picture } from "astro:assets";
 import { Pause, Play } from "@lucide/astro";
 import downloader from "@/assets/screenshots/thunder-download.png";
 import tools from "@/assets/screenshots/thunder-tools.png";
-import player from "@/assets/screenshots/thunder-player.png";
 import type { Locale } from "@/config/site";
 import { mediaGallery } from "@/config/site";
 
@@ -12,7 +11,7 @@ interface Props {
 }
 
 const { locale } = Astro.props;
-const imageMap = { "thunder-download.png": downloader, "thunder-tools.png": tools, "thunder-player.png": player };
+const imageMap = { "thunder-download.png": downloader, "thunder-tools.png": tools };
 ---
 
 <div class="gallery glass reveal" data-gallery>

@@ -25,8 +25,6 @@ const { registerBackupIpcHandlers } = require("./backupIpcHandlers");
 const { registerFileShellIpcHandlers } = require("./fileShellIpcHandlers");
 const { registerFullscreenIpcHandlers } = require("./fullscreenIpcHandlers");
 const { registerHistoryIpcHandlers } = require("./historyIpcHandlers");
-const { registerNowPlayingIpcHandlers } = require("./nowPlayingIpcHandlers");
-const { setDockMediaState } = require("./window.js");
 const { registerShortcutIpcHandlers } = require("./shortcutIpcHandlers");
 const { createHistoryPreviewCache } = require("./historyPreviewIpcHandlers");
 const { TRAY_STATES, trayIconController } = require("./trayIconController");
@@ -604,7 +602,6 @@ function setupIpcHandlers(dependencies) {
     webControlServer,
     dispatchPendingWhatsNew,
     clearPendingWhatsNewVersion,
-    mediaOpenService,
     diagnosticsLogger,
     openFormatWindow,
   } = dependencies;
@@ -629,13 +626,6 @@ function setupIpcHandlers(dependencies) {
       return;
     }
     trayIconController.updateTrayIcon(state);
-  });
-  ipcMain.on(CHANNELS.NOW_PLAYING_MEDIA_STATE, (_event, snapshot) => {
-    setDockMediaState(snapshot);
-    app.emit("thunder-load:dock-player-refresh");
-  });
-  ipcMain.on(CHANNELS.NOW_PLAYING_OPEN_FILES_READY, () => {
-    mediaOpenService?.markRendererReady?.();
   });
   const activeConverterRuns = new Map();
   const downloadEngine = downloadRuntime.engine;
@@ -692,21 +682,6 @@ function setupIpcHandlers(dependencies) {
   });
 
   registerToolsVersionsIpcHandlers({ ipcMain, store });
-
-  const nowPlayingRuntime = registerNowPlayingIpcHandlers({
-    app,
-    dialog,
-    ffmpegPathResolver: getRuntimeFfmpegPath,
-    ffprobePathResolver: getRuntimeFfprobePath,
-    getVideoInfo: downloadEngine.getVideoInfo,
-    getVideoPreview: downloadEngine.getVideoPreview,
-    ipcMain,
-    mainWindow,
-    shell,
-    store,
-    diagnosticsLogger,
-  });
-  ipcRuntime.addDisposer(nowPlayingRuntime);
 
   registerFullscreenIpcHandlers({ ipcMain, mainWindow });
 

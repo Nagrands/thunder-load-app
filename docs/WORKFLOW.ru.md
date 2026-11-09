@@ -39,17 +39,6 @@ Thunder — Electron‑приложение для загрузки и восп�
   - общие модули: `src/js/modules/shared/` и legacy‑модули в `src/js/modules/`.
 - IPC и preload: `src/js/app/ipcHandlers.js`, `src/js/ipc/channels.js`, `src/js/preload.js`.
 
-### Где находится Плеер
-
-- Renderer: `src/js/modules/nowPlaying/` — модель медиатеки, providers,
-  playback controller, очередь, Media Session, контекстное меню и UI.
-- Main: `src/js/app/nowPlaying*.js` — состояние v3, импорт, YouTube и HLS;
-  `src/js/app/mediaOpenService.js` — файлы из ОС.
-- Player IPC проходит по цепочке `channels.js` → `ipcHandlers.js` и
-  `nowPlayingIpcHandlers.js` → whitelist/API в `preload.js`.
-- Полная карта: `docs/tab/Player_Tab.ru.md`; platform smoke:
-  `docs/tab/Player_Platform_QA.md`.
-
 ### Windows tray-панель
 
 - `src/js/app/windowsTrayMenu.js` управляет отдельным frameless `BrowserWindow`,
@@ -79,17 +68,14 @@ Thunder — Electron‑приложение для загрузки и восп�
 
 - `pnpm test` — unit‑тесты (Jest).
 - `pnpm run lint` — базовый линт (ESLint).
-- `pnpm run typecheck:player` — JavaScript typecheck Player/main media-модулей.
-- `pnpm run check` — единая команда (lint + Player typecheck + Jest).
+- - `pnpm run check` — единая команда (lint + Jest).
 - Логи `console.log` подавляются в тестах через `src/js/tests/setupTests.js`.
 
 ## Сборка
 
 - `pnpm run build` — сборка под текущую платформу.
 - `pnpm run build-mac` / `pnpm run build-linux` — платформенные сборки.
-- При изменении ассоциаций файлов или системной интеграции требуется packaged
-  smoke на целевой ОС по `docs/tab/Player_Platform_QA.md`.
-- Изменения tray-панели требуют packaged Windows smoke для светлой/тёмной темы,
+- - Изменения tray-панели требуют packaged Windows smoke для светлой/тёмной темы,
   DPI, разных положений taskbar, нескольких мониторов, blur/Escape и клавиатуры.
 
 ## Что нового (WhatsNew)

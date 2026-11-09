@@ -20,25 +20,10 @@ const { windowsTrayMenuController } = require("./windowsTrayMenu.js");
 
 let windowTray = null;
 let appMenu = null;
-let dockMediaState = null;
 let activeMainWindow = null;
 let trayRefreshApp = null;
 let trayRefreshHandler = null;
 let windowLogger = log;
-
-function setDockMediaState(snapshot) {
-  const title = String(snapshot?.track?.title || "")
-    .trim()
-    .slice(0, 1024);
-  dockMediaState = title
-    ? {
-        track: { title },
-        isPlaying: snapshot?.isPlaying === true,
-        canNext: snapshot?.canNext !== false,
-        canPrevious: snapshot?.canPrevious !== false,
-      }
-    : null;
-}
 
 function isMacPlatform() {
   return process.platform === "darwin";
@@ -118,12 +103,6 @@ function createMenuHandlers({ app, mainWindow, notifications = {} }) {
       showMainWindow();
       resolveMainWindow()?.webContents?.send?.("open-settings");
     },
-    mediaCommand: (command) => {
-      if (!["play", "pause", "next", "previous"].includes(command)) return;
-      resolveMainWindow()?.webContents?.send?.("now-playing:media-command", {
-        command,
-      });
-    },
     openLastVideo: async (lastPath) => {
       if (!lastPath || !fs.existsSync(lastPath)) return;
       const result = await shell.openPath(lastPath);
@@ -159,44 +138,17 @@ function buildDockMenuTemplate({
   downloadPath,
   mainWindow,
   handlers,
-  mediaState = dockMediaState,
 }) {
   const menuHandlers =
     handlers || createMenuHandlers({ app, mainWindow, notifications: {} });
   const lastVideo = buildLastVideoState(store);
   const downloads = buildDownloadFolderState(store, downloadPath);
 
-  const mediaItems = mediaState?.track
-    ? [
-        { type: "separator" },
-        {
-          label: `Сейчас играет: ${trimMenuText(mediaState.track.title, 36)}`,
-          enabled: false,
-        },
-        {
-          label: mediaState.isPlaying ? "Пауза" : "Воспроизвести",
-          click: () =>
-            menuHandlers.mediaCommand(mediaState.isPlaying ? "pause" : "play"),
-        },
-        {
-          label: "Предыдущий",
-          enabled: mediaState.canPrevious !== false,
-          click: () => menuHandlers.mediaCommand("previous"),
-        },
-        {
-          label: "Следующий",
-          enabled: mediaState.canNext !== false,
-          click: () => menuHandlers.mediaCommand("next"),
-        },
-      ]
-    : [];
-
   return [
     {
       label: "Открыть",
       click: () => menuHandlers.open(),
     },
-    ...mediaItems,
     {
       label: lastVideo.label,
       enabled: lastVideo.exists,
@@ -288,7 +240,6 @@ function createWindow(
   _getAppVersion,
   _ytDlpPath,
   _ffmpegPath,
-  _ffprobePath,
   _fileExists,
   getDownloadActivity = () => false,
   logger = log,
@@ -351,7 +302,6 @@ function createWindow(
       nodeIntegration: false,
       sandbox: true,
       devTools: isDev,
-      enableBlinkFeatures: "AudioVideoTracks",
     },
   });
   activeMainWindow = mainWindow;
@@ -500,16 +450,7 @@ function createWindow(
     };
 
     refreshDockMenu();
-    const refreshPlayerDockMenu = () => {
-      refreshDockMenu();
-    };
-    app.on("thunder-load:dock-player-refresh", refreshPlayerDockMenu);
     mainWindow.once("closed", () => {
-      app.removeListener(
-        "thunder-load:dock-player-refresh",
-        refreshPlayerDockMenu,
-      );
-      dockMediaState = null;
       if (activeMainWindow === mainWindow) activeMainWindow = null;
     });
   }
@@ -639,7 +580,6 @@ function disposeWindowRuntime() {
   }
   windowTray = null;
   activeMainWindow = null;
-  dockMediaState = null;
   trayIconController.reset();
 }
 
@@ -726,7 +666,6 @@ module.exports = {
   createWindow,
   buildTrayMenuTemplate,
   buildDockMenuTemplate,
-  setDockMediaState,
   disposeWindowRuntime,
   resetWindowStateForTests,
 };

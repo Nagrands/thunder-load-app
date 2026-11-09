@@ -15,7 +15,6 @@ Determinate progress показывает реальное значение, э�
 | Desktop foundation | Разрозненные status-блоки, toast и контекстные меню | Общий state controller, operation-aware notification, action menu, motion/focus tokens | `uiStateController.test.js`, `toast.test.js`, `actionMenu.test.js` |
 | Downloader preview и очередь | Независимые строки статуса и отдельные удаления | Summary получает loading/success/warning/error/empty; удаление завершённых/ошибочных jobs и очистка неактивной очереди имеют единый Undo | `downloadManager.test.js`, профильные preview tests |
 | History | Удаление записи требовало confirmation и сразу очищало preview | Metadata удаляется сразу; один Undo атомарно восстанавливает history, preview очищается после окна Undo | `contextMenu.test.js` |
-| Player / Media Library | Свои loading/error состояния; обратимые удаления подтверждались | Loading/success/warning/error размечены общим adapter; track, playlist и library metadata получают snapshot-based Undo | `nowPlayingView.test.js`, `nowPlayingMediaLibraryModel.test.js` |
 | Converter / Inspector / Hash / Formatter | Несогласованные result/status элементы | Существующие сообщения сохранены, но получают общий state, live-region и busy contract | `toolsView.tools.test.js`, `productFormatterView.test.js` |
 | Backup / dependency install / WireGuard | Собственные inline progress и опасные диалоги | Сохранены существующие содержательные состояния; filesystem/system операции остаются в danger policy, декоративные confirmation не добавлены | профильные Tools и Backup tests |
 | Settings | Reset и import errors использовали нативные prompt/alert | Полный reset использует shared danger modal; import error — notification; обычные toggles не открывают modal | `settingsModal.test.js`, `settings.test.js`, `modals.confirmationHtml.test.js` |
@@ -26,7 +25,6 @@ Determinate progress показывает реальное значение, э�
 
 - Confirmation остаётся перед физическим удалением файла, изменением оригиналов, полным reset конфигурации и системной destructive-командой.
 - Choice dialogs «один или все» и «плейлист или медиатека» сохранены как выбор результата, а не как ложное подтверждение.
-- History, queue, playlist и Media Library metadata удаляются сразу. Undo хранит снимок persisted state и восстанавливает его атомарно.
 - Отложенная очистка preview выполняется один раз после окна Undo; отмена очистки не оставляет второй timer.
 - Массовое действие создаёт один агрегированный toast. Notification с одним operation ID обновляется на месте от loading до результата; одновременно видны не более пяти уведомлений.
 - Inline feedback принадлежит текущей поверхности. Toast используется для фонового или межэкранного результата; существующая настройка системных уведомлений и проверка активности окна не обходятся новым UI foundation.
@@ -41,6 +39,5 @@ Determinate progress показывает реальное значение, э�
 
 ## Проверка и release gates
 
-Автоматически проверяются state transitions, Retry/stale guards в существующих контроллерах, Undo, keyboard menu, focus restoration, live-region и generated artifacts. Финальный проход включает профильные Jest suites, `test-check:sync`, `typecheck:player`, `pnpm run check`, builds Whats New/templates/CSS и `git diff --check`.
 
 Ручная матрица RU/EN, light/dark, reduced motion, zoom/font size, compact window, Web Control desktop/mobile и packaged macOS/Windows остаётся release gate. Windows packaged smoke должен отдельно подтвердить tray/menu поведение на реальном DPI и с screen reader; результаты Jest не считаются заменой этой проверки.
