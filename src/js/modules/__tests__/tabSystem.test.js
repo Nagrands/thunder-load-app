@@ -128,9 +128,6 @@ describe("TabSystem", () => {
     tabs.addTab("tools", "Tools", "fa-solid fa-toolbox", () =>
       document.createElement("div"),
     );
-    tabs.addTab("products", "Format", "fa-solid fa-list-check", () =>
-      document.createElement("div"),
-    );
     tabs.addTab("now-playing", "Player", "fa-solid fa-play", () =>
       document.createElement("div"),
     );
@@ -143,14 +140,8 @@ describe("TabSystem", () => {
     });
 
     const buttons = navigation.querySelectorAll("[data-tab-target]");
-    expect(buttons).toHaveLength(3);
+    expect(buttons).toHaveLength(2);
     expect(navigation.textContent).toBe("");
-    expect(
-      navigation.querySelector('[data-tab-target="products"]').hidden,
-    ).toBe(true);
-    expect(
-      navigation.querySelector('[data-tab-target="products"]').style.display,
-    ).toBe("none");
     expect(
       navigation
         .querySelector('[data-tab-target="download"]')
@@ -164,16 +155,6 @@ describe("TabSystem", () => {
     expect(navigation.querySelector('[data-tab-target="download"]').title).toBe(
       "Загрузчик",
     );
-
-    localStorage.setItem("developerToolsUnlocked", "true");
-    window.dispatchEvent(
-      new CustomEvent("tools:developer-unlock-changed", {
-        detail: { enabled: true },
-      }),
-    );
-    expect(
-      navigation.querySelector('[data-tab-target="products"]').style.display,
-    ).toBe("");
 
     navigation.querySelector('[data-tab-target="tools"]').click();
     expect(tabs.activeTabId).toBe("tools");
@@ -204,71 +185,4 @@ describe("TabSystem", () => {
     ).toBe(true);
   });
 
-  test("keeps products tab hidden until developer mode is enabled", () => {
-    const tabs = new TabSystem(".group-menu", "#main-view");
-    tabs.addTab("download", "Download", "fa-solid fa-download", () => {
-      const el = document.createElement("div");
-      el.textContent = "download";
-      return el;
-    });
-    tabs.addTab("products", "Products", "fa-solid fa-list", () => {
-      const el = document.createElement("div");
-      el.textContent = "products";
-      return el;
-    });
-
-    expect(
-      document.querySelector('[data-menu="products"]')?.style.display,
-    ).toBe("none");
-
-    localStorage.setItem("developerToolsUnlocked", "true");
-    window.dispatchEvent(
-      new CustomEvent("tools:developer-unlock-changed", {
-        detail: { enabled: true },
-      }),
-    );
-
-    expect(
-      document.querySelector('[data-menu="products"]')?.style.display,
-    ).toBe("");
-  });
-
-  test("falls back from products tab when developer mode is disabled", () => {
-    localStorage.setItem("developerToolsUnlocked", "true");
-
-    const tabs = new TabSystem(".group-menu", "#main-view");
-    tabs.addTab("download", "Download", "fa-solid fa-download", () => {
-      const el = document.createElement("div");
-      el.textContent = "download";
-      return el;
-    });
-    tabs.addTab("products", "Products", "fa-solid fa-list", () => {
-      const el = document.createElement("div");
-      el.textContent = "products";
-      return el;
-    });
-
-    tabs.activateTab("products");
-    expect(
-      document
-        .querySelector('[data-menu="products"]')
-        ?.classList.contains("active"),
-    ).toBe(true);
-
-    localStorage.setItem("developerToolsUnlocked", "false");
-    window.dispatchEvent(
-      new CustomEvent("tools:developer-unlock-changed", {
-        detail: { enabled: false },
-      }),
-    );
-
-    expect(
-      document.querySelector('[data-menu="products"]')?.style.display,
-    ).toBe("none");
-    expect(
-      document
-        .querySelector('[data-menu="download"]')
-        ?.classList.contains("active"),
-    ).toBe(true);
-  });
 });

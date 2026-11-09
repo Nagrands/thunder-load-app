@@ -22,11 +22,6 @@
     --sidebar-safe-space: 28px;
   }
 
-  #main-view.container.main-view--products-active {
-    width: 100%;
-    margin: 0;
-    padding: 0;
-  }
 }
 
 .media-file-drop-overlay {
@@ -132,13 +127,6 @@
     color var(--transition-duration),
     border-color var(--transition-duration),
     box-shadow var(--transition-duration);
-}
-
-#main-view.container.main-view--products-active {
-  --sidebar-safe-space: 0px;
-  max-width: none;
-  align-items: stretch;
-  justify-content: flex-start;
 }
 
 .main-view-scroll-sentinel {

@@ -49,6 +49,10 @@ body {
   line-height: 1.5;
 }
 
+#format-window-root {
+  flex: 1 1 auto;
+}
+
 body[data-page-mode="downloader"] {
   --app-bg-image: url("../../assets/img/background-downloader.jpg");
 }

@@ -191,11 +191,6 @@ function createWrappers(mainView) {
   wireguardWrapper.className = "view-wrapper tab-view";
   wireguardWrapper.style.display = "none";
 
-  const productsWrapper = document.createElement("div");
-  productsWrapper.id = "products-view-wrapper";
-  productsWrapper.className = "view-wrapper tab-view";
-  productsWrapper.style.display = "none";
-
   const nowPlayingWrapper = document.createElement("section");
   nowPlayingWrapper.id = "now-playing-view-wrapper";
   nowPlayingWrapper.className = "view-wrapper tab-view";
@@ -209,13 +204,11 @@ function createWrappers(mainView) {
 
   mainView.prepend(downloaderWrapper);
   mainView.appendChild(wireguardWrapper);
-  mainView.appendChild(productsWrapper);
   mainView.appendChild(nowPlayingWrapper);
 
   return {
     downloaderWrapper,
     wireguardWrapper,
-    productsWrapper,
     nowPlayingWrapper,
   };
 }
@@ -234,7 +227,6 @@ function disposeToolsWrapperContent(wireguardWrapper) {
 
 let downloaderToolsStatusModulePromise = null;
 let toolsViewModulePromise = null;
-let productFormatterViewModulePromise = null;
 let nowPlayingViewModulePromise = null;
 let nowPlayingViewReadyPromise = null;
 let nowPlayingViewInstance = null;
@@ -246,8 +238,6 @@ let removeMediaFileDrop = null;
 let lazyModuleLoaders = {
   loadDownloaderToolsStatusModule: () => import("../downloaderToolsStatus.js"),
   loadToolsViewModule: () => import("../views/toolsView.js"),
-  loadProductFormatterViewModule: () =>
-    import("../views/productFormatterView.js"),
   loadNowPlayingViewModule: () => import("../nowPlaying/index.js"),
 };
 
@@ -264,14 +254,6 @@ function loadToolsViewModule() {
     toolsViewModulePromise = lazyModuleLoaders.loadToolsViewModule();
   }
   return toolsViewModulePromise;
-}
-
-function loadProductFormatterViewModule() {
-  if (!productFormatterViewModulePromise) {
-    productFormatterViewModulePromise =
-      lazyModuleLoaders.loadProductFormatterViewModule();
-  }
-  return productFormatterViewModulePromise;
 }
 
 function loadNowPlayingViewModule() {
@@ -316,18 +298,6 @@ async function renderToolsTab(wireguardWrapper) {
     applyI18n(wireguardWrapper);
   } catch (error) {
     console.error("[Startup] Tools view lazy render failed:", error);
-  }
-}
-
-async function renderProductsTab(productsWrapper) {
-  try {
-    const { default: renderProductFormatterView } =
-      await loadProductFormatterViewModule();
-    if (!productsWrapper.isConnected) return;
-    renderProductFormatterView(productsWrapper);
-    applyI18n(productsWrapper);
-  } catch (error) {
-    console.error("[Startup] Products view lazy render failed:", error);
   }
 }
 
@@ -412,9 +382,6 @@ async function ensureInitialTabReady(tabId, wrappers) {
     await renderToolsTab(wrappers.wireguardWrapper);
     return;
   }
-  if (tabId === "products") {
-    await renderProductsTab(wrappers.productsWrapper);
-  }
 }
 
 export async function registerTabs(mainView) {
@@ -469,20 +436,6 @@ export async function registerTabs(mainView) {
       onHide: () => {
         disposeToolsWrapperContent(wrappers.wireguardWrapper);
       },
-    },
-  );
-
-  tabs.addTab(
-    "products",
-    t("tabs.products"),
-    "fa-solid fa-list-check",
-    () => {
-      void renderProductsTab(wrappers.productsWrapper);
-      return wrappers.productsWrapper;
-    },
-    {
-      onShow: () => showHistory(false),
-      onHide: () => showHistory(true),
     },
   );
 
@@ -560,7 +513,6 @@ export function __test_setLazyModuleLoaders(loaders = {}) {
   unregisterPlayerShortcutActions();
   downloaderToolsStatusModulePromise = null;
   toolsViewModulePromise = null;
-  productFormatterViewModulePromise = null;
   nowPlayingViewModulePromise = null;
   nowPlayingViewReadyPromise = null;
   nowPlayingViewInstance?.dispose?.();

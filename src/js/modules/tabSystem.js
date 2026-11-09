@@ -1,7 +1,5 @@
 // src/js/modules/tabSystem.js
 
-import { readDeveloperModeEnabled } from "./developerMode.js";
-
 export default class TabSystem {
   constructor(menuSel, viewSel) {
     this.menu = document.querySelector(menuSel);
@@ -13,26 +11,12 @@ export default class TabSystem {
     this.navigationProxies = new Set();
     this.activeTabId = null;
     this.ANIM_MS = 250; // длительность анимации (ms)
-    // Developer-only products tab
-    this._PRD_ID = "products";
     this._NOW_PLAYING_ID = "now-playing";
-    this._applyProductsVisibility =
-      this._applyProductsVisibility?.bind(this) ||
-      this._applyProductsVisibility;
-    window.addEventListener("tools:developer-unlock-changed", () =>
-      this._applyProductsVisibility(),
-    );
-    // применить сразу (если вкладка уже есть)
-    this._applyProductsVisibility();
   }
 
   _syncActiveTabLayoutState(id = "") {
     if (!this.view) return;
     this.view.dataset.activeTab = id || "";
-    this.view.classList.toggle(
-      "main-view--products-active",
-      id === this._PRD_ID,
-    );
     this.view.classList.toggle(
       "main-view--now-playing-active",
       id === this._NOW_PLAYING_ID,
@@ -81,7 +65,6 @@ export default class TabSystem {
       render: renderCb,
       ...hooks,
     });
-    if (id === this._PRD_ID) this._applyProductsVisibility();
     this._syncNavigationProxies();
   }
 
@@ -153,12 +136,6 @@ export default class TabSystem {
   }
 
   activateTab(id) {
-    if (id === this._PRD_ID && this._isProductsDisabled()) {
-      const firstVisible = this._findFirstVisibleTabId(id);
-      if (firstVisible) return this.activateTab(firstVisible);
-      this._clearActiveTab();
-      return;
-    }
     if (!this.tabs.has(id) || id === this.activeTabId) return;
 
     const next = this.tabs.get(id);
@@ -237,55 +214,5 @@ export default class TabSystem {
         new CustomEvent("tabs:activated", { detail: { id } }),
       );
     } catch {}
-  }
-  _isProductsDisabled() {
-    return !readDeveloperModeEnabled();
-  }
-
-  _applyProductsVisibility() {
-    const id = this._PRD_ID;
-    if (!id || !this.tabs?.has(id)) return;
-    const rec = this.tabs.get(id);
-    const disabled = this._isProductsDisabled();
-
-    if (rec.button) rec.button.style.display = disabled ? "none" : "";
-
-    if (disabled && this.activeTabId === id) {
-      const firstVisible = this._findFirstVisibleTabId(id);
-      if (firstVisible) this.activateTab(firstVisible);
-      else this._clearActiveTab();
-    }
-
-    if (rec.element && disabled) {
-      rec.element.classList.remove("tab-show");
-      rec.element.classList.add("tab-hide");
-      rec.element.style.display = "none";
-      rec.onHide?.();
-    }
-    this._syncNavigationProxies();
-  }
-
-  _findFirstVisibleTabId(excludeId = null) {
-    return Array.from(this.tabs.keys()).find((tid) => {
-      if (tid === excludeId) return false;
-      const r = this.tabs.get(tid);
-      return r?.button && r.button.style.display !== "none";
-    });
-  }
-
-  _clearActiveTab() {
-    const prev = this.activeTabId ? this.tabs.get(this.activeTabId) : null;
-    prev?.button?.classList.remove("active");
-    prev?.button?.setAttribute("aria-selected", "false");
-    if (prev?.button) prev.button.tabIndex = -1;
-    if (prev?.element) {
-      prev.element.classList.remove("tab-show");
-      prev.element.classList.add("tab-hide");
-      prev.element.style.display = "none";
-      prev.onHide?.();
-    }
-    this.activeTabId = null;
-    this._syncActiveTabLayoutState("");
-    this._syncNavigationProxies();
   }
 }

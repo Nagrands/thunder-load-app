@@ -14,8 +14,6 @@
   &.tab-hide { opacity: 0; }
 }
 
-#products-view-wrapper.tab-show { width: 100%; max-width: 100%; flex: 1 1 auto; min-height: 0; height: 100%; padding-bottom: 0; }
-
 @media (prefers-reduced-motion: reduce) {
   .tab-view::after { background: linear-gradient(180deg, rgba(6, 8, 16, 0.94), rgba(10, 14, 24, 0.94)) !important; }
 }

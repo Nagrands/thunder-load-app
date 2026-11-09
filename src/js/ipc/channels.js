@@ -87,6 +87,7 @@ const CHANNELS = Object.freeze({
   OPEN_CONFIG_FOLDER: "open-config-folder",
   OPEN_DOWNLOAD_FOLDER: "open-download-folder",
   OPEN_EXTERNAL_LINK: "open-external-link",
+  OPEN_FORMAT_WINDOW: "open-format-window",
   OPEN_LAST_VIDEO: "open-last-video",
   OPEN_TERMINAL: "open-terminal",
   RESTART_APP: "restart-app",

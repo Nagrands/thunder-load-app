@@ -606,6 +606,7 @@ function setupIpcHandlers(dependencies) {
     clearPendingWhatsNewVersion,
     mediaOpenService,
     diagnosticsLogger,
+    openFormatWindow,
   } = dependencies;
   if (activeIpcRuntime) void activeIpcRuntime.dispose();
   const ipcRuntime = createTrackedIpcMain(electronIpcMain, {
@@ -1711,6 +1712,22 @@ function setupIpcHandlers(dependencies) {
     } catch (error) {
       log.error("Error getting app version:", error);
       return "unknown";
+    }
+  });
+
+  ipcMain.handle(CHANNELS.OPEN_FORMAT_WINDOW, async () => {
+    try {
+      if (typeof openFormatWindow !== "function") {
+        throw new Error("Format window is unavailable");
+      }
+      openFormatWindow();
+      return { success: true };
+    } catch (error) {
+      log.error("Failed to open Format window:", error);
+      return {
+        success: false,
+        error: error?.message || "Failed to open Format window",
+      };
     }
   });
 

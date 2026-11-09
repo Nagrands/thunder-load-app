@@ -6,30 +6,6 @@
     border-top: 0;
   }
 
-  .url-input-wrapper--downloader {
-    gap: 6px;
-    padding: 8px;
-    border-radius: 15px;
-    border-color: rgba(var(--color-accent-rgb), 0.16);
-    background: rgba(7, 13, 24, 0.68);
-    box-shadow: none;
-    transition:
-      gap 180ms ease,
-      padding 180ms ease,
-      border-color 180ms ease,
-      background-color 180ms ease;
-
-    &:focus-within {
-      border-color: rgba(var(--color-accent-rgb), 0.46);
-    }
-
-    &.drag-over .url-drop-zone {
-      display: flex;
-      border-color: rgba(var(--color-accent-rgb), 0.7);
-      background: rgba(var(--color-accent-rgb), 0.12);
-    }
-  }
-
   .url-input-main {
     min-height: 44px;
     padding: 2px;

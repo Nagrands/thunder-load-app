@@ -79,10 +79,6 @@ $transition-interactive:
   }
 }
 
-.app-sidebar--tab-hidden {
-  display: none;
-}
-
 @media (min-width: #{$breakpoint-tablet + 1px}) {
   body.is-mac .app-sidebar__panel {
     padding-top: 52px;
@@ -422,7 +418,7 @@ $transition-interactive:
     border-radius: var(--border-radius);
     @extend %sidebar-inline-center;
     background: var(--color-hover);
-    color: var(--thunder-blue);
+    color: var(--color-accent);
 
     i {
       font-size: 8px;
@@ -489,6 +485,10 @@ $transition-interactive:
 
   &.is-hidden {
     @include soft-hidden;
+  }
+
+  .app-sidebar__format-action {
+    margin-top: 3px;
   }
 
   .group-menu {
@@ -685,6 +685,10 @@ $transition-interactive:
         @extend %sidebar-inline-center;
       }
     }
+  }
+
+  .menu-item[hidden] {
+    display: none;
   }
 }
 
@@ -933,6 +937,29 @@ body.low-effects .app-sidebar__action--tools.is-busy {
     flex-direction: row;
     overflow-x: auto;
     scrollbar-width: none;
+  }
+
+  .app-sidebar__zone--center {
+    gap: 6px;
+  }
+
+  .app-sidebar__tab-nav {
+    flex: 1 1 auto;
+    width: auto;
+  }
+
+  .app-sidebar__tab-nav .app-sidebar__format-action {
+    width: 42px;
+    min-width: 42px;
+    min-height: 42px;
+    flex: 0 0 42px;
+    justify-content: center;
+    padding: 0;
+    margin: 0;
+
+    .menu-text {
+      display: none;
+    }
   }
 }
 

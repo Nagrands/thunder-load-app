@@ -581,7 +581,7 @@ export const coreTranslations = {
     "actions.openFolder": "Open video folder",
     "actions.videoFolder": "Video folder",
     "tabs.download": "Downloader",
-    "tabs.products": "Products",
+    "tabs.products": "Format",
     "tabs.nowPlaying": "Player",
     "tabs.download.countOnly": "{base} ({count})",
     "tabs.download.progressOnly": "{base} - {progress}%",

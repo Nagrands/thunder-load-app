@@ -118,6 +118,7 @@ try {
     "open-config-folder",
     "open-download-folder",
     "open-external-link",
+    "open-format-window",
     "open-last-video",
     "open-terminal",
     "restart-app",

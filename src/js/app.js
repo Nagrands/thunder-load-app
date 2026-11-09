@@ -31,6 +31,7 @@ const { configureDiagnosticsLogger } = require("./app/diagnosticsLogger.js");
 const { processSupervisor } = require("./app/processSupervisor.js");
 const { ShutdownCoordinator } = require("./app/shutdownCoordinator.js");
 const { createStartupMetrics } = require("./app/startupMetrics.js");
+const { createFormatWindowController } = require("./app/formatWindow.js");
 
 configureLegacyUserDataPath(app, fs);
 
@@ -74,9 +75,15 @@ const { createDownloadRuntime } = require("./app/download/runtime.js");
 const store = new ElectronStore();
 const diagnosticsLogger = configureDiagnosticsLogger({ app, store, log });
 const mainLogger = diagnosticsLogger.createScope("Main");
+const isDev = process.argv.includes("--dev");
+const formatWindowController = createFormatWindowController({
+  app,
+  BrowserWindowClass: BrowserWindow,
+  isDev,
+  logger: mainLogger,
+});
 processSupervisor.setLogger(diagnosticsLogger);
 const shutdownCoordinator = new ShutdownCoordinator({ logger: mainLogger });
-const isDev = process.argv.includes("--dev");
 
 // Keep the legacy Windows taskbar and notification identity used through 1.5.4.
 app.setAppUserModelId("Thunderload");
@@ -373,6 +380,8 @@ if (!app.requestSingleInstanceLock()) {
     }
 
     dependencies.mainWindow = mainWindow;
+    dependencies.openFormatWindow = () =>
+      formatWindowController.open();
     webControlServer = createWebControlServer({
       appPath: app.getAppPath(),
       store,

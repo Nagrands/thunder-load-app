@@ -6,7 +6,6 @@ describe("registerTabs backup transfer", () => {
   let renderBackupMock;
   let renderDownloaderViewMock;
   let renderToolsViewMock;
-  let renderProductFormatterViewMock;
   let createNowPlayingViewMock;
   let nowPlayingViewInstance;
   let getDefaultTabMock;
@@ -35,7 +34,6 @@ describe("registerTabs backup transfer", () => {
     renderBackupMock = jest.fn(() => document.createElement("div"));
     renderDownloaderViewMock = jest.fn();
     renderToolsViewMock = jest.fn(() => document.createElement("div"));
-    renderProductFormatterViewMock = jest.fn();
     nowPlayingViewInstance = {
       element: null,
       ready: Promise.resolve(),
@@ -83,10 +81,6 @@ describe("registerTabs backup transfer", () => {
     }));
     jest.doMock("../views/backupView.js", () => renderBackupMock);
     jest.doMock("../views/downloaderView.js", () => renderDownloaderViewMock);
-    jest.doMock("../views/productFormatterView.js", () => ({
-      __esModule: true,
-      default: renderProductFormatterViewMock,
-    }));
     jest.doMock("../downloaderToolsStatus.js", () => ({
       __esModule: true,
       initDownloaderToolsStatus: initDownloaderToolsStatusMock,
@@ -128,8 +122,6 @@ describe("registerTabs backup transfer", () => {
         Promise.resolve({
           initDownloaderToolsStatus: initDownloaderToolsStatusMock,
         }),
-      loadProductFormatterViewModule: () =>
-        Promise.resolve({ default: renderProductFormatterViewMock }),
       loadToolsViewModule: () =>
         Promise.resolve({ default: renderToolsViewMock }),
       loadNowPlayingViewModule: () =>
@@ -142,17 +134,16 @@ describe("registerTabs backup transfer", () => {
     tabsRegistration = null;
   });
 
-  test("registers Download, Tools, Products, and Now Playing tabs", async () => {
+  test("registers Download, Tools, and Now Playing tabs", async () => {
     await registerTabs(document.getElementById("main-view"));
 
-    expect(addTabMock).toHaveBeenCalledTimes(4);
+    expect(addTabMock).toHaveBeenCalledTimes(3);
     expect(addTabMock.mock.calls.map(([id]) => id)).toEqual([
       "download",
       "wireguard",
-      "products",
       "now-playing",
     ]);
-    expect(addTabMock.mock.calls[3].slice(1, 3)).toEqual([
+    expect(addTabMock.mock.calls[2].slice(1, 3)).toEqual([
       "tabs.nowPlaying",
       "fa-solid fa-circle-play",
     ]);
@@ -237,21 +228,13 @@ describe("registerTabs backup transfer", () => {
     expect(applyI18nMock).toHaveBeenCalledWith(wrapper);
   });
 
-  test("loads Products view only when Products tab renderer runs", async () => {
+  test("does not mount Format inside the main view", async () => {
     getDefaultTabMock.mockResolvedValueOnce("download");
 
     await registerTabs(document.getElementById("main-view"));
 
-    expect(renderProductFormatterViewMock).not.toHaveBeenCalled();
-
-    const [, , , productsFactory] = addTabMock.mock.calls[2];
-    const wrapper = productsFactory();
-    await Promise.resolve();
-    await Promise.resolve();
-
-    expect(wrapper.id).toBe("products-view-wrapper");
-    expect(renderProductFormatterViewMock).toHaveBeenCalledWith(wrapper);
-    expect(applyI18nMock).toHaveBeenCalledWith(wrapper);
+    expect(addTabMock.mock.calls.map(([id]) => id)).not.toContain("products");
+    expect(document.getElementById("products-view-wrapper")).toBeNull();
   });
 
   test("keeps Now Playing mounted and forwards tab lifecycle hooks", async () => {
@@ -261,7 +244,7 @@ describe("registerTabs backup transfer", () => {
 
     expect(createNowPlayingViewMock).not.toHaveBeenCalled();
     const [, , , nowPlayingFactory, nowPlayingOptions] =
-      addTabMock.mock.calls[3];
+      addTabMock.mock.calls[2];
     const wrapper = nowPlayingFactory();
     nowPlayingOptions.onShow();
     await Promise.resolve();
@@ -302,7 +285,7 @@ describe("registerTabs backup transfer", () => {
   test("deduplicates concurrent lazy Player initialization", async () => {
     getDefaultTabMock.mockResolvedValueOnce("download");
     await registerTabs(document.getElementById("main-view"));
-    const [, , , nowPlayingFactory] = addTabMock.mock.calls[3];
+    const [, , , nowPlayingFactory] = addTabMock.mock.calls[2];
 
     nowPlayingFactory();
     await shortcutActions.get("player.open")();

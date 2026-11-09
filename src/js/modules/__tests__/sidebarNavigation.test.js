@@ -88,13 +88,6 @@ describe("sidebarNavigation", () => {
     expect(document.getElementById("footer-status-meta")).toBeNull();
   });
 
-  test("hides the sidebar for the immersive products tab", async () => {
-    const { initSidebarNavigation } = await loadModule();
-    initSidebarNavigation();
-    window.dispatchEvent(new CustomEvent("tabs:activated", { detail: { id: "products" } }));
-    expect(document.getElementById("app-sidebar").classList.contains("app-sidebar--tab-hidden")).toBe(true);
-  });
-
   test("honors the tools visibility preference event", async () => {
     const { initSidebarNavigation } = await loadModule();
     initSidebarNavigation();

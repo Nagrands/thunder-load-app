@@ -1,5 +1,6 @@
 import { initTooltips } from "./tooltipInitializer.js";
 import { t } from "./i18n.js";
+import { readDeveloperModeEnabled } from "./developerMode.js";
 
 const dom = {
   root: null,
@@ -9,6 +10,7 @@ const dom = {
   toolsStatus: null,
   sidebarNavHost: null,
   groupMenu: null,
+  formatButton: null,
 };
 
 const state = {
@@ -17,12 +19,6 @@ const state = {
   toolsHiddenByPreference: false,
   sidebarCollapsed: false,
 };
-
-const SIDEBAR_HIDDEN_TAB_IDS = new Set(["products"]);
-
-function isSidebarHiddenForActiveTab() {
-  return SIDEBAR_HIDDEN_TAB_IDS.has(state.activeTabId);
-}
 
 function setSoftVisibility(element, visible) {
   if (!element) return;
@@ -39,6 +35,7 @@ function bindDom() {
   dom.toolsStatus = document.getElementById("sidebar-tools-status");
   dom.sidebarNavHost = document.getElementById("sidebar-tab-nav");
   dom.groupMenu = document.querySelector(".group-menu");
+  dom.formatButton = document.getElementById("sidebar-open-format");
 
   try {
     state.toolsHiddenByPreference =
@@ -58,6 +55,22 @@ function bindDom() {
     dom.sidebarNavHost &&
     dom.groupMenu
   );
+}
+
+function syncFormatVisibility() {
+  if (!dom.formatButton) return;
+  dom.formatButton.hidden = !readDeveloperModeEnabled();
+}
+
+async function openFormatWindow() {
+  try {
+    const response = await window.electron?.invoke?.("open-format-window");
+    if (!response?.success) {
+      console.error("[sidebarNavigation] Failed to open Format window:", response?.error);
+    }
+  } catch (error) {
+    console.error("[sidebarNavigation] Failed to open Format window:", error);
+  }
 }
 
 function syncToolsVisibility() {
@@ -87,10 +100,6 @@ async function refreshVersion() {
 
 function handleTabsActivated(event) {
   state.activeTabId = String(event?.detail?.id || "").trim() || "download";
-  dom.root?.classList.toggle(
-    "app-sidebar--tab-hidden",
-    isSidebarHiddenForActiveTab(),
-  );
   syncToolsVisibility();
 }
 
@@ -132,20 +141,22 @@ function initSidebarNavigation() {
       state.toolsHiddenByPreference = event?.detail?.hidden === true;
       syncToolsVisibility();
     });
+    window.addEventListener(
+      "tools:developer-unlock-changed",
+      syncFormatVisibility,
+    );
+    dom.formatButton?.addEventListener("click", openFormatWindow);
     state.isInitialized = true;
   }
 
   dom.groupMenu.setAttribute("role", "tablist");
   dom.groupMenu.setAttribute("aria-label", t("topbar.nav"));
-  dom.sidebarNavHost.appendChild(dom.groupMenu);
+  dom.sidebarNavHost.prepend(dom.groupMenu);
   syncSidebarCollapsed();
   state.activeTabId =
     document.querySelector(".group-menu .menu-item.active")?.dataset?.menu ||
     "download";
-  dom.root.classList.toggle(
-    "app-sidebar--tab-hidden",
-    isSidebarHiddenForActiveTab(),
-  );
+  syncFormatVisibility();
   setSoftVisibility(dom.sidebarNavHost, true);
   syncToolsVisibility();
   void refreshVersion();
