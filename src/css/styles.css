@@ -12306,7 +12306,8 @@ body {
   position: relative;
   user-select: none;
   --app-bg-alpha: var(--app-bg-opacity, 1);
-  background-image: radial-gradient(120% 90% at 16% 8%, rgba(var(--thunder-electric-rgb), 0.16), transparent 48%), radial-gradient(90% 70% at 88% 12%, rgba(var(--thunder-spark-rgb), 0.08), transparent 52%), var(--app-bg-vignette), var(--app-bg-page-aura), url("../../assets/img/background.jpg");
+  --app-bg-image: url("../../assets/img/background.jpg");
+  background-image: radial-gradient(120% 90% at 16% 8%, rgba(var(--thunder-electric-rgb), 0.16), transparent 48%), radial-gradient(90% 70% at 88% 12%, rgba(var(--thunder-spark-rgb), 0.08), transparent 52%), var(--app-bg-vignette), var(--app-bg-page-aura), var(--app-bg-image);
   background-position: center, center, center, center, center;
   background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, no-repeat;
   background-size: cover, cover, cover, cover, cover;
@@ -12315,6 +12316,14 @@ body {
   opacity: 1;
   font-size: 14px;
   line-height: 1.5;
+}
+
+body[data-page-mode=downloader] {
+  --app-bg-image: url("../../assets/img/background-downloader.jpg");
+}
+
+body[data-page-mode=tools] {
+  --app-bg-image: url("../../assets/img/background-tools.jpg");
 }
 
 body.modal-scroll-lock {
