@@ -96,10 +96,9 @@
   height: 34px;
   flex: 0 0 auto;
   place-items: center;
-  border: 1px solid rgba(170, 198, 236, 0.14);
-  border-radius: 9px;
+  border-radius: 8px;
   color: var(--thunder-muted);
-  background: rgba(255, 255, 255, 0.035);
+  background: transparent;
   transition:
     color 150ms ease,
     background-color 150ms ease,
@@ -107,7 +106,7 @@
 
   &:hover {
     border-color: rgba(var(--color-accent-rgb), 0.4);
-    color: #fff;
+    color: var(--color-accent);
     background: rgba(var(--color-accent-rgb), 0.12);
   }
 

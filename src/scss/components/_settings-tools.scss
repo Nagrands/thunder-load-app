@@ -49,7 +49,7 @@
   border: 1px solid var(--dependency-border);
   background: var(--dependency-surface);
   color: var(--color-highlight);
-  font: inherit;
+  font: -webkit-control;
   cursor: pointer;
   transition:
     background-color 0.18s ease,

@@ -31,20 +31,15 @@
   }
 
   .url-input-main {
-    gap: 6px;
     min-height: 44px;
     padding: 2px;
-    border-radius: 11px;
-    border: 1px solid rgba(153, 189, 235, 0.12);
+    border-radius: var(--border-radius);
+    border: 1px solid var(--color-hover);
     background: rgba(5, 11, 23, 0.48);
     transition:
       min-height 180ms ease,
       border-color 180ms ease,
       background-color 180ms ease;
-  }
-
-  .url-input-leading {
-    min-width: 30px;
   }
 
   .url-input-leading__icon {
@@ -84,13 +79,6 @@
     overflow: hidden;
     clip-path: inset(50%);
     white-space: nowrap;
-  }
-
-  .url-input-field {
-    min-height: 36px;
-    padding: 0 8px;
-    border: 0;
-    background: transparent;
   }
 
   .url-input-field:focus-within {
@@ -149,6 +137,7 @@
     justify-content: space-between;
     gap: 10px;
     min-width: 0;
+    padding: 4px;
     padding-inline: 4px;
     transition:
       gap 180ms ease,
@@ -160,15 +149,6 @@
     flex: 1 1 auto;
     min-width: 0;
     padding: 0;
-  }
-
-  .url-input-statusline {
-    min-width: 0;
-    gap: 7px;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    font-size: 0.72rem;
   }
 
   .url-input-statusline__dot {
@@ -283,8 +263,6 @@
   }
 
   .url-input-wrapper--downloader.has-preview {
-    gap: 4px;
-    padding: 6px;
 
     .url-input-main {
       min-height: 40px;
@@ -531,22 +509,12 @@
   }
 }
 
-.downloads-toolbar__actions {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px;
-  border-radius: 10px;
-  background: rgba(3, 8, 18, 0.42);
-}
-
 .downloads-toolbar .queue-action-button {
   min-height: 38px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 0 12px;
   border: 1px solid transparent;
   border-radius: var(--border-radius);
   color: rgba(223, 235, 252, 0.82);
@@ -591,29 +559,6 @@
     cursor: default;
     box-shadow: none;
     transform: none;
-  }
-}
-
-.downloads-toolbar #open-last-video:not(:disabled) {
-  border-color: rgba(var(--color-accent-rgb), 0.28);
-  color: #dcf0ff;
-  background: linear-gradient(
-    180deg,
-    rgba(var(--color-accent-rgb), 0.17),
-    rgba(var(--color-accent-rgb), 0.07)
-  );
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
-
-  &:hover {
-    border-color: rgba(var(--color-accent-rgb), 0.5);
-    background: linear-gradient(
-      180deg,
-      rgba(var(--color-accent-rgb), 0.26),
-      rgba(var(--color-accent-rgb), 0.12)
-    );
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.1),
-      0 4px 16px rgba(var(--color-accent-rgb), 0.18);
   }
 }
 
@@ -745,7 +690,7 @@
   margin: 1px 0 0;
   padding: 4px 2px 0;
   border: 0;
-  border-top: 1px solid rgba(150, 185, 228, 0.09);
+  border-top: 1px solid transparent;
   border-radius: 0;
   background: transparent;
   box-shadow: none;
@@ -770,34 +715,34 @@
   align-items: center;
   flex-wrap: wrap;
   justify-content: flex-end;
-  gap: 2px;
+  gap: 4px;
   max-width: 100%;
   margin: 0;
-  padding: 0;
-  border-radius: 0;
-  background: transparent;
+  padding: 3px;
+  border: 1px solid rgba(150, 185, 228, 0.1);
+  border-radius: 10px;
+  background: rgba(4, 10, 20, 0.28);
 }
 
 .downloader-view .url-input-wrapper--downloader .downloads-toolbar .queue-action-button {
   width: auto;
   min-width: 0;
-  min-height: 28px;
+  min-height: 30px;
   flex: 0 1 auto;
-  gap: 6px;
-  padding: 0 8px;
-  border: 0;
+  gap: 7px;
+  padding: 0 9px;
+  border: 1px solid transparent;
   border-radius: 8px;
-  color: rgba(214, 225, 241, 0.68);
+  color: rgba(225, 236, 252, 0.82);
   background: transparent;
   box-shadow: none;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   transform: none;
 }
 
 .downloader-view .url-input-wrapper--downloader .downloads-toolbar .queue-action-button:hover:not(:disabled) {
-  border-color: transparent;
-  color: var(--color-accent);
-  background: rgba(255, 255, 255, 0.055);
+  color: #f4f8ff;
+  background: rgba(var(--color-accent-rgb), 0.09);
   box-shadow: none;
   transform: none;
 }
@@ -819,11 +764,9 @@
   font-size: 13px;
 }
 
-.downloader-view .url-input-wrapper--downloader .downloads-toolbar #open-last-video:not(:disabled) {
-  border: 0;
-  color: rgba(var(--color-accent-rgb), 0.82);
-  background: transparent;
-  box-shadow: none;
+.downloader-view .url-input-wrapper--downloader .downloads-toolbar__history[aria-expanded="true"] {
+  color: #eaf6ff;
+  background: rgba(var(--color-accent-rgb), 0.11);
 }
 
 .downloader-view .url-input-wrapper--downloader .downloads-toolbar__label,

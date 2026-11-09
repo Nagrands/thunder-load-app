@@ -103,8 +103,15 @@ $transition-interactive:
   height: 100%;
   padding: 16px 12px 12px;
   border-right: 1px solid var(--thunder-border);
-  background: transparent;
-  box-shadow: 12px 0 34px rgba(0, 0, 0, 0.22);
+  background: linear-gradient(
+    180deg,
+    rgba(3, 29, 41, 0.92) 0%,
+    rgba(2, 17, 34, 0.94) 58%,
+    rgba(1, 5, 18, 0.96) 100%
+  );
+  box-shadow:
+    12px 0 34px rgba(0, 0, 0, 0.22),
+    inset -1px 0 rgba(89, 181, 227, 0.08);
   backdrop-filter: blur(12px) saturate(140%);
   transition:
     $transition-fade-slide,
@@ -158,38 +165,35 @@ $transition-interactive:
   &--actions {
     flex-direction: row;
     align-items: center;
-    gap: 7px;
-    padding: 6px;
-    border: 1px solid rgba(255, 255, 255, 0.07);
-    border-radius: 13px;
-    background: rgba(255, 255, 255, 0.025);
+    justify-content: space-between;
+    gap: 8px;
+    padding: 4px;
   }
 }
 
 .app-sidebar__zone--actions > #sidebar-open-settings {
   align-self: auto;
-  width: 34px;
-  min-width: 34px;
-  height: 34px;
-  flex: 0 0 34px;
-  border-radius: 10px;
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  border-radius: 13px;
 }
 
 .app-sidebar__collapse {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  min-width: 34px;
-  min-height: 34px;
-  height: 34px;
-  flex: 0 0 34px;
+  width: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  height: 40px;
+  flex: 0 0 40px;
   justify-content: center;
   gap: 0;
   padding: 0;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.035);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.045);
   color: var(--thunder-muted);
   cursor: pointer;
   transition: $transition-interactive;
@@ -373,10 +377,22 @@ $transition-interactive:
   .downloader-tools-status__badges {
     display: flex;
     width: 100%;
-    flex-direction: column;
+    flex-direction: row;
     align-items: stretch;
-    gap: 5px;
+    gap: 3px;
     white-space: normal;
+
+    .tool-badge {
+      width: auto;
+      flex: 1 1 0;
+      gap: 4px;
+      padding-inline: 3px;
+      font-size: 10px;
+    }
+
+    .tool-badge__state {
+      flex: 0 0 13px;
+    }
   }
 
   .tool-badge__version {
@@ -396,12 +412,6 @@ $transition-interactive:
   min-height: 23px;
   padding: 2px 9px 2px 7px;
   border-radius: 999px;
-  border: 1px solid rgba(var(--thunder-electric-rgb), 0.24);
-  background: linear-gradient(
-    140deg,
-    rgba(var(--thunder-electric-rgb), 0.12),
-    rgba(18, 49, 58, 0.44)
-  );
   color: var(--thunder-muted);
   font-size: 11px;
   line-height: 1;
@@ -409,10 +419,10 @@ $transition-interactive:
   &__state {
     width: 13px;
     height: 13px;
-    border-radius: 50%;
+    border-radius: var(--border-radius);
     @extend %sidebar-inline-center;
-    background: rgba(var(--thunder-electric-rgb), 0.14);
-    color: var(--thunder-electric);
+    background: var(--color-hover);
+    color: var(--thunder-blue);
 
     i {
       font-size: 8px;
@@ -486,7 +496,7 @@ $transition-interactive:
     align-items: stretch;
     justify-content: flex-start;
     flex-direction: column;
-    gap: 5px;
+    gap: 8px;
     width: 100%;
     min-width: 0;
   }
@@ -542,14 +552,14 @@ $transition-interactive:
   gap: 10px;
     width: 100%;
     min-width: 0;
-    min-height: 38px;
-    padding: 0 10px;
+    min-height: 44px;
+    padding: 0 12px;
     border: 1px solid transparent;
     border-radius: 10px;
     background: transparent;
     color: var(--color-highlight);
-    font-size: 13px;
-    font-weight: 500;
+    font-size: 14px;
+    font-weight: 550;
     white-space: nowrap;
     cursor: pointer;
     transition: $transition-interactive;
@@ -592,6 +602,14 @@ $transition-interactive:
       gap: 9px;
       min-width: 0;
       line-height: 1;
+
+      i {
+        display: inline-flex;
+        flex: 0 0 20px;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+      }
     }
 
     .menu-text {
@@ -630,9 +648,13 @@ $transition-interactive:
 
     &.active {
       color: var(--color-accent);
-      border-color: rgba(var(--color-accent-rgb), 0.24);
-      background: linear-gradient(90deg, rgba(var(--color-accent-rgb), 0.15), rgba(var(--color-accent-rgb), 0.045));
-      box-shadow: inset -2px 0 0 rgba(var(--color-accent-rgb), 0.82);
+      border-color: rgba(var(--color-accent-rgb), 0.28);
+      background: linear-gradient(
+        90deg,
+        rgba(var(--color-accent-rgb), 0.17),
+        rgba(var(--color-accent-rgb), 0.055)
+      );
+      box-shadow: inset 3px 0 0 rgba(var(--color-accent-rgb), 0.9);
     }
 
     &.disabled {
@@ -994,7 +1016,7 @@ body.low-effects .app-sidebar__action--tools.is-busy {
       min-height: 52px;
     }
 
-    .app-sidebar__tab-nav .menu-item i {
+    .app-sidebar__tab-nav .menu-item .menu-main i {
       font-size: 22px;
     }
 

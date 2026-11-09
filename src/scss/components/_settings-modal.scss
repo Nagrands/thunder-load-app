@@ -1260,7 +1260,7 @@
     &[aria-checked="true"],
     &.is-active {
       background: rgba(var(--color-accent-rgb), 0.2);
-      color: var(--color-accent);
+      color: var(--color-highlight);
       box-shadow: inset 0 0 0 1px rgba(var(--color-accent-rgb), 0.26);
     }
   }

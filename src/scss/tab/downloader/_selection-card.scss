@@ -226,12 +226,12 @@
 }
 
 .downloader-advanced-formats {
-  padding: 4px;
+  padding: 8px;
   border-radius: 8px;
-  background: transparent;
-  color: var(--thunder-electric);
-  font-size: 0.84rem;
-  font-weight: 500;
+  background: var(--color-hover);
+  color: var(--color-highlight);
+  font-size: 0.82rem;
+  font-weight: 600;
   white-space: nowrap;
 
   &:hover:not(:disabled) {
