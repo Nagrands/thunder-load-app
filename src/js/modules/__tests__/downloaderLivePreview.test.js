@@ -104,7 +104,9 @@ describe("downloaderLivePreview", () => {
     );
     expect(video.getAttribute("aria-label")).toBe("Demo live title");
     expect(video.muted).toBe(false);
-    expect(video.volume).toBe(0.5);
+    expect(video.defaultMuted).toBe(false);
+    expect(video.hasAttribute("muted")).toBe(false);
+    expect(video.volume).toBe(1);
     expect(playMock).toHaveBeenCalled();
   });
 

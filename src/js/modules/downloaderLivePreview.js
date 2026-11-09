@@ -207,10 +207,23 @@ async function openDownloaderLivePreview(preview = null, options = {}) {
   if (preview.mime) {
     sourceEl.type = preview.mime;
   }
-  videoEl.muted = false;
+  videoEl.removeAttribute("muted");
   videoEl.defaultMuted = false;
-  videoEl.volume = 0.5;
+  videoEl.muted = false;
+  videoEl.volume = 1;
   videoEl.load();
+  // `load()` resets media state in Chromium; reapply the audible state before
+  // starting the newly selected stream.
+  videoEl.defaultMuted = false;
+  videoEl.muted = false;
+  videoEl.volume = 1;
+  // Start playback while the open button's user activation is still active.
+  // Focus and modal work below can otherwise cause Chromium to reject audio
+  // playback under its autoplay policy.
+  let playAttempt;
+  try {
+    playAttempt = videoEl.play();
+  } catch {}
   if (pendingResumeTime && pendingResumeTime > 0) {
     try {
       videoEl.currentTime = pendingResumeTime;
@@ -225,12 +238,9 @@ async function openDownloaderLivePreview(preview = null, options = {}) {
   emitState(true);
   focusFirstDialogControl();
 
-  try {
-    const playAttempt = videoEl.play();
-    if (playAttempt && typeof playAttempt.catch === "function") {
-      await playAttempt.catch(() => {});
-    }
-  } catch {}
+  if (playAttempt && typeof playAttempt.catch === "function") {
+    await playAttempt.catch(() => {});
+  }
 
   return true;
 }
