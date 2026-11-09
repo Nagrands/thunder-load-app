@@ -115,8 +115,6 @@ function syncCompatibility() {
 
 function syncSelectionUi() {
   syncCompatibility();
-  const video = getSelected(state.videoOptions, elements.videoSelect);
-  const audio = getSelected(state.audioOptions, elements.audioSelect);
   const subtitle = getSelected(state.subtitleOptions, elements.subtitleSelect);
   const selection = getCurrentSelection();
   if (elements.summary) {

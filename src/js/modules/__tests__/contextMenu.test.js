@@ -131,10 +131,12 @@ const openContextMenuOnEntry = async () => {
 describe("context menu UI", () => {
   beforeAll(() => {
     jest.spyOn(console, "error").mockImplementation(() => {});
+    jest.spyOn(console, "warn").mockImplementation(() => {});
   });
 
   afterAll(() => {
     console.error.mockRestore();
+    console.warn.mockRestore();
   });
 
   beforeEach(() => {

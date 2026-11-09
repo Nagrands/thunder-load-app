@@ -28,6 +28,9 @@ describe("downloadActions", () => {
       if (channel === "get-download-path") {
         return "/tmp/downloads";
       }
+      if (channel === "select-download-folder") {
+        return { success: false };
+      }
       return undefined;
     });
   });

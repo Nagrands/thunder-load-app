@@ -307,7 +307,6 @@ describe("tray runtime behavior", () => {
       "",
       "",
       "",
-      () => true,
     );
 
     const preventDefault = jest.fn();
@@ -427,7 +426,6 @@ describe("tray runtime behavior", () => {
       "",
       "",
       "",
-      () => true,
     );
     const preventDefault = jest.fn();
 

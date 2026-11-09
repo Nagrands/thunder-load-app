@@ -71,10 +71,16 @@ const setFailedJobs = (state, jobs) =>
   replaceJobs(state, "failed", jobs, "failed");
 const setCompletedJobs = (state, jobs) =>
   replaceJobs(state, "done", jobs, "done");
+const originalConsoleWarn = console.warn;
 
 beforeEach(() => {
+  console.warn = () => {};
   delete window.__videoInfoCache;
   delete window.__videoInfoBrokerState;
+});
+
+afterEach(() => {
+  console.warn = originalConsoleWarn;
 });
 
 describe("downloadManager queue persistence", () => {
@@ -4874,6 +4880,9 @@ describe("downloadManager legacy completed migration", () => {
 
   it("opens and reveals a completed job when migration needs recovery", async () => {
     await jest.isolateModulesAsync(async () => {
+      const errorSpy = jest
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
       mockCompletedPersistenceDependencies();
       const { persistCompletedJobs } = require("../features/queue/repository.js");
       persistCompletedJobs([completedJob()]);
@@ -4902,6 +4911,11 @@ describe("downloadManager legacy completed migration", () => {
         "open-download-folder",
         "/tmp/persisted.mp4",
       );
+      expect(errorSpy).toHaveBeenCalledWith(
+        "Failed to migrate completed queue jobs:",
+        expect.any(Error),
+      );
+      errorSpy.mockRestore();
     });
   });
 });
@@ -5017,6 +5031,9 @@ describe("downloadManager queue completion semantics", () => {
 
   it("keeps a recoverable job when History save fails", async () => {
     await jest.isolateModulesAsync(async () => {
+      const errorSpy = jest
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
       mockDependencies(true);
       window.electron = {
         invoke: jest.fn(async (channel) => {
@@ -5051,6 +5068,11 @@ describe("downloadManager queue completion semantics", () => {
           errorCode: "HISTORY_SAVE_FAILED",
         }),
       ]);
+      expect(errorSpy).toHaveBeenCalledWith(
+        "Failed to migrate completed queue jobs:",
+        expect.any(Error),
+      );
+      errorSpy.mockRestore();
       expect(localStorage.getItem("downloadCompletedQueue")).toBeTruthy();
       expect(document.querySelector("[data-queue-open-recovery]")).toBeTruthy();
       expect(

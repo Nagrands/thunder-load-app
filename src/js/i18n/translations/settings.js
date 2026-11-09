@@ -516,32 +516,6 @@ export const settingsTranslations = {
     "shortcuts.categories.downloads": "Downloads",
     "shortcuts.categories.system": "System",
     "shortcuts.categories.sites": "Websites",
-    "shortcuts.actions.togglePlayback.title": "Play / pause",
-    "shortcuts.actions.togglePlayback.description":
-      "Starts or pauses the current media file.",
-    "shortcuts.actions.stop.title": "Stop playback",
-    "shortcuts.actions.stop.description":
-      "Stops playback and returns to the beginning.",
-    "shortcuts.actions.previous.title": "Previous file",
-    "shortcuts.actions.previous.description":
-      "Moves to the previous available media file.",
-    "shortcuts.actions.next.title": "Next file",
-    "shortcuts.actions.next.description":
-      "Moves to the next file or queued item.",
-    "shortcuts.actions.seekBackward.title": "Seek backward",
-    "shortcuts.actions.seekBackward.description":
-      "Seeks backward by 10 seconds.",
-    "shortcuts.actions.seekForward.title": "Seek forward",
-    "shortcuts.actions.seekForward.description": "Seeks forward by 10 seconds.",
-    "shortcuts.actions.toggleMute.title": "Mute / unmute",
-    "shortcuts.actions.toggleMute.description":
-      "Mutes audio or restores the previous volume.",
-    "shortcuts.actions.volumeDown.title": "Volume down",
-    "shortcuts.actions.volumeDown.description":
-      "Decreases volume by 5 percentage points.",
-    "shortcuts.actions.volumeUp.title": "Volume up",
-    "shortcuts.actions.volumeUp.description":
-      "Increases volume by 5 percentage points.",
     "shortcuts.actions.openShortcutSettings.title": "Open shortcuts",
     "shortcuts.actions.openShortcutSettings.description":
       "Opens the Shortcuts section in Settings.",
