@@ -5,6 +5,11 @@
         aria-label="Контекстное меню"
         data-i18n-aria="context.menu"
       >
+        <div class="context-menu__header" role="presentation">
+          <span id="context-menu-title" class="context-menu__header-label"
+            >Контекстное меню</span
+          >
+        </div>
         <ul
           role="menu"
           aria-label="Контекстное меню"
@@ -14,45 +19,72 @@
             <button
               id="open-video"
               class="context-menu__item"
+              aria-describedby="context-open-video-description"
               type="button"
               role="menuitem"
             >
               <span class="cm-icon" aria-hidden="true">
                 <i class="fa-solid fa-circle-play"></i>
               </span>
-              <span class="cm-title" data-i18n="context.openVideo"
-                >Открыть видео</span
-              >
+              <span class="cm-copy">
+                <span class="cm-title" data-i18n="context.openVideo"
+                  >Открыть видео</span
+                >
+                <span
+                  id="context-open-video-description"
+                  class="cm-description"
+                  data-i18n="context.openVideoDesc"
+                  >Воспроизвести файл</span
+                >
+              </span>
             </button>
           </li>
           <li role="none">
             <button
               id="open-folder"
               class="context-menu__item"
+              aria-describedby="context-open-folder-description"
               type="button"
               role="menuitem"
             >
               <span class="cm-icon" aria-hidden="true">
                 <i class="fa-regular fa-folder-open"></i>
               </span>
-              <span class="cm-title" data-i18n="context.openFolder"
-                >Открыть папку</span
-              >
+              <span class="cm-copy">
+                <span class="cm-title" data-i18n="context.openFolder"
+                  >Открыть папку</span
+                >
+                <span
+                  id="context-open-folder-description"
+                  class="cm-description"
+                  data-i18n="context.openFolderDesc"
+                  >Показать расположение файла</span
+                >
+              </span>
             </button>
           </li>
           <li role="none">
             <button
               id="open-site"
               class="context-menu__item"
+              aria-describedby="context-open-site-description"
               type="button"
               role="menuitem"
             >
               <span class="cm-icon" aria-hidden="true">
                 <i class="fa-solid fa-link"></i>
               </span>
-              <span class="cm-title" data-i18n="context.openSite"
-                >Открыть сайт</span
-              >
+              <span class="cm-copy">
+                <span class="cm-title" data-i18n="context.openSite"
+                  >Открыть сайт</span
+                >
+                <span
+                  id="context-open-site-description"
+                  class="cm-description"
+                  data-i18n="context.openSiteDesc"
+                  >Перейти на источник загрузки</span
+                >
+              </span>
             </button>
           </li>
           <li
@@ -64,45 +96,72 @@
             <button
               id="retry-download"
               class="context-menu__item"
+              aria-describedby="context-retry-description"
               type="button"
               role="menuitem"
             >
               <span class="cm-icon" aria-hidden="true">
                 <i class="fa-solid fa-arrow-rotate-right"></i>
               </span>
-              <span class="cm-title" data-i18n="context.retry"
-                >Повторить загрузку</span
-              >
+              <span class="cm-copy">
+                <span class="cm-title" data-i18n="context.retry"
+                  >Повторить загрузку</span
+                >
+                <span
+                  id="context-retry-description"
+                  class="cm-description"
+                  data-i18n="context.retryDesc"
+                  >Добавить ссылку снова</span
+                >
+              </span>
             </button>
           </li>
           <li role="none">
             <button
               id="delete-entry"
               class="context-menu__item context-menu__item--danger"
+              aria-describedby="context-delete-entry-description"
               type="button"
               role="menuitem"
             >
               <span class="cm-icon" aria-hidden="true">
                 <i class="fa-regular fa-calendar-xmark"></i>
               </span>
-              <span class="cm-title" data-i18n="context.deleteEntry"
-                >Удалить запись</span
-              >
+              <span class="cm-copy">
+                <span class="cm-title" data-i18n="context.deleteEntry"
+                  >Удалить запись</span
+                >
+                <span
+                  id="context-delete-entry-description"
+                  class="cm-description"
+                  data-i18n="context.deleteEntryDesc"
+                  >Убрать строку из истории</span
+                >
+              </span>
             </button>
           </li>
           <li role="none">
             <button
               id="delete-file"
               class="context-menu__item context-menu__item--danger"
+              aria-describedby="context-delete-file-description"
               type="button"
               role="menuitem"
             >
               <span class="cm-icon" aria-hidden="true">
                 <i class="fa-solid fa-trash"></i>
               </span>
-              <span class="cm-title" data-i18n="context.deleteFile"
-                >Удалить файл</span
-              >
+              <span class="cm-copy">
+                <span class="cm-title" data-i18n="context.deleteFile"
+                  >Удалить файл</span
+                >
+                <span
+                  id="context-delete-file-description"
+                  class="cm-description"
+                  data-i18n="context.deleteFileDesc"
+                  >Удалить физически с диска</span
+                >
+              </span>
             </button>
           </li>
         </ul>

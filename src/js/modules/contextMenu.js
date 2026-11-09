@@ -155,6 +155,11 @@ async function showContextMenu(event, logEntry) {
   }
 
   const entry = getEntryData(currentLogEntry);
+  const titleElement = contextMenu.querySelector("#context-menu-title");
+  if (titleElement) {
+    titleElement.textContent = entry.fileName || t("context.menu");
+    titleElement.title = entry.fileName || "";
+  }
   for (const menuItem of getMenuItems()) {
     const commandId = getHistoryCommandByContextId(menuItem.id);
     if (!commandId) continue;
