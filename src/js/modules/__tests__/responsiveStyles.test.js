@@ -23,6 +23,10 @@ describe("application responsive contract", () => {
     path.join(root, "templates/partials/top-bar.njk"),
     "utf8",
   );
+  const sidebarTemplate = fs.readFileSync(
+    path.join(root, "templates/partials/sidebar.njk"),
+    "utf8",
+  );
   const layout = fs.readFileSync(
     path.join(root, "src/scss/components/_layout-ui.scss"),
     "utf8",
@@ -83,11 +87,22 @@ describe("application responsive contract", () => {
     );
   });
 
-  test("uses a fixed desktop sidebar and compact bottom navigation on narrow windows", () => {
+  test("uses a fixed desktop sidebar and compact top navigation on narrow windows", () => {
     expect(sidebar).toContain("inset: 0 auto 0 0;");
     expect(sidebar).toContain("width: var(--app-sidebar-width);");
     expect(sidebar).toContain("grid-template-rows: auto minmax(0, 1fr) auto;");
     expect(sidebar).toContain("@media (max-width: $breakpoint-tablet)");
+    expect(sidebar).toContain(
+      "grid-template-columns: auto minmax(0, 1fr) auto;",
+    );
+    expect(sidebar).toContain("inset: var(--topbar-height, 54px) 0 auto;");
+    expect(sidebar).toContain("display: none !important;");
+    expect(sidebar).toContain(".app-sidebar__format-action {");
+    expect(sidebar).toContain(".app-sidebar__statusbar");
+    expect(sidebarTemplate).toContain('class="app-sidebar__brand"');
+    expect(sidebarTemplate).toContain('id="sidebar-tab-nav"');
+    expect(sidebarTemplate).toContain('id="sidebar-open-settings"');
+    expect(sidebarTemplate).toContain('class="app-sidebar__statusbar"');
     expect(sidebar).toContain("body.is-mac .app-sidebar__panel");
     expect(sidebar).toContain("padding-top: 52px;");
     expect(sidebar).toContain("flex-direction: row;");
@@ -111,12 +126,24 @@ describe("application responsive contract", () => {
   });
 
   test("stacks downloader tool badges within the sidebar width", () => {
-    expect(sidebar).toContain(".app-sidebar__zone--bottom > .app-sidebar__tools-status");
+    expect(sidebar).toContain(".app-sidebar__statusbar > .app-sidebar__tools-status");
     expect(sidebar).toContain(".downloader-tools-status__badges {");
     expect(sidebar).toContain("flex-direction: column;");
     expect(sidebar).toContain(".tool-badge {");
     expect(sidebar).toContain("max-width: 100%;");
     expect(sidebar).toContain("text-overflow: ellipsis;");
+  });
+
+  test("uses compact downloader spacing while keeping quick actions available", () => {
+    expect(adaptive).toContain("@media (max-width: 900px)");
+    expect(adaptive).toContain("--topbar-safe-space: 76px;");
+    expect(adaptive).toContain(
+      ".downloader-view .downloader-shell-header__hero",
+    );
+    expect(adaptive).toContain(".downloader-view .url-input-main");
+    expect(adaptive).toContain(".downloader-view #open-last-video");
+    expect(adaptive).toContain(".downloader-view #open-history");
+    expect(adaptive).toContain("@media (max-width: 560px)");
   });
 
   test("keeps the History bulk toolbar compact and icon-only", () => {

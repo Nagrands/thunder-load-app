@@ -388,3 +388,170 @@ body.format-window {
     display: none;
   }
 }
+
+@media (max-width: 900px) {
+  #main-view {
+    // #main-view already starts below the native top bar; reserve the compact
+    // sidebar row plus a small breathing gap instead of counting top-bar twice.
+    --topbar-safe-space: 76px;
+    --sidebar-safe-space: 42px;
+    padding-top: var(--topbar-safe-space);
+    padding-bottom: var(--sidebar-safe-space);
+  }
+
+  .downloader-view .downloader-shell-header__hero {
+    display: none;
+  }
+
+  .downloader-view .url-input-wrapper--downloader {
+    gap: 8px;
+    padding: 10px;
+    border-radius: 16px;
+  }
+
+  .downloader-view .url-input-main {
+    grid-template-columns: 38px minmax(0, 1fr) auto;
+    align-items: center;
+    min-height: 48px;
+    padding: 3px 6px;
+  }
+
+  .downloader-view .url-input-leading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .downloader-view .url-input-leading__icon {
+    width: 34px;
+    height: 34px;
+    margin: 0;
+  }
+
+  .downloader-view .url-input-field {
+    min-width: 0;
+    min-height: 38px;
+    padding: 0 4px;
+  }
+
+  .downloader-view .url-input-field input {
+    min-height: 38px;
+    font-size: 0.92rem;
+  }
+
+  .downloader-view .url-input-main .button-grid {
+    grid-column: auto;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0 2px 0 0;
+  }
+
+  .downloader-view .url-input-secondary {
+    flex-wrap: wrap;
+    gap: 4px 10px;
+    padding: 2px 2px 0;
+  }
+
+  .downloader-view .url-input-service-row {
+    flex: 1 1 180px;
+  }
+
+  .downloader-view .download-destination {
+    flex: 0 1 auto;
+    max-width: 100%;
+    min-width: 0;
+    gap: 6px;
+    padding: 4px 6px;
+  }
+
+  .downloader-view .download-destination__meta {
+    min-width: 0;
+  }
+
+  .downloader-view .download-destination__path {
+    max-width: min(32vw, 240px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .downloader-view .download-destination__actions {
+    flex: 0 0 auto;
+    gap: 4px;
+  }
+
+  .downloader-view .download-destination__change,
+  .downloader-view .url-input-service-row__batch {
+    min-height: 34px;
+    padding-inline: 8px;
+  }
+
+  .downloader-view .url-input-wrapper--downloader .url-drop-zone {
+    min-height: 70px;
+    padding: 10px;
+  }
+
+  .downloader-view .downloads-toolbar {
+    margin-top: 0;
+    padding: 2px 0;
+  }
+
+  .downloader-view .downloads-toolbar__actions {
+    gap: 5px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+
+  .downloader-view #open-last-video {
+    width: 38px;
+    min-width: 38px;
+    flex: 0 0 38px;
+    padding: 0;
+  }
+
+  .downloader-view #open-last-video .downloads-toolbar__label {
+    display: none;
+  }
+
+  .downloader-view #open-history .downloads-toolbar__label,
+  .downloader-view #open-history .downloads-toolbar__count {
+    display: inline-flex;
+  }
+}
+
+@media (max-width: 560px) {
+  #main-view {
+    --topbar-safe-space: 70px;
+    --sidebar-safe-space: 38px;
+    padding-inline: 10px;
+  }
+
+  .downloader-view .url-input-secondary {
+    align-items: flex-start;
+  }
+
+  .downloader-view .url-input-service-row {
+    flex-basis: 100%;
+  }
+
+  .downloader-view .download-destination {
+    flex: 1 1 100%;
+    justify-content: space-between;
+  }
+
+  .downloader-view .download-destination__path {
+    max-width: 28vw;
+  }
+
+  .downloader-view #open-history .downloads-toolbar__label {
+    display: none;
+  }
+}
+
+@media (max-height: 620px) and (max-width: 900px) {
+  #main-view {
+    --topbar-safe-space: 70px;
+    --sidebar-safe-space: 38px;
+  }
+}

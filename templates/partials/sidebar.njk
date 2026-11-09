@@ -58,36 +58,6 @@
         </div>
 
         <div class="app-sidebar__zone app-sidebar__zone--bottom">
-          <div
-            id="sidebar-tools-status"
-            class="app-sidebar__tools-status downloader-tools-status is-context-hidden"
-            aria-hidden="true"
-          >
-            <div
-              class="status-line downloader-tools-status__line"
-              id="dl-tools-status"
-              role="status"
-              aria-live="polite"
-            >
-              <i
-                class="fa-solid fa-circle-notch fa-spin downloader-tools-status__state-icon"
-                id="dl-tools-icon"
-                aria-hidden="true"
-              ></i>
-              <span
-                id="dl-tools-text"
-                class="downloader-tools-status__text"
-                data-i18n="downloader.tools.checking"
-              >
-                Проверяем инструменты…
-              </span>
-              <div
-                class="tool-badges downloader-tools-status__badges"
-                id="dl-tools-badges"
-              ></div>
-            </div>
-          </div>
-
           <div class="app-sidebar__zone app-sidebar__zone--actions">
             <button
               id="dl-tools-action"
@@ -131,6 +101,38 @@
             >
               <i class="fa-solid fa-angles-left" aria-hidden="true"></i>
             </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="app-sidebar__statusbar">
+        <div
+          id="sidebar-tools-status"
+          class="app-sidebar__tools-status downloader-tools-status is-context-hidden"
+          aria-hidden="true"
+        >
+          <div
+            class="status-line downloader-tools-status__line"
+            id="dl-tools-status"
+            role="status"
+            aria-live="polite"
+          >
+            <i
+              class="fa-solid fa-circle-notch fa-spin downloader-tools-status__state-icon"
+              id="dl-tools-icon"
+              aria-hidden="true"
+            ></i>
+            <span
+              id="dl-tools-text"
+              class="downloader-tools-status__text"
+              data-i18n="downloader.tools.checking"
+            >
+              Проверяем инструменты…
+            </span>
+            <div
+              class="tool-badges downloader-tools-status__badges"
+              id="dl-tools-badges"
+            ></div>
           </div>
         </div>
       </div>

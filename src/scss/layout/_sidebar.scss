@@ -127,6 +127,17 @@ $transition-interactive:
 //  Зоны футера
 // ============================================================
 
+.app-sidebar__statusbar {
+  position: absolute;
+  inset: auto 0 72px;
+  padding-inline: 12px;
+  pointer-events: auto;
+}
+
+.app-sidebar__statusbar:has(#sidebar-tools-status.is-context-hidden) {
+  display: none;
+}
+
 .app-sidebar__zone {
   min-width: 0;
   display: flex;
@@ -355,7 +366,7 @@ $transition-interactive:
   }
 }
 
-.app-sidebar__zone--bottom > .app-sidebar__tools-status {
+.app-sidebar__statusbar > .app-sidebar__tools-status {
   width: 100%;
   min-width: 0;
   display: block;
@@ -867,99 +878,192 @@ body.low-effects .app-sidebar__action--tools.is-busy {
 // ============================================================
 
 @media (max-width: $breakpoint-tablet) {
-  .app-sidebar__tools-nav { display: none !important; }
-
   .app-sidebar {
-    inset: auto 8px calc(8px + env(safe-area-inset-bottom, 0px));
-    width: auto;
-    height: auto;
+    inset: var(--topbar-height, 54px) 0 auto;
+    width: 100%;
+    height: calc(100vh - var(--topbar-height, 54px));
+    height: calc(100dvh - var(--topbar-height, 54px));
   }
 
   .app-sidebar__panel {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto auto;
-    gap: 8px;
-    height: auto;
-    max-height: min(38vh, 220px);
-    padding: 8px 10px;
-    border-radius: 18px;
-    border: 1px solid var(--thunder-border);
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-rows: minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(8px, 2vw, 18px);
+    height: 64px;
+    max-height: none;
+    padding: 8px 14px;
+    border: 0;
+    border-bottom: 1px solid var(--thunder-border);
+    border-radius: 0;
+    overflow: visible;
   }
 
-  .app-sidebar__zone--lead { display: none; }
+  .app-sidebar__zone--lead {
+    grid-column: 1;
+    grid-row: 1;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    padding: 0;
+    border: 0;
+  }
+
+  .app-sidebar__brand {
+    gap: 8px;
+  }
+
+  .app-sidebar__brand-mark {
+    width: 30px;
+    height: 30px;
+  }
+
+  .app-sidebar__brand-title {
+    font-size: 17px;
+  }
+
+  .app-sidebar__brand-version {
+    display: none;
+  }
 
   .app-sidebar__zone {
     &--center {
+      grid-column: 2;
       grid-row: 1;
-      order: 0;
-      min-height: 42px;
+      align-items: center;
+      align-self: center;
+      min-height: 0;
     }
     &--actions {
       flex: 0 0 auto;
       flex-direction: row;
       align-items: center;
-      gap: 4px;
+      gap: 0;
     }
   }
 
   .app-sidebar__zone--bottom {
-    grid-row: 2;
+    grid-column: 3;
+    grid-row: 1;
     flex-direction: row;
     align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    padding-top: 8px;
+    justify-content: flex-end;
+    gap: 0;
+    padding: 0;
+    border: 0;
   }
 
-  .app-sidebar__tools-status {
-    flex: 0 1 auto;
-    margin-left: 0;
-    padding-left: 0;
-    border-left: none;
-    border-top: 0;
-    padding-top: 0;
+  .app-sidebar__tab-nav {
+    width: 100%;
+  }
+
+  .app-sidebar__tab-nav .group-menu {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
     overflow-x: auto;
-
-    .downloader-tools-status__line {
-      min-width: max-content;
-    }
+    scrollbar-width: none;
   }
 
-  .app-sidebar__action--tools {
-    min-width: 0;
+  .app-sidebar__tab-nav .group-menu::-webkit-scrollbar {
+    display: none;
+  }
+
+  .app-sidebar__tab-nav .menu-item {
+    width: auto;
+    min-width: 44px;
+    min-height: 42px;
+    flex: 0 1 auto;
+    justify-content: center;
+    padding-inline: 12px;
+    white-space: nowrap;
+  }
+
+  .app-sidebar__tab-nav .menu-item.active {
+    flex: 0 1 auto;
+    max-width: 180px;
+  }
+
+  // The developer-only Format shortcut is useful in the full sidebar, but it
+  // wraps beneath the two primary tabs in the compact navigation.
+  .app-sidebar__format-action {
+    display: none !important;
+  }
+
+  // Tool-specific links live in the Tools view's own compact navigation.
+  // Keep the desktop sidebar submenu out of the shared top navigation row.
+  .app-sidebar__tools-nav {
+    display: none !important;
   }
 
   .app-sidebar__collapse {
     display: none;
   }
 
-  .app-sidebar__tab-nav .group-menu {
-    flex-direction: row;
-    overflow-x: auto;
-    scrollbar-width: none;
+  .app-sidebar__statusbar {
+    inset: auto 0 0;
+    display: flex;
+    align-items: center;
+    min-height: 34px;
+    padding: 2px 12px;
+    border-top: 1px solid rgba(150, 185, 228, 0.1);
+    background: linear-gradient(
+      180deg,
+      rgba(3, 20, 34, 0.92),
+      rgba(1, 8, 20, 0.96)
+    );
   }
 
-  .app-sidebar__zone--center {
-    gap: 6px;
-  }
-
-  .app-sidebar__tab-nav {
-    flex: 1 1 auto;
-    width: auto;
-  }
-
-  .app-sidebar__tab-nav .app-sidebar__format-action {
-    width: 42px;
-    min-width: 42px;
-    min-height: 42px;
-    flex: 0 0 42px;
-    justify-content: center;
-    padding: 0;
+  .app-sidebar__statusbar > .app-sidebar__tools-status {
+    display: block;
+    width: 100%;
+    max-width: none;
     margin: 0;
+    padding: 0;
+    border: 0;
+  }
 
-    .menu-text {
-      display: none;
+  .app-sidebar__tools-status .downloader-tools-status__line {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    white-space: nowrap;
+  }
+
+  .app-sidebar__tools-status .downloader-tools-status__badges {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(8px, 4vw, 28px);
+    width: 100%;
+    white-space: nowrap;
+
+    .tool-badge {
+      width: auto;
+      min-height: 24px;
+      flex: 0 1 auto;
+      padding-inline: 4px;
+      font-size: 10px;
     }
+  }
+}
+
+@media (max-width: 560px) {
+  .app-sidebar__brand-title {
+    display: none;
+  }
+
+  .app-sidebar__tab-nav .menu-item:not(.active) .menu-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 }
 
