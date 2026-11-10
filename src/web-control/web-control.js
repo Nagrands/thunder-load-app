@@ -64,6 +64,10 @@ const el = {
   },
 };
 
+function syncClearUrlVisibility() {
+  el.clearUrl.hidden = !el.urlInput.value.trim();
+}
+
 let currentState = {};
 let queueFilter = "all";
 const queueRowsById = new Map();
@@ -550,6 +554,7 @@ document.getElementById("download-now").addEventListener("click", async () => {
   if (!payload) return;
   await sendAction("downloader:start", payload);
   el.urlInput.value = "";
+  syncClearUrlVisibility();
   compactQuality.clear();
 });
 
@@ -558,6 +563,7 @@ document.getElementById("add-queue").addEventListener("click", async () => {
   if (!payload) return;
   await sendAction("downloader:add", payload);
   el.urlInput.value = "";
+  syncClearUrlVisibility();
   compactQuality.clear();
 });
 
@@ -574,9 +580,12 @@ el.pause.addEventListener("click", () => {
 
 el.clearUrl.addEventListener("click", () => {
   el.urlInput.value = "";
+  syncClearUrlVisibility();
   compactQuality.clear();
   el.urlInput.focus();
 });
+
+el.urlInput.addEventListener("input", syncClearUrlVisibility);
 
 el.urlInput.addEventListener("keydown", (event) => {
   if (event.key !== "Enter" || event.shiftKey) return;
@@ -588,6 +597,7 @@ el.urlInput.addEventListener("keydown", (event) => {
   }
   void sendAction("downloader:start", payload).then(() => {
     el.urlInput.value = "";
+    syncClearUrlVisibility();
     compactQuality.clear();
   });
 });

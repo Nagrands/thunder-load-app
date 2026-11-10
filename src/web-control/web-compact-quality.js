@@ -34,6 +34,13 @@ function createCompactQuality({
 
   const setStatus = (text, tone = "muted") => {
     status.textContent = text;
+    if (
+      status.previousElementSibling?.classList.contains(
+        "url-input-statusline__dot",
+      )
+    ) {
+      status.previousElementSibling.dataset.tone = tone;
+    }
     if (window.ThunderWebUiState?.apply) {
       window.ThunderWebUiState.apply(status, { kind: tone });
     } else {
@@ -49,7 +56,7 @@ function createCompactQuality({
   };
 
   const reset = (
-    message = "Вставьте одну ссылку для анализа форматов",
+    message = "Вставьте ссылку — подберём форматы и включим действия",
     tone = "muted",
   ) => {
     preview = null;

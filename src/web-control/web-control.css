@@ -385,13 +385,46 @@ button:disabled {
   font-size: 0.82rem;
 }
 
+.url-input-shortcuts {
+  justify-content: flex-end;
+  text-align: right;
+}
+
+.url-shortcut-hint {
+  color: var(--color-text-muted);
+  font-size: 0.76rem;
+}
+
+.clear-button[hidden] {
+  display: none;
+}
+
 .url-input-statusline__dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
+  background: var(--color-text-muted);
+}
+
+.url-input-statusline__dot[data-tone="loading"] {
   background: var(--color-accent);
   box-shadow: 0 0 14px rgba(var(--color-accent-rgb), 0.5);
+}
+
+.url-input-statusline__dot[data-tone="loading"] {
   animation: pulse-dot 2s ease-in-out infinite;
+}
+
+.url-input-statusline__dot[data-tone="success"] {
+  background: var(--color-success);
+}
+
+.url-input-statusline__dot[data-tone="warning"] {
+  background: var(--color-warning);
+}
+
+.url-input-statusline__dot[data-tone="error"] {
+  background: var(--color-danger);
 }
 @keyframes pulse-dot {
   0%,
@@ -403,22 +436,6 @@ button:disabled {
     opacity: 1;
     transform: scale(1.2);
   }
-}
-
-.url-shortcut-chip {
-  min-height: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.04);
-  color: rgba(231, 240, 252, 0.72);
-  font-size: 0.76rem;
-  padding: 4px 8px;
-  transition: all var(--transition-smooth);
-}
-.url-shortcut-chip:hover {
-  border-color: rgba(var(--color-accent-rgb), 0.3);
-  background: rgba(var(--color-accent-rgb), 0.08);
-  color: #fff;
 }
 
 .downloader-action-row {
