@@ -28,8 +28,6 @@ const ICONS = {
 };
 
 const el = {
-  jobSummaryTitle: document.getElementById("job-summary-title"),
-  jobSummaryMeta: document.getElementById("job-summary-meta"),
   urlInput: document.getElementById("url-input"),
   clearUrl: document.getElementById("clear-url"),
   videoQuality: document.getElementById("compact-video-quality"),
@@ -150,12 +148,19 @@ function renderSummary(state = {}) {
   Object.entries(filterCounts).forEach(([key, value]) => {
     if (el.filterCounts[key]) el.filterCounts[key].textContent = String(value);
   });
-  el.pause.innerHTML = state.queuePaused ? ICONS.play : ICONS.pause;
+  el.pause.innerHTML = `${state.queuePaused ? ICONS.play : ICONS.pause}<span>${
+    state.queuePaused ? "Продолжить" : "Пауза"
+  }</span>`;
   el.pause.classList.toggle("is-active", state.queuePaused === true);
   el.pause.title = state.queuePaused
     ? "Продолжить запуск очереди"
     : "Не запускать следующие";
   el.pause.setAttribute("aria-label", el.pause.title);
+  el.pause.disabled =
+    (counts.pending || 0) <= 0 &&
+    (counts.running || 0) <= 0 &&
+    state.queuePaused !== true;
+  document.getElementById("start-queue").disabled = (counts.pending || 0) <= 0;
   const clearableCount =
     queueFilter === "active"
       ? 0
@@ -165,27 +170,15 @@ function renderSummary(state = {}) {
           ? counts.failed || 0
           : (counts.pending || 0) + (counts.failed || 0);
   el.clearQueue.disabled = clearableCount <= 0;
+  el.clearQueue.setAttribute(
+    "aria-label",
+    queueFilter === "pending"
+      ? "Очистить ожидающие задачи"
+      : queueFilter === "failed"
+        ? "Очистить задачи с ошибками"
+        : "Очистить очередь",
+  );
   el.undoClearQueue.hidden = state.undoClearAvailable !== true;
-  el.jobSummaryTitle.textContent =
-    counts.running > 0
-      ? "Идёт загрузка"
-      : counts.pending > 0
-        ? "Есть задачи в очереди"
-        : "Очередь синхронизирована";
-  el.jobSummaryMeta.textContent = `Активные: ${counts.running || 0}, ожидают: ${
-    counts.pending || 0
-  }, ошибки: ${counts.failed || 0}`;
-  window.ThunderWebUiState?.apply(el.jobSummaryMeta, {
-    kind:
-      counts.running > 0
-        ? "loading"
-        : counts.failed > 0
-          ? "warning"
-          : counts.pending > 0
-            ? "idle"
-            : "success",
-    operationId: counts.running > 0 ? "queue-active" : "",
-  });
 }
 
 function renderEmptyQueue(filtered = false) {
@@ -335,6 +328,20 @@ function renderQueueLoading() {
     </div>`;
   window.ThunderWebUiState?.apply(el.queue, {
     kind: "loading",
+    operationId: "web-control:initial-state",
+  });
+}
+
+function renderQueueError(error) {
+  el.queue.innerHTML = `<div class="queue-empty" role="listitem">
+    <p class="queue-empty-title">Не удалось загрузить очередь</p>
+    <p class="queue-empty-hint"></p>
+  </div>`;
+  el.queue.querySelector(".queue-empty-hint").textContent = String(
+    error?.message || "Ошибка соединения",
+  );
+  window.ThunderWebUiState?.apply(el.queue, {
+    kind: "error",
     operationId: "web-control:initial-state",
   });
 }
@@ -677,18 +684,5 @@ try {
 bindBeforeUnload(settingsController.isDirty);
 
 renderQueueLoading();
-Promise.all([refreshState(), settingsController.refreshRemote()]).catch(
-  (error) => {
-    el.jobSummaryTitle.textContent = "Веб-интерфейс недоступен";
-    el.jobSummaryMeta.textContent = String(
-      error?.message || "Ошибка соединения",
-    );
-    el.queue
-      .querySelectorAll(".queue-item-skeleton")
-      .forEach((row) => row.remove());
-    window.ThunderWebUiState?.apply(el.queue, {
-      kind: "error",
-      operationId: "web-control:initial-state",
-    });
-  },
-);
+void refreshState().catch(renderQueueError);
+void settingsController.refreshRemote().catch(() => {});

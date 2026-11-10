@@ -11,13 +11,6 @@
       <main class="main-view">
         <section class="downloader-shell" aria-labelledby="downloader-title">
           <div class="downloader-toolbar">
-            <div class="downloader-job-summary" id="web-job-summary">
-              <span class="downloader-job-summary__badge">WEB</span>
-              <div class="downloader-job-summary__content">
-                <strong id="job-summary-title">Очередь синхронизирована</strong>
-                <span id="job-summary-meta">Ожидаем новые ссылки</span>
-              </div>
-            </div>
             <button
               class="toolbar-settings-button"
               type="button"
@@ -174,7 +167,12 @@
                   class="queue-action-button queue-action-button--pause"
                   aria-label="Не запускать следующие"
                   title="Не запускать следующие"
-                ></button>
+                >
+                  <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M8 5v14M16 5v14" />
+                  </svg>
+                  <span>Пауза</span>
+                </button>
                 <button
                   id="clear-queue"
                   class="queue-action-button queue-action-button--clear"
@@ -186,6 +184,7 @@
                       d="M3 6h18M8 6V4h8v2m-1 5v6M9 11v6M5 6l1 14h12l1-14"
                     />
                   </svg>
+                  <span>Очистить</span>
                 </button>
                 <button
                   id="undo-clear-queue"

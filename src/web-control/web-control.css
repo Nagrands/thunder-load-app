@@ -151,9 +151,10 @@ button:disabled {
 
 .downloader-toolbar {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: auto;
   gap: 12px;
   align-items: center;
+  justify-content: end;
 }
 
 .toolbar-settings-button {
@@ -1404,10 +1405,7 @@ button:disabled {
   }
   .queue-actions {
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-  }
-  .queue-action-button span {
-    display: none;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .queue-filters {
