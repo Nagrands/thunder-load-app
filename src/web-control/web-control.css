@@ -443,9 +443,46 @@ button:disabled {
 
 .compact-quality-panel {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr)) auto auto;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr))
+    minmax(132px, auto)
+    minmax(164px, auto);
   gap: 8px;
   width: 100%;
+}
+
+.downloader-action-row__download,
+.downloader-action-row__aside {
+  min-height: var(--control-height);
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.downloader-action-row__download {
+  min-width: 132px;
+}
+
+.downloader-action-row__aside {
+  min-width: 164px;
+  border-color: rgba(var(--color-accent-rgb), 0.24);
+  background: rgba(var(--color-accent-rgb), 0.045);
+  color: rgba(231, 240, 252, 0.9);
+}
+
+.downloader-action-row__aside .icon {
+  color: var(--color-accent);
+}
+
+.downloader-action-row__aside:hover:not(:disabled) {
+  border-color: rgba(var(--color-accent-rgb), 0.48);
+  background: rgba(var(--color-accent-rgb), 0.11);
+  color: #fff;
+}
+
+.downloader-action-row__download:focus-visible,
+.downloader-action-row__aside:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
 .compact-quality-field {

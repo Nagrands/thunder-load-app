@@ -46,12 +46,12 @@ function createQueueWebControlController({
     const quality = normalizeQuality(payload.quality);
     if (payload.start === true && urls.length === 1) {
       startDownload(urls[0], quality, { fromQueue: false });
+      controller.pump("manual");
     } else {
       controller.enqueueMany(urls, quality, {
         downloadedMap: await getDownloadedMap(),
       });
     }
-    controller.pump(payload.start === true ? "manual" : "auto");
     return { ...snapshot(), added: urls.length };
   }
 
