@@ -238,6 +238,10 @@ function renderQueueActions(job = {}, id = "") {
 function renderState(state = {}) {
   currentState = state;
   renderSummary(state);
+  // Initial placeholders are only valid until the first state snapshot arrives.
+  el.queue
+    .querySelectorAll(".queue-item-skeleton")
+    .forEach((row) => row.remove());
   const jobs = Array.isArray(state.jobs) ? state.jobs : [];
   const visibleJobs = filterJobs(jobs);
   if (!visibleJobs.length) {
@@ -324,17 +328,11 @@ function renderState(state = {}) {
 
 function renderQueueLoading() {
   queueRowsById.clear();
-  el.queue.innerHTML = Array.from(
-    { length: 3 },
-    (
-      _,
-      index,
-    ) => `<div class="queue-item queue-item-skeleton" aria-hidden="true">
-      <span class="queue-skeleton-index">${index + 1}</span>
+  el.queue.innerHTML = `<div class="queue-item queue-item-skeleton" aria-hidden="true">
+      <span class="queue-skeleton-index"></span>
       <span class="queue-skeleton-copy"><span></span><span></span></span>
       <span class="queue-skeleton-chip"></span>
-    </div>`,
-  ).join("");
+    </div>`;
   window.ThunderWebUiState?.apply(el.queue, {
     kind: "loading",
     operationId: "web-control:initial-state",
@@ -685,6 +683,9 @@ Promise.all([refreshState(), settingsController.refreshRemote()]).catch(
     el.jobSummaryMeta.textContent = String(
       error?.message || "Ошибка соединения",
     );
+    el.queue
+      .querySelectorAll(".queue-item-skeleton")
+      .forEach((row) => row.remove());
     window.ThunderWebUiState?.apply(el.queue, {
       kind: "error",
       operationId: "web-control:initial-state",
