@@ -691,21 +691,22 @@ button:disabled {
   gap: 4px;
 }
 
-.queue-item-title,
-.queue-item-subtitle {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .queue-item-title {
   color: rgba(245, 249, 255, 0.96);
-  font-size: 0.9rem;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-size: 0.94rem;
+  line-height: 1.4;
 }
 
 .queue-item-subtitle {
+  overflow-wrap: anywhere;
+  user-select: text;
   color: var(--color-text-muted);
-  font-size: 0.8rem;
+  font-size: 0.82rem;
+  line-height: 1.4;
 }
 
 .queue-item-right {

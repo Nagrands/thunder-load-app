@@ -285,18 +285,18 @@ function renderState(state = {}) {
     if (!row || row.dataset.queueStructure !== structureKey) {
       const template = document.createElement("template");
       template.innerHTML = `<article class="queue-item ${getStatusClass(job)}" role="listitem" data-job-id="${id}">
-        <span class="queue-progress-line" data-queue-progress-bar style="width:${progress}%"></span>
+        <span class="queue-progress-line" role="progressbar" aria-label="Прогресс загрузки" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${progress}" title="Загружено ${progress}%" data-queue-progress-bar style="width:${progress}%"></span>
         <div class="queue-item-index-wrap">
           <span class="queue-item-index">${index + 1}</span>
         </div>
         <div class="queue-item-main">
-          <div class="queue-item-title">${title}</div>
-          <div class="queue-item-subtitle">${url}</div>
+          <div class="queue-item-title" title="${title}">${title}</div>
+          <div class="queue-item-subtitle" title="${url}">${url}</div>
         </div>
         <div class="queue-item-right">
           <span class="queue-status-chip" data-queue-status>${status}</span>
           <span class="queue-quality-chip">${quality}</span>
-          <span class="queue-stage-chip" data-queue-progress-label>${progress}%</span>
+          <span class="queue-stage-chip" data-queue-progress-label title="Загружено ${progress}%">${progress}%</span>
         </div>
         <div class="queue-item-actions-wrap">
           <button type="button" class="queue-item-menu-toggle" data-menu-toggle aria-haspopup="menu" aria-expanded="false" title="Действия">${ICONS.more}<span class="visually-hidden">Действия</span></button>
@@ -310,8 +310,17 @@ function renderState(state = {}) {
       queueRowsById.set(rawId, row);
     }
     row.querySelector("[data-queue-progress-bar]").style.width = `${progress}%`;
+    row
+      .querySelector("[data-queue-progress-bar]")
+      .setAttribute("aria-valuenow", String(progress));
+    row
+      .querySelector("[data-queue-progress-bar]")
+      .setAttribute("title", `Загружено ${progress}%`);
     row.querySelector("[data-queue-progress-label]").textContent =
       `${progress}%`;
+    row
+      .querySelector("[data-queue-progress-label]")
+      .setAttribute("title", `Загружено ${progress}%`);
     el.queue.appendChild(row);
   }
   window.ThunderWebUiState?.apply(el.queue, {
