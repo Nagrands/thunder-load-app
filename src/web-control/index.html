@@ -8,24 +8,85 @@
   </head>
   <body>
     <div class="web-app">
+      <aside class="app-sidebar" aria-label="Навигация Thunder">
+        <a
+          class="app-brand"
+          href="#downloader-panel"
+          data-nav-view="downloader"
+        >
+          <span class="app-brand__mark" aria-hidden="true">
+            <svg class="icon" viewBox="0 0 24 24">
+              <path d="m13 2-9 12h7l-1 8 10-13h-7l1-7Z" />
+            </svg>
+          </span>
+          <span>Thunder</span>
+        </a>
+        <nav class="app-nav" aria-label="Разделы приложения">
+          <button
+            class="app-nav__item is-active"
+            type="button"
+            data-nav-view="downloader"
+            data-nav-id="downloader"
+            aria-label="Загрузчик"
+            aria-current="page"
+          >
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 3v11m0 0 4-4m-4 4-4-4M5 19h14" />
+            </svg>
+            <span>Загрузчик</span>
+          </button>
+          <button
+            class="app-nav__item"
+            type="button"
+            data-nav-target="queue-panel"
+            data-nav-id="queue"
+            aria-label="Очередь"
+          >
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
+            </svg>
+            <span>Очередь</span>
+          </button>
+          <button
+            class="app-nav__item"
+            type="button"
+            data-nav-view="history"
+            data-nav-id="history"
+            aria-label="История"
+          >
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M3 12a9 9 0 1 0 2.64-6.36L3 8" />
+              <path d="M3 3v5h5m4-1v5l3 2" />
+            </svg>
+            <span>История</span>
+          </button>
+          <button
+            class="app-nav__item"
+            type="button"
+            data-settings-open
+            data-nav-id="settings"
+            aria-label="Настройки"
+          >
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" />
+              <path
+                d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 0 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 0 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1A2 2 0 0 1 4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 0 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1A2 2 0 0 1 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.6V3a2 2 0 0 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1A2 2 0 0 1 19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.1a2 2 0 0 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1Z"
+              />
+            </svg>
+            <span>Настройки</span>
+          </button>
+        </nav>
+        <div class="app-sidebar__footer">
+          <span class="app-sidebar__status-dot"></span>Веб-интерфейс
+        </div>
+      </aside>
       <main class="main-view">
-        <section class="downloader-shell" aria-labelledby="downloader-title">
-          <div class="downloader-toolbar">
-            <button
-              class="toolbar-settings-button"
-              type="button"
-              data-settings-open
-              aria-label="Открыть настройки"
-            >
-              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" />
-                <path
-                  d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 0 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 0 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1A2 2 0 0 1 4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 0 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1A2 2 0 0 1 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.6V3a2 2 0 0 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1A2 2 0 0 1 19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.1a2 2 0 0 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1Z"
-                />
-              </svg>
-            </button>
-          </div>
-
+        <section
+          id="downloader-panel"
+          class="downloader-shell"
+          data-web-view="downloader"
+          aria-labelledby="downloader-title"
+        >
           <h1 id="downloader-title" class="visually-hidden">Загрузчик</h1>
 
           <section class="input-container" aria-label="Добавление загрузки">
@@ -51,7 +112,23 @@
                       aria-label="Введите URL видео или аудио"
                     ></textarea>
                   </div>
-                  <div class="button-grid" aria-label="Действия поля URL">
+                  <div
+                    class="button-grid url-input-controls"
+                    aria-label="Действия поля URL"
+                  >
+                    <button
+                      id="paste-url"
+                      type="button"
+                      class="clear-button paste-button"
+                      title="Вставить из буфера обмена"
+                      aria-label="Вставить ссылку из буфера обмена"
+                    >
+                      <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                        <path
+                          d="M8 4H6a2 2 0 0 0-2 2v14h14a2 2 0 0 0 2-2v-2M8 4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2H8V4Zm5 8h7m-3-3 3 3-3 3"
+                        />
+                      </svg>
+                    </button>
                     <button
                       id="clear-url"
                       type="button"
@@ -77,8 +154,7 @@
                       class="url-helper-text"
                       aria-live="polite"
                       >Вставьте ссылку — подберём форматы и включим действия
-                    </span
-                    >
+                    </span>
                   </div>
                   <div class="url-input-shortcuts">
                     <span class="url-shortcut-hint">
@@ -138,7 +214,7 @@
             </div>
           </section>
 
-          <section id="download-queue-info" class="download-queue-info">
+          <section id="queue-panel" class="download-queue-info">
             <div class="queue-header">
               <div class="queue-header-left">
                 <span class="queue-title-icon" aria-hidden="true">
@@ -153,7 +229,7 @@
                   <span
                     id="queue-active-count"
                     class="queue-count-pill queue-count-pill--active"
-                    >0 активно</span
+                    >0 активных</span
                   >
                   <span
                     id="queue-count"
@@ -264,6 +340,17 @@
                   >0</span
                 >
               </button>
+              <button
+                type="button"
+                class="queue-filter-button"
+                data-filter="done"
+                aria-pressed="false"
+              >
+                <span>Завершено</span>
+                <span class="queue-filter-count" data-filter-count="done"
+                  >0</span
+                >
+              </button>
             </div>
             <div
               id="queue-list"
@@ -272,6 +359,27 @@
               role="list"
             ></div>
           </section>
+        </section>
+        <section
+          class="history-shell"
+          data-web-view="history"
+          aria-labelledby="history-title"
+          hidden
+        >
+          <header class="history-header">
+            <div>
+              <p class="history-eyebrow">THUNDER / WEB</p>
+              <h1 id="history-title">История загрузок</h1>
+              <p>Завершённые и неудачные загрузки из истории приложения.</p>
+            </div>
+            <span id="history-count" class="history-count">0 записей</span>
+          </header>
+          <div
+            id="history-list"
+            class="history-list"
+            role="list"
+            aria-live="polite"
+          ></div>
         </section>
       </main>
 

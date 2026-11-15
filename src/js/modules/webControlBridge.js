@@ -13,10 +13,7 @@ import {
   QUALITY_PROFILE_DEFAULT,
   QUALITY_PROFILE_KEY,
 } from "./features/settings/defaults.js";
-import {
-  cancelVideoInfoRequest,
-  getVideoInfo,
-} from "./videoInfoBroker.js";
+import { cancelVideoInfoRequest, getVideoInfo } from "./videoInfoBroker.js";
 import { buildWebCompactQualityOptions } from "./downloadQualityOptions.js";
 
 const RESPONSE_CHANNEL = "web:rendererResponse";
@@ -230,6 +227,7 @@ async function handleWebControlRequest(message = {}) {
   const command = String(message.command || "");
   const payload = message.payload || {};
   if (command === "snapshot") return getWebControlSnapshot();
+  if (command === "history:get") return window.electron.invoke("load-history");
   if (command === "settings:get") return getWebControlSettings();
   if (command === "settings:set") return setWebControlSettings(payload);
   if (command === "preview:get") return getWebCompactPreview(payload);

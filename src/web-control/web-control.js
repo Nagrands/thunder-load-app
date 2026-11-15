@@ -29,11 +29,16 @@ const ICONS = {
 
 const el = {
   urlInput: document.getElementById("url-input"),
+  pasteUrl: document.getElementById("paste-url"),
   clearUrl: document.getElementById("clear-url"),
   videoQuality: document.getElementById("compact-video-quality"),
   audioQuality: document.getElementById("compact-audio-quality"),
   qualityStatus: document.getElementById("quality-status"),
   queue: document.getElementById("queue-list"),
+  historyView: document.querySelector('[data-web-view="history"]'),
+  downloaderView: document.querySelector('[data-web-view="downloader"]'),
+  historyList: document.getElementById("history-list"),
+  historyCount: document.getElementById("history-count"),
   pause: document.getElementById("pause-queue"),
   clearQueue: document.getElementById("clear-queue"),
   undoClearQueue: document.getElementById("undo-clear-queue"),
@@ -49,6 +54,7 @@ const el = {
     active: document.querySelector('[data-filter-count="active"]'),
     pending: document.querySelector('[data-filter-count="pending"]'),
     failed: document.querySelector('[data-filter-count="failed"]'),
+    done: document.querySelector('[data-filter-count="done"]'),
   },
   settings: {
     downloadPath: document.getElementById("setting-download-path"),
@@ -70,6 +76,9 @@ function syncClearUrlVisibility() {
 
 let currentState = {};
 let queueFilter = "all";
+let historyMode = "all";
+let historyEntries = [];
+let historyLoaded = false;
 const queueRowsById = new Map();
 
 function apiUrl(path) {
@@ -122,6 +131,29 @@ function getStatusClass(job = {}) {
   return "is-pending";
 }
 
+function formatRussianCount(value, forms) {
+  const count = Math.abs(Number(value) || 0);
+  const lastTwo = count % 100;
+  const last = count % 10;
+  const form =
+    lastTwo >= 11 && lastTwo <= 14
+      ? forms[2]
+      : last === 1
+        ? forms[0]
+        : last >= 2 && last <= 4
+          ? forms[1]
+          : forms[2];
+  return `${count} ${form}`;
+}
+
+function isCompletedHistoryEntry(entry = {}) {
+  return (
+    !entry.error &&
+    !["failed", "missing"].includes(entry.status) &&
+    entry.downloadStatus !== "failed"
+  );
+}
+
 function getFilterCounts(state = {}) {
   const counts = state.counts || {};
   const active = counts.running || 0;
@@ -130,9 +162,114 @@ function getFilterCounts(state = {}) {
   return {
     active,
     all: active + pending + failed,
+    done: historyEntries.filter(isCompletedHistoryEntry).length,
     failed,
     pending,
   };
+}
+
+function renderHistory(entries = historyEntries) {
+  historyEntries = Array.isArray(entries) ? entries : [];
+  historyLoaded = true;
+  const visibleEntries =
+    historyMode === "completed"
+      ? historyEntries.filter(isCompletedHistoryEntry)
+      : historyEntries;
+  el.historyCount.textContent = formatRussianCount(visibleEntries.length, [
+    "запись",
+    "записи",
+    "записей",
+  ]);
+  if (el.filterCounts.done) {
+    el.filterCounts.done.textContent = String(
+      historyEntries.filter(isCompletedHistoryEntry).length,
+    );
+  }
+  if (!visibleEntries.length) {
+    el.historyList.innerHTML = `<div class="queue-empty history-empty" role="status">
+      <span class="queue-empty-icon" aria-hidden="true">${ICONS.inbox}</span>
+      <p class="queue-empty-title">${historyMode === "completed" ? "Завершённых загрузок пока нет" : "История пока пуста"}</p>
+      <p class="queue-empty-hint">${historyMode === "completed" ? "Завершённые загрузки появятся здесь." : "Здесь появятся записи о завершённых и неудачных загрузках."}</p>
+    </div>`;
+    return;
+  }
+  el.historyList.innerHTML = visibleEntries
+    .map((entry) => {
+      const title = escapeHtml(
+        entry.fileName || entry.title || entry.sourceUrl || "Без названия",
+      );
+      const source = escapeHtml(entry.sourceUrl || "");
+      const dateRaw = entry.createdAt || entry.dateTime || entry.dateText || "";
+      const date = dateRaw ? new Date(dateRaw) : null;
+      const dateLabel =
+        date && !Number.isNaN(date.getTime())
+          ? date.toLocaleString("ru-RU", { hour12: false })
+          : String(dateRaw || "Дата неизвестна");
+      const sizeBytes = Number(entry.sizeBytes);
+      const size =
+        Number.isFinite(sizeBytes) && sizeBytes > 0
+          ? `${(sizeBytes / 1024 / 1024).toFixed(1)} МБ`
+          : "";
+      const failed = !isCompletedHistoryEntry(entry);
+      const statusLabel = failed ? "Ошибка" : "Завершено";
+      return `<article class="history-item" role="listitem">
+        <span class="history-item__icon ${failed ? "is-failed" : ""}" aria-hidden="true">${failed ? ICONS.x : ICONS.check}</span>
+        <div class="history-item__main">
+          <strong class="history-item__title" title="${title}">${title}</strong>
+          <span class="history-item__source" title="${source}">${source || "Источник не указан"}</span>
+        </div>
+        <div class="history-item__meta"><span class="history-item__status ${failed ? "is-failed" : ""}">${statusLabel}</span><span>${escapeHtml(dateLabel)}</span>${size ? `<span>${escapeHtml(size)}</span>` : ""}</div>
+      </article>`;
+    })
+    .join("");
+}
+
+async function refreshHistory() {
+  const { history } = await request("/api/history");
+  if (!Array.isArray(history) && history?.success === false) {
+    throw new Error(history.error || "Не удалось прочитать историю");
+  }
+  const entries = Array.isArray(history) ? history : history?.entries;
+  renderHistory(entries);
+}
+
+function showWebView(view, requestedHistoryMode = "all") {
+  const showHistory = view === "history";
+  historyMode = requestedHistoryMode;
+  el.downloaderView.hidden = showHistory;
+  el.historyView.hidden = !showHistory;
+  const activeView = showHistory ? "history" : "downloader";
+  document.querySelectorAll(".app-nav__item").forEach((button) => {
+    const active = button.dataset.navId === activeView;
+    button.classList.toggle("is-active", active);
+    if (active) button.setAttribute("aria-current", "page");
+    else button.removeAttribute("aria-current");
+  });
+  if (showHistory && !historyLoaded) {
+    el.historyList.innerHTML = `<div class="history-loading" role="status">Загружаем историю…</div>`;
+    void refreshHistory().catch(() => {
+      el.historyList.innerHTML = `<div class="queue-empty history-empty" role="alert">
+        <p class="queue-empty-title">Не удалось загрузить историю</p>
+        <p class="queue-empty-hint">Проверьте соединение и попробуйте ещё раз.</p>
+        <button class="small-button history-retry" type="button">Повторить</button>
+      </div>`;
+      el.historyList
+        .querySelector(".history-retry")
+        ?.addEventListener("click", () => {
+          historyLoaded = false;
+          showWebView("history", historyMode);
+        });
+    });
+  }
+}
+
+function setActiveNavigation(id) {
+  document.querySelectorAll(".app-nav__item").forEach((button) => {
+    const active = button.dataset.navId === id;
+    button.classList.toggle("is-active", active);
+    if (active) button.setAttribute("aria-current", "page");
+    else button.removeAttribute("aria-current");
+  });
 }
 
 function filterJobs(jobs = []) {
@@ -147,7 +284,7 @@ function renderSummary(state = {}) {
   const counts = state.counts || {};
   const filterCounts = getFilterCounts(state);
   el.counts.pending.textContent = `${counts.pending || 0} в очереди`;
-  el.counts.running.textContent = `${counts.running || 0} активно`;
+  el.counts.running.textContent = `${counts.running || 0} активных`;
   el.counts.failed.textContent = `${counts.failed || 0} ошибок`;
   Object.entries(filterCounts).forEach(([key, value]) => {
     if (el.filterCounts[key]) el.filterCounts[key].textContent = String(value);
@@ -505,6 +642,9 @@ const router = createRouterController({
   hasUnsavedChanges: settingsController.isDirty,
   confirmDiscard: showDiscardSettingsDialog,
   onDiscard: settingsController.cancel,
+  onSettingsClosed: () => {
+    setActiveNavigation(el.historyView.hidden ? "downloader" : "history");
+  },
 });
 
 const compactQuality = createCompactQualityController({
@@ -520,7 +660,49 @@ const compactQuality = createCompactQualityController({
 });
 
 document.querySelectorAll("[data-settings-open]").forEach((button) => {
-  button.addEventListener("click", router.openSettings);
+  button.addEventListener("click", () => {
+    setActiveNavigation("settings");
+    router.openSettings();
+  });
+});
+
+document.querySelectorAll("[data-nav-view]").forEach((button) => {
+  button.addEventListener("click", (event) => {
+    event.preventDefault();
+    const view = button.dataset.navView || "downloader";
+    showWebView(view);
+    if (view === "downloader") {
+      document.getElementById("downloader-panel").scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  });
+});
+
+document.querySelectorAll("[data-nav-target]").forEach((button) => {
+  button.addEventListener("click", () => {
+    showWebView("downloader");
+    setActiveNavigation(button.dataset.navId || "queue");
+    document.getElementById(button.dataset.navTarget)?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  });
+});
+
+el.pasteUrl.addEventListener("click", async () => {
+  try {
+    const value = await navigator.clipboard.readText();
+    if (!value.trim()) return;
+    el.urlInput.value = value.trim();
+    el.urlInput.dispatchEvent(new Event("input", { bubbles: true }));
+    el.urlInput.focus();
+  } catch {
+    el.qualityStatus.textContent =
+      "Не удалось прочитать буфер. Вставьте ссылку вручную.";
+    window.ThunderWebUiState?.apply(el.qualityStatus, { kind: "warning" });
+  }
 });
 
 document.querySelectorAll("[data-settings-close]").forEach((button) => {
@@ -548,6 +730,10 @@ document.querySelectorAll("[data-settings-tab]").forEach((button) => {
 
 document.querySelectorAll("[data-filter]").forEach((button) => {
   button.addEventListener("click", () => {
+    if (button.dataset.filter === "done") {
+      showWebView("history", "completed");
+      return;
+    }
     queueFilter = button.dataset.filter || "all";
     document.querySelectorAll("[data-filter]").forEach((node) => {
       const active = node === button;
@@ -688,6 +874,7 @@ try {
   events.addEventListener("ready", () => {});
   events.addEventListener("state", () => {
     void refreshState().catch(() => {});
+    if (!el.historyView.hidden) void refreshHistory().catch(() => {});
     void settingsController.refreshRemote().catch(() => {});
   });
   events.addEventListener("settings", (event) => {
@@ -705,3 +892,4 @@ bindBeforeUnload(settingsController.isDirty);
 renderQueueLoading();
 void refreshState().catch(renderQueueError);
 void settingsController.refreshRemote().catch(() => {});
+void refreshHistory().catch(() => {});

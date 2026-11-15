@@ -311,6 +311,12 @@ function createWebControlServer({ appPath, store, diagnosticsLogger = null }) {
       return;
     }
 
+    if (req.method === "GET" && reqUrl.pathname === "/api/history") {
+      const history = await requestRenderer("history:get");
+      createJsonResponse(res, 200, { success: true, history });
+      return;
+    }
+
     if (req.method === "GET" && reqUrl.pathname === "/api/settings") {
       const settings = await requestRenderer("settings:get");
       createJsonResponse(res, 200, { success: true, settings });

@@ -10,6 +10,7 @@ describe("webControlBridge", () => {
           "get-open-on-copy-url-status": false,
           "get-open-on-download-complete-status": true,
           "get-disable-complete-modal-status": true,
+          "load-history": { entries: [{ fileName: "clip.mp4" }] },
           "set-download-parallel-limit": { success: true, limit: value },
           "set-open-on-copy-url-status": true,
           "set-open-on-download-complete-status": true,
@@ -50,6 +51,10 @@ describe("webControlBridge", () => {
       language: "ru",
       fontSize: "16",
     });
+
+    const history = await handleWebControlRequest({ command: "history:get" });
+    expect(window.electron.invoke).toHaveBeenCalledWith("load-history");
+    expect(history).toEqual({ entries: [{ fileName: "clip.mp4" }] });
   });
 
   it("subscribes to main-process web requests and sends responses", async () => {

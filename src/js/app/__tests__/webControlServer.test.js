@@ -226,6 +226,45 @@ describe("webControlServer", () => {
     });
   });
 
+  it("forwards history requests to the renderer bridge", async () => {
+    const store = createStore();
+    server = createWebControlServer({
+      appPath: path.resolve(__dirname, "../../../.."),
+      store,
+    });
+    const webContents = {
+      send: jest.fn((channel, payload) => {
+        expect(channel).toBe(CHANNELS.WEB_RENDERER_REQUEST);
+        setTimeout(() => {
+          server.resolveRendererResponse({
+            requestId: payload.requestId,
+            success: true,
+            result: { entries: [{ fileName: "clip.mp4" }] },
+          });
+        }, 0);
+      }),
+    };
+    server.setMainWindow({
+      isDestroyed: () => false,
+      webContents,
+    });
+    const status = await server.setEnabled(true);
+
+    const response = await requestJson(
+      fakeHttpServer,
+      new URL("/api/history", status.localUrl),
+    );
+
+    expect(response.statusCode).toBe(200);
+    expect(webContents.send).toHaveBeenCalledWith(
+      CHANNELS.WEB_RENDERER_REQUEST,
+      expect.objectContaining({ command: "history:get" }),
+    );
+    expect(response.body.history).toEqual({
+      entries: [{ fileName: "clip.mp4" }],
+    });
+  });
+
   it("rejects pending renderer requests when the server stops", async () => {
     const store = createStore();
     server = createWebControlServer({

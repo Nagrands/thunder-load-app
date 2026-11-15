@@ -59,15 +59,17 @@ describe("web control UI contract", () => {
     ).not.toThrow();
   });
 
-  it("contains only the main toolbar entry point", () => {
+  it("contains the responsive sidebar navigation and downloader entry point", () => {
     const html = fs.readFileSync(
       path.resolve(__dirname, "../index.html"),
       "utf8",
     );
     expect(html).not.toContain('class="top-bar"');
-    expect(html).not.toContain('class="app-sidebar"');
+    expect(html).toContain('class="app-sidebar"');
     expect(html).not.toContain("downloader-view-mode");
-    expect(html).toContain('class="toolbar-settings-button"');
+    expect(html).toContain('data-nav-view="downloader"');
+    expect(html).toContain('data-nav-view="history"');
+    expect(html).toContain("data-settings-open");
     expect(html).toContain('id="compact-video-quality"');
     expect(html).toContain('id="compact-audio-quality"');
   });
@@ -85,13 +87,14 @@ describe("web control UI contract", () => {
     expect(source).toContain('sendAction("downloader:undo-clear")');
   });
 
-  it("does not expose completed jobs as a normal queue category", () => {
+  it("exposes completed downloads through the history view", () => {
     const html = fs.readFileSync(
       path.resolve(__dirname, "../index.html"),
       "utf8",
     );
-    expect(html).not.toContain('data-filter="done"');
-    expect(html).not.toContain('id="queue-done-count"');
+    expect(html).toContain('data-filter="done"');
+    expect(html).toContain('data-filter-count="done"');
+    expect(html).toContain('data-web-view="history"');
     expect(html).toContain('id="clear-queue"');
     expect(html).toContain('id="undo-clear-queue"');
   });
