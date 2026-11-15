@@ -612,6 +612,31 @@ async function initSettings() {
     });
   })();
 
+  (function initSidebarHistoryCountSetting() {
+    const select = document.getElementById("settings-sidebar-history-count");
+    if (!select) return;
+    const key = "appSidebarHistoryCount";
+    const allowedValues = new Set(["0", "3", "6"]);
+    try {
+      const savedValue = localStorage.getItem(key);
+      select.value = allowedValues.has(savedValue) ? savedValue : "3";
+    } catch {
+      select.value = "3";
+    }
+    select.addEventListener("change", () => {
+      const value = allowedValues.has(select.value) ? select.value : "3";
+      select.value = value;
+      try {
+        localStorage.setItem(key, value);
+      } catch {}
+      window.dispatchEvent(
+        new CustomEvent("app-sidebar:history-count-changed", {
+          detail: { count: Number(value) },
+        }),
+      );
+    });
+  })();
+
   // === Tools location (yt-dlp, ffmpeg) — UI bindings ===
 }
 

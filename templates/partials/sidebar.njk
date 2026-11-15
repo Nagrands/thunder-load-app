@@ -55,6 +55,26 @@
               </span>
             </button>
           </div>
+          <section
+            class="app-sidebar-history"
+            id="app-sidebar-history"
+            aria-labelledby="app-sidebar-history-title"
+          >
+            <div class="app-sidebar-history__header">
+              <h2
+                id="app-sidebar-history-title"
+                data-i18n="sidebar.history.title"
+              >
+                Недавняя история
+              </h2>
+              <span id="app-sidebar-history-count" aria-hidden="true"></span>
+            </div>
+            <div
+              id="app-sidebar-history-list"
+              class="app-sidebar-history__list"
+              role="list"
+            ></div>
+          </section>
         </div>
 
         <div class="app-sidebar__zone app-sidebar__zone--bottom">
@@ -103,7 +123,6 @@
             </button>
           </div>
         </div>
-      </div>
 
       <div class="app-sidebar__statusbar">
         <div
@@ -135,6 +154,7 @@
             ></div>
           </div>
         </div>
+      </div>
       </div>
     </aside>
 

@@ -69,6 +69,8 @@ describe("web control UI contract", () => {
     expect(html).not.toContain("downloader-view-mode");
     expect(html).toContain('data-nav-view="downloader"');
     expect(html).toContain('data-nav-view="history"');
+    expect(html).toContain('id="sidebar-history-list"');
+    expect(html).toContain('id="setting-sidebar-history-count"');
     expect(html).toContain("data-settings-open");
     expect(html).toContain('id="compact-video-quality"');
     expect(html).toContain('id="compact-audio-quality"');
@@ -97,6 +99,37 @@ describe("web control UI contract", () => {
     expect(html).toContain('data-web-view="history"');
     expect(html).toContain('id="clear-queue"');
     expect(html).toContain('id="undo-clear-queue"');
+  });
+
+  it("keeps sidebar history hidden in compact and mobile layouts", () => {
+    const css = fs.readFileSync(
+      path.resolve(__dirname, "../web-control.css"),
+      "utf8",
+    );
+    expect(css).toContain(".sidebar-history__title");
+    expect(css).toContain("-webkit-line-clamp: 2");
+    expect(css).toMatch(
+      /\.sidebar-history,\s*\.app-sidebar__footer\s*\{\s*display: none;/,
+    );
+    expect(css).toMatch(/\.sidebar-history\s*\{\s*display: none;/);
+  });
+
+  it("includes recent history and its count setting in the main app sidebar", () => {
+    const html = fs.readFileSync(
+      path.resolve(__dirname, "../../index.html"),
+      "utf8",
+    );
+    const scss = fs.readFileSync(
+      path.resolve(__dirname, "../../scss/layout/_sidebar.scss"),
+      "utf8",
+    );
+    expect(html).toContain('id="app-sidebar-history-list"');
+    expect(html).toContain('id="settings-sidebar-history-count"');
+    expect(scss).toContain("body.app-sidebar-collapsed {");
+    expect(scss).toContain(".app-sidebar-history { display: none; }");
+    expect(scss).toContain(
+      ".app-sidebar__statusbar > .app-sidebar__tools-status",
+    );
   });
 
   it("accepts one HTTP URL and rejects multi-value input", () => {

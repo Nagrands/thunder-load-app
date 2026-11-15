@@ -95,6 +95,7 @@ let historyData = [];
  */
 function setHistoryData(entries) {
   historyData = entries;
+  window.dispatchEvent(new CustomEvent("history:data-changed"));
 }
 
 /**

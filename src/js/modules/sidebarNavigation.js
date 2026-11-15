@@ -1,6 +1,7 @@
 import { initTooltips } from "./tooltipInitializer.js";
-import { t } from "./i18n.js";
+import { getLanguage, t } from "./i18n.js";
 import { readDeveloperModeEnabled } from "./developerMode.js";
+import { getHistoryData } from "./state.js";
 
 const dom = {
   root: null,
@@ -11,6 +12,9 @@ const dom = {
   sidebarNavHost: null,
   groupMenu: null,
   formatButton: null,
+  historySection: null,
+  historyList: null,
+  historyCount: null,
 };
 
 const state = {
@@ -36,11 +40,15 @@ function bindDom() {
   dom.sidebarNavHost = document.getElementById("sidebar-tab-nav");
   dom.groupMenu = document.querySelector(".group-menu");
   dom.formatButton = document.getElementById("sidebar-open-format");
+  dom.historySection = document.getElementById("app-sidebar-history");
+  dom.historyList = document.getElementById("app-sidebar-history-list");
+  dom.historyCount = document.getElementById("app-sidebar-history-count");
 
   try {
     state.toolsHiddenByPreference =
       localStorage.getItem("downloaderToolsStatusHidden") === "1";
-    state.sidebarCollapsed = localStorage.getItem("appSidebarCollapsed") === "1";
+    state.sidebarCollapsed =
+      localStorage.getItem("appSidebarCollapsed") === "1";
   } catch {
     state.toolsHiddenByPreference = false;
     state.sidebarCollapsed = false;
@@ -62,11 +70,90 @@ function syncFormatVisibility() {
   dom.formatButton.hidden = !readDeveloperModeEnabled();
 }
 
+function renderRecentHistory() {
+  if (!dom.historySection || !dom.historyList) return;
+  let count = 3;
+  try {
+    const savedCount = localStorage.getItem("appSidebarHistoryCount");
+    if (["0", "3", "6"].includes(savedCount)) count = Number(savedCount);
+  } catch {}
+  const entries = (Array.isArray(getHistoryData()) ? getHistoryData() : [])
+    .map((entry, index) => ({ entry, index, date: getHistoryDate(entry) }))
+    .sort((a, b) => {
+      if (a.date === null && b.date === null) return a.index - b.index;
+      if (a.date === null) return 1;
+      if (b.date === null) return -1;
+      return b.date - a.date;
+    })
+    .slice(0, count);
+  dom.historySection.hidden = count === 0 || entries.length === 0;
+  if (dom.historyCount) dom.historyCount.textContent = String(entries.length);
+  dom.historyList.replaceChildren();
+  entries.forEach(({ entry, date }) => {
+    const status =
+      entry?.isMissing || entry?.status === "missing"
+        ? "missing"
+        : entry?.error ||
+            entry?.status === "failed" ||
+            entry?.downloadStatus === "failed"
+          ? "failed"
+          : "completed";
+    const item = document.createElement("article");
+    item.className = "app-sidebar-history__item";
+    item.setAttribute("role", "listitem");
+    const indicator = document.createElement("span");
+    indicator.className = `app-sidebar-history__status is-${status}`;
+    indicator.setAttribute("aria-hidden", "true");
+    const content = document.createElement("span");
+    content.className = "app-sidebar-history__content";
+    const title = document.createElement("span");
+    title.className = "app-sidebar-history__title";
+    title.textContent =
+      entry?.fileName ||
+      entry?.title ||
+      entry?.sourceUrl ||
+      t("history.file.untitled");
+    title.title = title.textContent;
+    const meta = document.createElement("span");
+    meta.className = "app-sidebar-history__meta";
+    const statusText = document.createElement("span");
+    statusText.className = `app-sidebar-history__status-label is-${status}`;
+    statusText.textContent = t(`sidebar.history.${status}`);
+    const time = document.createElement("time");
+    time.className = "app-sidebar-history__time";
+    time.textContent = date
+      ? date.toLocaleString(getLanguage() === "ru" ? "ru-RU" : "en-US", {
+          day: "2-digit",
+          month: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        })
+      : t("sidebar.history.unknownTime");
+    if (date) time.dateTime = date.toISOString();
+    meta.append(statusText, time);
+    content.append(title, meta);
+    item.append(indicator, content);
+    dom.historyList.appendChild(item);
+  });
+}
+
+function getHistoryDate(entry = {}) {
+  const raw =
+    entry.timestamp || entry.createdAt || entry.dateText || entry.dateTime;
+  if (!raw) return null;
+  const date = new Date(raw);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
 async function openFormatWindow() {
   try {
     const response = await window.electron?.invoke?.("open-format-window");
     if (!response?.success) {
-      console.error("[sidebarNavigation] Failed to open Format window:", response?.error);
+      console.error(
+        "[sidebarNavigation] Failed to open Format window:",
+        response?.error,
+      );
     }
   } catch (error) {
     console.error("[sidebarNavigation] Failed to open Format window:", error);
@@ -105,14 +192,21 @@ function handleTabsActivated(event) {
 
 function handleI18nChanged() {
   syncToolsVisibility();
+  renderRecentHistory();
   try {
     initTooltips();
   } catch {}
 }
 
 function syncSidebarCollapsed() {
-  document.body.classList.toggle("app-sidebar-collapsed", state.sidebarCollapsed);
-  dom.sidebarToggle?.setAttribute("aria-expanded", String(!state.sidebarCollapsed));
+  document.body.classList.toggle(
+    "app-sidebar-collapsed",
+    state.sidebarCollapsed,
+  );
+  dom.sidebarToggle?.setAttribute(
+    "aria-expanded",
+    String(!state.sidebarCollapsed),
+  );
   const label = state.sidebarCollapsed
     ? t("sidebar.expandSidebar")
     : t("sidebar.collapseSidebar");
@@ -123,7 +217,10 @@ function syncSidebarCollapsed() {
   icon?.classList.toggle("fa-angles-left", !state.sidebarCollapsed);
   icon?.classList.toggle("fa-angles-right", state.sidebarCollapsed);
   try {
-    localStorage.setItem("appSidebarCollapsed", state.sidebarCollapsed ? "1" : "0");
+    localStorage.setItem(
+      "appSidebarCollapsed",
+      state.sidebarCollapsed ? "1" : "0",
+    );
   } catch {}
 }
 
@@ -137,6 +234,11 @@ function initSidebarNavigation() {
     });
     window.addEventListener("tabs:activated", handleTabsActivated);
     window.addEventListener("i18n:changed", handleI18nChanged);
+    window.addEventListener("history:data-changed", renderRecentHistory);
+    window.addEventListener(
+      "app-sidebar:history-count-changed",
+      renderRecentHistory,
+    );
     window.addEventListener("tools:visibility", (event) => {
       state.toolsHiddenByPreference = event?.detail?.hidden === true;
       syncToolsVisibility();
@@ -159,6 +261,7 @@ function initSidebarNavigation() {
   syncFormatVisibility();
   setSoftVisibility(dom.sidebarNavHost, true);
   syncToolsVisibility();
+  renderRecentHistory();
   void refreshVersion();
 
   try {

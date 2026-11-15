@@ -24,6 +24,11 @@ export const coreTranslations = {
     "sidebar.openSettingsAria": "Открыть настройки приложения",
     "sidebar.collapseSidebar": "Свернуть боковое меню",
     "sidebar.expandSidebar": "Развернуть боковое меню",
+    "sidebar.history.title": "Недавняя история",
+    "sidebar.history.completed": "Завершено",
+    "sidebar.history.failed": "Ошибка",
+    "sidebar.history.missing": "Файл удалён",
+    "sidebar.history.unknownTime": "Время неизвестно",
     "input.url.placeholder": "Введите URL видео или аудио",
     "input.url.aria": "Введите URL видео или аудио",
     "input.url.label": "URL",
@@ -228,6 +233,11 @@ export const coreTranslations = {
     "sidebar.openSettingsAria": "Open app settings",
     "sidebar.collapseSidebar": "Collapse sidebar",
     "sidebar.expandSidebar": "Expand sidebar",
+    "sidebar.history.title": "Recent history",
+    "sidebar.history.completed": "Completed",
+    "sidebar.history.failed": "Failed",
+    "sidebar.history.missing": "File missing",
+    "sidebar.history.unknownTime": "Time unknown",
     "input.url.placeholder": "Enter video or audio URL",
     "input.url.aria": "Enter video or audio URL",
     "input.url.label": "URL",
@@ -243,8 +253,7 @@ export const coreTranslations = {
     "input.url.helper.invalid": "Check the link format.",
     "input.url.helper.unsupported":
       "Could not recognize this source. Check the link or try another URL.",
-    "input.url.helper.valid":
-      "Link entered. Checking source availability…",
+    "input.url.helper.valid": "Link entered. Checking source availability…",
     "input.url.helper.playlistChoice":
       "This is a playlist. Choose the current item or the whole playlist.",
     "input.url.helper.drag": "Drop the link to insert it into the field",

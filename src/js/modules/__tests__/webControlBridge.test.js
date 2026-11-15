@@ -50,6 +50,7 @@ describe("webControlBridge", () => {
       theme: "dark",
       language: "ru",
       fontSize: "16",
+      sidebarHistoryCount: "3",
     });
 
     const history = await handleWebControlRequest({ command: "history:get" });
@@ -218,6 +219,7 @@ describe("webControlBridge", () => {
     [{ theme: "system" }, "Invalid theme"],
     [{ fontSize: "17" }, "Invalid font size"],
     [{ language: "de" }, "Invalid language"],
+    [{ sidebarHistoryCount: "4" }, "Invalid sidebar history count"],
   ])("rejects an invalid settings value %#", async (patch, error) => {
     jest.doMock("../downloadManager.js", () => ({
       getWebControlSnapshot: jest.fn(),
@@ -295,6 +297,7 @@ describe("webControlBridge", () => {
       fontSize: "20",
       qualityProfile: "audio",
       openOnCopyUrl: true,
+      sidebarHistoryCount: "6",
     });
 
     expect(setTheme).toHaveBeenCalledWith("violet");
@@ -305,6 +308,8 @@ describe("webControlBridge", () => {
       language: "en",
       fontSize: "20",
       qualityProfile: "audio",
+      sidebarHistoryCount: "6",
     });
+    expect(localStorage.getItem("appSidebarHistoryCount")).toBe("6");
   });
 });

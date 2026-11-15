@@ -39,6 +39,7 @@ const el = {
   downloaderView: document.querySelector('[data-web-view="downloader"]'),
   historyList: document.getElementById("history-list"),
   historyCount: document.getElementById("history-count"),
+  sidebarHistory: document.getElementById("sidebar-history-list"),
   pause: document.getElementById("pause-queue"),
   clearQueue: document.getElementById("clear-queue"),
   undoClearQueue: document.getElementById("undo-clear-queue"),
@@ -67,6 +68,9 @@ const el = {
     openOnDownloadComplete: document.getElementById("setting-open-complete"),
     disableCompleteModal: document.getElementById("setting-disable-complete"),
     showToolsStatus: document.getElementById("setting-tools-status"),
+    sidebarHistoryCount: document.getElementById(
+      "setting-sidebar-history-count",
+    ),
   },
 };
 
@@ -185,6 +189,7 @@ function renderHistory(entries = historyEntries) {
       historyEntries.filter(isCompletedHistoryEntry).length,
     );
   }
+  renderSidebarHistory();
   if (!visibleEntries.length) {
     el.historyList.innerHTML = `<div class="queue-empty history-empty" role="status">
       <span class="queue-empty-icon" aria-hidden="true">${ICONS.inbox}</span>
@@ -222,6 +227,58 @@ function renderHistory(entries = historyEntries) {
       </article>`;
     })
     .join("");
+}
+
+function renderSidebarHistory() {
+  if (!el.sidebarHistory) return;
+  const count = Number(el.settings.sidebarHistoryCount?.value ?? 3);
+  const recent = historyEntries
+    .map((entry, index) => ({ entry, index, time: getHistoryTimestamp(entry) }))
+    .sort((a, b) => {
+      if (a.time === null && b.time === null) return a.index - b.index;
+      if (a.time === null) return 1;
+      if (b.time === null) return -1;
+      return b.time - a.time;
+    })
+    .slice(0, count);
+  const section = el.sidebarHistory.closest(".sidebar-history");
+  if (section) section.hidden = count === 0 || recent.length === 0;
+  el.sidebarHistory.innerHTML = recent
+    .map(({ entry }) => {
+      const title = escapeHtml(
+        entry.fileName || entry.title || entry.sourceUrl || "Без названия",
+      );
+      const failed = !isCompletedHistoryEntry(entry);
+      const date = getHistoryTimestamp(entry);
+      const status =
+        entry.status === "missing"
+          ? "Файл удалён"
+          : failed
+            ? "Ошибка"
+            : "Завершено";
+      const time =
+        date === null
+          ? "Время неизвестно"
+          : new Date(date).toLocaleString("ru-RU", {
+              day: "2-digit",
+              month: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+            });
+      return `<article class="sidebar-history__item" role="listitem" title="${title}">
+        <span class="sidebar-history__status ${failed ? "is-failed" : "is-completed"}" aria-hidden="true"></span>
+        <span class="sidebar-history__content"><span class="sidebar-history__title">${title}</span><span class="sidebar-history__meta"><span class="sidebar-history__status-label ${failed ? "is-failed" : "is-completed"}">${status}</span><span class="sidebar-history__time">${escapeHtml(time)}</span></span></span>
+      </article>`;
+    })
+    .join("");
+}
+
+function getHistoryTimestamp(entry = {}) {
+  const raw = entry.createdAt || entry.dateTime || entry.dateText || "";
+  if (!raw) return null;
+  const time = new Date(raw).getTime();
+  return Number.isNaN(time) ? null : time;
 }
 
 async function refreshHistory() {
@@ -641,7 +698,10 @@ const router = createRouterController({
   modal: el.settingsModal,
   hasUnsavedChanges: settingsController.isDirty,
   confirmDiscard: showDiscardSettingsDialog,
-  onDiscard: settingsController.cancel,
+  onDiscard: () => {
+    settingsController.cancel();
+    renderSidebarHistory();
+  },
   onSettingsClosed: () => {
     setActiveNavigation(el.historyView.hidden ? "downloader" : "history");
   },
@@ -850,6 +910,10 @@ document.addEventListener("click", (event) => {
 document
   .getElementById("save-settings")
   .addEventListener("click", () => void settingsController.save());
+el.settings.sidebarHistoryCount?.addEventListener(
+  "change",
+  renderSidebarHistory,
+);
 
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") {
@@ -874,14 +938,21 @@ try {
   events.addEventListener("ready", () => {});
   events.addEventListener("state", () => {
     void refreshState().catch(() => {});
-    if (!el.historyView.hidden) void refreshHistory().catch(() => {});
-    void settingsController.refreshRemote().catch(() => {});
+    void refreshHistory().catch(() => {});
+    void settingsController
+      .refreshRemote()
+      .then(renderSidebarHistory)
+      .catch(() => {});
   });
   events.addEventListener("settings", (event) => {
     try {
       settingsController.applyRemote(JSON.parse(event.data));
+      renderSidebarHistory();
     } catch {
-      void settingsController.refreshRemote().catch(() => {});
+      void settingsController
+        .refreshRemote()
+        .then(renderSidebarHistory)
+        .catch(() => {});
     }
   });
   events.onerror = () => {};
@@ -891,5 +962,8 @@ bindBeforeUnload(settingsController.isDirty);
 
 renderQueueLoading();
 void refreshState().catch(renderQueueError);
-void settingsController.refreshRemote().catch(() => {});
+void settingsController
+  .refreshRemote()
+  .then(renderSidebarHistory)
+  .catch(() => {});
 void refreshHistory().catch(() => {});

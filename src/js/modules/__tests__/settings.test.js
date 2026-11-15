@@ -81,6 +81,11 @@ describe("web control settings", () => {
     };
     document.body.innerHTML = `
       <div id="settings-modal">
+        <select id="settings-sidebar-history-count">
+          <option value="0">Hidden</option>
+          <option value="3">Three</option>
+          <option value="6">Six</option>
+        </select>
         <input id="settings-web-control-toggle" type="checkbox" />
         <input id="settings-web-control-url" readonly />
         <input id="settings-web-control-lan-url" readonly />
@@ -98,6 +103,13 @@ describe("web control settings", () => {
 
     const toggle = document.getElementById("settings-web-control-toggle");
     const status = document.getElementById("settings-web-control-status");
+    const sidebarHistory = document.getElementById(
+      "settings-sidebar-history-count",
+    );
+    expect(sidebarHistory.value).toBe("3");
+    sidebarHistory.value = "6";
+    sidebarHistory.dispatchEvent(new Event("change"));
+    expect(localStorage.getItem("appSidebarHistoryCount")).toBe("6");
     const localUrl = document.getElementById("settings-web-control-url");
     const lanUrl = document.getElementById("settings-web-control-lan-url");
     const copyLan = document.getElementById("settings-web-control-copy-lan");

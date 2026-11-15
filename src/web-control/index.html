@@ -76,8 +76,31 @@
             <span>Настройки</span>
           </button>
         </nav>
+        <section
+          class="sidebar-history"
+          aria-labelledby="sidebar-history-title"
+        >
+          <div class="sidebar-history__header">
+            <h2 id="sidebar-history-title">Недавние</h2>
+            <button
+              class="sidebar-history__all"
+              type="button"
+              data-nav-view="history"
+              aria-label="Открыть историю"
+            >
+              Все
+            </button>
+          </div>
+          <div
+            id="sidebar-history-list"
+            class="sidebar-history__list"
+            role="list"
+            aria-live="polite"
+          ></div>
+        </section>
         <div class="app-sidebar__footer">
-          <span class="app-sidebar__status-dot"></span>Веб-интерфейс
+          <span class="app-sidebar__status-dot" aria-hidden="true"></span>
+          <span class="app-sidebar__status-label">Веб-интерфейс</span>
         </div>
       </aside>
       <main class="main-view">
@@ -465,6 +488,14 @@
                         </select>
                       </label>
                     </div>
+                    <label class="settings-field">
+                      <span>История в боковом меню</span>
+                      <select id="setting-sidebar-history-count">
+                        <option value="0">Не показывать</option>
+                        <option value="3" selected>3 последние записи</option>
+                        <option value="6">6 последних записей</option>
+                      </select>
+                    </label>
                     <ul class="settings-control-list">
                       <li class="settings-control">
                         <input id="setting-open-copy" type="checkbox" />

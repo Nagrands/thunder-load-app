@@ -12503,7 +12503,7 @@ body.modal-overlay-active .app-sidebar {
 .app-sidebar__panel {
   pointer-events: auto;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
   align-items: stretch;
   gap: 12px;
   width: 100%;
@@ -12522,9 +12522,9 @@ body.low-effects .app-sidebar__panel {
 }
 
 .app-sidebar__statusbar {
-  position: absolute;
-  inset: auto 0 72px;
-  padding-inline: 12px;
+  position: static;
+  grid-column: 1;
+  padding-inline: 0;
   pointer-events: auto;
 }
 
@@ -12549,6 +12549,7 @@ body.low-effects .app-sidebar__panel {
 .app-sidebar__zone--center {
   min-width: 0;
   min-height: 0;
+  flex-direction: column;
   align-items: flex-start;
   align-self: stretch;
 }
@@ -12736,26 +12737,73 @@ body.low-effects .app-sidebar__panel {
   padding: 0;
   border-left: 0;
   border-top: 0;
+  padding: 10px;
+  border: 1px solid rgba(145, 174, 210, 0.13);
+  border-radius: 13px;
+  background: linear-gradient(145deg, rgba(20, 37, 58, 0.9), rgba(10, 20, 34, 0.92));
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.17), inset 0 1px rgba(255, 255, 255, 0.035);
 }
 .app-sidebar__statusbar > .app-sidebar__tools-status .downloader-tools-status__line {
-  display: block;
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr);
+  align-items: center;
+  gap: 7px;
   width: 100%;
   white-space: normal;
 }
+.app-sidebar__statusbar > .app-sidebar__tools-status .downloader-tools-status__state-icon {
+  display: inline-block;
+  flex: 0 0 auto;
+  font-size: 11px;
+  color: #74d9aa;
+}
+.app-sidebar__statusbar > .app-sidebar__tools-status .status-line.is-error .downloader-tools-status__state-icon {
+  color: #ff9298;
+}
+.app-sidebar__statusbar > .app-sidebar__tools-status .status-line.is-loading .downloader-tools-status__state-icon {
+  color: #f2c66f;
+}
+.app-sidebar__statusbar > .app-sidebar__tools-status .status-line.is-ok .downloader-tools-status__text {
+  display: none;
+}
+.app-sidebar__statusbar > .app-sidebar__tools-status .downloader-tools-status__text {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  color: rgba(226, 236, 249, 0.83);
+  font-size: 10px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .app-sidebar__statusbar > .app-sidebar__tools-status .downloader-tools-status__badges {
+  grid-column: 1/-1;
   display: flex;
   width: 100%;
   flex-direction: row;
   align-items: stretch;
-  gap: 3px;
+  gap: 5px;
+  margin-top: 8px;
   white-space: normal;
 }
 .app-sidebar__statusbar > .app-sidebar__tools-status .downloader-tools-status__badges .tool-badge {
   width: auto;
   flex: 1 1 0;
-  gap: 4px;
-  padding-inline: 3px;
-  font-size: 10px;
+  gap: 5px;
+  min-height: 25px;
+  padding: 3px 6px;
+  border: 1px solid rgba(145, 174, 210, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.025);
+  font-size: 9px;
+}
+.app-sidebar__statusbar > .app-sidebar__tools-status .downloader-tools-status__badges .tool-badge.ok {
+  border-color: rgba(61, 220, 151, 0.13);
+  background: rgba(61, 220, 151, 0.045);
+}
+.app-sidebar__statusbar > .app-sidebar__tools-status .downloader-tools-status__badges .tool-badge.ok .tool-badge__state {
+  color: #72d6a7;
+  background: rgba(61, 220, 151, 0.11);
 }
 .app-sidebar__statusbar > .app-sidebar__tools-status .downloader-tools-status__badges .tool-badge__state {
   flex: 0 0 13px;
@@ -13004,6 +13052,142 @@ body.low-effects .app-sidebar__panel {
   display: none;
 }
 
+.app-sidebar-history {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  max-height: 100%;
+  margin-top: 14px;
+  padding: 12px 4px 0;
+  overflow: hidden;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+.app-sidebar-history[hidden] {
+  display: none;
+}
+
+.app-sidebar-history__header {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 8px 8px;
+  color: var(--thunder-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+.app-sidebar-history__header h2 {
+  margin: 0;
+  font: inherit;
+}
+.app-sidebar-history__header > span {
+  display: grid;
+  min-width: 20px;
+  height: 20px;
+  place-items: center;
+  border: 1px solid rgba(var(--color-accent-rgb), 0.18);
+  border-radius: 999px;
+  background: rgba(var(--color-accent-rgb), 0.08);
+  color: #a9d7ff;
+  font-size: 10px;
+  letter-spacing: 0;
+}
+
+.app-sidebar-history__list {
+  display: grid;
+  min-height: 0;
+  gap: 3px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.app-sidebar-history__item {
+  display: flex;
+  min-width: 0;
+  gap: 9px;
+  padding: 8px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.018);
+  transition: background-color 160ms ease, border-color 160ms ease;
+}
+.app-sidebar-history__item:hover {
+  border-color: rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.app-sidebar-history__status {
+  flex: 0 0 auto;
+  width: 7px;
+  height: 7px;
+  margin-top: 5px;
+  border-radius: 50%;
+}
+.app-sidebar-history__status.is-completed {
+  background: #3ddc97;
+  box-shadow: 0 0 0 3px rgba(61, 220, 151, 0.1);
+}
+.app-sidebar-history__status.is-failed {
+  background: #ff737c;
+  box-shadow: 0 0 0 3px rgba(255, 115, 124, 0.1);
+}
+.app-sidebar-history__status.is-missing {
+  background: #f3bb56;
+  box-shadow: 0 0 0 3px rgba(243, 187, 86, 0.1);
+}
+
+.app-sidebar-history__content {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.app-sidebar-history__title {
+  display: -webkit-box;
+  overflow: hidden;
+  color: rgba(232, 241, 252, 0.92);
+  font-size: 11px;
+  line-height: 1.35;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow-wrap: anywhere;
+}
+
+.app-sidebar-history__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  color: rgba(166, 184, 207, 0.68);
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+}
+
+.app-sidebar-history__status-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.app-sidebar-history__status-label.is-completed {
+  color: #72d6a7;
+}
+.app-sidebar-history__status-label.is-failed {
+  color: #ff9298;
+}
+.app-sidebar-history__status-label.is-missing {
+  color: #f2c66f;
+}
+
+.app-sidebar-history__time {
+  white-space: nowrap;
+}
+
 .app-sidebar__action {
   height: 42px;
   width: 42px;
@@ -13150,6 +13334,9 @@ body.low-effects .app-sidebar__action--tools.is-busy {
   .app-sidebar__brand {
     gap: 8px;
   }
+  .app-sidebar-history {
+    display: none;
+  }
   .app-sidebar__brand-mark {
     width: 30px;
     height: 30px;
@@ -13221,6 +13408,7 @@ body.low-effects .app-sidebar__action--tools.is-busy {
     display: none;
   }
   .app-sidebar__statusbar {
+    position: absolute;
     inset: auto 0 0;
     display: flex;
     align-items: center;
@@ -13274,6 +13462,12 @@ body.low-effects .app-sidebar__action--tools.is-busy {
   }
 }
 @media (min-width: 901px) {
+  body.app-sidebar-collapsed .app-sidebar-history {
+    display: none;
+  }
+  body.app-sidebar-collapsed .app-sidebar__statusbar {
+    display: none;
+  }
   body.app-sidebar-collapsed .app-sidebar__zone--lead {
     align-items: stretch;
     padding-inline: 0;
@@ -22743,6 +22937,50 @@ body:has(.windows-tray-menu) {
   background: rgba(var(--color-accent-rgb), 0.09);
 }
 
+.settings-control--sidebar-history {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) minmax(132px, auto);
+  gap: 9px;
+}
+.settings-control--sidebar-history > i {
+  color: var(--color-accent);
+  font-size: 15px;
+  text-align: center;
+}
+.settings-control--sidebar-history > label {
+  display: block;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  color: var(--settings-copy);
+  font-size: 13px;
+  cursor: pointer;
+}
+.settings-control--sidebar-history > select {
+  max-width: 100%;
+  min-height: 34px;
+  padding: 4px 26px 4px 9px;
+  border: 1px solid var(--settings-border);
+  border-radius: 9px;
+  background: rgba(4, 11, 20, 0.72);
+  color: var(--settings-copy);
+  font: inherit;
+  font-size: 11px;
+}
+.settings-control--sidebar-history > select:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 600px) {
+  .settings-control--sidebar-history {
+    grid-template-columns: 24px minmax(0, 1fr);
+  }
+  .settings-control--sidebar-history > select {
+    grid-column: 2;
+    width: 100%;
+  }
+}
 .settings-control__meta,
 .settings-choice__meta {
   display: grid;

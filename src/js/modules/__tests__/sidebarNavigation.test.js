@@ -2,10 +2,13 @@
 
 describe("sidebarNavigation", () => {
   const initTooltipsMock = jest.fn();
+  const getHistoryDataMock = jest.fn(() => []);
 
   beforeEach(() => {
     jest.resetModules();
     initTooltipsMock.mockReset();
+    getHistoryDataMock.mockReset();
+    getHistoryDataMock.mockReturnValue([]);
     localStorage.clear();
     document.body.innerHTML = `
       <div class="top-bar"><div class="top-bar__center">
@@ -21,6 +24,7 @@ describe("sidebarNavigation", () => {
           <button id="app-sidebar-toggle"><i class="fa-solid fa-angles-left"></i></button>
           <span id="sidebar-app-version"></span>
           <div id="sidebar-tab-nav" class="app-sidebar__tab-nav" role="navigation"></div>
+          <section id="app-sidebar-history"><div id="app-sidebar-history-count"></div><div id="app-sidebar-history-list" role="list"></div></section>
           <div id="sidebar-tools-status" class="app-sidebar__tools-status downloader-tools-status"></div>
           <div class="app-sidebar__zone--actions">
             <button id="dl-tools-action" type="button"></button>
@@ -38,6 +42,7 @@ describe("sidebarNavigation", () => {
       initTooltips: initTooltipsMock,
     }));
     jest.doMock("../i18n.js", () => ({
+      getLanguage: () => "ru",
       t: (key) =>
         ({
           "tabs.download": "Downloader",
@@ -45,8 +50,14 @@ describe("sidebarNavigation", () => {
           "topbar.nav": "Section navigation",
           "sidebar.collapseSidebar": "Collapse sidebar",
           "sidebar.expandSidebar": "Expand sidebar",
+          "sidebar.history.completed": "Completed",
+          "sidebar.history.failed": "Failed",
+          "sidebar.history.missing": "Missing",
+          "sidebar.history.unknownTime": "Time unknown",
+          "history.file.untitled": "Untitled",
         })[key] || key,
     }));
+    jest.doMock("../state.js", () => ({ getHistoryData: getHistoryDataMock }));
     return import("../sidebarNavigation.js");
   }
 
@@ -69,6 +80,39 @@ describe("sidebarNavigation", () => {
     initSidebarNavigation();
     window.dispatchEvent(new Event("scroll"));
     expect(document.querySelector("#sidebar-tab-nav .group-menu")).not.toBeNull();
+  });
+
+  test("renders recent history with status and time, without preview images", async () => {
+    getHistoryDataMock.mockReturnValue([
+      {
+        fileName: "A long documentary title.mp4",
+        timestamp: "2026-11-16T10:30:00.000Z",
+        status: "completed",
+      },
+      {
+        fileName: "Failed file.mp4",
+        timestamp: "2026-11-16T09:30:00.000Z",
+        status: "failed",
+        error: true,
+        thumbnail: "data:image/png;base64,preview",
+      },
+    ]);
+    const { initSidebarNavigation } = await loadModule();
+    initSidebarNavigation();
+    const list = document.getElementById("app-sidebar-history-list");
+    expect(list.querySelectorAll(".app-sidebar-history__item")).toHaveLength(2);
+    expect(list.textContent).toContain("A long documentary title.mp4");
+    expect(list.textContent).toContain("Completed");
+    expect(list.textContent).toContain("Failed");
+    expect(list.textContent).not.toContain("data:image/png");
+    expect(document.getElementById("app-sidebar-history-count").textContent).toBe("2");
+  });
+
+  test("honors the hidden sidebar-history preference", async () => {
+    localStorage.setItem("appSidebarHistoryCount", "0");
+    const { initSidebarNavigation } = await loadModule();
+    initSidebarNavigation();
+    expect(document.getElementById("app-sidebar-history").hidden).toBe(true);
   });
 
   test("updates the active section and hides download tools on another tab", async () => {

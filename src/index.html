@@ -2154,6 +2154,29 @@
                               </span>
                             </label>
                           </li>
+                          <li
+                            class="settings-control settings-control--sidebar-history"
+                          >
+                            <i
+                              class="fa-solid fa-clock-rotate-left"
+                              aria-hidden="true"
+                            ></i>
+                            <label
+                              for="settings-sidebar-history-count"
+                              data-i18n="settings.downloader.sidebarHistory"
+                            >
+                              История в боковом меню
+                            </label>
+                            <select
+                              id="settings-sidebar-history-count"
+                              aria-label="История в боковом меню"
+                              data-i18n-aria="settings.downloader.sidebarHistory"
+                            >
+                              <option value="0" data-i18n="settings.downloader.sidebarHistory.off">Не показывать</option>
+                              <option value="3" data-i18n="settings.downloader.sidebarHistory.three">3 последние записи</option>
+                              <option value="6" data-i18n="settings.downloader.sidebarHistory.six">6 последних записей</option>
+                            </select>
+                          </li>
                         </ul>
                       </div>
 
@@ -3556,6 +3579,26 @@
               </span>
             </button>
           </div>
+          <section
+            class="app-sidebar-history"
+            id="app-sidebar-history"
+            aria-labelledby="app-sidebar-history-title"
+          >
+            <div class="app-sidebar-history__header">
+              <h2
+                id="app-sidebar-history-title"
+                data-i18n="sidebar.history.title"
+              >
+                Недавняя история
+              </h2>
+              <span id="app-sidebar-history-count" aria-hidden="true"></span>
+            </div>
+            <div
+              id="app-sidebar-history-list"
+              class="app-sidebar-history__list"
+              role="list"
+            ></div>
+          </section>
         </div>
 
         <div class="app-sidebar__zone app-sidebar__zone--bottom">
@@ -3604,7 +3647,6 @@
             </button>
           </div>
         </div>
-      </div>
 
       <div class="app-sidebar__statusbar">
         <div
@@ -3636,6 +3678,7 @@
             ></div>
           </div>
         </div>
+      </div>
       </div>
     </aside>
 

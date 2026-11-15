@@ -37,6 +37,8 @@ const THEME_SETTINGS = new Set([
 const LANGUAGE_SETTINGS = new Set(["ru", "en"]);
 const FONT_SIZE_SETTINGS = new Set(["14", "16", "18", "20"]);
 const QUALITY_PROFILE_SETTINGS = new Set(["remember", "best", "audio"]);
+const SIDEBAR_HISTORY_COUNTS = new Set(["0", "3", "6"]);
+const SIDEBAR_HISTORY_KEY = "appSidebarHistoryCount";
 const SETTINGS_KEYS = new Set([
   ...BOOLEAN_SETTINGS,
   "downloadPath",
@@ -45,6 +47,7 @@ const SETTINGS_KEYS = new Set([
   "theme",
   "fontSize",
   "language",
+  "sidebarHistoryCount",
 ]);
 
 function normalizeQualityProfile(value) {
@@ -81,6 +84,12 @@ function validateWebControlSettingsPatch(payload) {
     }
     if (key === "language" && !LANGUAGE_SETTINGS.has(value)) {
       throw new Error("Invalid language");
+    }
+    if (
+      key === "sidebarHistoryCount" &&
+      !SIDEBAR_HISTORY_COUNTS.has(String(value))
+    ) {
+      throw new Error("Invalid sidebar history count");
     }
   }
 
@@ -119,6 +128,11 @@ async function getWebControlSettings() {
     disableCompleteModal: Boolean(disableCompleteModal),
     showToolsStatus:
       localStorage.getItem("downloaderToolsStatusHidden") !== "1",
+    sidebarHistoryCount: SIDEBAR_HISTORY_COUNTS.has(
+      localStorage.getItem(SIDEBAR_HISTORY_KEY),
+    )
+      ? localStorage.getItem(SIDEBAR_HISTORY_KEY)
+      : "3",
     theme: await getTheme(),
     language: getLanguage(),
     fontSize: await getFontSize(),
@@ -175,6 +189,13 @@ async function setWebControlSettings(payload = {}) {
       );
     } else if (key === "qualityProfile") {
       localStorage.setItem(QUALITY_PROFILE_KEY, value);
+    } else if (key === "sidebarHistoryCount") {
+      localStorage.setItem(SIDEBAR_HISTORY_KEY, String(value));
+      window.dispatchEvent(
+        new CustomEvent("app-sidebar:history-count-changed", {
+          detail: { count: Number(value) },
+        }),
+      );
     } else if (key === "theme") {
       await setTheme(value);
     } else if (key === "fontSize") {

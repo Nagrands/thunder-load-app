@@ -695,6 +695,29 @@
                               </span>
                             </label>
                           </li>
+                          <li
+                            class="settings-control settings-control--sidebar-history"
+                          >
+                            <i
+                              class="fa-solid fa-clock-rotate-left"
+                              aria-hidden="true"
+                            ></i>
+                            <label
+                              for="settings-sidebar-history-count"
+                              data-i18n="settings.downloader.sidebarHistory"
+                            >
+                              История в боковом меню
+                            </label>
+                            <select
+                              id="settings-sidebar-history-count"
+                              aria-label="История в боковом меню"
+                              data-i18n-aria="settings.downloader.sidebarHistory"
+                            >
+                              <option value="0" data-i18n="settings.downloader.sidebarHistory.off">Не показывать</option>
+                              <option value="3" data-i18n="settings.downloader.sidebarHistory.three">3 последние записи</option>
+                              <option value="6" data-i18n="settings.downloader.sidebarHistory.six">6 последних записей</option>
+                            </select>
+                          </li>
                         </ul>
                       </div>
 
