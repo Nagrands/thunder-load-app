@@ -8,6 +8,7 @@ import { t } from "./i18n.js";
 import { getVideoInfo } from "./videoInfoBroker.js";
 import { getCachedVideoInfo, setCachedVideoInfo } from "./videoInfoCache.js";
 import { normalizeUrlInput } from "./validation.js";
+import { initCustomSelect } from "./customSelect.js";
 
 const PREVIEW_EVENT = "downloader:preview-info";
 const QUALITY_PROFILE_KEY = "downloadQualityProfile";
@@ -34,6 +35,11 @@ const elements = {
   download: document.getElementById("download-button"),
   enqueue: document.getElementById("enqueue-button"),
 };
+const qualitySelects = [];
+
+function syncQualitySelects() {
+  qualitySelects.forEach((instance) => instance?.sync());
+}
 
 function optionLabel(option) {
   return option?.meta
@@ -61,6 +67,7 @@ function renderOptions(select, options, selectedId = "") {
     select.value = selectedId;
   }
   select.disabled = options.length === 0;
+  syncQualitySelects();
 }
 
 function setActionAvailability(enabled) {
@@ -111,6 +118,7 @@ function syncCompatibility() {
     const fallback = state.audioOptions.find((option) => !option.disabled);
     if (fallback) elements.audioSelect.value = fallback.id;
   }
+  syncQualitySelects();
 }
 
 function syncSelectionUi() {
@@ -318,6 +326,20 @@ function initDownloaderSelectionCard() {
   }
   [elements.videoSelect, elements.audioSelect, elements.subtitleSelect].forEach(
     (select) => select.addEventListener("change", syncSelectionUi),
+  );
+  [elements.videoSelect, elements.audioSelect, elements.subtitleSelect].forEach(
+    (select, index) => {
+      const root = document.querySelector(
+        `[data-quality-select="${["video", "audio", "subtitle"][index]}"]`,
+      );
+      qualitySelects.push(
+        initCustomSelect(root, select, {
+          trigger: root?.querySelector(".settings-cookies-select__trigger"),
+          label: root?.querySelector("[data-quality-label]"),
+          menu: root?.querySelector('[role="listbox"]'),
+        }),
+      );
+    },
   );
   elements.advanced?.addEventListener("click", async () => {
     if (!state.currentUrl || !state.info) return;

@@ -986,7 +986,11 @@
   grid-template-columns: 32px minmax(0, 1fr) minmax(132px, auto);
   gap: 9px;
 
-  > i { color: var(--color-accent); font-size: 15px; text-align: center; }
+  > i {
+    color: var(--color-accent);
+    font-size: 15px;
+    text-align: center;
+  }
 
   > label {
     display: block;
@@ -998,25 +1002,22 @@
     cursor: pointer;
   }
 
-  > select {
-    max-width: 100%;
+  .settings-history-select {
+    width: 100%;
+  }
+  .settings-history-select .settings-cookies-select__trigger {
     min-height: 34px;
-    padding: 4px 26px 4px 9px;
-    border: 1px solid var(--settings-border);
-    border-radius: 9px;
-    background: rgba(4, 11, 20, 0.72);
-    color: var(--settings-copy);
-    font: inherit;
     font-size: 11px;
-
-    &:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
   }
 }
 
 @media (max-width: 600px) {
   .settings-control--sidebar-history {
     grid-template-columns: 24px minmax(0, 1fr);
-    > select { grid-column: 2; width: 100%; }
+    > .settings-history-select {
+      grid-column: 2;
+      width: 100%;
+    }
   }
 }
 
@@ -1938,7 +1939,6 @@
     top: 16px;
     transform: none;
   }
-
 }
 
 @media (max-width: 760px) {

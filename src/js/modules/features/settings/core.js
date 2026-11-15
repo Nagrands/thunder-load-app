@@ -23,6 +23,7 @@ import { showToast } from "../../toast.js";
 import { showConfirmationDialog } from "../../modals.js";
 import { getLowEffects, setLowEffects } from "../../effectsMode.js";
 import { t } from "../../i18n.js";
+import { initCustomSelect } from "../../customSelect.js";
 import {
   DEFAULT_CONFIG,
   QUALITY_PROFILE_DEFAULT,
@@ -615,6 +616,12 @@ async function initSettings() {
   (function initSidebarHistoryCountSetting() {
     const select = document.getElementById("settings-sidebar-history-count");
     if (!select) return;
+    const root = document.querySelector("[data-history-count-select]");
+    const customSelect = initCustomSelect(root, select, {
+      trigger: document.getElementById("settings-sidebar-history-trigger"),
+      label: document.getElementById("settings-sidebar-history-label"),
+      menu: document.getElementById("settings-sidebar-history-menu"),
+    });
     const key = "appSidebarHistoryCount";
     const allowedValues = new Set(["0", "3", "6"]);
     try {
@@ -623,6 +630,8 @@ async function initSettings() {
     } catch {
       select.value = "3";
     }
+    customSelect?.sync();
+    window.addEventListener("i18n:changed", () => customSelect?.sync());
     select.addEventListener("change", () => {
       const value = allowedValues.has(select.value) ? select.value : "3";
       select.value = value;

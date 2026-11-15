@@ -140,21 +140,21 @@
       </div>
 
       <div class="downloader-selection-card__quality" aria-label="Быстрый выбор формата" data-i18n-aria="quality.quick.group">
-        <label class="downloader-quality-field" for="downloader-video-quality">
+        <div class="downloader-quality-field">
           <span class="downloader-quality-field__icon downloader-quality-field__icon--video" aria-hidden="true"><i class="fa-solid fa-film"></i></span>
-          <span class="downloader-quality-field__copy"><span class="downloader-quality-field__label" data-i18n="quality.quick.video">Видео</span></span>
-          <select id="downloader-video-quality" disabled></select>
-        </label>
-        <label class="downloader-quality-field" for="downloader-audio-quality">
+          <span class="downloader-quality-field__copy"><span id="downloader-video-quality-title" class="downloader-quality-field__label" data-i18n="quality.quick.video">Видео</span></span>
+          <div class="settings-cookies-select downloader-quality-select" data-quality-select="video"><button type="button" class="settings-cookies-select__trigger" aria-haspopup="listbox" aria-expanded="false"><span data-quality-label></span><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></button><select class="settings-cookies-native-select" id="downloader-video-quality" disabled tabindex="-1" aria-hidden="true"></select><div class="settings-cookies-select__menu hidden" role="listbox"></div></div>
+        </div>
+        <div class="downloader-quality-field">
           <span class="downloader-quality-field__icon downloader-quality-field__icon--audio" aria-hidden="true"><i class="fa-solid fa-music"></i></span>
-          <span class="downloader-quality-field__copy"><span class="downloader-quality-field__label" data-i18n="quality.quick.audio">Аудио</span></span>
-          <select id="downloader-audio-quality" disabled></select>
-        </label>
-        <label class="downloader-quality-field" for="downloader-subtitle-quality">
+          <span class="downloader-quality-field__copy"><span id="downloader-audio-quality-title" class="downloader-quality-field__label" data-i18n="quality.quick.audio">Аудио</span></span>
+          <div class="settings-cookies-select downloader-quality-select" data-quality-select="audio"><button type="button" class="settings-cookies-select__trigger" aria-haspopup="listbox" aria-expanded="false"><span data-quality-label></span><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></button><select class="settings-cookies-native-select" id="downloader-audio-quality" disabled tabindex="-1" aria-hidden="true"></select><div class="settings-cookies-select__menu hidden" role="listbox"></div></div>
+        </div>
+        <div class="downloader-quality-field">
           <span class="downloader-quality-field__icon downloader-quality-field__icon--subs" aria-hidden="true"><i class="fa-solid fa-closed-captioning"></i></span>
-          <span class="downloader-quality-field__copy"><span class="downloader-quality-field__label" data-i18n="quality.quick.subtitles">Субтитры</span></span>
-          <select id="downloader-subtitle-quality" disabled></select>
-        </label>
+          <span class="downloader-quality-field__copy"><span id="downloader-subtitle-quality-title" class="downloader-quality-field__label" data-i18n="quality.quick.subtitles">Субтитры</span></span>
+          <div class="settings-cookies-select downloader-quality-select" data-quality-select="subtitle"><button type="button" class="settings-cookies-select__trigger" aria-haspopup="listbox" aria-expanded="false"><span data-quality-label></span><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></button><select class="settings-cookies-native-select" id="downloader-subtitle-quality" disabled tabindex="-1" aria-hidden="true"></select><div class="settings-cookies-select__menu hidden" role="listbox"></div></div>
+        </div>
 
         <div class="downloader-selection-card__summary">
           <span id="downloader-output-summary" data-i18n="quality.quick.summaryWaiting">Формат будет показан после анализа ссылки</span>
@@ -2167,15 +2167,18 @@
                             >
                               История в боковом меню
                             </label>
-                            <select
-                              id="settings-sidebar-history-count"
-                              aria-label="История в боковом меню"
-                              data-i18n-aria="settings.downloader.sidebarHistory"
-                            >
-                              <option value="0" data-i18n="settings.downloader.sidebarHistory.off">Не показывать</option>
-                              <option value="3" data-i18n="settings.downloader.sidebarHistory.three">3 последние записи</option>
-                              <option value="6" data-i18n="settings.downloader.sidebarHistory.six">6 последних записей</option>
-                            </select>
+                            <div class="settings-cookies-select settings-history-select" data-history-count-select>
+                              <button type="button" class="settings-cookies-select__trigger" id="settings-sidebar-history-trigger" aria-haspopup="listbox" aria-expanded="false" aria-controls="settings-sidebar-history-menu">
+                                <span id="settings-sidebar-history-label">3 последние записи</span>
+                                <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                              </button>
+                              <select class="settings-cookies-native-select" id="settings-sidebar-history-count" aria-label="История в боковом меню" data-i18n-aria="settings.downloader.sidebarHistory" tabindex="-1">
+                                <option value="0" data-i18n="settings.downloader.sidebarHistory.off">Не показывать</option>
+                                <option value="3" data-i18n="settings.downloader.sidebarHistory.three">3 последние записи</option>
+                                <option value="6" data-i18n="settings.downloader.sidebarHistory.six">6 последних записей</option>
+                              </select>
+                              <div class="settings-cookies-select__menu hidden" id="settings-sidebar-history-menu" role="listbox"></div>
+                            </div>
                           </li>
                         </ul>
                       </div>

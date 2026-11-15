@@ -175,9 +175,7 @@ describe("downloaderSelectionCard", () => {
     document.body.innerHTML = `
       <input id="url" value="https://example.com/video" />
       <section id="preview-card">
-        <select id="downloader-video-quality"></select>
-        <select id="downloader-audio-quality"></select>
-        <select id="downloader-subtitle-quality"></select>
+        ${["video", "audio", "subtitle"].map((type) => `<div class="settings-cookies-select" data-quality-select="${type}"><button class="settings-cookies-select__trigger"><span data-quality-label></span></button><select id="downloader-${type === "subtitle" ? "subtitle" : type}-quality"></select><div class="settings-cookies-select__menu hidden" role="listbox"></div></div>`).join("")}
         <span id="downloader-output-summary"></span>
         <span id="downloader-quality-status"></span>
         <button id="downloader-advanced-formats"></button>
@@ -213,6 +211,15 @@ describe("downloaderSelectionCard", () => {
     expect(
       document.getElementById("downloader-video-quality").options.length,
     ).toBeGreaterThan(1);
+    expect(
+      document.querySelector('[data-quality-select="video"] [role="listbox"]')
+        .children.length,
+    ).toBeGreaterThan(1);
+    expect(
+      document.querySelector(
+        '[data-quality-select="audio"] [data-quality-label]',
+      ).textContent,
+    ).not.toBe("");
     expect(
       document.getElementById("downloader-output-summary").textContent,
     ).toContain("H.264");
@@ -301,8 +308,8 @@ describe("downloaderSelectionCard", () => {
       mediaPayload: expect.any(Object),
       subtitlePayloads: [],
     });
-    expect(document.getElementById("downloader-quality-status").textContent).toBe(
-      "quality.quick.subtitleSingleOnly",
-    );
+    expect(
+      document.getElementById("downloader-quality-status").textContent,
+    ).toBe("quality.quick.subtitleSingleOnly");
   });
 });

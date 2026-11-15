@@ -90,7 +90,9 @@ describe("application responsive contract", () => {
   test("uses a fixed desktop sidebar and compact top navigation on narrow windows", () => {
     expect(sidebar).toContain("inset: 0 auto 0 0;");
     expect(sidebar).toContain("width: var(--app-sidebar-width);");
-    expect(sidebar).toContain("grid-template-rows: auto minmax(0, 1fr) auto;");
+    expect(sidebar).toContain(
+      "grid-template-rows: auto minmax(0, 1fr) auto auto;",
+    );
     expect(sidebar).toContain("@media (max-width: $breakpoint-tablet)");
     expect(sidebar).toContain(
       "grid-template-columns: auto minmax(0, 1fr) auto;",
@@ -110,7 +112,9 @@ describe("application responsive contract", () => {
     expect(adaptive).not.toContain(".app-sidebar--nav-mode");
     expect(sidebar).toContain("body.app-sidebar-collapsed");
     expect(sidebar).toContain("--app-sidebar-width: 84px;");
-    expect(sidebar).toContain(".app-sidebar__brand-version {\n      display: none;");
+    expect(sidebar).toContain(
+      ".app-sidebar__brand-version {\n      display: none;",
+    );
     expect(sidebar).toContain("font-size: 22px;");
     expect(topBarTemplate).not.toContain("top-bar__divider");
   });
@@ -119,14 +123,18 @@ describe("application responsive contract", () => {
     expect(sidebar).toContain(".app-sidebar__tools-nav");
     expect(sidebar).toContain(".app-sidebar__tool-item");
     expect(sidebar).toContain("span { display: none; }");
-    expect(sidebar).toContain(".app-sidebar__tools-nav { display: none !important; }");
+    expect(sidebar).toContain(
+      ".app-sidebar__tools-nav { display: none !important; }",
+    );
     expect(toolsStyles).toContain("@media (min-width: 901px)");
     expect(toolsStyles).toContain(".tools-sidebar {\n    display: none;");
     expect(toolsStyles).toContain("@media (max-width: 900px)");
   });
 
   test("stacks downloader tool badges within the sidebar width", () => {
-    expect(sidebar).toContain(".app-sidebar__statusbar > .app-sidebar__tools-status");
+    expect(sidebar).toContain(
+      ".app-sidebar__statusbar > .app-sidebar__tools-status",
+    );
     expect(sidebar).toContain(".downloader-tools-status__badges {");
     expect(sidebar).toContain("flex-direction: column;");
     expect(sidebar).toContain(".tool-badge {");

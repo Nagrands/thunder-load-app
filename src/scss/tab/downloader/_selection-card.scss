@@ -1,4 +1,5 @@
 #preview-card.downloader-selection-card {
+  overflow: visible;
   grid-template-columns: minmax(260px, 38%) minmax(0, 1fr);
   grid-template-areas:
     "thumb body"
@@ -77,6 +78,12 @@
 #preview-card.downloader-selection-card.visible {
   animation: downloader-preview-enter 420ms cubic-bezier(0.2, 0.75, 0.25, 1)
     both;
+}
+
+#preview-card.downloader-selection-card:has(
+    .downloader-quality-select.is-open
+  ) {
+  z-index: 2;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -161,43 +168,38 @@
   white-space: nowrap;
 }
 
-.downloader-quality-field select {
-  width: 100%;
+.downloader-quality-select {
   min-width: 0;
+}
+
+.downloader-quality-select.is-open {
+  z-index: 30;
+}
+
+.downloader-quality-select .settings-cookies-select__trigger {
   min-height: 32px;
-  padding: 0 28px 0 8px;
-  border-radius: 8px;
-  border: 1px solid transparent;
-  background-color: transparent;
+  padding: 0 8px;
+  border-color: transparent;
+  background: transparent;
   color: var(--color-accent);
   font-size: 0.8rem;
   font-weight: 500;
-  cursor: pointer;
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='none' stroke='%2399b5d6' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' d='M1 1l4 4 4-4'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 11px center;
-
-  &:focus-visible {
-    outline: 1px solid rgba(var(--color-accent-rgb), 0.7);
-    outline-offset: 1px;
-  }
 }
 
-.downloader-quality-field option {
-  background: #121c2b;
-  color: rgba(238, 246, 255, 0.94);
-  font-size: 0.78rem;
-  font-weight: 550;
-  padding: 8px 10px;
+.downloader-quality-select .settings-cookies-select__trigger > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
-  &:hover,
-  &:checked {
-    background: rgba(var(--color-accent-rgb), 0.22);
-    color: #ffffff;
-  }
+.downloader-quality-select .settings-cookies-select__trigger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.downloader-quality-select .settings-cookies-select__menu {
+  min-width: 100%;
+  max-height: min(280px, 45vh);
 }
 
 .downloader-selection-card__summary {
