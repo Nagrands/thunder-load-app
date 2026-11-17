@@ -17,6 +17,7 @@ function sync(instance) {
       item.setAttribute("role", "option");
       item.dataset.value = option.value;
       item.textContent = option.textContent.trim();
+      item.title = item.textContent;
       item.disabled = option.disabled;
       item.setAttribute(
         "aria-selected",
@@ -59,7 +60,9 @@ function sync(instance) {
   const selected = options.find(
     (option) => option.value === instance.select.value,
   );
-  instance.label.textContent = selected?.textContent?.trim() || "";
+  const selectedLabel = selected?.textContent?.trim() || "";
+  instance.label.textContent = selectedLabel;
+  instance.label.title = selectedLabel;
   instance.trigger.disabled = instance.select.disabled;
 }
 

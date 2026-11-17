@@ -21,40 +21,15 @@ function syncDownloadDestination(path = "") {
   destinationPath.removeAttribute("data-i18n");
 }
 
-/**
- * Открывает актуальную папку загрузок или местоположение последнего файла.
- */
+/** Открывает текущую папку назначения загрузок. */
 async function openDownloadFolderFromState() {
   try {
-    const lastDownloadedFile =
-      window.localStorage.getItem("lastDownloadedFile");
-
-    const openCurrentDownloadDir = async () => {
-      const currentDir = await window.electron.invoke("get-download-path");
-      if (currentDir) {
-        await window.electron.invoke("open-download-folder", currentDir);
-      } else {
-        showToast(t("download.folder.resolveError"), "warning");
-      }
-    };
-
-    if (lastDownloadedFile) {
-      const exists = await window.electron.invoke(
-        "check-file-exists",
-        lastDownloadedFile,
-      );
-      if (exists) {
-        await window.electron.invoke(
-          "open-download-folder",
-          lastDownloadedFile,
-        );
-      } else {
-        showToast(t("download.folder.lastMissing"), "warning");
-        await openCurrentDownloadDir();
-      }
-    } else {
-      await openCurrentDownloadDir();
+    const currentDir = await window.electron.invoke("get-download-path");
+    if (!currentDir) {
+      showToast(t("download.folder.resolveError"), "warning");
+      return;
     }
+    await window.electron.invoke("open-download-folder", currentDir);
   } catch (error) {
     console.error("Error opening download folder:", error);
     showToast(t("download.folder.openError"), "error");
@@ -135,16 +110,7 @@ async function initDownloadActions() {
     if (openLastVideoButton) openLastVideoButton.disabled = false;
   });
   initDownloadButton();
-  // Открытие папки по нажатию на область назначения; вложенные действия работают отдельно.
-  openFolderButton.addEventListener("click", (event) => {
-    if (event.target.closest("button")) return;
-    handleOpenFolder();
-  });
-  openFolderButton.addEventListener("keydown", (event) => {
-    if (event.target !== openFolderButton || !["Enter", " "].includes(event.key)) return;
-    event.preventDefault();
-    handleOpenFolder();
-  });
+  openFolderButton?.addEventListener("click", handleOpenFolder);
 
   // Обработчик открытия последнего видео
   openLastVideoButton.addEventListener("click", async () => {
@@ -159,7 +125,7 @@ async function initDownloadActions() {
   }
 
   // Обработчик выбора папки для загрузок
-  selectFolderButton.addEventListener("click", handleSelectDownloadFolder);
+  selectFolderButton?.addEventListener("click", handleSelectDownloadFolder);
 
   // Получаем текущий путь загрузки из main process
   try {

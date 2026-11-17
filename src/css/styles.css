@@ -16141,10 +16141,6 @@ hr {
 .window-controls {
   display: flex;
   gap: 2px;
-  margin-right: 10px;
-  align-items: center;
-  background-color: var(--color-hover);
-  border-radius: var(--border-radius);
 }
 .window-controls button {
   background: transparent;
@@ -24476,7 +24472,10 @@ video {
   transition: gap 180ms ease, min-height 180ms ease, padding 180ms ease;
 }
 .downloader-view .url-input-service-row {
+  display: flex;
   flex: 1 1 auto;
+  align-items: center;
+  gap: 8px;
   min-width: 0;
   padding: 0;
 }
@@ -24493,35 +24492,36 @@ video {
 }
 .downloader-view .download-destination {
   display: flex;
-  flex: 0 1 auto;
+  flex: 1 1 auto;
   align-items: center;
   gap: 8px;
   min-width: 0;
-  min-height: 30px;
+  min-height: 38px;
   padding: 0;
   border: 0;
   background: transparent;
+  cursor: default;
 }
 .downloader-view .download-destination__icon {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   flex: 0 0 auto;
-  border: 0;
 }
 .downloader-view .download-destination__meta {
   min-width: 0;
   flex: 1 1 auto;
 }
 .downloader-view .download-destination__label {
-  display: none;
+  display: block;
+  font-size: 0.55rem;
 }
 .downloader-view .download-destination__path {
-  max-width: min(32vw, 280px);
+  max-width: 100%;
   font-size: 0.7rem;
 }
 .downloader-view .download-destination__actions {
   flex: 0 0 auto;
-  gap: 4px;
+  gap: 6px;
 }
 .downloader-view .download-destination__open,
 .downloader-view .download-destination__change,
@@ -24531,16 +24531,13 @@ video {
   font-size: 0.68rem;
 }
 .downloader-view .download-destination__open {
-  width: 30px;
-  min-width: 30px;
-  height: 30px;
+  width: auto;
+  min-width: 0;
+  padding-inline: 8px;
 }
 .downloader-view .download-destination__change {
   gap: 5px;
-  padding: 0 7px;
-  border: 0;
-  background: transparent;
-  color: rgba(214, 225, 241, 0.68);
+  padding: 0 8px;
 }
 .downloader-view .download-destination__change:hover:not(:disabled) {
   border-color: transparent;
@@ -24582,35 +24579,17 @@ video {
   justify-content: flex-end;
   min-height: 30px;
 }
-.downloader-view .url-input-wrapper--downloader.has-preview .url-input-service-row,
-.downloader-view .url-input-wrapper--downloader.has-preview .download-destination__icon,
-.downloader-view .url-input-wrapper--downloader.has-preview .url-input-action-label {
+.downloader-view .url-input-wrapper--downloader.has-preview .url-input-service-row {
   display: none;
 }
-.downloader-view .url-input-wrapper--downloader.has-preview .download-destination__meta {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
 .downloader-view .url-input-wrapper--downloader.has-preview .download-destination {
-  flex: 0 0 auto;
+  flex: 1 1 auto;
 }
-.downloader-view .url-input-wrapper--downloader.has-preview .download-destination__open,
-.downloader-view .url-input-wrapper--downloader.has-preview .download-destination__change,
-.downloader-view .url-input-wrapper--downloader.has-preview .url-input-service-row__batch {
-  width: 30px;
-  min-width: 30px;
-  height: 30px;
-  padding: 0;
-  justify-content: center;
-  border: 1px solid rgba(150, 185, 228, 0.12);
-  background: rgba(255, 255, 255, 0.035);
-  color: rgba(220, 232, 250, 0.76);
+.downloader-view .url-input-wrapper--downloader.has-preview .url-input-secondary {
+  justify-content: space-between;
+}
+.downloader-view .url-input-wrapper--downloader.has-preview .download-destination__path {
+  max-width: 100%;
 }
 
 .download-destination {
@@ -24623,14 +24602,7 @@ video {
   border-radius: 12px;
   border: 1px solid transparent;
   background: rgba(5, 11, 23, 0.46);
-  cursor: pointer;
   transition: border-color 150ms ease, background-color 150ms ease;
-}
-.download-destination:focus-visible {
-  border-color: rgba(var(--color-accent-rgb), 0.4);
-  background: rgba(var(--color-accent-rgb), 0.08);
-  outline: 2px solid rgba(var(--color-accent-rgb), 0.78);
-  outline-offset: 2px;
 }
 
 .download-destination__icon {
@@ -24646,10 +24618,6 @@ video {
 }
 .download-destination__icon i {
   font-size: 15px;
-}
-.download-destination__icon:hover {
-  border-color: rgba(var(--color-accent-rgb), 0.54);
-  background: rgba(var(--color-accent-rgb), 0.12);
 }
 
 .download-destination__meta {
@@ -24680,12 +24648,6 @@ video {
   line-height: 1.25;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.download-destination__meta:hover .download-destination__path {
-  color: var(--color-accent);
-  text-decoration: underline;
-  text-underline-offset: 2px;
 }
 
 .download-destination__actions {
@@ -25149,6 +25111,7 @@ video {
   gap: 11px;
   min-height: 38px;
   padding: 3px 6px 3px 8px;
+  border: 1px solid transparent;
   border-radius: var(--border-radius);
   background: rgba(35, 46, 62, 0.2);
   transition: border-color 0.18s ease, background-color 0.18s ease;
@@ -25156,6 +25119,10 @@ video {
 .downloader-quality-field:focus-within {
   border-color: rgba(var(--thunder-blue-rgb), 0.58);
   background: rgba(35, 46, 62, 0.34);
+}
+.downloader-quality-field:hover:not(:focus-within) {
+  border-color: rgba(150, 184, 226, 0.12);
+  background: rgba(35, 46, 62, 0.29);
 }
 
 .downloader-quality-field__icon {
@@ -25201,6 +25168,7 @@ video {
 
 .downloader-quality-select {
   min-width: 0;
+  border-radius: 9px;
 }
 
 .downloader-quality-select.is-open {
@@ -25208,29 +25176,99 @@ video {
 }
 
 .downloader-quality-select .settings-cookies-select__trigger {
-  min-height: 32px;
-  padding: 0 8px;
-  border-color: transparent;
-  background: transparent;
-  color: var(--color-accent);
+  min-height: 36px;
+  padding: 0 10px;
+  border-color: rgba(150, 184, 226, 0.15);
+  border-radius: 9px;
+  background: rgba(4, 10, 20, 0.38);
+  color: rgba(239, 245, 255, 0.94);
   font-size: 0.8rem;
-  font-weight: 500;
+  font-weight: 600;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+  transition: border-color 150ms ease, background-color 150ms ease, box-shadow 150ms ease;
+}
+.downloader-quality-select .settings-cookies-select__trigger:hover:not(:disabled) {
+  border-color: rgba(var(--color-accent-rgb), 0.4);
+  background: rgba(var(--color-accent-rgb), 0.075);
+}
+.downloader-quality-select .settings-cookies-select__trigger:focus-visible {
+  outline: 2px solid rgba(var(--color-accent-rgb), 0.68);
+  outline-offset: 2px;
+}
+.downloader-quality-select .settings-cookies-select__trigger > i {
+  flex: 0 0 auto;
+  color: rgba(194, 211, 235, 0.64);
+  transition: color 150ms ease, transform 150ms ease;
+}
+
+.downloader-quality-select.is-open .settings-cookies-select__trigger {
+  border-color: rgba(var(--color-accent-rgb), 0.62);
+  background: rgba(var(--color-accent-rgb), 0.1);
+  box-shadow: 0 0 0 2px rgba(var(--color-accent-rgb), 0.1);
+}
+.downloader-quality-select.is-open .settings-cookies-select__trigger > i {
+  color: var(--color-accent);
+  transform: rotate(180deg);
 }
 
 .downloader-quality-select .settings-cookies-select__trigger > span {
+  min-width: 0;
+  flex: 1 1 auto;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .downloader-quality-select .settings-cookies-select__trigger:disabled {
-  opacity: 0.5;
+  border-color: rgba(150, 184, 226, 0.08);
+  background: rgba(4, 10, 20, 0.2);
+  color: rgba(211, 222, 239, 0.48);
+  opacity: 1;
   cursor: not-allowed;
+}
+.downloader-quality-select .settings-cookies-select__trigger:disabled > i {
+  color: rgba(194, 211, 235, 0.34);
 }
 
 .downloader-quality-select .settings-cookies-select__menu {
   min-width: 100%;
-  max-height: min(280px, 45vh);
+  max-height: min(300px, 48vh);
+  padding: 5px;
+  border-color: rgba(150, 184, 226, 0.2);
+  border-radius: 11px;
+  background: linear-gradient(155deg, rgba(14, 25, 42, 0.99), rgba(6, 13, 24, 0.99));
+  box-shadow: 0 18px 42px rgba(0, 3, 11, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.025);
+  scrollbar-color: rgba(150, 184, 226, 0.28) transparent;
+}
+
+.downloader-quality-select .settings-cookies-select__option {
+  min-width: 0;
+  min-height: 38px;
+  gap: 12px;
+  padding: 0 10px;
+  color: rgba(204, 217, 237, 0.82);
+  font-size: 0.78rem;
+  text-align: left;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+.downloader-quality-select .settings-cookies-select__option:hover:not(:disabled), .downloader-quality-select .settings-cookies-select__option:focus-visible {
+  background: rgba(var(--color-accent-rgb), 0.12);
+  color: rgba(247, 250, 255, 0.98);
+  outline: none;
+}
+.downloader-quality-select .settings-cookies-select__option[aria-selected=true] {
+  background: rgba(var(--color-accent-rgb), 0.16);
+  color: rgba(247, 250, 255, 0.98);
+  font-weight: 650;
+}
+.downloader-quality-select .settings-cookies-select__option:disabled {
+  color: rgba(204, 217, 237, 0.34);
+  cursor: not-allowed;
+}
+.downloader-quality-select .settings-cookies-select__option > i {
+  flex: 0 0 auto;
+  margin-left: auto;
+  color: var(--color-accent);
 }
 
 .downloader-selection-card__summary {
@@ -25276,10 +25314,11 @@ video {
 }
 
 .downloader-selection-card__actions {
-  flex: 0 0 auto;
+  min-width: 0;
+  flex: 0 1 auto;
   margin-left: auto;
   display: grid;
-  grid-template-columns: max-content max-content;
+  grid-template-columns: minmax(0, max-content) minmax(0, max-content);
   gap: 10px;
 }
 
@@ -25296,10 +25335,37 @@ video {
 }
 
 .downloader-selection-card__download .button-text {
+  flex: 0 1 auto;
   min-width: 0;
   white-space: normal;
+  overflow-wrap: anywhere;
   text-align: center;
   text-overflow: clip;
+}
+
+.downloader-selection-card__footer.is-downloading .downloader-selection-card__enqueue {
+  display: none;
+}
+
+.downloader-selection-card__footer.is-downloading {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 10px;
+}
+
+.downloader-selection-card__footer.is-downloading .downloader-selection-card__actions {
+  display: contents;
+}
+
+.downloader-selection-card__footer.is-downloading .downloader-selection-card__download {
+  grid-column: 1/-1;
+  grid-row: 1;
+  width: 100%;
+}
+
+.downloader-selection-card__footer.is-downloading .downloader-advanced-formats {
+  grid-column: 1;
+  grid-row: 2;
 }
 
 .downloader-selection-card__enqueue {
@@ -27130,12 +27196,27 @@ video {
     padding: 0;
   }
   .downloader-selection-card__footer {
-    flex-wrap: wrap;
-    gap: 10px 14px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 10px;
   }
   .downloader-selection-card__actions {
-    flex: 1 1 auto;
-    justify-content: flex-end;
+    display: contents;
+  }
+  .downloader-selection-card__download {
+    grid-column: 1/-1;
+    grid-row: 1;
+    width: 100%;
+  }
+  .downloader-advanced-formats {
+    grid-column: 1;
+    grid-row: 2;
+    width: 100%;
+  }
+  .downloader-selection-card__enqueue {
+    grid-column: 2;
+    grid-row: 2;
+    width: 100%;
   }
 }
 @container downloader-preview (max-width: 600px) {
@@ -27144,6 +27225,10 @@ video {
     align-items: flex-start;
   }
   .downloader-view .url-input-wrapper--downloader .url-input-service-row {
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+  }
+  .downloader-view .url-input-statusline {
     flex: 1 1 100%;
   }
   .downloader-view .url-input-wrapper--downloader .download-destination {
@@ -27156,14 +27241,24 @@ video {
     gap: 8px;
     padding-left: 7px;
   }
-  .download-destination__label {
-    display: none;
-  }
-  .downloader-selection-card__actions {
-    justify-content: stretch;
+  .downloader-selection-card__footer.is-downloading .downloader-selection-card__download {
+    grid-column: 1/-1;
   }
 }
 @container downloader-preview (max-width: 520px) {
+  .downloader-view .download-destination {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr);
+    gap: 5px 8px;
+  }
+  .downloader-view .download-destination__actions {
+    grid-column: 1/-1;
+    justify-content: flex-end;
+  }
+  .downloader-view .download-destination__open,
+  .downloader-view .download-destination__change {
+    flex: 1 1 0;
+  }
   .download-destination__change {
     padding-inline: 9px;
   }
@@ -27172,19 +27267,6 @@ video {
   }
   .downloader-view .url-input-leading {
     display: none;
-  }
-  .downloader-selection-card__footer {
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
-  }
-  .downloader-advanced-formats {
-    margin-right: 0;
-    align-self: center;
-  }
-  .downloader-selection-card__actions {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    flex: 1 1 100%;
   }
   .downloader-selection-card__enqueue,
   .downloader-selection-card__download {
@@ -37456,7 +37538,7 @@ body.format-window {
     justify-content: space-between;
   }
   .downloader-view .download-destination__path {
-    max-width: 28vw;
+    max-width: none;
   }
   .downloader-view #open-history .downloads-toolbar__label {
     display: none;

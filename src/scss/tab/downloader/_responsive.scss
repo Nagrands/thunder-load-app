@@ -21,13 +21,31 @@
   }
 
   .downloader-selection-card__footer {
-    flex-wrap: wrap;
-    gap: 10px 14px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 10px;
   }
 
   .downloader-selection-card__actions {
-    flex: 1 1 auto;
-    justify-content: flex-end;
+    display: contents;
+  }
+
+  .downloader-selection-card__download {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    width: 100%;
+  }
+
+  .downloader-advanced-formats {
+    grid-column: 1;
+    grid-row: 2;
+    width: 100%;
+  }
+
+  .downloader-selection-card__enqueue {
+    grid-column: 2;
+    grid-row: 2;
+    width: 100%;
   }
 }
 
@@ -38,6 +56,11 @@
   }
 
   .downloader-view .url-input-wrapper--downloader .url-input-service-row {
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+  }
+
+  .downloader-view .url-input-statusline {
     flex: 1 1 100%;
   }
 
@@ -53,16 +76,29 @@
     padding-left: 7px;
   }
 
-  .download-destination__label {
-    display: none;
-  }
-
-  .downloader-selection-card__actions {
-    justify-content: stretch;
+  .downloader-selection-card__footer.is-downloading
+    .downloader-selection-card__download {
+    grid-column: 1 / -1;
   }
 }
 
 @container downloader-preview (max-width: 520px) {
+  .downloader-view .download-destination {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr);
+    gap: 5px 8px;
+  }
+
+  .downloader-view .download-destination__actions {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+  }
+
+  .downloader-view .download-destination__open,
+  .downloader-view .download-destination__change {
+    flex: 1 1 0;
+  }
+
   .download-destination__change {
     padding-inline: 9px;
   }
@@ -73,22 +109,6 @@
 
   .downloader-view .url-input-leading {
     display: none;
-  }
-
-  .downloader-selection-card__footer {
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
-  }
-
-  .downloader-advanced-formats {
-    margin-right: 0;
-    align-self: center;
-  }
-
-  .downloader-selection-card__actions {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    flex: 1 1 100%;
   }
 
   .downloader-selection-card__enqueue,

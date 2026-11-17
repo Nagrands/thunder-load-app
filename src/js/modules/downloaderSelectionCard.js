@@ -32,6 +32,7 @@ const elements = {
   summary: document.getElementById("downloader-output-summary"),
   status: document.getElementById("downloader-quality-status"),
   advanced: document.getElementById("downloader-advanced-formats"),
+  footer: document.querySelector(".downloader-selection-card__footer"),
   download: document.getElementById("download-button"),
   enqueue: document.getElementById("enqueue-button"),
 };
@@ -327,6 +328,14 @@ function initDownloaderSelectionCard() {
   [elements.videoSelect, elements.audioSelect, elements.subtitleSelect].forEach(
     (select) => select.addEventListener("change", syncSelectionUi),
   );
+  window.addEventListener("download:state", (event) => {
+    const detail = event?.detail || {};
+    const isBusy =
+      typeof detail.activeCount === "number"
+        ? detail.activeCount > 0
+        : Boolean(detail.isDownloading);
+    elements.footer?.classList.toggle("is-downloading", isBusy);
+  });
   [elements.videoSelect, elements.audioSelect, elements.subtitleSelect].forEach(
     (select, index) => {
       const root = document.querySelector(

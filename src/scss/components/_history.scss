@@ -10,10 +10,6 @@
 .window-controls {
   display: flex;
   gap: 2px;
-  margin-right: 10px;
-  align-items: center;
-  background-color: var(--color-hover);
-  border-radius: var(--border-radius);
 
   button {
     background: transparent;
