@@ -430,11 +430,6 @@ $transition-interactive:
       font-size: 9px;
     }
 
-    .tool-badge.ok {
-      border-color: rgba(61, 220, 151, 0.13);
-      background: rgba(61, 220, 151, 0.045);
-    }
-
     .tool-badge.ok .tool-badge__state {
       color: #72d6a7;
       background: rgba(61, 220, 151, 0.11);
@@ -782,10 +777,10 @@ $transition-interactive:
     min-width: 20px;
     height: 20px;
     place-items: center;
-    border: 1px solid rgba(var(--color-accent-rgb), 0.18);
     border-radius: 999px;
-    background: rgba(var(--color-accent-rgb), 0.08);
-    color: #a9d7ff;
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(229, 239, 255, 0.86);
+    padding: 0 6px;
     font-size: 10px;
     letter-spacing: 0;
   }

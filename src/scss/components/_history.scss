@@ -1371,9 +1371,7 @@
 }
 
 .history-toolbar__heading {
-  font-size: 1.4rem;
-  line-height: 1.15;
-  color: var(--thunder-electric);
+  color: var(--color-accent);
 }
 
 .history-highlight {
@@ -2136,7 +2134,7 @@
 .history-count-pill {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 10px;
   min-height: 38px;
   min-width: 166px;
   padding: 0 12px;

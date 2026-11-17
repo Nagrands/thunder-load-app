@@ -145,7 +145,6 @@
   .download-destination {
     display: grid;
     grid-template-columns: 34px minmax(0, 1fr) 34px;
-    flex: 1 1 320px;
     align-items: center;
     gap: 9px;
     min-width: 0;
@@ -355,7 +354,6 @@
 
 .download-destination__change {
   padding: 0 13px;
-  border: 1px solid rgba(var(--color-accent-rgb), 0.54);
   background: var(--color-hover);
   color: var(--color-accent);
 
@@ -515,7 +513,6 @@
 
 .downloads-toolbar__count {
   padding: 0 6px;
-  border: 1px solid rgba(208, 225, 250, 0.14);
   color: rgba(229, 239, 255, 0.86);
   background: rgba(255, 255, 255, 0.08);
 }
