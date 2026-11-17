@@ -697,9 +697,8 @@ $transition-interactive:
 
     &.active {
       color: var(--color-accent);
-      border-color: rgba(var(--color-accent-rgb), 0.28);
       background: linear-gradient(
-        90deg,
+        240deg,
         rgba(var(--color-accent-rgb), 0.17),
         rgba(var(--color-accent-rgb), 0.055)
       );
@@ -766,7 +765,7 @@ $transition-interactive:
   padding: 0 8px 8px;
   color: var(--thunder-muted);
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 550;
   letter-spacing: 0.09em;
   text-transform: uppercase;
 
@@ -853,8 +852,7 @@ $transition-interactive:
   display: -webkit-box;
   overflow: hidden;
   color: rgba(232, 241, 252, 0.92);
-  font-size: 11px;
-  line-height: 1.35;
+  font-size: 12px;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   overflow-wrap: anywhere;
