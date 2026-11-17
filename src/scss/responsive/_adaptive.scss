@@ -471,15 +471,9 @@ body.format-window {
     white-space: nowrap;
   }
 
-  .downloader-view .download-destination__actions {
-    flex: 0 0 auto;
-    gap: 4px;
-  }
-
   .downloader-view .download-destination__change,
   .downloader-view .url-input-service-row__batch {
     min-height: 34px;
-    padding-inline: 8px;
   }
 
   .downloader-view .url-input-wrapper--downloader .url-drop-zone {
@@ -497,17 +491,6 @@ body.format-window {
     padding: 0;
     border: 0;
     background: transparent;
-  }
-
-  .downloader-view #open-last-video {
-    width: 38px;
-    min-width: 38px;
-    flex: 0 0 38px;
-    padding: 0;
-  }
-
-  .downloader-view #open-last-video .downloads-toolbar__label {
-    display: none;
   }
 
   .downloader-view #open-history .downloads-toolbar__label,
@@ -540,9 +523,6 @@ body.format-window {
     max-width: none;
   }
 
-  .downloader-view #open-history .downloads-toolbar__label {
-    display: none;
-  }
 }
 
 @media (max-height: 620px) and (max-width: 900px) {

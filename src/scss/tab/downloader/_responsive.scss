@@ -65,8 +65,26 @@
   }
 
   .downloader-view .url-input-wrapper--downloader .download-destination {
-    flex: 1 1 100%;
+    flex: 1 1 280px;
     justify-content: space-between;
+  }
+
+  .downloader-view .url-input-wrapper--downloader .url-input-secondary > .downloads-toolbar {
+    margin-left: auto;
+  }
+}
+
+@container downloader-preview (max-width: 520px) {
+  .downloader-view .url-input-wrapper--downloader .download-destination {
+    flex-basis: 100%;
+  }
+
+  .downloader-view .url-input-wrapper--downloader .url-input-secondary > .downloads-toolbar {
+    margin-left: 0;
+  }
+
+  .downloader-view .url-input-wrapper--downloader .downloads-toolbar__actions {
+    justify-content: flex-start;
   }
 }
 
@@ -83,26 +101,6 @@
 }
 
 @container downloader-preview (max-width: 520px) {
-  .downloader-view .download-destination {
-    display: grid;
-    grid-template-columns: 28px minmax(0, 1fr);
-    gap: 5px 8px;
-  }
-
-  .downloader-view .download-destination__actions {
-    grid-column: 1 / -1;
-    justify-content: flex-end;
-  }
-
-  .downloader-view .download-destination__open,
-  .downloader-view .download-destination__change {
-    flex: 1 1 0;
-  }
-
-  .download-destination__change {
-    padding-inline: 9px;
-  }
-
   .downloader-view .url-input-main {
     grid-template-columns: minmax(0, 1fr) auto;
   }

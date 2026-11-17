@@ -19,6 +19,7 @@ export default function renderDownloader(wrapper) {
 
     const headerEl = find("header");
     const urlInputWrapper = find(".url-input-wrapper--downloader");
+    const urlInputSecondary = find(".url-input-secondary");
     const buttonGroup = find("nav.button-group");
     const historySection = find("#history-container");
     const downloadsToolbar = find(".downloads-toolbar");
@@ -131,7 +132,8 @@ export default function renderDownloader(wrapper) {
       else glass.appendChild(queueStart);
     }
     if (downloadsToolbar) {
-      if (urlInputWrapper) urlInputWrapper.appendChild(downloadsToolbar);
+      if (urlInputSecondary) urlInputSecondary.appendChild(downloadsToolbar);
+      else if (urlInputWrapper) urlInputWrapper.appendChild(downloadsToolbar);
       else glass.appendChild(downloadsToolbar);
     }
     if (historySection) {

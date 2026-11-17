@@ -173,19 +173,16 @@
           </div>
 
           <div class="download-destination" data-ui="download-destination" role="button" tabindex="0" aria-label="Открыть папку с видео" data-i18n-aria="actions.openFolder" title="Открыть папку с видео" data-i18n-title="actions.videoFolder">
-            <span class="download-destination__icon" aria-hidden="true"><i class="fa-regular fa-folder-open"></i></span>
+            <button id="select-folder" type="button" class="download-destination__change" aria-label="Изменить папку загрузки" data-i18n-aria="downloader.destination.change" data-bs-toggle="tooltip" data-bs-placement="top" title="Изменить папку загрузки" data-i18n-title="downloader.destination.change">
+              <i class="fa-solid fa-folder-open" aria-hidden="true"></i><span class="url-input-action-label sr-only" data-i18n="downloader.destination.change">Изменить папку</span>
+            </button>
             <span class="download-destination__meta">
               <span class="download-destination__label" data-i18n="downloader.destination.label">Сохранить в</span>
               <strong id="download-destination-path" class="download-destination__path" data-i18n="downloader.destination.loading">Загрузка пути…</strong>
             </span>
-            <span class="download-destination__actions">
-              <button id="select-folder" type="button" class="download-destination__change" aria-label="Изменить папку загрузки" data-i18n-aria="downloader.destination.change" title="Изменить папку загрузки" data-i18n-title="downloader.destination.change">
-                <i class="fa-solid fa-folder-open" aria-hidden="true"></i><span class="url-input-action-label" data-i18n="downloader.destination.change">Изменить</span>
-              </button>
-              <button id="open-batch-review" type="button" class="url-input-service-row__batch" aria-label="Несколько URL…" data-i18n-aria="batchReview.open" title="Несколько URL…" data-i18n-title="batchReview.open">
-                <i class="fa-solid fa-list-check" aria-hidden="true"></i><span class="url-input-action-label" data-i18n="batchReview.open">Несколько URL…</span>
-              </button>
-            </span>
+            <button id="open-batch-review" type="button" class="url-input-service-row__batch" aria-label="Несколько URL…" data-i18n-aria="batchReview.open" data-bs-toggle="tooltip" data-bs-placement="top" title="Несколько URL…" data-i18n-title="batchReview.open">
+              <i class="fa-solid fa-list-check" aria-hidden="true"></i><span class="url-input-action-label sr-only" data-i18n="batchReview.open">Несколько URL…</span>
+            </button>
           </div>
         </div>
 
