@@ -1,13 +1,11 @@
 // src/js/modules/modalHandlers.js
 
 import {
-  shortcutsButton,
   whatsNewModal,
   confirmationModal,
   settingsModal,
 } from "./domElements.js";
 import { closeAllModals } from "./modalManager.js";
-import { openSettingsWithTab } from "./settingsModal.js";
 
 function initModalHandlers() {
   const firstRunModal = document.getElementById("first-run-modal");
@@ -19,11 +17,6 @@ function initModalHandlers() {
     firstRunModal,
     // Добавьте другие модальные окна здесь
   ];
-
-  shortcutsButton?.addEventListener("click", () => {
-    closeAllModals(modals);
-    openSettingsWithTab("shortcuts-settings");
-  });
 
   // Закрытие модальных окон при клике вне их области
   window.addEventListener("click", (event) => {

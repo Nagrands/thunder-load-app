@@ -12290,7 +12290,6 @@ body.ready {
 .close-whats-new,
 .group-menu button,
 .app-version-label,
-.quick-actions,
 .window-controls button {
   -webkit-app-region: no-drag;
 }
@@ -13104,17 +13103,36 @@ body.low-effects .app-sidebar__panel {
 
 .app-sidebar-history__item {
   display: flex;
+  width: 100%;
   min-width: 0;
   gap: 9px;
   padding: 8px;
   border: 1px solid transparent;
   border-radius: 9px;
   background: rgba(255, 255, 255, 0.018);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
   transition: background-color 160ms ease, border-color 160ms ease;
 }
 .app-sidebar-history__item:hover {
   border-color: rgba(255, 255, 255, 0.07);
   background: rgba(255, 255, 255, 0.045);
+}
+.app-sidebar-history__item.is-current {
+  border-color: rgba(var(--color-accent-rgb), 0.48);
+  background: rgba(var(--color-accent-rgb), 0.12);
+}
+.app-sidebar-history__item:focus-visible {
+  outline: 2px solid rgba(var(--color-accent-rgb), 0.72);
+  outline-offset: 2px;
+}
+
+.history-row--sidebar-target {
+  border-color: rgba(var(--color-accent-rgb), 0.65) !important;
+  background: rgba(var(--color-accent-rgb), 0.1) !important;
+  box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb), 0.13);
 }
 
 .app-sidebar-history__status {
@@ -13547,6 +13565,9 @@ body.low-effects .app-sidebar__action--tools.is-busy {
   }
 }
 @media (max-width: 560px) {
+  .app-sidebar__statusbar {
+    display: none;
+  }
   .app-sidebar__tools-nav {
     display: none !important;
   }
@@ -13572,6 +13593,11 @@ body.low-effects .app-sidebar__action--tools.is-busy {
   }
   .app-sidebar__tab-nav .menu-item .menu-main {
     justify-content: center;
+  }
+}
+@media (max-height: 540px) {
+  .app-sidebar__statusbar {
+    display: none;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -13953,52 +13979,6 @@ body.low-effects .app-sidebar__action--tools.is-busy {
   justify-content: center;
 }
 
-.top-bar__right-group {
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 10px;
-  flex-wrap: nowrap;
-  min-width: 0;
-}
-
-.quick-actions {
-  -webkit-app-region: no-drag;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px;
-}
-.quick-actions .menu-item {
-  width: var(--topbar-control-size);
-  height: var(--topbar-control-size);
-  color: var(--color-highlight);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 15px;
-  transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
-}
-.quick-actions .menu-item .menu-main {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  white-space: nowrap;
-}
-.quick-actions .menu-item .menu-text {
-  display: none !important;
-  font-size: 12px;
-  font-weight: 600;
-}
-.quick-actions .menu-item:hover {
-  color: var(--color-accent);
-}
-.quick-actions .menu-item:focus-visible {
-  outline: 2px solid rgba(var(--color-accent-rgb), 0.7);
-  outline-offset: 2px;
-}
-
 .window-controls {
   -webkit-app-region: no-drag;
   display: inline-flex;
@@ -14029,18 +14009,15 @@ body.low-effects .app-sidebar__action--tools.is-busy {
   border-color: transparent;
 }
 
+body:not(.is-mac) .top-bar.is-scrolled .window-controls button {
+  border-color: rgba(0, 0, 0, 0.48);
+  background: rgba(0, 0, 0, 0.42);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.035);
+}
+
 @media (min-width: 1440px) {
   .top-bar {
     column-gap: 22px;
-  }
-  .quick-actions {
-    gap: 5px;
-    padding: 4px;
-  }
-  .quick-actions .menu-item {
-    width: var(--topbar-control-size);
-    min-width: var(--topbar-control-size);
-    padding: 0;
   }
 }
 @media (max-width: 1023px) {
@@ -14081,9 +14058,6 @@ body.low-effects .app-sidebar__action--tools.is-busy {
     --topbar-padding-x: 10px;
     padding: 8px var(--topbar-padding-x) 6px;
   }
-  .top-bar__right-group {
-    gap: 6px;
-  }
   .window-controls {
     gap: 6px;
   }
@@ -14112,16 +14086,6 @@ body.low-effects .app-sidebar__action--tools.is-busy {
 body.is-mac .top-bar {
   padding-left: 96px;
   padding-right: 14px;
-}
-body.is-mac .top-bar__right-group {
-  gap: 8px;
-}
-body.is-mac .quick-actions {
-  gap: 4px;
-  padding: 4px;
-}
-body.is-mac .quick-actions .menu-item {
-  font-size: 14px;
 }
 body.is-mac .window-controls {
   position: absolute;
@@ -37119,9 +37083,6 @@ body.format-window {
     overflow: hidden;
     clip-path: inset(50%);
     white-space: nowrap;
-  }
-  .quick-actions {
-    display: none;
   }
   body:not(.is-mac) .window-controls button {
     min-width: 40px;

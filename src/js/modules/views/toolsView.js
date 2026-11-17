@@ -100,9 +100,15 @@ export default function renderToolsView() {
     ["media-inspector", "fa-film", "tools.nav.current.mediaInspector"],
     ["backup", "fa-box-archive", "tools.nav.current.backup"],
   ];
-  const renderToolNavigation = (className) => toolNavigationItems.map(
-    ([tool, icon, labelKey]) => `<button type="button" class="${className}" data-tool-nav="${tool}" data-i18n-title="${labelKey}" title="${t(labelKey)}" aria-label="${t(labelKey)}"><i class="fa-solid ${icon}" aria-hidden="true"></i><span data-i18n="${labelKey}">${t(labelKey)}</span></button>`,
-  ).join("");
+  const renderToolNavigation = (className) => {
+    const tooltipAttrs =
+      className === "app-sidebar__tool-item"
+        ? 'data-bs-toggle="tooltip" data-bs-placement="right"'
+        : "";
+    return toolNavigationItems.map(
+      ([tool, icon, labelKey]) => `<button type="button" class="${className}" data-tool-nav="${tool}" ${tooltipAttrs} data-i18n-title="${labelKey}" title="${t(labelKey)}" aria-label="${t(labelKey)}"><i class="fa-solid ${icon}" aria-hidden="true"></i><span data-i18n="${labelKey}">${t(labelKey)}</span></button>`,
+    ).join("");
+  };
   let desktopToolNavigation = null;
 
   const mountDesktopToolNavigation = () => {
@@ -116,6 +122,7 @@ export default function renderToolsView() {
     desktopToolNavigation.setAttribute("role", "group");
     desktopToolNavigation.innerHTML = renderToolNavigation("app-sidebar__tool-item");
     toolsTab.insertAdjacentElement("afterend", desktopToolNavigation);
+    initTooltips(desktopToolNavigation);
     const syncVisibility = (event) => {
       desktopToolNavigation?.classList.toggle(
         "is-visible",

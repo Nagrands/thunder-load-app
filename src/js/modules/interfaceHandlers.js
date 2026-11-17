@@ -6,7 +6,6 @@ import {
   closeSettingsButton,
   filterInput,
   clearFilterInputButton,
-  githubButton,
 } from "./domElements.js";
 import {
   openSettings,
@@ -31,13 +30,6 @@ function initInterfaceHandlers() {
     if (event.target === settingsModal) {
       closeSettings();
     }
-  });
-
-  githubButton?.addEventListener("click", () => {
-    window.electron.invoke(
-      "open-external-link",
-      "https://github.com/Nagrands/thunder-load-app",
-    );
   });
 
   clearFilterInputButton.addEventListener("click", () => {

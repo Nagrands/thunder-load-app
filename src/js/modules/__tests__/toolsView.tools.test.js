@@ -343,6 +343,8 @@ describe("toolsView quick actions", () => {
     const desktopNav = groupMenu.querySelector(".app-sidebar__tools-nav");
     expect(desktopNav).not.toBeNull();
     expect(desktopNav?.classList.contains("is-visible")).toBe(true);
+    expect(desktopNav?.querySelector('[data-tool-nav="hash"]')?.dataset.bsToggle).toBe("tooltip");
+    expect(desktopNav?.querySelector('[data-tool-nav="hash"]')?.dataset.bsPlacement).toBe("right");
     expect(desktopNav?.querySelector('[data-tool-nav="launcher"]')?.getAttribute("aria-current")).toBe("page");
 
     desktopNav?.querySelector('[data-tool-nav="hash"]')?.click();

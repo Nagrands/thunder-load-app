@@ -989,6 +989,78 @@ describe("Downloader history list", () => {
     jest.useRealTimers();
   });
 
+  test("opens history, clears filters, paginates to and highlights a sidebar target", async () => {
+    localStorage.setItem("historyPageSize", "4");
+    localStorage.setItem("lastSearch", "not a match");
+    localStorage.setItem("historySourceFilter", "youtube.com");
+    localStorage.setItem("historyStatusFilter", "missing");
+    localStorage.setItem("currentSortMode", "audio");
+    document.getElementById("history-sort-mode").innerHTML = `
+      <option value="video">Видео</option>
+      <option value="audio">Аудио</option>
+      <option value="mixed">Смешано</option>`;
+    const { initHistory } = await import("../history.js");
+    const { state, setHistoryData } = await import("../state.js");
+    const { filterAndSortHistory } = jest.requireMock(
+      "../filterAndSortHistory.js",
+    );
+    const entries = Array.from({ length: 6 }, (_, index) =>
+      createEntry({
+        id: `sidebar-${index}`,
+        fileName: `Video ${index}`,
+        timestamp: new Date(Date.UTC(2026, 0, 6 - index)).toISOString(),
+      }),
+    );
+    setHistoryData(entries);
+    state.historyHydrated = true;
+    state.historyStale = false;
+    state.historyVisible = false;
+    state.currentSearchQuery = "not a match";
+    state.historySourceFilter = "youtube.com";
+    state.historyStatusFilter = "missing";
+    state.currentSortMode = "audio";
+    state.historyPageSize = 4;
+    initHistory();
+
+    const groupMenu = document.createElement("div");
+    groupMenu.className = "group-menu";
+    const toolsTab = document.createElement("button");
+    toolsTab.className = "menu-item active";
+    toolsTab.dataset.menu = "wireguard";
+    const downloadTab = document.createElement("button");
+    downloadTab.className = "menu-item";
+    downloadTab.dataset.menu = "download";
+    downloadTab.addEventListener("click", () => {
+      toolsTab.classList.remove("active");
+      downloadTab.classList.add("active");
+    });
+    groupMenu.append(toolsTab, downloadTab);
+    document.body.appendChild(groupMenu);
+
+    const row = document.createElement("div");
+    row.className = "history-row";
+    row.dataset.id = "sidebar-5";
+    document.getElementById("history").appendChild(row);
+    window.dispatchEvent(
+      new CustomEvent("history:focus-entry-requested", {
+        detail: { id: "sidebar-5" },
+      }),
+    );
+
+    expect(state.historyVisible).toBe(true);
+    expect(downloadTab.classList.contains("active")).toBe(true);
+    expect(document.getElementById("history-container").style.display).toBe(
+      "block",
+    );
+    expect(state.currentSearchQuery).toBe("");
+    expect(state.historySourceFilter).toBe("");
+    expect(state.historyStatusFilter).toBe("all");
+    expect(state.currentSortMode).toBe("mixed");
+    expect(state.historyPage).toBe(2);
+    expect(row.classList.contains("history-row--sidebar-target")).toBe(true);
+    expect(filterAndSortHistory).toHaveBeenCalledWith("", "desc", true);
+  });
+
   test("updates active filters badge and resets filters to defaults", async () => {
     const sourceSelect = document.getElementById("history-source-filter");
     sourceSelect.innerHTML = `

@@ -19,6 +19,7 @@ describe("sidebarNavigation", () => {
           </button>
         </div></div>
       </div></div>
+      <span id="downloads-history-count">15</span>
       <aside id="app-sidebar" class="app-sidebar">
         <div class="app-sidebar__panel">
           <button id="app-sidebar-toggle"><i class="fa-solid fa-angles-left"></i></button>
@@ -105,7 +106,29 @@ describe("sidebarNavigation", () => {
     expect(list.textContent).toContain("Completed");
     expect(list.textContent).toContain("Failed");
     expect(list.textContent).not.toContain("data:image/png");
-    expect(document.getElementById("app-sidebar-history-count").textContent).toBe("2");
+    expect(document.getElementById("app-sidebar-history-count").textContent).toBe("15");
+  });
+
+  test("keeps the total history count and requests focus for a selected recent entry", async () => {
+    getHistoryDataMock.mockReturnValue([
+      { id: "entry-1", fileName: "Recent file.mp4", timestamp: "2026-11-16T10:30:00.000Z" },
+    ]);
+    const { initSidebarNavigation } = await loadModule();
+    initSidebarNavigation();
+    const item = document.querySelector(".app-sidebar-history__item");
+    const onFocusEntry = jest.fn();
+    window.addEventListener("history:focus-entry-requested", onFocusEntry);
+
+    item.click();
+
+    expect(item.classList.contains("is-current")).toBe(true);
+    expect(onFocusEntry).toHaveBeenCalledWith(
+      expect.objectContaining({ detail: { id: "entry-1" } }),
+    );
+    window.dispatchEvent(
+      new CustomEvent("history:total-count-changed", { detail: { count: 21 } }),
+    );
+    expect(document.getElementById("app-sidebar-history-count").textContent).toBe("21");
   });
 
   test("honors the hidden sidebar-history preference", async () => {

@@ -15,6 +15,7 @@ const dom = {
   historySection: null,
   historyList: null,
   historyCount: null,
+  downloadsHistoryCount: null,
 };
 
 const state = {
@@ -22,6 +23,7 @@ const state = {
   activeTabId: "download",
   toolsHiddenByPreference: false,
   sidebarCollapsed: false,
+  focusedHistoryId: "",
 };
 
 function setSoftVisibility(element, visible) {
@@ -43,6 +45,9 @@ function bindDom() {
   dom.historySection = document.getElementById("app-sidebar-history");
   dom.historyList = document.getElementById("app-sidebar-history-list");
   dom.historyCount = document.getElementById("app-sidebar-history-count");
+  dom.downloadsHistoryCount = document.getElementById(
+    "downloads-history-count",
+  );
 
   try {
     state.toolsHiddenByPreference =
@@ -72,10 +77,12 @@ function syncFormatVisibility() {
 
 function renderRecentHistory() {
   if (!dom.historySection || !dom.historyList) return;
-  let count = 3;
+  let displayLimit = 3;
   try {
     const savedCount = localStorage.getItem("appSidebarHistoryCount");
-    if (["0", "3", "6"].includes(savedCount)) count = Number(savedCount);
+    if (["0", "3", "6"].includes(savedCount)) {
+      displayLimit = Number(savedCount);
+    }
   } catch {}
   const entries = (Array.isArray(getHistoryData()) ? getHistoryData() : [])
     .map((entry, index) => ({ entry, index, date: getHistoryDate(entry) }))
@@ -85,11 +92,12 @@ function renderRecentHistory() {
       if (b.date === null) return -1;
       return b.date - a.date;
     })
-    .slice(0, count);
-  dom.historySection.hidden = count === 0 || entries.length === 0;
-  if (dom.historyCount) dom.historyCount.textContent = String(entries.length);
+    .slice(0, displayLimit);
+  dom.historySection.hidden = displayLimit === 0 || entries.length === 0;
+  syncTotalHistoryCount();
   dom.historyList.replaceChildren();
   entries.forEach(({ entry, date }) => {
+    const historyId = String(entry?.id ?? "");
     const status =
       entry?.isMissing || entry?.status === "missing"
         ? "missing"
@@ -98,9 +106,29 @@ function renderRecentHistory() {
             entry?.downloadStatus === "failed"
           ? "failed"
           : "completed";
-    const item = document.createElement("article");
+    const listItem = document.createElement("article");
+    listItem.setAttribute("role", "listitem");
+    const item = document.createElement("button");
+    item.type = "button";
     item.className = "app-sidebar-history__item";
-    item.setAttribute("role", "listitem");
+    item.classList.toggle(
+      "is-current",
+      Boolean(historyId) && historyId === state.focusedHistoryId,
+    );
+    item.dataset.historyId = historyId;
+    item.addEventListener("click", () => {
+      if (!historyId) return;
+      state.focusedHistoryId = historyId;
+      dom.historyList
+        .querySelectorAll(".app-sidebar-history__item.is-current")
+        .forEach((current) => current.classList.remove("is-current"));
+      item.classList.add("is-current");
+      window.dispatchEvent(
+        new CustomEvent("history:focus-entry-requested", {
+          detail: { id: historyId },
+        }),
+      );
+    });
     const indicator = document.createElement("span");
     indicator.className = `app-sidebar-history__status is-${status}`;
     indicator.setAttribute("aria-hidden", "true");
@@ -134,8 +162,16 @@ function renderRecentHistory() {
     meta.append(statusText, time);
     content.append(title, meta);
     item.append(indicator, content);
-    dom.historyList.appendChild(item);
+    listItem.appendChild(item);
+    dom.historyList.appendChild(listItem);
   });
+}
+
+function syncTotalHistoryCount(count = null) {
+  if (!dom.historyCount) return;
+  const total =
+    count ?? Number(dom.downloadsHistoryCount?.textContent?.trim() || 0);
+  dom.historyCount.textContent = String(Math.max(0, Number(total) || 0));
 }
 
 function getHistoryDate(entry = {}) {
@@ -235,6 +271,9 @@ function initSidebarNavigation() {
     window.addEventListener("tabs:activated", handleTabsActivated);
     window.addEventListener("i18n:changed", handleI18nChanged);
     window.addEventListener("history:data-changed", renderRecentHistory);
+    window.addEventListener("history:total-count-changed", (event) => {
+      syncTotalHistoryCount(event?.detail?.count);
+    });
     window.addEventListener(
       "app-sidebar:history-count-changed",
       renderRecentHistory,

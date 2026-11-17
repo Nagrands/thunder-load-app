@@ -375,11 +375,6 @@ $transition-interactive:
   padding: 0;
   border-left: 0;
   border-top: 0;
-  padding: 10px;
-  border: 1px solid rgba(145, 174, 210, 0.13);
-  border-radius: 13px;
-  background: linear-gradient(145deg, rgba(20, 37, 58, 0.9), rgba(10, 20, 34, 0.92));
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.17), inset 0 1px rgba(255, 255, 255, 0.035);
 
   .downloader-tools-status__line {
     display: grid;
@@ -806,18 +801,39 @@ $transition-interactive:
 
 .app-sidebar-history__item {
   display: flex;
+  width: 100%;
   min-width: 0;
   gap: 9px;
   padding: 8px;
   border: 1px solid transparent;
   border-radius: 9px;
   background: rgba(255, 255, 255, 0.018);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
   transition: background-color 160ms ease, border-color 160ms ease;
 
   &:hover {
     border-color: rgba(255, 255, 255, 0.07);
     background: rgba(255, 255, 255, 0.045);
   }
+
+  &.is-current {
+    border-color: rgba(var(--color-accent-rgb), 0.48);
+    background: rgba(var(--color-accent-rgb), 0.12);
+  }
+
+  &:focus-visible {
+    outline: 2px solid rgba(var(--color-accent-rgb), 0.72);
+    outline-offset: 2px;
+  }
+}
+
+.history-row--sidebar-target {
+  border-color: rgba(var(--color-accent-rgb), 0.65) !important;
+  background: rgba(var(--color-accent-rgb), 0.1) !important;
+  box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb), 0.13);
 }
 
 .app-sidebar-history__status {
@@ -1343,6 +1359,8 @@ body.low-effects .app-sidebar__action--tools.is-busy {
 }
 
 @media (max-width: $breakpoint-mobile) {
+  .app-sidebar__statusbar { display: none; }
+
   .app-sidebar__tools-nav { display: none !important; }
 
   .app-sidebar__action {
@@ -1370,6 +1388,10 @@ body.low-effects .app-sidebar__action--tools.is-busy {
 
     .menu-main { justify-content: center; }
   }
+}
+
+@media (max-height: 540px) {
+  .app-sidebar__statusbar { display: none; }
 }
 
 // ============================================================

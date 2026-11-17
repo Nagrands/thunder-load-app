@@ -258,61 +258,6 @@
   justify-content: center;
 }
 
-.top-bar__right-group {
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 10px;
-  flex-wrap: nowrap;
-  min-width: 0;
-}
-
-.quick-actions {
-  -webkit-app-region: no-drag;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px;
-
-  .menu-item {
-    width: var(--topbar-control-size);
-    height: var(--topbar-control-size);
-    color: var(--color-highlight);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 15px;
-    transition:
-      color 0.2s ease,
-      border-color 0.2s ease,
-      background-color 0.2s ease,
-      box-shadow 0.2s ease;
-
-    .menu-main {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      white-space: nowrap;
-    }
-
-    .menu-text {
-      display: none !important;
-      font-size: 12px;
-      font-weight: 600;
-    }
-
-    &:hover {
-      color: var(--color-accent);
-    }
-
-    &:focus-visible {
-      outline: 2px solid rgba(var(--color-accent-rgb), 0.7);
-      outline-offset: 2px;
-    }
-  }
-}
-
 .window-controls {
   -webkit-app-region: no-drag;
   display: inline-flex;
@@ -349,22 +294,16 @@
   }
 }
 
+body:not(.is-mac) .top-bar.is-scrolled .window-controls button {
+  border-color: rgba(0, 0, 0, 0.48);
+  background: rgba(0, 0, 0, 0.42);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.035);
+}
+
 @media (min-width: 1440px) {
   .top-bar {
     column-gap: 22px;
   }
-
-  .quick-actions {
-    gap: 5px;
-    padding: 4px;
-
-    .menu-item {
-      width: var(--topbar-control-size);
-      min-width: var(--topbar-control-size);
-      padding: 0;
-    }
-  }
-
 }
 
 @media (max-width: 1023px) {
@@ -386,7 +325,6 @@
     padding: 2px;
     border-radius: 12px;
   }
-
 }
 
 @media (max-width: 640px) {
@@ -411,10 +349,6 @@
     --topbar-control-size: 36px;
     --topbar-padding-x: 10px;
     padding: 8px var(--topbar-padding-x) 6px;
-  }
-
-  .top-bar__right-group {
-    gap: 6px;
   }
 
   .window-controls {
@@ -453,19 +387,6 @@ body.is-mac {
     padding-left: 96px;
     padding-right: 14px;
     // --topbar-control-size: 32px;
-  }
-
-  .top-bar__right-group {
-    gap: 8px;
-  }
-
-  .quick-actions {
-    gap: 4px;
-    padding: 4px;
-
-    .menu-item {
-      font-size: 14px;
-    }
   }
 
   .window-controls {

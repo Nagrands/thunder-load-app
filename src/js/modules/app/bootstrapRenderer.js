@@ -38,7 +38,6 @@ import { initDeveloperModeSidebarVisibility } from "../developerModeSidebar.js";
 import { initPageBackgroundMode } from "../pageBackgroundMode.js";
 import { initScrollLockRepair } from "../scrollLockRepair.js";
 import { initScrollbarVisibility } from "../scrollbarVisibility.js";
-import { initDeveloperModeTopBarVisibility } from "../developerModeTopBar.js";
 import { syncDeveloperModeState } from "../developerMode.js";
 import { initShortcutEditor } from "../features/settings/shortcutEditor.js";
 import { initI18n, t } from "../i18n.js";
@@ -81,7 +80,6 @@ async function runCriticalInitialization(mainView) {
   const disposeI18nListener = registerI18nListeners(tabs);
 
   initDeveloperModeSidebarVisibility();
-  initDeveloperModeTopBarVisibility();
   initDownloaderSelectionCard();
   const batchReviewRuntime = initBatchReviewController();
   initUrlInputHandler();

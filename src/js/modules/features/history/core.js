@@ -51,6 +51,7 @@ import { createHistoryInspector } from "./previewInspector.js";
 import {
   selectHistoryEntriesByIds,
   selectHistoryEntriesByStatus,
+  selectHistoryEntries,
 } from "./selectors.js";
 
 const HISTORY_IMAGE_PLACEHOLDER = "../assets/img/thumbnail-unavailable.png";
@@ -128,6 +129,8 @@ let historySearchClearBound = false;
 let historyLoadPromise = null;
 let historyUpdateTimer = null;
 let historyUpdateGeneration = 0;
+let historyEntryFocusBound = false;
+let focusedSidebarHistoryRow = null;
 let historyUpdateBound = false;
 let downloadsHistoryCountRoot = null;
 let downloadsHistoryNewRoot = null;
@@ -306,6 +309,11 @@ const updateHistoryHeaderStats = ({
   }
   latestHistoryCount = Math.max(0, Number(quickAccessCount) || 0);
   syncDownloadsHistoryButton(latestHistoryCount);
+  window.dispatchEvent(
+    new CustomEvent("history:total-count-changed", {
+      detail: { count: latestHistoryCount },
+    }),
+  );
 };
 
 const normalizePageSize = (value) => {
@@ -507,6 +515,85 @@ function setHistoryPanelVisible(isVisible, { animate = true } = {}) {
   if (filterInput) {
     filterInput.style.display = visible ? "block" : "none";
   }
+}
+
+async function focusHistoryEntryFromSidebar(id) {
+  const historyId = String(id || "");
+  if (!historyId) return;
+
+  const activeTab = document.querySelector(".group-menu .menu-item.active");
+  if (activeTab?.dataset?.menu !== "download") {
+    document.querySelector('.group-menu .menu-item[data-menu="download"]')?.click();
+  }
+
+  if (!state.historyVisible) {
+    unreadHistoryEntries = 0;
+    toggleHistoryVisibility(true);
+  }
+  setHistoryPanelVisible(true);
+  openHistoryButton?.setAttribute("aria-expanded", "true");
+  syncDownloadsHistoryButton();
+
+  if (historyUpdateTimer) {
+    window.clearTimeout(historyUpdateTimer);
+    historyUpdateTimer = null;
+  }
+  if (state.historyStale || !state.historyHydrated) {
+    await refreshHistoryFromDisk();
+  }
+
+  state.currentSearchQuery = "";
+  state.historySourceFilter = "";
+  state.historyStatusFilter = HISTORY_FILTER_DEFAULTS.status;
+  state.currentSortMode = HISTORY_FILTER_DEFAULTS.sortMode;
+  state.historyPage = 1;
+  setFilterInputValue("");
+  if (historySourceFilterSelect) historySourceFilterSelect.value = "";
+  if (historyStatusFilterSelect) {
+    historyStatusFilterSelect.value = HISTORY_FILTER_DEFAULTS.status;
+  }
+  if (historySortModeSelect) {
+    historySortModeSelect.value = HISTORY_FILTER_DEFAULTS.sortMode;
+  }
+  historySelectUIs.source?.updateLabel?.();
+  historySelectUIs.status?.updateLabel?.();
+  historySelectUIs.sortMode?.updateLabel?.();
+  try {
+    localStorage.removeItem("lastSearch");
+    localStorage.removeItem("historySourceFilter");
+    localStorage.removeItem("historyStatusFilter");
+    localStorage.setItem("currentSortMode", HISTORY_FILTER_DEFAULTS.sortMode);
+  } catch {}
+  updateSearchClearButtonVisibility();
+  updateHistoryActiveFiltersUi();
+
+  const sortedEntries = selectHistoryEntries(getHistoryData(), {
+    query: "",
+    source: "",
+    status: HISTORY_FILTER_DEFAULTS.status,
+    mode: HISTORY_FILTER_DEFAULTS.sortMode,
+    sortKey: state.currentSortKey,
+    sortOrder: state.currentSortOrder,
+  });
+  const entryIndex = sortedEntries.findIndex(
+    (entry) => String(entry?.id ?? "") === historyId,
+  );
+  if (entryIndex < 0) return;
+
+  state.historyPage = Math.floor(entryIndex / state.historyPageSize) + 1;
+  filterAndSortHistory("", state.currentSortOrder, true);
+  requestAnimationFrame(() => {
+    const row = Array.from(
+      history?.querySelectorAll(".history-row[data-id]") || [],
+    ).find((candidate) => candidate.dataset.id === historyId);
+    if (!row) return;
+    focusedSidebarHistoryRow?.classList.remove("history-row--sidebar-target");
+    focusedSidebarHistoryRow = row;
+    row.classList.add("history-row--sidebar-target");
+    row.tabIndex = -1;
+    row.focus({ preventScroll: true });
+    row.scrollIntoView?.({ behavior: "smooth", block: "center" });
+  });
 }
 
 function goToPage(target) {
@@ -3149,6 +3236,12 @@ function initHistory() {
   if (!historyUpdateBound && window.electron?.onHistoryUpdated) {
     historyUpdateBound = true;
     window.electron.onHistoryUpdated(handleHistoryUpdated);
+  }
+  if (!historyEntryFocusBound) {
+    historyEntryFocusBound = true;
+    window.addEventListener("history:focus-entry-requested", (event) => {
+      void focusHistoryEntryFromSidebar(event?.detail?.id);
+    });
   }
   historySourceFilterSelect?.addEventListener("change", (e) => {
     state.historySourceFilter = e.target.value || "";

@@ -2,10 +2,6 @@ describe("topBarResponsive", () => {
   const buildDom = () => {
     document.body.innerHTML = `
       <div class="top-bar">
-        <div class="top-bar__right-group">
-          <button id="shortcuts-button" type="button"></button>
-          <button id="open-github" type="button"></button>
-        </div>
       </div>
     `;
   };
@@ -82,5 +78,26 @@ describe("topBarResponsive", () => {
         "--topbar-current-height",
       ),
     ).toBe("88px");
+  });
+
+  test("darkens window controls after scrolling down and restores them at the top", () => {
+    jest.isolateModules(() => {
+      const { initTopBarResponsive } = require("../topBarResponsive.js");
+      initTopBarResponsive();
+    });
+    const topBar = document.querySelector(".top-bar");
+    Object.defineProperty(window, "scrollY", {
+      configurable: true,
+      value: 80,
+    });
+    window.dispatchEvent(new Event("scroll"));
+    expect(topBar.classList.contains("is-scrolled")).toBe(true);
+
+    Object.defineProperty(window, "scrollY", {
+      configurable: true,
+      value: 0,
+    });
+    window.dispatchEvent(new Event("scroll"));
+    expect(topBar.classList.contains("is-scrolled")).toBe(false);
   });
 });

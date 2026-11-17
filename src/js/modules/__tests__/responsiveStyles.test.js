@@ -23,6 +23,10 @@ describe("application responsive contract", () => {
     path.join(root, "templates/partials/top-bar.njk"),
     "utf8",
   );
+  const topBarStyles = fs.readFileSync(
+    path.join(root, "src/scss/components/_topbar.scss"),
+    "utf8",
+  );
   const sidebarTemplate = fs.readFileSync(
     path.join(root, "templates/partials/sidebar.njk"),
     "utf8",
@@ -117,14 +121,19 @@ describe("application responsive contract", () => {
     );
     expect(sidebar).toContain("font-size: 22px;");
     expect(topBarTemplate).not.toContain("top-bar__divider");
+    expect(topBarTemplate).not.toContain('id="shortcuts-button"');
+    expect(topBarTemplate).not.toContain('id="open-github"');
+    expect(topBarStyles).toContain(
+      "body:not(.is-mac) .top-bar.is-scrolled .window-controls button",
+    );
   });
 
   test("nests tool navigation in the desktop sidebar and retains the narrow menu", () => {
     expect(sidebar).toContain(".app-sidebar__tools-nav");
     expect(sidebar).toContain(".app-sidebar__tool-item");
-    expect(sidebar).toContain("span { display: none; }");
-    expect(sidebar).toContain(
-      ".app-sidebar__tools-nav { display: none !important; }",
+    expect(sidebar).toMatch(/\.app-sidebar__tool-item \{[\s\S]*?span \{\s*display: none;/);
+    expect(sidebar).toMatch(
+      /\.app-sidebar__tools-nav \{\s*display: none !important;/,
     );
     expect(toolsStyles).toContain("@media (min-width: 901px)");
     expect(toolsStyles).toContain(".tools-sidebar {\n    display: none;");
@@ -140,6 +149,16 @@ describe("application responsive contract", () => {
     expect(sidebar).toContain(".tool-badge {");
     expect(sidebar).toContain("max-width: 100%;");
     expect(sidebar).toContain("text-overflow: ellipsis;");
+  });
+
+  test("hides the sidebar tool status at the compact mobile breakpoint", () => {
+    expect(sidebar).toContain("$breakpoint-mobile: 560px;");
+    expect(sidebar).toMatch(
+      /@media \(max-width: \$breakpoint-mobile\) \{\s*\.app-sidebar__statusbar \{\s*display: none;/,
+    );
+    expect(sidebar).toMatch(
+      /@media \(max-height: 540px\) \{\s*\.app-sidebar__statusbar \{\s*display: none;/,
+    );
   });
 
   test("uses compact downloader spacing while keeping quick actions available", () => {
