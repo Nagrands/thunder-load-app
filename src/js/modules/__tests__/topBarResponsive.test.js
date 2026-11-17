@@ -99,5 +99,14 @@ describe("topBarResponsive", () => {
     });
     window.dispatchEvent(new Event("scroll"));
     expect(topBar.classList.contains("is-scrolled")).toBe(false);
+
+    const scrollingPanel = document.createElement("div");
+    Object.defineProperty(scrollingPanel, "scrollTop", {
+      configurable: true,
+      value: 48,
+    });
+    document.body.appendChild(scrollingPanel);
+    scrollingPanel.dispatchEvent(new Event("scroll", { bubbles: false }));
+    expect(topBar.classList.contains("is-scrolled")).toBe(true);
   });
 });

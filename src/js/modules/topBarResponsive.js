@@ -8,17 +8,24 @@ function initTopBarResponsive() {
     root.style.setProperty("--topbar-current-height", `${next}px`);
   };
 
-  const syncScrollState = () => {
-    const scrollTop =
-      window.scrollY ||
-      window.pageYOffset ||
-      document.documentElement.scrollTop ||
-      0;
+  const syncScrollState = (event) => {
+    const scrollTop = Math.max(
+      Number(window.scrollY) || 0,
+      Number(window.pageYOffset) || 0,
+      Number(document.scrollingElement?.scrollTop) || 0,
+      Number(document.documentElement.scrollTop) || 0,
+      Number(document.body?.scrollTop) || 0,
+      Number(event?.target?.scrollTop) || 0,
+    );
     topBar.classList.toggle("is-scrolled", scrollTop > 0);
   };
 
   window.addEventListener("resize", setCurrentHeight);
   window.addEventListener("scroll", syncScrollState, { passive: true });
+  document.addEventListener("scroll", syncScrollState, {
+    capture: true,
+    passive: true,
+  });
 
   if (typeof window.ResizeObserver === "function") {
     const observer = new window.ResizeObserver(() => {

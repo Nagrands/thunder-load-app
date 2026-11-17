@@ -126,6 +126,10 @@ describe("application responsive contract", () => {
     expect(topBarStyles).toContain(
       "body:not(.is-mac) .top-bar.is-scrolled .window-controls button",
     );
+    expect(topBarStyles).toContain("background-color: #080d16 !important;");
+    expect(topBarStyles).toContain(
+      "body:not(.is-mac) .top-bar.is-scrolled .window-controls .btn-close:hover",
+    );
   });
 
   test("nests tool navigation in the desktop sidebar and retains the narrow menu", () => {
