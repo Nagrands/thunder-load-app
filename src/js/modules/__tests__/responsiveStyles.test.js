@@ -172,7 +172,7 @@ describe("application responsive contract", () => {
       ".downloader-view .downloader-shell-header__hero",
     );
     expect(adaptive).toContain(".downloader-view .url-input-main");
-    expect(adaptive).toContain(".downloader-view #open-last-video");
+    expect(adaptive).toContain(".downloader-view .downloads-toolbar__actions");
     expect(adaptive).toContain(".downloader-view #open-history");
     expect(adaptive).toContain("@media (max-width: 560px)");
   });

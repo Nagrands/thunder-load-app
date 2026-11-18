@@ -1,6 +1,6 @@
-<!-- version: 1.7.0 -->
+<!-- version: 1.7.1 -->
 
-# New in version 1.7.0
+# New in version 1.7.1
 
 | What changed          | What’s new                                                                                               |
 | --------------------- | -------------------------------------------------------------------------------------------------------- |
@@ -9,4 +9,5 @@
 | Download queue        | Tasks are grouped by status, and pending downloads can be reordered.                                     |
 | Media tools           | The tools screen, converter, and media inspector have been refreshed. List formatting opens in a separate window, and the file sorter has been removed. |
 | Web control panel     | The interface now has sidebar navigation and an updated queue view.                                     |
+| Subtitle selection    | Choosing subtitles disables the video and audio selectors to make it clear that only subtitles will be downloaded. Turning subtitles off restores video and audio selection. |
 | Built-in player       | Removed so the app can focus on downloads and media tools.                                                |

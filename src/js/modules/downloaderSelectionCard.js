@@ -125,6 +125,15 @@ function syncCompatibility() {
 function syncSelectionUi() {
   syncCompatibility();
   const subtitle = getSelected(state.subtitleOptions, elements.subtitleSelect);
+  const subtitleOnly = subtitle?.kind === "subtitle";
+  [elements.videoSelect, elements.audioSelect].forEach((select) => {
+    if (!select) return;
+    select.disabled = subtitleOnly || select.options.length === 0;
+    const field = select.closest(".downloader-quality-field");
+    field?.classList.toggle("is-disabled", subtitleOnly);
+    if (field) field.setAttribute("aria-disabled", String(subtitleOnly));
+  });
+  syncQualitySelects();
   const selection = getCurrentSelection();
   if (elements.summary) {
     elements.summary.textContent =

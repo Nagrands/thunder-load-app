@@ -175,7 +175,7 @@ describe("downloaderSelectionCard", () => {
     document.body.innerHTML = `
       <input id="url" value="https://example.com/video" />
       <section id="preview-card">
-        ${["video", "audio", "subtitle"].map((type) => `<div class="settings-cookies-select" data-quality-select="${type}"><button class="settings-cookies-select__trigger"><span data-quality-label></span></button><select id="downloader-${type === "subtitle" ? "subtitle" : type}-quality"></select><div class="settings-cookies-select__menu hidden" role="listbox"></div></div>`).join("")}
+        ${["video", "audio", "subtitle"].map((type) => `<div class="downloader-quality-field"><div class="settings-cookies-select" data-quality-select="${type}"><button class="settings-cookies-select__trigger"><span data-quality-label></span></button><select id="downloader-${type === "subtitle" ? "subtitle" : type}-quality"></select><div class="settings-cookies-select__menu hidden" role="listbox"></div></div></div>`).join("")}
         <span id="downloader-output-summary"></span>
         <span id="downloader-quality-status"></span>
         <button id="downloader-advanced-formats"></button>
@@ -237,6 +237,52 @@ describe("downloaderSelectionCard", () => {
       true,
     );
     expect(document.getElementById("download-button").disabled).toBe(true);
+  });
+
+  test("locks video and audio selectors for subtitle-only downloads and unlocks them when subtitles are off", async () => {
+    const card = await import("../downloaderSelectionCard.js");
+    card.initDownloaderSelectionCard();
+    window.dispatchEvent(
+      new CustomEvent(card.PREVIEW_EVENT, {
+        detail: { info, url: "https://example.com/video" },
+      }),
+    );
+
+    const videoSelect = document.getElementById("downloader-video-quality");
+    const audioSelect = document.getElementById("downloader-audio-quality");
+    const subtitleSelect = document.getElementById(
+      "downloader-subtitle-quality",
+    );
+    const videoTrigger = document.querySelector(
+      '[data-quality-select="video"] .settings-cookies-select__trigger',
+    );
+    const audioTrigger = document.querySelector(
+      '[data-quality-select="audio"] .settings-cookies-select__trigger',
+    );
+
+    expect(videoSelect.disabled).toBe(false);
+    expect(audioSelect.disabled).toBe(false);
+
+    subtitleSelect.value = "subtitle-manual-ru";
+    subtitleSelect.dispatchEvent(new Event("change", { bubbles: true }));
+
+    expect(videoSelect.disabled).toBe(true);
+    expect(audioSelect.disabled).toBe(true);
+    expect(videoTrigger.disabled).toBe(true);
+    expect(audioTrigger.disabled).toBe(true);
+    expect(
+      videoSelect
+        .closest(".downloader-quality-field")
+        .getAttribute("aria-disabled"),
+    ).toBe("true");
+
+    subtitleSelect.value = "subtitle-off";
+    subtitleSelect.dispatchEvent(new Event("change", { bubbles: true }));
+
+    expect(videoSelect.disabled).toBe(false);
+    expect(audioSelect.disabled).toBe(false);
+    expect(videoTrigger.disabled).toBe(false);
+    expect(audioTrigger.disabled).toBe(false);
   });
 
   test("ignores stale preview metadata for a previous URL", async () => {

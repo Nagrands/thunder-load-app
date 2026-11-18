@@ -125,7 +125,10 @@ async function initDownloadActions() {
   }
 
   // Обработчик выбора папки для загрузок
-  selectFolderButton?.addEventListener("click", handleSelectDownloadFolder);
+  selectFolderButton?.addEventListener("click", (event) => {
+    event.stopPropagation();
+    handleSelectDownloadFolder();
+  });
 
   // Получаем текущий путь загрузки из main process
   try {

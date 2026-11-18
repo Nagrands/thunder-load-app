@@ -25087,6 +25087,10 @@ video {
   border-color: rgba(150, 184, 226, 0.12);
   background: rgba(35, 46, 62, 0.29);
 }
+.downloader-quality-field.is-disabled {
+  opacity: 0.58;
+  cursor: not-allowed;
+}
 
 .downloader-quality-field__icon {
   display: inline-grid;
